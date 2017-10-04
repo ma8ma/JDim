@@ -18,12 +18,15 @@
 #include "config.h"
 #endif
 
-#ifdef USE_OPENSSL
-#include <array>
-#include <openssl/sha.h>
-#else // defined USE_GNUTLS
-#include <gnutls/gnutls.h>
-#include <gnutls/crypto.h>
+#if defined (USE_NSS)
+#  include <nss/pk11pub.h>
+#  include <nss/nss.h>
+#elif defined (USE_GNUTLS)
+#  include <gnutls/gnutls.h>
+#  include <gnutls/crypto.h>
+#elif defined (USE_OPENSSL)
+#  include <openssl/sha.h>
+#  include <openssl/hmac.h>
 #endif
 
 #ifdef HAVE_CRYPT_H
@@ -56,25 +59,25 @@ std::string create_sha1( const std::string& key )
 {
     if( key.empty() ) return std::string();
 
-#ifdef USE_OPENSSL
+    std::array< unsigned char, 20 > digest;  // SHA_DIGEST_LENGTH
 
-    constexpr const unsigned int digest_length = SHA_DIGEST_LENGTH;
+#if defined USE_NSS
+    PK11Context* context;
 
-    std::array< unsigned char, digest_length > digest;
+    if( ( context = PK11_CreateDigestContext( SEC_OID_SHA1 ) ) ){
+        unsigned int len = digest.size();
+        PK11_DigestOp( context, reinterpret_cast< const unsigned char* >( key.c_str() ), key.length() );
+        PK11_DigestFinal( context, digest.data(), &len, len );
+        PK11_DestroyContext( context, PR_TRUE );
+    }
 
-    // unsigned char *SHA1( const unsigned char *, size_t, unsigned char * );
-    SHA1( (const unsigned char *)key.c_str(), key.length(), digest.data() );
+#elif defined USE_OPENSSL
+    SHA1( reinterpret_cast< const unsigned char * >( key.c_str() ), key.length(), digest.data() );
 
-#else // defined USE_GNUTLS
-
-    const unsigned int digest_length = ::gnutls_hash_get_len( GNUTLS_DIG_SHA1 );
-
-    std::vector< unsigned char > digest( digest_length );
-
+#elif defined USE_GNUTLS
     if( ::gnutls_hash_fast( GNUTLS_DIG_SHA1, key.c_str(), key.size(), digest.data() ) < 0 ) {
         return std::string{};
     }
-
 #endif
 
 #ifdef _DEBUG
