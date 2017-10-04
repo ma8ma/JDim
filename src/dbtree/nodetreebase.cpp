@@ -25,6 +25,7 @@
 #include "command.h"
 #include "cache.h"
 #include "session.h"
+#include "replacestrmanager.h"
 #include "urlreplacemanager.h"
 #include "cssmanager.h"
 
@@ -1622,6 +1623,14 @@ const char* NodeTreeBase::add_one_dat_line( const char* datline )
         const char* str = section[ 3 ];
         int lng_msg = section_lng[ 3 ];
 
+        // 文字列置換
+        CORE::ReplaceStr_Manager* mgr = CORE::get_replacestr_manager();
+        if( mgr->list_size( CORE::REPLACETARGET_MESSAGE ) ){
+            str_msg = mgr->replace( str, lng_msg, CORE::REPLACETARGET_MESSAGE );
+            str = str_msg.c_str();
+            lng_msg = str_msg.length();
+        }
+
         parse_html( str, lng_msg, COLOR_CHAR, digitlink, bold, false );
     }
 
@@ -1698,6 +1707,14 @@ void NodeTreeBase::parse_name( NODE* header, const char* str, const int lng, con
 
     const bool defaultname = ( m_default_noname.length() == ( size_t )lng_name
             && m_default_noname.compare( 0, lng_name, str, lng_name ) == 0 );
+
+    // 文字列置換
+    CORE::ReplaceStr_Manager* mgr = CORE::get_replacestr_manager();
+    if( mgr->list_size( CORE::REPLACETARGET_NAME ) ){
+        str_name = mgr->replace( str, lng_name, CORE::REPLACETARGET_NAME );
+        str = str_name.c_str();
+        lng_name = str_name.length();
+    }
 
     header->headinfo->block[ BLOCK_NAMELINK ] = create_node_block();
 
@@ -1803,8 +1820,15 @@ void NodeTreeBase::parse_mail( NODE* header, const char* str, const int lng )
 
     header->headinfo->block[ BLOCK_MAIL ] = create_node_block();
 
+    // 文字列置換
     std::string str_mail;
     int lng_mail = lng;
+    CORE::ReplaceStr_Manager* mgr = CORE::get_replacestr_manager();
+    if( mgr->list_size( CORE::REPLACETARGET_MAIL ) ){
+        str_mail = mgr->replace( str, lng, CORE::REPLACETARGET_MAIL );
+        str = str_mail.c_str();
+        lng_mail = str_mail.length();
+    }
 
     if( lng_mail == 0 ){
         create_node_text( "[]", color );
@@ -1828,6 +1852,14 @@ void NodeTreeBase::parse_date_id( NODE* header, const char* str, const int lng )
 {
     std::string str_date;
     int lng_date = lng;
+
+    // 文字列置換
+    CORE::ReplaceStr_Manager* mgr = CORE::get_replacestr_manager();
+    if( mgr->list_size( CORE::REPLACETARGET_DATE ) ){
+        str_date = mgr->replace( str, lng, CORE::REPLACETARGET_DATE );
+        str = str_date.c_str();
+        lng_date = str_date.length();
+    }
 
     constexpr bool digitlink = false;
     constexpr bool bold = false;
