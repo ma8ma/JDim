@@ -40,7 +40,7 @@ std::string Article2ch::create_write_message( const std::string& name, const std
             << "&key="     << get_key();
 
     // キーワード( hana=mogera や suka=pontan など )
-    const std::string keyword = DBTREE::board_keyword_for_write( get_url() );
+    const std::string& keyword = DBTREE::board_keyword_for_write( get_url() );
     if( ! keyword.empty() ) ss_post << "&" << keyword;
 
     // ログイン中
@@ -56,7 +56,7 @@ std::string Article2ch::create_write_message( const std::string& name, const std
             << "&MESSAGE=" << MISC::charset_url_encode( msg, charset );
 
 #ifdef _DEBUG
-    std::cout << "Article2chCompati::create_write_message " << ss_post.str() << std::endl;
+    std::cout << "Article2ch::create_write_message " << ss_post.str() << std::endl;
 #endif
 
     return ss_post.str();

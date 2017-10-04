@@ -127,8 +127,8 @@ bool BoardBase::empty()
 //
 bool BoardBase::equal( const std::string& url )
 {
-    if( url.find( get_root() ) == 0
-        && url.find( get_path_board() + "/" ) != std::string::npos ) return true;
+    if( url.compare( 0, get_root().length(), get_root() ) == 0
+        && url.find( get_path_board() + "/", get_root().length() ) != std::string::npos ) return true;
 
     return false;
 }
@@ -545,9 +545,9 @@ void BoardBase::update_url( const std::string& root, const std::string& path_boa
     m_root = root;
     m_path_board = path_board;
 
-    m_query_dat = std::string();
-    m_query_cgi = std::string();
-    m_query_kako = std::string();
+    m_query_dat.clear();
+    m_query_cgi.clear();
+    m_query_kako.clear();
 
     // modified 時刻をリセット
     // 自動移転処理後に bbsmenu.html を読み込んだときに、bbsmenu.html の

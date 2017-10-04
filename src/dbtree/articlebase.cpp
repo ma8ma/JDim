@@ -346,7 +346,7 @@ time_t ArticleBase::get_time_modified()
 {
     time_t time_out;
     time_out = MISC::datetotime( m_date_modified );
-    if( time_out == 0 ) time_out = time( nullptr ) - 600;
+    if( time_out == 0 ) time_out = time( nullptr ) - ( 60 * 60 );
     return time_out; 
 }
 
