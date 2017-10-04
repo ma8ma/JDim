@@ -747,6 +747,8 @@ Dom* Dom::replaceChild( const int node_type, const std::string& node_name, Dom* 
 {
     Dom* newNode = nullptr;
 
+    if( ! oldNode ) return newNode;
+
     newNode = new Dom( node_type, node_name );
 
     std::list< Dom* >::iterator it = m_childNodes.begin();
@@ -774,6 +776,8 @@ Dom* Dom::replaceChild( const int node_type, const std::string& node_name, Dom* 
 Dom* Dom::insertBefore( const int node_type, const std::string& node_name, Dom* insNode )
 {
     Dom* newNode = nullptr;
+
+    if( ! insNode ) return newNode;
 
     newNode = new Dom( node_type, node_name );
 
