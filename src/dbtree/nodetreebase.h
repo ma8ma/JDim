@@ -334,9 +334,10 @@ namespace DBTREE
         // m_buffer_write に作成した文字列をセットする
         void parse_write( const char* str, const int lng, const std::size_t max_lng_write );
 
-        bool check_anchor( const int mode, const char* str_in, int& n, char* str_out, char* str_link, int lng_link, ANCINFO* ancinfo );
-        int check_link( const char* str_in, const int lng_in, int& n_in, char* str_link, const int lng_link );
-        int check_link_impl( const char* str_in, const int lng_in, int& n_in, char* str_link, const int lng_link, const int linktype, const int delim_pos );
+        bool check_anchor( const int mode, const char* str_in, int& n,
+                           char* str_out, char* str_link, int lng_link, ANCINFO* ancinfo );
+        int check_link( const char* str_in, int& lng_in, char* str_text, size_t& lng_text,
+                        char* str_link, size_t& lng_link );
 
         // レジューム時のチェックデータをキャッシュ
         void set_resume_data( const char* data, size_t length );
@@ -395,26 +396,7 @@ namespace DBTREE
 
         // http://ime.nu/ などをリンクから削除
         bool remove_imenu( char* str_link );
-
-        // 文字列中の"&amp;"を"&"に変換する
-        int convert_amp( char* text, const int n );
     };
-
-
-    //
-    // リンクが現れたかチェックして文字列を取得する関数
-    //   (引数の値は、check_link_impl()を見ること)
-    //
-    inline int NodeTreeBase::check_link( const char* str_in, const int lng_in, int& n_in, char* str_link, const int lng_link )
-    {
-        // http://, https://, ftp://, ttp(s)://, tp(s):// のチェック
-        int delim_pos = 0;
-        const int linktype = MISC::is_url_scheme( str_in, &delim_pos );
-
-        if( linktype == MISC::SCHEME_NONE ) return linktype;
-
-        return check_link_impl( str_in, lng_in, n_in, str_link, lng_link, linktype, delim_pos );
-    }
 }
 
 #endif
