@@ -145,6 +145,9 @@ namespace MISC
     // HTMLアンエスケープ
     std::string html_unescape( const std::string& str );
 
+    // HTMLをプレーンテキストに変換する
+    std::string to_plain( const std::string& html );
+
     // HTML文字参照をデコード( completely=trueの場合は '&' '<' '>' '"' を含める )
     std::string chref_decode( const char* str, const int lng, const bool completely = true );
     inline std::string chref_decode( const std::string& str, const bool completely = true )
