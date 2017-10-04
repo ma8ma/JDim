@@ -275,9 +275,9 @@ bool MISC::is_utf8( std::string_view input, std::size_t read_byte )
 // 各コードの判定でtrueの間は文字数分繰り返されるので
 // 速度の求められる繰り返し処理などで使わない事
 //
-int MISC::judge_char_code( const std::string& str )
+CharCode MISC::judge_char_code( const std::string& str )
 {
-    int code = CHARCODE_UNKNOWN;
+    CharCode code = CHARCODE_UNKNOWN;
 
     if( str.empty() ) return code;
 
@@ -289,9 +289,9 @@ int MISC::judge_char_code( const std::string& str )
     else if( read_byte == str.length() ) code = CHARCODE_ASCII;
     // is_jis()でASCII範囲外のバイトが現れた箇所から判定する
     // UTF-8の範囲
-    else if( is_utf8( str, read_byte ) ) code = CHARCODE_UTF;
+    else if( is_utf8( str, read_byte ) ) code = CHARCODE_UTF8;
     // EUC-JPの範囲
-    else if( is_eucjp( str, read_byte ) ) code = CHARCODE_EUC_JP;
+    else if( is_eucjp( str, read_byte ) ) code = CHARCODE_EUCJP;
     // Shift_JISの範囲
     else if( is_sjis( str, read_byte ) ) code = CHARCODE_SJIS;
 
