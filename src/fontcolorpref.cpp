@@ -237,6 +237,10 @@ void FontColorPref::pack_widget()
     m_chk_use_gtkrc_selection.set_active( CONFIG::get_use_select_gtkrc() );
     m_vbox_color.pack_start( m_chk_use_gtkrc_selection, Gtk::PACK_SHRINK );
 
+    m_chk_use_html_color.add_label( "スレビューで HTML タグで指定された文字色を用いる(_H)", true ),
+    m_chk_use_html_color.set_active( CONFIG::get_use_color_html() );
+    m_vbox_color.pack_start( m_chk_use_html_color, Gtk::PACK_SHRINK );
+
     m_bt_reset_all_colors.signal_clicked().connect( sigc::mem_fun( *this, &FontColorPref::slot_reset_all_colors ) );
     m_vbox_color.pack_end( m_bt_reset_all_colors, Gtk::PACK_SHRINK );
 
@@ -269,12 +273,18 @@ void FontColorPref::slot_ok_clicked()
 #endif
     CONFIG::set_use_tree_gtkrc( m_chk_use_gtkrc_tree.property_active() );
     CONFIG::set_use_select_gtkrc( m_chk_use_gtkrc_selection.property_active() );
+    std::string completely;
+    const bool use_color = m_chk_use_html_color.property_active();
+    if( use_color != CONFIG::get_use_color_html() ){
+        CONFIG::set_use_color_html( use_color );
+        completely = "completely";
+    }
 
     CORE::core_set_command( "relayout_all_bbslist" );
     CORE::core_set_command( "relayout_all_board" );
 
     CORE::core_set_command( "init_font_all_article" );
-    CORE::core_set_command( "relayout_all_article" );
+    CORE::core_set_command( "relayout_all_article", "", completely );
 
     CORE::core_set_command( "relayout_all_message" );
 }
@@ -537,6 +547,7 @@ void FontColorPref::slot_reset_all_colors()
 #endif
     m_chk_use_gtkrc_tree.set_active( CONFIG::CONF_USE_TREE_GTKRC );
     m_chk_use_gtkrc_selection.set_active( CONFIG::CONF_USE_SELECT_GTKRC );
+    m_chk_use_html_color.set_active( CONFIG::CONF_USE_COLOR_HTML );
 
     CONFIG::reset_colors();
 

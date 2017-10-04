@@ -69,6 +69,7 @@ namespace CORE
 #endif
         Gtk::CheckButton m_chk_use_gtkrc_tree;
         Gtk::CheckButton m_chk_use_gtkrc_selection;
+        Gtk::CheckButton m_chk_use_html_color;
 
         Gtk::TreeView m_treeview_color;
         Glib::RefPtr< Gtk::ListStore > m_liststore_color;
