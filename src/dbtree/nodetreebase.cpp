@@ -1176,8 +1176,6 @@ void NodeTreeBase::set_resume_data( const char* data, size_t length )
 //
 void NodeTreeBase::init_loading()
 {
-    clear();
-
     // 一時バッファ作成
     if( ! m_buffer_lines ) m_buffer_lines = ( char* ) malloc( MAXSISE_OF_LINES ); 
     if( ! m_parsed_text ) m_parsed_text = ( char* ) malloc( MAXSISE_OF_LINES );
