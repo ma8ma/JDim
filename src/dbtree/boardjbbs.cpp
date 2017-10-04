@@ -302,9 +302,6 @@ void BoardJBBS::parse_subject( const char* str_subject_txt )
         artinfo.id = MISC::remove_space( artinfo.id );
 
         artinfo.subject.assign( str_subject, lng_subject );
-        artinfo.subject = MISC::remove_space( artinfo.subject );
-        artinfo.subject = MISC::replace_str( artinfo.subject, "&lt;", "<" );
-        artinfo.subject = MISC::replace_str( artinfo.subject, "&gt;", ">" );
 
         const auto num = std::atoi( str_num );
         artinfo.number = ( num < CONFIG::get_max_resnumber() ) ? num : CONFIG::get_max_resnumber();
