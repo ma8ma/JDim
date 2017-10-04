@@ -3,6 +3,7 @@
 //#define _DEBUG
 #include "jddebug.h"
 
+#include "misccharcode.h"
 #include "miscutil.h"
 #include "miscmsg.h"
 #include "jdiconv.h"
@@ -661,7 +662,7 @@ std::string MISC::cut_str( const std::string& str, const unsigned int maxsize )
     const size_t outstr_length = outstr.length();
 
     for( pos = 0, lng_str = 0; pos < outstr_length; pos += byte ){
-        MISC::utf8toucs2( outstr.c_str()+pos, byte );
+        byte = MISC::utf8bytes( outstr.c_str() + pos );
         if( byte > 1 ) lng_str += 2;
         else ++lng_str;
         if( lng_str >= maxsize ) break;
