@@ -188,7 +188,8 @@ void Dom::parse( const std::string& str )
                     current_pos = close_tag_gt_pos + 1;
 
                     // タグの中身を取り出す
-                    const std::string close_tag = MISC::tolower_str( str.substr( close_tag_lt_pos + 1, close_tag_gt_pos - close_tag_lt_pos - 1 ) );
+                    std::string close_tag = str.substr( close_tag_lt_pos + 1, close_tag_gt_pos - close_tag_lt_pos - 1 );
+                    if( m_html ) close_tag = MISC::tolower_str( close_tag );
 
                     // タグ構造が壊れてる場合
                     if( close_tag.empty() ) continue;
@@ -199,10 +200,12 @@ void Dom::parse( const std::string& str )
                     }
 
                     // 空要素でない同名の開始タグを見つけたらカウントを増やす
-                    if( close_tag.compare( 0, name.length(), name ) == 0
-                     && close_tag.compare( close_tag.length() - 1, 1, "/" ) != 0 ) ++count;
+                    if( ( close_tag.compare( 0, element_name.length(), element_name ) == 0
+                          || ( m_html && close_tag.compare( 0, name.length(), name ) == 0 ) )
+                        && close_tag.compare( close_tag.length() - 1, 1, "/" ) != 0 ) ++count;
                     // 終了タグを見つけたらカウントを減らす
-                    else if( close_tag.compare( 0, name.length() + 1, "/" + name ) == 0 ) --count;
+                    else if( close_tag.compare( 0, element_name.length() + 1, "/" + element_name ) == 0
+                             || ( m_html && close_tag.compare( 0, name.length() + 1, "/" + name ) == 0 ) ) --count;
 
                     // 終了タグを見つける必要数が 0 になったらループを抜ける
                     if( count == 0 ) break;
