@@ -409,7 +409,7 @@ void Post::receive_finish()
         DBTREE::board_analyze_keyword_for_write( m_url, m_return_html );
 
         // 現在のメッセージにキーワードが付加されていない時は付け加える
-        const std::string keyword = DBTREE::board_keyword_for_write( m_url );
+        const std::string& keyword = DBTREE::board_keyword_for_write( m_url );
         if( ! keyword.empty() && m_msg.find( keyword ) == std::string::npos ) m_msg += "&" + keyword;
 
         // クッキーのセット
@@ -429,7 +429,7 @@ void Post::receive_finish()
         DBTREE::board_analyze_keyword_for_write( m_url, m_return_html );
 
         // 現在のメッセージにキーワードが付加されていない時は付け加える
-        const std::string keyword = DBTREE::board_keyword_for_write( m_url );
+        const std::string& keyword = DBTREE::board_keyword_for_write( m_url );
         if( ! keyword.empty() && m_msg.find( keyword ) == std::string::npos ) m_msg += "&" + keyword;
 
         // クッキーのセット
