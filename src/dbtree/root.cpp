@@ -443,7 +443,7 @@ void Root::bbsmenu2xml( const std::string& menu )
             // 板として扱うURLかどうかで要素名を変える
             std::string element_name;
             if( CONFIG::use_link_as_board() ) element_name = "board";
-            else if( ( regex.exec( "^https?://.*/.*/$", url, offset, icase, newline, usemigemo, wchar )
+            else if( ( regex.exec( "^(https?:)?//.*/.*/$", url, offset, icase, newline, usemigemo, wchar )
 			            && ( is_2ch( url ) || is_machi( url ) ) )
                      || is_JBBS( url )
                      || is_vip2ch( url )
@@ -536,9 +536,9 @@ int Root::get_board_type( const std::string& url, std::string& root, std::string
     // 2ch
     if( ! etc && is_2ch( url ) ){
 
-        if( regex.exec( "(https?://[^/]*)/([^/]*)/$" , url, offset, icase, newline, usemigemo, wchar ) ){
+        if( regex.exec( "(https?://[^/]*)(/[^/]*)/$" , url, offset, icase, newline, usemigemo, wchar ) ){
             root = regex.str( 1 );
-            path_board = "/" + regex.str( 2 );
+            path_board = regex.str( 2 );
 
             type = TYPE_BOARD_2CH;
         }
@@ -547,9 +547,9 @@ int Root::get_board_type( const std::string& url, std::string& root, std::string
     // JBBS
     else if( is_JBBS( url ) ){
 
-        if( regex.exec( "(https?://[^/]*)/(.*)/(index2?\\.html?)?$" , url, offset, icase, newline, usemigemo, wchar ) ){
-            root = regex.str( 1 );
-            path_board = "/" + regex.str( 2 );
+        if( regex.exec( "(https?://)[^/]*(/.*)/(index2?\\.html?)?$" , url, offset, icase, newline, usemigemo, wchar ) ){
+            root = regex.str( 1 ) + "jbbs.shitaraba.net";
+            path_board = regex.str( 2 );
 
             type = TYPE_BOARD_JBBS;
         }
@@ -558,9 +558,9 @@ int Root::get_board_type( const std::string& url, std::string& root, std::string
     // まち
     else if( is_machi( url ) ){
 
-        if( regex.exec( "(https?://[^/]*)/([^/]*)/(index2?\\.html?)?$" , url, offset, icase, newline, usemigemo, wchar ) ){
+        if( regex.exec( "(https?://[^/]*)(/[^/]*)/(index2?\\.html?)?$" , url, offset, icase, newline, usemigemo, wchar ) ){
             root = regex.str( 1 );
-            path_board = "/" + regex.str( 2 );
+            path_board = regex.str( 2 );
 
             type = TYPE_BOARD_MACHI;
         }
@@ -569,9 +569,9 @@ int Root::get_board_type( const std::string& url, std::string& root, std::string
     // vipサービス
     else if( is_vip2ch( url ) ){
 
-        if( regex.exec( "(https?://[^/]*)/([^/]*)/$" , url, offset, icase, newline, usemigemo, wchar ) ){
+        if( regex.exec( "(https?://[^/]*)(/[^/]*)/$" , url, offset, icase, newline, usemigemo, wchar ) ){
             root = regex.str( 1 );
-            path_board = "/" + regex.str( 2 );
+            path_board = regex.str( 2 );
 
             type = TYPE_BOARD_2CH_COMPATI;
         }
@@ -580,7 +580,7 @@ int Root::get_board_type( const std::string& url, std::string& root, std::string
     // ローカルファイル
     else if( is_local( url ) ){
 
-        root = URL_BOARD_LOCAL;
+        root = "file://";
         path_board = "/local";
 
         type = TYPE_BOARD_LOCAL;
@@ -589,9 +589,9 @@ int Root::get_board_type( const std::string& url, std::string& root, std::string
     // その他は互換型
     else{
 
-        if( regex.exec( "(https?://.*)/([^/]*)/([^\\.]+\\.html?)?$" , url, offset, icase, newline, usemigemo, wchar ) ){
+        if( regex.exec( "(https?://.*)(/[^/]*)/([^\\.]+\\.html?)?$" , url, offset, icase, newline, usemigemo, wchar ) ){
             root = regex.str( 1 );
-            path_board = "/" + regex.str( 2 );
+            path_board = regex.str( 2 );
 
             type = TYPE_BOARD_2CH_COMPATI;
         }
@@ -1067,10 +1067,10 @@ void Root::load_etc()
             if( it == list_etc.end() ) break;
 
             // basic認証
-            if( regex.exec( "https?://([^/]+:[^/]+@)(.+)$" , info.url, offset, icase, newline, usemigemo, wchar ) )
+            if( regex.exec( "(https?://)([^/]+:[^/]+@)(.+)$" , info.url, offset, icase, newline, usemigemo, wchar ) )
             {
-                info.basicauth = regex.str( 1 ).substr( 0, regex.str( 1 ).length() - 1 );
-                info.url = ( info.url[4] == 's' ? "https://" : "http://" ) + regex.str( 2 );
+                info.basicauth = regex.str( 2 ).substr( 0, regex.str( 2 ).length() - 1 );
+                info.url = regex.str( 1 ) + regex.str( 3 );
             }
 
             // board id
