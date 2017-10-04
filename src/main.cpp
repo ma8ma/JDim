@@ -17,7 +17,7 @@
 
 #include "jdlib/miscmsg.h"
 #include "jdlib/miscutil.h"
-#include "jdlib/ssl.h"
+#include "jdlib/jdsocket.h"
 #include "jdlib/jdregex.h"
 
 #include <signal.h>
@@ -535,7 +535,7 @@ int main( int argc, char **argv )
     else MISC::ERRMSG( "failed to connect to gnome session manager" );
 #endif
 
-    JDLIB::init_ssl();
+    JDLIB::tlslib_init();
 
     // 全体設定ロード
     bool init = !( CONFIG::load_conf() );
@@ -641,7 +641,7 @@ int main( int argc, char **argv )
     xsmp_session_end( &xsmpdata );
 #endif
 
-    JDLIB::deinit_ssl();
+    JDLIB::tlslib_deinit();
 
     return 0;
 }

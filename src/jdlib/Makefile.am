@@ -13,7 +13,6 @@ libjdlib_a_SOURCES = \
 	jdiconv.cpp \
 	loader.cpp \
 	imgloader.cpp \
-	ssl.cpp \
 	jdsocket.cpp \
 	loaderdata.cpp \
 	confloader.cpp \
@@ -37,7 +36,6 @@ noinst_HEADERS = \
 	jdiconv.h \
 	loader.h \
 	imgloader.h \
-	ssl.h \
 	jdsocket.h \
 	jdsocketgnutls.h \
 	jdsocketnss.h \
