@@ -2082,6 +2082,7 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
 {
     const char* pos = str;
     const char* pos_end = str + lng;
+    bool in_bold = bold;
     NODE *node;
 
     m_parsed_text.clear();
@@ -2101,7 +2102,34 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
         }
     }
    
-    for( ; pos < pos_end; ++pos, digitlink = false ){
+    for( ; pos < pos_end; digitlink = false ){
+
+        ///////////////////////
+        // 半角空白, LF(0x0A), CR(0x0D)
+        if( *pos == ' ' || *pos == 10 || *pos == 13 ){
+
+            // フラッシュしてから半角空白ノードを作る
+            create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
+            m_parsed_text.clear();
+
+            ++pos;
+            if( pos < pos_end ) {
+                node = create_node_space( NODE_SP, bgcolor );
+                if( fontid != FONT_MAIN ) node->fontid = fontid;
+            }
+
+create_multispace:
+            // 連続スペースノードを作成
+            if( *pos == ' ' ){
+                while( *pos == ' ' ) m_parsed_text.push_back( *pos++ );
+                if( pos < pos_end ){
+                    create_node_multispace( m_parsed_text.c_str(), m_parsed_text.size(), bgcolor, fontid );
+                    m_parsed_text.clear();
+                }
+            }
+
+            continue;
+        }
 
 
         ///////////////////////
@@ -2162,18 +2190,36 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
 
                 if( lng_link && lng_str ){
 
-                    // 特殊文字デコード
-                    if( exec_decode ){
+                    // BE link
+                    if( memcmp( pos_link_start, "javascript:be(", 14 ) == 0 ){
+                        memcpy( tmplink, PROTO_BE, sizeof( PROTO_BE ) );
+                        memcpy( tmplink + sizeof( PROTO_BE ) -1, pos_link_start +14, lng_link -14 -2 );
+                        create_node_link( pos_str_start, lng_str, tmplink, strlen( tmplink ), fgcolor, bgcolor, in_bold, fontid );
+                    }
+                    else{
 
-                        for( int pos_tmp = 0; pos_tmp < lng_str; ++ pos_tmp ){
-                            int n_in = 0;
-                            int n_out = 0;
-                            char out_char[kMaxBytesOfUTF8Char]{}; // FIXME: std::stringを受け付けるdecode_char()を作る
-                            const int ret_decode = DBTREE::decode_char( pos_str_start + pos_tmp, n_in, out_char, n_out, false );
-                            if( ret_decode != NODE_NONE ){
-                                m_parsed_text.append( out_char, n_out );
-                                pos_tmp += n_in;
-                                pos_tmp--;
+                        if( *pos_link_start == '/' || ! memcmp( pos_link_start, "../", 3 ) ){
+                            const size_t link_offset = ( *pos_link_start == '/' ) ? 0 : 2;
+
+                            // アンカーの判定
+                            const size_t pos_root = m_url_readcgi.find_first_of( '/', 8 ); // httpsでも8文字目でOK
+                            if( pos_root == std::string::npos ||
+                                    ! m_url_readcgi.compare( pos_root, m_url_readcgi.length() - pos_root, pos_link_start + link_offset, m_url_readcgi.length() - pos_root ) ){
+
+                                // アンカーは後で処理するのでここは抜ける
+                                pos = pos_str_start;
+                                lng_str = 0;
+                            }
+                            else if( pos_root + lng_link >= LNG_LINK ){
+                                // XXX リンクが長すぎる
+                                pos = pos_str_start;
+                                lng_str = 0;
+                            }
+                            else{
+                                // 相対リンクから完全なURLを作る
+                                m_url_readcgi.copy( tmplink, pos_root );
+                                memcpy( tmplink + pos_root, pos_link_start + link_offset, lng_link - link_offset );
+                                lng_link += pos_root - link_offset;
                             }
                             else {
                                 m_parsed_text.push_back( *( pos_str_start + pos_tmp ) );
@@ -2272,7 +2318,43 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
                 pos += 4;
             }
 
-            // その他のタグは無視。タグを取り除いて中身だけを見る
+            // ボールド <B>
+            else if( ( *( pos + 1 ) == 'b' || *( pos + 1 ) == 'B' ) && *( pos + 2 ) == '>' ){
+
+                // フラッシュ
+                create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
+                m_parsed_text.clear();
+                in_bold = true;
+                pos += 3;
+            }
+
+            // </B>
+            else if( *( pos + 1 ) == '/' && ( *( pos + 2 ) == 'b' || *( pos + 2 ) == 'B' )
+                     && *( pos + 3 ) == '>' ){
+
+                // フラッシュ
+                create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
+                m_parsed_text.clear();
+                in_bold = bold;
+                pos += 4;
+            }
+
+            // 閉じるタグの時は文字色を戻す
+            else if( *( pos + 1 ) == '/' ){
+                // フラッシュ
+                create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
+                m_parsed_text.clear();
+
+                fgcolor = fgcolor_bak;
+                fgcolor_bak = color_text;
+                bgcolor = bgcolor_bak;
+                bgcolor_bak = COLOR_NONE;
+
+                while( pos < pos_end && *pos != '>' ) ++pos;
+                ++pos;
+            }
+
+            // その他のタグはタグを取り除いて中身だけを見る
             else {
 
                 // フラッシュ
@@ -2499,8 +2581,15 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
         }
 
         ///////////////////////
-        // LF(0x0A), CR(0x0D)
-        if( *pos == 0x0A || *pos == 0x0D ){
+        // フォームフィード(0x0C)
+        else if( *pos == '\f' ){
+
+            // フラッシュしてからZWSPノードをつくる
+            create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
+            m_parsed_text.clear();
+            node = create_node_space( NODE_ZWSP, bgcolor );
+            if ( fontid != FONT_MAIN ) node->fontid = fontid;
+            ++pos;
 
             // 無視する
             continue;
