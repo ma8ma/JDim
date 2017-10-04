@@ -79,6 +79,9 @@ namespace MISC
     // str1 を str2 に置き換え
     std::string replace_str( const std::string& str, const std::string& str1, const std::string& str2 );
 
+    // str1 を str2 に置き換え( ignore case 版 )
+    std::string replace_casestr( const std::string& str, const std::string& str1, const std::string& str2 );
+
     // list_inから str1 を str2 に置き換えてリストを返す
     std::list< std::string > replace_str_list( const std::list< std::string >& list_in,
                                                const std::string& str1, const std::string& str2 );
