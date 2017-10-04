@@ -2525,7 +2525,8 @@ void DrawAreaBase::draw_one_text_node( LAYOUT* layout, const CLIPINFO& ci )
     if( color_text == COLOR_CHAR && layout->div && layout->div->css->color >= 0 ) color_text = layout->div->css->color;
 
     int color_back = get_colorid_back();
-    if( layout->div && layout->div->css->bg_color >= 0 ) color_back = layout->div->css->bg_color;
+    if( layout->node && layout->node->color_back != COLOR_NONE ) color_back = layout->node->color_back;
+    else if( layout->div && layout->div->css->bg_color >= 0 ) color_back = layout->div->css->bg_color;
     else if( layout->header && layout->header->css->bg_color >= 0 ) color_back = layout->header->css->bg_color;
 
     // 通常描画
