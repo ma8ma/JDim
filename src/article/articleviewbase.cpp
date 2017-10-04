@@ -1620,11 +1620,10 @@ void ArticleViewBase::show_res( const std::string& num, const bool show_title )
     if( show_title ){
 
         std::string html;
-        std::string tmpstr = DBTREE::board_name( m_url_article );
+        const std::string& tmpstr = DBTREE::board_name( m_url_article );
         if( ! tmpstr.empty() ) html += "[ " + MISC::html_escape( tmpstr ) + " ] ";
 
-        tmpstr = DBTREE::article_subject( m_url_article );
-        if( ! tmpstr.empty() ) html += tmpstr;
+        html += DBTREE::article_modified_subject( m_url_article );
 
         if( ! html.empty() ) append_html( html );
     }
@@ -3693,7 +3692,7 @@ void ArticleViewBase::slot_copy_res( bool ref )
     if( ref ) tmpstr += CONFIG::get_ref_prefix();
     const std::string& board_name = DBTREE::board_name( m_url_article );
     if( ! board_name.empty() ) tmpstr += "[ " + board_name + " ] ";
-    tmpstr += DBTREE::article_subject( m_url_article ) + "\n\n";
+    tmpstr += MISC::to_plain( DBTREE::article_subject( m_url_article ) ) + "\n\n";
     tmpstr += m_article->get_res_str( atoi( m_str_num.c_str() ), ref );
 
     MISC::CopyClipboard( tmpstr );
@@ -3705,7 +3704,7 @@ void ArticleViewBase::slot_copy_res( bool ref )
 //
 void ArticleViewBase::slot_copy_title_url()
 {
-    MISC::CopyClipboard( DBTREE::article_subject( m_url_article ) + '\n' + url_for_copy() );
+    MISC::CopyClipboard( MISC::to_plain( DBTREE::article_subject( m_url_article ) ) + '\n' + url_for_copy() );
 }
 
 
@@ -3720,7 +3719,7 @@ void ArticleViewBase::set_favorite()
     info.type = TYPE_THREAD;
     info.parent = ARTICLE::get_admin()->get_win();
     info.url = m_url_article;;
-    info.name = DBTREE::article_subject( m_url_article );
+    info.name = MISC::to_plain( DBTREE::article_modified_subject( m_url_article ) );
     info.path = Gtk::TreePath( "0" ).to_string();
 
     CORE::DATA_INFO_LIST list_info;
