@@ -11,7 +11,6 @@
 
 #include "loaderdata.h"
 
-#include <netdb.h>
 #include <zlib.h>
 
 #include <functional>
@@ -112,7 +111,6 @@ namespace JDLIB
     class Loader
     {
         LOADERDATA m_data;
-        struct addrinfo* m_addrinfo{};
 
         bool m_stop{}; // = true にするとスレッド停止
         bool m_loading{};

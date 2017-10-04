@@ -90,6 +90,12 @@ namespace CONFIG
         // ipv6使用
         bool use_ipv6{};
 
+        // TLSでノンブロッキングI/Oを使用する
+        bool tls_nonblocking{};
+
+        // TLSでサーバの証明書をチェックする
+        bool verify_cert{};
+
         // 同一ホストに対する最大コネクション数( 1 または 2 )
         int connection_num{};
 

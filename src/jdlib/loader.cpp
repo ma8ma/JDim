@@ -11,7 +11,7 @@
 #include "loader.h"
 #include "miscmsg.h"
 #include "miscutil.h"
-#include "ssl.h"
+#include "jdsocket.h"
 
 #ifdef _DEBUG_TIME
 #include "misctime.h"
@@ -31,16 +31,7 @@
 #include <sstream>
 #include <system_error>
 
-#include <errno.h>
-#include <fcntl.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <signal.h>
-
 #include <glibmm.h>
-
-// _soc : int
-#define SOC_ISVALID(_soc) ( (_soc) >= 0 )
 
 
 constexpr int MAX_LOADER = 10; // 最大スレッド数
@@ -147,8 +138,8 @@ void JDLIB::push_loader_queue( JDLIB::Loader* loader )
     if( loader->get_low_priority() ) queue_loader.push_back( loader );
     else{
 
-        auto pos = std::find_if( queue_loader.cbegin(), queue_loader.cend(),
-                                 []( const auto* ql ) { return ql->get_low_priority(); } );
+        const auto pos = std::find_if( queue_loader.cbegin(), queue_loader.cend(),
+                                       []( const JDLIB::Loader* p ) { return p && p->get_low_priority(); } );
         queue_loader.insert( pos, loader );
     }
 
@@ -607,7 +598,7 @@ bool Loader::run( SKELETON::Loadable* cb, const LOADERDATA& data_in )
     i += 3;
     m_data.protocol = data_in.url.substr( 0, i );
 
-    size_t i2 = m_data.url.find( '/', i );
+    const size_t i2 = m_data.url.find( '/', i );
     if( i2 == std::string::npos ){
 
         m_data.code = HTTP_ERR;
@@ -620,37 +611,7 @@ bool Loader::run( SKELETON::Loadable* cb, const LOADERDATA& data_in )
     m_data.path = m_data.url.substr( i2 );
 
     // ポートセット
-
-    // ホスト名の後に指定されている
-    if( ( i = m_data.host.find( ':' ) ) != std::string::npos ){
-        m_data.port = atoi( m_data.host.substr( i+1 ).c_str() );
-        m_data.host = m_data.host.substr( 0, i );
-    }
-
-    // 明示的に指定
-    else if( data_in.port != 0 ) m_data.port = data_in.port;
-
     // プロトコルを見て自動決定
-    else{
-
-        // http
-        if( m_data.protocol.find( "http://" ) != std::string::npos )
-            m_data.port = data_in.use_ssl ? 443 : 80;
-
-        // https
-        else if( m_data.protocol.find( "https://" ) != std::string::npos ){
-            m_data.port = 443;
-        }
-
-        // その他
-        else{
-
-            m_data.code = HTTP_ERR;
-            m_data.str_code = "unknown protocol : " + m_data.url;
-            MISC::ERRMSG( m_data.str_code );
-            return false;
-        }
-    }
 
     // ssl使用指定
     // HACK: httpsから始まるURLで プロキシを使わない or 2ch系サイトでない 場合はhttpsで送信する
@@ -658,26 +619,64 @@ bool Loader::run( SKELETON::Loadable* cb, const LOADERDATA& data_in )
     const std::string& hostname = m_data.host;
     const auto has_domain = [&hostname]( const char* d ) { return hostname.find( d ) != std::string::npos; };
 
-    if( data_in.use_ssl
-        || ( m_data.protocol.find( "https://" ) != std::string::npos
-             && ( data_in.host_proxy.empty() || std::none_of( domains.cbegin(), domains.cend(), has_domain ) )
-           )
-      ){
+    // https
+    if( m_data.protocol == "https://"
+        && ( data_in.host_proxy.empty() || std::none_of( domains.cbegin(), domains.cend(), has_domain ) )
+    ) {
         m_data.use_ssl = true;
-        m_data.async = false;
+        m_data.port = 443;
     }
+
+    // http or using proxy
+    else if( m_data.protocol == "http://" || m_data.protocol == "https://" ) m_data.port = 80;
+
+    // その他
+    else{
+        m_data.code = HTTP_ERR;
+        m_data.str_code = "unknown protocol : " + m_data.url;
+        MISC::ERRMSG( m_data.str_code );
+        return false;
+    }
+
+    // ポート番号
+    if( data_in.port != 0 ) m_data.port = data_in.port;
+
+    // ホスト名の後に指定されている
+    if( i = m_data.host.find( ':' ); i != std::string::npos ){
+        m_data.port = atoi( m_data.host.substr( i+1 ).c_str() );
+        m_data.host = m_data.host.substr( 0, i );
+    }
+
+    // 明示的にssl使用指定
+    if( data_in.use_ssl ) m_data.use_ssl = true;
 
     // プロキシ
     m_data.host_proxy = data_in.host_proxy;
-
-    // 先頭に *tp:// が付いていたら取り除く
-    if( ! m_data.host_proxy.empty() && m_data.host_proxy.find( "tp://" ) != std::string::npos ){
-        const bool protocol = false;
-        m_data.host_proxy = MISC::get_hostname( m_data.host_proxy , protocol );
+    if( ( i = m_data.host_proxy.find( "://" ) ) != std::string::npos ){
+        const std::string proto = data_in.host_proxy.substr( 0, i );
+        if( proto == "http" ) m_data.protocol_proxy = PROXY_HTTP;
+        else if( proto == "socks4" ) m_data.protocol_proxy = PROXY_SOCKS4;
+        else if( proto == "socks4a" ) m_data.protocol_proxy = PROXY_SOCKS4A;
+        else{
+            m_data.code = HTTP_ERR;
+            m_data.str_code = "unknown proxy protocol : " + proto;
+            MISC::ERRMSG( m_data.str_code );
+            return false;
+        }
+        m_data.host_proxy = m_data.host_proxy.substr( i + 3 );
     }
+    else m_data.protocol_proxy = PROXY_HTTP;
+
+    // プロキシのポート番号
+    if( data_in.port_proxy != 0 ) m_data.port_proxy = data_in.port_proxy;
+
+    // ホスト名の後に指定されている
+    if( i = m_data.host_proxy.rfind( ':' ); i != std::string::npos ){
+        m_data.port_proxy = std::atoi( m_data.host_proxy.substr( i + 1 ).c_str() );
+        m_data.host_proxy = m_data.host_proxy.substr( 0, i );
+    }
+
     if( ! m_data.host_proxy.empty() ){
-        m_data.port_proxy = data_in.port_proxy;
-        if( m_data.port_proxy == 0 ) m_data.port_proxy = 8080;
         m_data.basicauth_proxy = data_in.basicauth_proxy;
     }
 
@@ -695,7 +694,6 @@ bool Loader::run( SKELETON::Loadable* cb, const LOADERDATA& data_in )
     m_data.timeout = MAX( TIMEOUT_MIN, data_in.timeout );
     m_data.ex_field = data_in.ex_field;
     m_data.basicauth = data_in.basicauth;
-    m_data.use_ipv6 = data_in.use_ipv6;
 
 #ifdef _DEBUG    
     std::cout << "host: " << m_data.host << std::endl;
@@ -708,6 +706,7 @@ bool Loader::run( SKELETON::Loadable* cb, const LOADERDATA& data_in )
     std::cout << "agent: " << m_data.agent << std::endl;
     std::cout << "referer: " << m_data.referer << std::endl;
     std::cout << "cookie: " << m_data.cookie_for_request << std::endl;
+    std::cout << "protocol of proxy: " << m_data.protocol_proxy << std::endl;
     std::cout << "proxy: " << m_data.host_proxy << std::endl;
     std::cout << "port of proxy: " << m_data.port_proxy << std::endl;
     std::cout << "proxy basicauth : " << m_data.basicauth_proxy << std::endl;
@@ -754,80 +753,6 @@ void Loader::create_thread()
 }
 
 
-bool Loader::send_connect( const int soc, std::string& errmsg )
-{
-    std::string authority;
-    std::string msg_send;
-
-    authority = m_data.host + ":" + std::to_string( m_data.port );
-    msg_send = "CONNECT " + authority + " HTTP/1.1\r\nHost: " + authority + "\r\n\r\n";
-    size_t send_size = strlen( msg_send.data() );
-    while( send_size > 0 && !m_stop ){
-        if( ! wait_recv_send( soc, false ) ){
-            m_data.code = HTTP_TIMEOUT;
-            errmsg = "send timeout";
-            return false;
-        }
-
-#ifdef MSG_NOSIGNAL
-        ssize_t tmpsize = send( soc, msg_send.data(), send_size, MSG_NOSIGNAL );
-#else
-        // SolarisにはMSG_NOSIGNALが無いのでSIGPIPEをIGNOREする (FreeBSD4.11Rにもなかった)
-        signal( SIGPIPE , SIG_IGN ); /* シグナルを無視する */
-        ssize_t tmpsize = send( soc, msg_send.data(), send_size,0);
-        signal(SIGPIPE,SIG_DFL); /* 念のため戻す */
-#endif // MSG_NOSIGNAL
-
-        if( tmpsize == 0
-            || ( tmpsize < 0 && !( errno == EWOULDBLOCK || errno == EINTR ) ) ){
-
-            m_data.code = HTTP_ERR;
-            errmsg = "send failed : " + m_data.url;
-            errmsg.append( get_error_message( errno ) );
-            return false;
-        }
-
-        if( tmpsize > 0 ) send_size -= tmpsize;
-    }
-
-    char rbuf[256];
-    size_t read_size = 0;
-    while( read_size < sizeof(rbuf) && !m_stop ){
-
-        ssize_t tmpsize;
-
-        if( !wait_recv_send( soc, true ) ){
-            m_data.code = HTTP_TIMEOUT;
-            errmsg = "CONNECT: read timeout in";
-            return false;
-        }
-
-        tmpsize = recv( soc, rbuf + read_size, sizeof(rbuf) - read_size, 0 );
-        if( tmpsize < 0 && errno != EINTR ){
-            m_data.code = HTTP_ERR;
-            errmsg = "CONNECT: recv() failed";
-            errmsg.append( get_error_message( errno ) );
-            return false;
-        }
-
-        if( tmpsize == 0 ) break;
-        if( tmpsize > 0 ){
-            read_size += tmpsize;
-
-            const int ret = receive_header( rbuf, read_size );
-            if( ret == HTTP_ERR ){
-
-                m_data.code = HTTP_ERR;
-                errmsg = "CONNECT: invalid header : " + m_data.url;
-                return false;
-            }
-            else if( ret == HTTP_OK ) return true;
-        }
-    }
-    return false;
-}
-
-
 //
 // 実際の処理部
 //
@@ -836,11 +761,8 @@ void Loader::run_main()
     // エラーメッセージ
     std::string errmsg;
 
-    int soc = -1; // ソケットID
-    bool use_proxy = ( ! m_data.host_proxy.empty() );
+    const bool use_proxy = ( ! m_data.host_proxy.empty() );
 
-    JDLIB::JDSSL* ssl = nullptr;
-    
     // 送信メッセージ作成
     const std::string msg_send = create_msg_send();
     
@@ -850,222 +772,126 @@ void Loader::run_main()
     std::cout <<"send :----------\n" <<  msg_send << "\n---------------\n";
 #endif
 
-    // addrinfo 取得
+    const bool async = ! m_data.use_ssl || CONFIG::get_tls_nonblocking();
+    JDLIB::Socket soc( &m_stop, async );
+    soc.set_timeout( m_data.timeout );
+
+    // socket接続
+    const bool use_ipv6 = CONFIG::get_use_ipv6();
     if( m_data.host_proxy.empty() ){
-        m_addrinfo = get_addrinfo( m_data.host, m_data.port );
-        if( ! m_addrinfo ){
+        if( ! soc.connect( m_data.host, std::to_string( m_data.port ), use_ipv6 ) ){
             m_data.code = HTTP_ERR;
-            errmsg = "getaddrinfo failed : " + m_data.url;
+            errmsg = soc.get_errmsg();
             goto EXIT_LOADING;
         }
     }
     else{
-        m_addrinfo = get_addrinfo( m_data.host_proxy, m_data.port_proxy );
-        if( ! m_addrinfo ){
+        if( ! soc.connect( m_data.host_proxy, std::to_string( m_data.port_proxy ), use_ipv6 ) ){
             m_data.code = HTTP_ERR;
-            errmsg = "getaddrinfo failed : " + m_data.host_proxy;
+            errmsg = soc.get_errmsg();
             goto EXIT_LOADING;
         }
     }
 
-    // ソケット作成
-    soc = socket( m_addrinfo ->ai_family, m_addrinfo ->ai_socktype, m_addrinfo ->ai_protocol );
-    if( ! SOC_ISVALID( soc ) ){
-        m_data.code = HTTP_ERR;
-        errmsg = "socket failed : " + m_data.url;
-        goto EXIT_LOADING;
-    }
+    // 受信用バッファの割り当て
+    assert( m_buf.empty() );
+    m_buf.resize( m_lng_buf );
 
-    // ソケットを非同期に設定
-    if( m_data.async ){
-        int flags;
-        flags = fcntl( soc, F_GETFL, 0);
-        if( flags == -1 || fcntl( soc, F_SETFL, flags | O_NONBLOCK ) < 0 ){
+    // Socksのハンドシェーク
+    if( use_proxy && m_data.protocol_proxy != PROXY_HTTP ){
+
+        if( ! soc.socks_handshake( m_data.host, std::to_string( m_data.port ), m_data.protocol_proxy ) ){
             m_data.code = HTTP_ERR;
-            errmsg = "fcntl failed";
-            goto EXIT_LOADING;
-        }
-    }
-    
-    // サーバにconnect
-    int ret;
-    ret = connect( soc, m_addrinfo ->ai_addr, m_addrinfo ->ai_addrlen );
-    if( ret != 0 ){
-
-        // ノンブロックでまだ接続中
-        if ( !( m_data.async && errno == EINPROGRESS ) ){
-
-            m_data.code = HTTP_ERR;
-            if( ! use_proxy ) errmsg = "connect failed : " + m_data.host;
-            else errmsg = "connect failed : " + m_data.host_proxy;
-            errmsg.append( get_error_message( errno ) );
+            errmsg = soc.get_errmsg();
             goto EXIT_LOADING;
         }
     }
 
-    // connect待ち
-    if( m_data.async ){
+    // HTTP tunneling
+    else if( use_proxy && m_data.protocol_proxy == PROXY_HTTP && m_data.use_ssl ){
 
-        if( ! wait_recv_send( soc, false ) ){
+        // CONNECT
+        std::string msg = "CONNECT ";
+        msg += m_data.host + ":" + std::to_string( m_data.port ) + " HTTP/1.1\r\n";
+        msg += "Host: " + m_data.host + "\r\n";
+        msg += "Proxy-Connection: keep-alive\r\n";
+        if( ! m_data.agent.empty() ) msg += "User-Agent: " + m_data.agent + "\r\n";
+        msg += "\r\n";
 
-            // タイムアウト
-            m_data.code = HTTP_TIMEOUT;
-            errmsg = "connect timeout";
-            goto EXIT_LOADING;
-        }
+        if( soc.write( msg.c_str(), msg.length() ) < 0 ){
 
-        // connectが成功したかチェック
-        int optval;
-        socklen_t optlen = sizeof( int );
-        if( getsockopt( soc, SOL_SOCKET, SO_ERROR, (void *)&optval, &optlen ) < 0 ){
             m_data.code = HTTP_ERR;
-            errmsg = "getsockopt failed";
+            errmsg = soc.get_errmsg();
             goto EXIT_LOADING;
         }
 
-        if( optval != 0 ){
-            m_data.code = HTTP_ERR;
-            errmsg = "connect(getsockopt) failed";
-            goto EXIT_LOADING;
-        }
+        // 読み込み
+        size_t read_size = 0;
+        while( read_size < m_lng_buf && !m_stop ){
 
-#ifdef _DEBUG
-        std::cout << "connect ok\n";
-#endif
+            const ssize_t tmpsize = soc.read( m_buf.data() + read_size, m_lng_buf - read_size );
+            if( tmpsize < 0 ){
+                m_data.code = HTTP_ERR;
+                errmsg = soc.get_errmsg();
+                goto EXIT_LOADING;
+            }
+
+            else if( tmpsize == 0 ) goto EXIT_LOADING;
+            else read_size += tmpsize;
+
+            const int ret = receive_header( m_buf.data(), read_size );
+            if( ret == HTTP_ERR ){
+                m_data.code = HTTP_ERR;
+                errmsg = "invalid proxy header : " + m_data.url;
+                errmsg.append( get_error_message( errno ) );
+                goto EXIT_LOADING;
+            }
+            else if( ret == HTTP_OK ){
+                if( m_data.code < 200 || m_data.code >= 300 ){
+                    goto EXIT_LOADING;
+                }
+                break;
+            }
+        }
     }
 
-    // ssl 初期化とコネクト
+    // TLSのハンドシェーク
     if( m_data.use_ssl ){
 
-        if ( use_proxy ) {
-            if ( ! send_connect( soc, errmsg ) )
-                goto EXIT_LOADING;
-        }
-        ssl = new JDLIB::JDSSL();
-        if( ! ssl->connect( soc, m_data.host.c_str() ) ){
+        if( ! soc.tls_handshake( m_data.host, CONFIG::get_verify_cert() ) ){
             m_data.code = HTTP_ERR;
-            errmsg = ssl->get_errmsg() + " : " + m_data.url;
+            errmsg = soc.get_errmsg();
             goto EXIT_LOADING;
         }
     }
 
     // SEND 又は POST
+    if( soc.write( msg_send.c_str(), msg_send.length() ) < 0 ){
 
-    // 通常
-    if( !ssl ){
-
-        size_t send_size = strlen( msg_send.data() );
-        while( send_size > 0 && !m_stop ){
-
-            // writefds 待ち
-            if( ! wait_recv_send( soc, false ) ){
-
-                // タイムアウト
-                m_data.code = HTTP_TIMEOUT;         
-                errmsg = "send timeout";
-                goto EXIT_LOADING;
-            }
-
-            // SEND 又は POST
-#ifdef MSG_NOSIGNAL
-            ssize_t tmpsize = send( soc, msg_send.data(), send_size, MSG_NOSIGNAL );
-#else
-            // SolarisにはMSG_NOSIGNALが無いのでSIGPIPEをIGNOREする (FreeBSD4.11Rにもなかった)
-            signal( SIGPIPE , SIG_IGN ); /* シグナルを無視する */
-            ssize_t tmpsize = send( soc, msg_send.data(), send_size,0);
-            signal(SIGPIPE,SIG_DFL); /* 念のため戻す */
-#endif // MSG_NOSIGNAL
-
-            if( tmpsize == 0
-                || ( tmpsize < 0 && !( errno == EWOULDBLOCK || errno == EINTR ) ) ){
-
-                m_data.code = HTTP_ERR;
-                errmsg = "send failed : " + m_data.url;
-                errmsg.append( get_error_message( errno ) );
-                goto EXIT_LOADING;
-            }
-
-            if( tmpsize > 0 ) send_size -= tmpsize;
-        }
-
-        if( m_stop ) goto EXIT_LOADING;
-
-#ifdef _DEBUG
-        std::cout << "send ok\n";
-#endif
+        m_data.code = HTTP_ERR;
+        errmsg = soc.get_errmsg();
+        goto EXIT_LOADING;
     }
-
-    // SSL使用
-    else{ 
-
-        if( ssl->write( msg_send.data(), strlen( msg_send.data() ) ) < 0 ){
-
-            m_data.code = HTTP_ERR;
-            errmsg = ssl->get_errmsg() + " : " + m_data.url;
-            goto EXIT_LOADING;
-        }
-    }
-
-    // 受信用バッファを作ってメッセージ受信
-    size_t mrg;
-    mrg = 64; // 一応オーバーフロー避けのおまじない
-    assert( m_buf.empty() );
-    m_buf.resize( m_lng_buf + mrg );
-
-    bool receiving_header;
 
 #ifdef _DEBUG_TIME
     MISC::start_measurement( 1 );
 #endif
 
     // 受信開始
+    bool receiving_header;
     receiving_header = true;
     m_data.length_current = 0;
     m_data.size_data = 0;    
     do{
         // 読み込み
         size_t read_size = 0;
-        while( read_size < m_lng_buf - mrg && !m_stop ){
+        while( read_size < m_lng_buf && !m_stop ){
 
-            ssize_t tmpsize;
-
-            // 通常
-            if( !ssl ){
-
-#ifdef _DEBUG_TIME
-                MISC::start_measurement( 0 );
-#endif
-
-                // readfds 待ち
-                if( !wait_recv_send( soc, true ) ){
-                    // タイムアウト
-                    m_data.code = HTTP_TIMEOUT;         
-                    errmsg = "read timeout";
-                    goto EXIT_LOADING;
-                }
-
-                tmpsize = recv( soc, m_buf.data() + read_size, m_lng_buf - read_size - mrg, 0 );
-                if( tmpsize < 0 && errno != EINTR ){
-                    m_data.code = HTTP_ERR;         
-                    errmsg = "recv() failed";
-                    errmsg.append( get_error_message( errno ) );
-                    goto EXIT_LOADING;
-                }
-
-#ifdef _DEBUG_TIME
-                std::cout << "size = " << tmpsize << " time(ns) = " << MISC::measurement( 0 ) << std::endl;
-#endif
-            }
-
-            // SSL
-            else{
-
-                tmpsize = ssl->read( m_buf.data() + read_size, m_lng_buf - read_size - mrg );
-                if( tmpsize < 0 ){
-                    m_data.code = HTTP_ERR;         
-                    errmsg = ssl->get_errmsg() + " : " + m_data.url;
-                    goto EXIT_LOADING;
-                }
+            const ssize_t tmpsize = soc.read( m_buf.data() + read_size, m_lng_buf - read_size );
+            if( tmpsize < 0 ){
+                m_data.code = HTTP_ERR;
+                errmsg = soc.get_errmsg();
+                goto EXIT_LOADING;
             }
 
             if( tmpsize == 0 ) break;
@@ -1090,8 +916,6 @@ void Loader::run_main()
             }
 
         }
-
-        m_buf[ read_size ] = '\0';
 
         // 停止指定
         if( m_stop ) break;
@@ -1149,7 +973,7 @@ void Loader::run_main()
 
         else {
             m_data.code = HTTP_ERR;
-            errmsg = "unzip() failed : " + m_data.url;
+            errmsg = "unzip() failed";
             goto EXIT_LOADING;
         }
 
@@ -1164,28 +988,6 @@ void Loader::run_main()
 
     // 終了処理
 EXIT_LOADING:
-
-    // ssl クローズ
-    if( ssl ){
-        ssl->close();
-        delete ssl;
-        ssl = nullptr;
-    }
-
-    if( SOC_ISVALID( soc ) ){
-
-        // writefds待ち
-        // 待たないとclose()したときにfinパケットが消える？
-        if( ! wait_recv_send( soc, false ) ){
-
-            // タイムアウト
-            m_data.code = HTTP_TIMEOUT;         
-            errmsg = "send timeout";
-        }
-
-        // 送信禁止
-        shutdown( soc, SHUT_WR );
-    }
 
     // 強制停止した場合
     if( m_stop ){
@@ -1204,13 +1006,7 @@ EXIT_LOADING:
     }
 
     // ソケットクローズ
-    if( SOC_ISVALID( soc ) ){
-        close( soc );
-    }
-
-    // addrinfo開放
-    if( m_addrinfo ) freeaddrinfo( m_addrinfo );
-    m_addrinfo = nullptr;
+    soc.close();
 
     // トークン返す
     return_token( this );
@@ -1228,56 +1024,12 @@ EXIT_LOADING:
 
 
 //
-// addrinfo 取得
-//
-struct addrinfo* Loader::get_addrinfo( const std::string& hostname, const int port )
-{
-    if( port < 0 || port > 65535 ) return nullptr;
-    if( hostname.empty() ) return nullptr;
-
-    int ret;
-    struct addrinfo hints, *res;
-    memset( &hints, 0, sizeof( addrinfo ) );
-    if( m_data.use_ipv6 ) hints.ai_family = AF_UNSPEC;
-    else hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_STREAM;
-
-    const std::string port_str = std::to_string( port );
-    ret = getaddrinfo( hostname.c_str(), port_str.c_str(), &hints, &res );
-    if( ret ) {
-        MISC::ERRMSG( m_data.str_code );
-        return nullptr;
-    }
-
-#ifdef _DEBUG
-    const auto family = res->ai_addr->sa_family;
-    const void* src;
-    if( family == AF_INET ) {
-        src = &reinterpret_cast<sockaddr_in*>( res->ai_addr )->sin_addr;
-    }
-    else {
-        src = &reinterpret_cast<sockaddr_in6*>( res->ai_addr )->sin6_addr;
-    }
-    char buf[ INET6_ADDRSTRLEN ]{};
-    if( inet_ntop( family, src, buf, sizeof(buf) ) ) {
-        std::cout << "host = " << hostname
-                  << ", ipv6 = " << m_data.use_ipv6
-                  << ", ip = " << buf << std::endl;
-    }
-#endif
-
-    return res;
-}
-
-
-
-//
 // 送信メッセージ作成
 //
 std::string Loader::create_msg_send() const
 {
-    bool post_msg = ( !m_data.str_post.empty() && !m_data.head );
-    bool use_proxy = ( ! m_data.host_proxy.empty() );
+    const bool post_msg = ( !m_data.str_post.empty() && !m_data.head );
+    const bool use_proxy = ! m_data.host_proxy.empty() && ! m_data.use_ssl;
 
     std::ostringstream msg;
     msg.clear();
@@ -1359,8 +1111,7 @@ int Loader::receive_header( char* buf, size_t& read_size )
     std::cout << "Loader::receive_header : read_size = " << read_size << std::endl;
 #endif
 
-    buf[ read_size ] = '\0';
-    m_data.str_header = buf;
+    m_data.str_header.assign( buf, read_size );
     size_t lng_header = m_data.str_header.find( "\r\n\r\n" );
     if( lng_header != std::string::npos ) lng_header += 4;
     else{
@@ -1381,11 +1132,7 @@ int Loader::receive_header( char* buf, size_t& read_size )
                 
     // 残りのデータを前に移動
     read_size -= lng_header;
-    if( read_size ){
-
-        memmove( buf, buf+ lng_header, read_size );
-        buf[ read_size ] = '\0';
-    }
+    if( read_size ) memmove( buf, buf + lng_header, read_size );
 
     return HTTP_OK;
 }
@@ -1411,7 +1158,7 @@ bool Loader::analyze_header()
         return false;
     }
 
-    size_t i = str_tmp.find( ' ' );
+    const size_t i = str_tmp.find( ' ' );
     if( i == std::string::npos ) m_data.code = atoi( str_tmp.c_str() );
     else m_data.code = atoi( str_tmp.substr( 0, i ).c_str() );
 
@@ -1442,6 +1189,14 @@ bool Loader::analyze_header()
     // Content-Type
     m_data.contenttype = analyze_header_option( "Content-Type: " );
     
+    // ERROR
+    m_data.error = analyze_header_option( "ERROR: " );
+
+    // Thread-Status
+    m_data.threadstatus = 0;
+    str_tmp = analyze_header_option( "Thread-Status: " );
+    if( ! str_tmp.empty() ) m_data.threadstatus = std::atoi( str_tmp.c_str() );
+
     // chunked か
     m_use_chunk = false;
     str_tmp = analyze_header_option( "Transfer-Encoding: " );
@@ -1471,7 +1226,9 @@ bool Loader::analyze_header()
     for( const std::string& s : m_data.list_cookies ) std::cout << "cookie " << s << std::endl;
 
     std::cout << "location = " << m_data.location << std::endl;
-    std::cout << "contenttype = " << m_data.contenttype<< std::endl;            
+    std::cout << "contenttype = " << m_data.contenttype << std::endl;
+    std::cout << "error = " << m_data.error << std::endl;
+    std::cout << "threadstatus = " << m_data.threadstatus << std::endl;
     if( m_use_chunk ) std::cout << "m_use_chunk = true\n";
     if( m_gzip_decoder.is_decoding() )  std::cout << "m_use_gzip = true\n";
 
@@ -1518,7 +1275,7 @@ std::list< std::string > Loader::analyze_header_option_list( std::string_view op
         if( i == std::string::npos ) break;
 
         i2 = m_data.str_header.find( "\r\n", i );
-        if( i2 == std::string::npos ) i2 = m_data.str_header.find( "\n", i );
+        if( i2 == std::string::npos ) i2 = m_data.str_header.find( '\n', i );
         if( i2 == std::string::npos ) break;
 
         str_list.push_back( m_data.str_header.substr( i + option_length, i2 - ( i + option_length ) ) );
@@ -1530,55 +1287,6 @@ std::list< std::string > Loader::analyze_header_option_list( std::string_view op
 
 
 //
-// sent, recv待ち
-//
-bool Loader::wait_recv_send( const int fd, const bool recv )
-{
-    if( !fd ) return true;
-
-    // 同期している場合は何もしない
-    if( !m_data.async ) return true;
-
-    int count = 0;
-    for(;;){
-
-        errno = 0;
-
-        int ret;
-        fd_set fdset;
-        FD_ZERO( &fdset );
-        FD_SET( fd , &fdset );
-
-        timeval timeout;
-        memset( &timeout, 0, sizeof( timeval ) );
-        timeout.tv_sec = 1;
-
-        if( recv ) ret = select( fd+1 , &fdset , nullptr , nullptr , &timeout );
-        else ret = select( fd+1 , nullptr, &fdset , nullptr , &timeout );
-
-#ifdef _DEBUG
-        if( errno == EINTR && ret < 0 ) std::cout << "Loader::wait_recv_send : errno = EINTR " << errno << std::endl;
-#endif
-        if( errno != EINTR && ret < 0 ){
-#ifdef _DEBUG
-            std::cout << "Loader::wait_recv_send : errno = " << errno << std::endl;
-#endif
-            MISC::ERRMSG( "select failed" );
-            break;
-        }
-
-        if( errno != EINTR && FD_ISSET( fd, &fdset ) ) return true;
-        if( m_stop ) break;
-        if( ++count >= m_data.timeout ) break;
-#ifdef _DEBUG
-        std::cout << "Loader::wait_recv_send ret = " << ret << " errno = " << errno << " timeout = " << count << std::endl;
-#endif
-    }
-    
-    return false;
-}
-
-
 //
 // ローディング終了処理
 //
