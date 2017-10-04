@@ -70,6 +70,12 @@ std::string BoardLocal::url_readcgi( const std::string& url, int num_from, int n
 }
 
 
+std::string BoardLocal::url_datpath()
+{
+    return std::string();
+}
+
+
 void BoardLocal::download_subject( const std::string& url_update_view, const bool )
 {
     // ダウンロードを実行しない
