@@ -410,6 +410,7 @@ void Root::bbsmenu2xml( const std::string& menu )
 
     // 現在の仕様では HTML > BODY > font[size="2"] の子要素が対象
     XML::DomList targets = html.getElementsByTagName( "font" )[0]->childNodes();
+    if( targets.empty() ) targets = html.getElementsByTagName( "small" )[0]->childNodes();
     std::list< XML::Dom* >::iterator it = targets.begin();
     while( it != targets.end() )
     {
