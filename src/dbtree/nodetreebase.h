@@ -289,6 +289,9 @@ namespace DBTREE
         void receive_finish() override;
         void sweep_buffer();
 
+        // 拡張属性を取り出す
+        virtual void parse_extattr( const char* str, const int lng ) {};
+
       private:
 
         NODE* create_node();
