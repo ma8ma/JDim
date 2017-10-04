@@ -14,6 +14,7 @@
 #include "jdlib/cookiemanager.h"
 #include "jdlib/jdiconv.h"
 #include "jdlib/jdregex.h"
+#include "jdlib/misccharcode.h"
 #include "jdlib/miscutil.h"
 #include "jdlib/miscmsg.h"
 #include "jdlib/loaderdata.h"
@@ -43,7 +44,7 @@ int cache_nohit_art = 0;
 
 enum
 {
-    SIZE_OF_RAWDATA = 2 * 1024 * 1024
+    SIZE_OF_RAWDATA = 256 * 1024
 };
 
 using namespace DBTREE;
@@ -59,6 +60,7 @@ BoardBase::BoardBase( const std::string& root, const std::string& path_board, co
     , m_root( root )
     , m_path_board( path_board )
     , m_name( name )
+    , m_charcode_bak( CHARCODE_UNKNOWN )
 {
     clear_load_data();
 
@@ -91,7 +93,7 @@ BoardBase::~BoardBase()
 
 ArticleBase* BoardBase::get_article_null()
 {
-    if( ! m_article_null ) m_article_null = std::make_unique<DBTREE::ArticleBase>( "", "", false );
+    if( ! m_article_null ) m_article_null = std::make_unique<DBTREE::ArticleBase>( "", "", false, get_charcode() );
     return m_article_null.get();
 }
 
@@ -993,6 +995,9 @@ void BoardBase::download_subject( const std::string& url_update_view, const bool
 
     m_is_booting = SESSION::is_booting();
 
+    // charcodeを一時保存
+    m_charcode_bak = get_charcode();
+
     // オフライン
     if( ! m_is_online  ){
 
@@ -1067,7 +1072,8 @@ void BoardBase::receive_data( const char* data, size_t size )
     if( m_rawdata_left.capacity() < SIZE_OF_RAWDATA ) {
         m_rawdata_left.reserve( SIZE_OF_RAWDATA );
     }
-    if( ! m_iconv ) m_iconv = std::make_unique<JDLIB::Iconv>( "UTF-8", m_charset );
+    if( get_code() != HTTP_OK ) set_charcode( m_charcode_bak );
+    if( ! m_iconv ) m_iconv = std::make_unique<JDLIB::Iconv>( CHARCODE_UTF8, get_charcode() );
 
     m_rawdata_left.append( data, size );
 
@@ -1076,9 +1082,9 @@ void BoardBase::receive_data( const char* data, size_t size )
         byte_in += 1; // 改行まで含める
 
         int byte_out;
-        const char* rawdata_utf8 = m_iconv->convert( &*m_rawdata_left.begin(), byte_in, byte_out );
+        const char* subjects = m_iconv->convert( &*m_rawdata_left.begin(), byte_in, byte_out );
 
-        parse_subject( rawdata_utf8 );
+        parse_subject( subjects );
 
         // 残りを先頭に移動
         m_rawdata_left.erase( 0, byte_in );
@@ -1849,7 +1855,7 @@ void BoardBase::search_cache( std::vector< DBTREE::ArticleBase* >& list_article,
     if( m_hash_article.size() == 0 ) return;
 
     const bool append_all = query.empty();
-    const std::string query_local = MISC::Iconv( query, get_charset(), "UTF-8" );
+    const std::string query_local = MISC::Iconv( query, get_charcode(), CHARCODE_UTF8 );
     const std::list< std::string > list_query = MISC::split_line( query_local );
 
     const std::string path_board_root = CACHE::path_board_root_fast( url_boardbase() );
@@ -1989,6 +1995,9 @@ void BoardBase::read_board_info()
     m_check_noname = cf.get_option_bool( "check_noname", false );
 
     m_show_oldlog = cf.get_option_bool( "show_oldlog", false );
+
+    std::string charset = cf.get_option_str( "charset", MISC::charcode_to_cstr( get_charcode() ) );
+    set_charcode( MISC::charcode_from_cstr( charset.c_str() ) );
 
     std::string str_tmp;
 
@@ -2139,6 +2148,7 @@ void BoardBase::save_jdboard_info()
          << "view_sort_pre_mode = " << m_view_sort_pre_mode << std::endl
          << "check_noname = " << m_check_noname << std::endl
          << "show_oldlog = " << m_show_oldlog << std::endl
+         << "charset = " << MISC::charcode_to_cstr( get_charcode() ) << std::endl
 
     // IDは再起動ごとにリセット
 //         << "aboneid = " << str_abone_id << std::endl

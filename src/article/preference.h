@@ -3,6 +3,7 @@
 #ifndef _ARTICLE_PREFERENCES_H
 #define _ARTICLE_PREFERENCES_H
 
+#include "gtkmmversion.h"
 #include "skeleton/prefdiag.h"
 #include "skeleton/editview.h"
 #include "skeleton/label_entry.h"
@@ -26,6 +27,10 @@ namespace ARTICLE
         // 最大レス数
         Gtk::Label m_label_maxres;
         Gtk::SpinButton m_spin_maxres;
+
+        // エンコーディング
+        Gtk::Label m_label_charset;
+        Gtk::ComboBoxText m_combo_charset;
 
         // あぼーん
         Gtk::VBox m_vbox_abone;
@@ -57,6 +62,7 @@ namespace ARTICLE
         // 全体レベルでのあぼーん
         Gtk::CheckButton m_check_globalabone;
 
+        Gtk::HBox m_hbox_since;
         SKELETON::LabelEntry m_label_since;
 
         // 最終更新日時

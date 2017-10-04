@@ -66,8 +66,7 @@ void NodeTree2chCompati::init_loading()
     NodeTreeBase::init_loading();
 
     // iconv 初期化
-    std::string charset = DBTREE::board_charset( get_url() );
-    if( ! m_iconv ) m_iconv = std::make_unique<JDLIB::Iconv>( "UTF-8", charset );
+    if( ! m_iconv ) m_iconv = std::make_unique<JDLIB::Iconv>( CHARCODE_UTF8, DBTREE::article_charcode( get_url() ) );
 }
 
 

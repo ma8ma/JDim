@@ -192,7 +192,7 @@ void Board2ch::download_front()
 {
     if( ! m_frontloader ) m_frontloader = std::make_unique<FrontLoader>( url_boardbase() );
     m_frontloader->reset();
-    m_frontloader->download_text();
+    m_frontloader->download_text( get_charcode() );
 }
 
 
@@ -210,11 +210,11 @@ std::string Board2ch::create_newarticle_message( const std::string& subject, con
     }
 
     std::stringstream ss_post;
-    ss_post << "submit="   << MISC::charset_url_encode( "新規スレッド作成", get_charset() )
-            << "&subject=" << MISC::charset_url_encode( subject, get_charset() )
-            << "&FROM="    << MISC::charset_url_encode( name, get_charset() )
-            << "&mail="    << MISC::charset_url_encode( mail, get_charset() )
-            << "&MESSAGE=" << MISC::charset_url_encode( msg, get_charset() )
+    ss_post << "submit="   << MISC::url_encode( std::string( "新規スレッド作成" ), get_charcode() )
+            << "&subject=" << MISC::url_encode( subject, get_charcode() )
+            << "&FROM="    << MISC::url_encode( name, get_charcode() )
+            << "&mail="    << MISC::url_encode( mail, get_charcode() )
+            << "&MESSAGE=" << MISC::url_encode( msg, get_charcode() )
             << "&bbs="     << get_id()
             << "&time="    << m_frontloader->get_time_modified();
 
@@ -274,7 +274,7 @@ ArticleBase* Board2ch::append_article( const std::string& datbase, const std::st
 {
     if( empty() ) return get_article_null();
 
-    ArticleBase* article = insert( std::make_unique<DBTREE::Article2ch>( datbase, id, cached ) );
+    ArticleBase* article = insert( std::make_unique<DBTREE::Article2ch>( datbase, id, cached, get_charcode() ) );
 
     if( ! article ) return get_article_null();
     return article;

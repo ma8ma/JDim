@@ -5,6 +5,8 @@
 #ifndef _MISCUTIL_H
 #define _MISCUTIL_H
 
+#include "charcode.h"
+
 #include <string>
 #include <cstring>
 #include <list>
@@ -166,23 +168,17 @@ namespace MISC
     inline std::string url_decode( const std::string& url ){ return url_decode( url.c_str(), url.length() ); }
 
     // urlエンコード
-    std::string url_encode( const char* str, const size_t n );
-    std::string url_encode( const std::string& str );
+    std::string url_encode( const char* str, const size_t n, const CharCode charcode = CHARCODE_UTF8 );
+    inline std::string url_encode( const std::string& str, const CharCode charcode = CHARCODE_UTF8 )
+    {
+        return url_encode( str.c_str(), str.length(), charcode );
+    }
 
-    // 文字コードを変換して url エンコード
-    // str は UTF-8 であること
-    std::string charset_url_encode( const std::string& str, const std::string& charset );
-
-    // 文字コード変換して url エンコード
-    // ただし半角スペースのところを+に置き換えて区切る
-    std::string charset_url_encode_split( const std::string& str, const std::string& charset );
+    // 半角スペースまたは "" 単位で区切って url エンコード
+    std::string url_encode_split( const std::string& str, const CharCode charcode );
 
     // BASE64
     std::string base64( const std::string& str );
-
-    // 文字コードを coding_from から coding_to に変換
-    // 遅いので連続的な処理が必要な時は使わないこと
-    std::string Iconv( const std::string& str, const std::string& coding_to, const std::string& coding_from );
 
     // 「&#数字;」形式の数字参照文字列の中の「数字」部分の文字列長
     //

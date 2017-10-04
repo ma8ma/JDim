@@ -4,6 +4,7 @@
 
 #include "dbtree/interface.h"
 
+#include "jdlib/misccharcode.h"
 #include "jdlib/miscutil.h"
 #include "jdlib/misctime.h"
 
@@ -75,6 +76,17 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     m_hbox_write.pack_start( m_label_write );
     m_hbox_write.pack_start( m_bt_clear_post_history, Gtk::PACK_SHRINK );    
 
+    m_label_charset.set_text( "エンコーディング：" );
+    m_combo_charset.append( MISC::charcode_to_cstr( CHARCODE_UTF8 ) );
+    m_combo_charset.append( MISC::charcode_to_cstr( CHARCODE_SJIS ) );
+    m_combo_charset.append( MISC::charcode_to_cstr( CHARCODE_EUCJP ) );
+    m_combo_charset.set_active_text( MISC::charcode_to_cstr( DBTREE::article_charcode( get_url() ) ) );
+
+    m_hbox_since.pack_start( m_label_since );
+    m_hbox_since.pack_start( m_label_charset, Gtk::PACK_SHRINK );
+    m_hbox_since.pack_start( m_combo_charset, Gtk::PACK_SHRINK );
+
+
     // 最大レス数
     const int max_res = DBTREE::article_number_max( get_url() );
     m_label_maxres.set_text( "最大レス数 (0 : 未設定)：" );
@@ -95,7 +107,7 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     m_vbox_info.pack_start( m_label_cache, Gtk::PACK_SHRINK );
     m_vbox_info.pack_start( m_hbox_size, Gtk::PACK_SHRINK );
 
-    m_vbox_info.pack_start( m_label_since, Gtk::PACK_SHRINK );
+    m_vbox_info.pack_start( m_hbox_since, Gtk::PACK_SHRINK );
     m_vbox_info.pack_start( m_hbox_modified, Gtk::PACK_SHRINK );
     m_vbox_info.pack_start( m_hbox_write, Gtk::PACK_SHRINK );
 
@@ -268,6 +280,16 @@ void Preferences::slot_ok_clicked()
 
     //最大レス数
     DBTREE::article_set_number_max( get_url(), m_spin_maxres.get_value_as_int() );
+
+    // charset
+    std::string tmpcharset = m_combo_charset.get_active_text();
+    CharCode tmpcharcode = MISC::charcode_from_cstr( tmpcharset.c_str() );
+    if( tmpcharcode != DBTREE::article_charcode( get_url() ) ){
+        // charcodeを更新
+        DBTREE::article_set_charcode( get_url(), tmpcharcode );
+        // Viewが開かれていない場合があるのでここでNodeTreeを削除する
+        DBTREE::article_clear_nodetree( get_url() );
+    }
 
     // viewの再レイアウト
     CORE::core_set_command( "relayout_article", get_url() );

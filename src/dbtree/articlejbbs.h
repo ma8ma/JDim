@@ -17,7 +17,7 @@ namespace DBTREE
     {
       public:
 
-        ArticleJBBS( const std::string& datbase, const std::string& id, bool cached );
+        ArticleJBBS( const std::string& datbase, const std::string& id, bool cached, const CharCode charcode );
         ~ArticleJBBS() noexcept;
 
         // 書き込みメッセージ変換
