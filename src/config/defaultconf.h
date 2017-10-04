@@ -212,7 +212,7 @@ namespace CONFIG
 #define CONF_LOGINP2 "http://p2.2ch.sc/p2/"
 
 // BEの認証サーバのアドレス
-#define CONF_LOGINBE "http://be.2ch.net/test/login.php"
+#define CONF_LOGINBE "http://be.5ch.net/test/login.php"
 
 // bbsmenu.htmlのURL
 #define CONF_URL_BBSMENU "http://menu.5ch.net/bbsmenu.html"
