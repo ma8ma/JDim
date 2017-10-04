@@ -1566,7 +1566,7 @@ void ArticleViewBase::slot_setup_abone()
 
 void ArticleViewBase::slot_setup_abone_board()
 {
-    SKELETON::PrefDiag* pref =  CORE::PrefDiagFactory( get_parent_win(), CORE::PREFDIAG_BOARD, DBTREE::url_subject( m_url_article ), "show_abone_article" );
+    SKELETON::PrefDiag* pref =  CORE::PrefDiagFactory( get_parent_win(), CORE::PREFDIAG_BOARD, DBTREE::url_boardbase( m_url_article ), "show_abone_article" );
     pref->run();
     delete pref;
 }
@@ -2310,12 +2310,12 @@ void ArticleViewBase::slot_on_url( std::string url, std::string imgurl, int res_
         std::string num_str;
 
         const std::string url_dat = DBTREE::url_dat( url, num_from, num_to, num_str );
-        const std::string url_subject = DBTREE::url_subject( url );
+        const std::string boardbase = DBTREE::url_boardbase( url );
 
 #ifdef _DEBUG
         std::cout << "ArticleViewBase::slot_on_url " << url << std::endl;
         std::cout << "url_dat = " << url_dat << std::endl;
-        std::cout << "url_subject = " << url_subject << std::endl;
+        std::cout << "boardbase = " << boardbase << std::endl;
         std::cout << "num_from = " << num_from << std::endl;
         std::cout << "num_to = " << num_to << std::endl;
         std::cout << "num = " << num_str << std::endl;
@@ -2333,11 +2333,9 @@ void ArticleViewBase::slot_on_url( std::string url, std::string imgurl, int res_
         }
 
         // 板
-        else if( ! url_subject.empty() ){
+        else if( ! boardbase.empty() ){
 
-            std::string tmpstr = DBTREE::board_name( url );
-            args.arg1 = "[ " + tmpstr + " ] ";
-
+            args.arg1 = "[ " + DBTREE::board_name( url ) + " ] ";
             view_popup = CORE::ViewFactory( CORE::VIEW_ARTICLEPOPUPHTML, m_url_article, args );
         }
     }
@@ -3410,7 +3408,7 @@ void ArticleViewBase::slot_search_cachelocal()
 
     if( query.empty() ) return;
 
-    const std::string url = DBTREE::url_subject( m_url_article );
+    const std::string url = DBTREE::url_boardbase( m_url_article );
 
 #ifdef _DEBUG
     std::cout << "ArticleViewBase::slot_search_cachelocal " << url << std::endl
@@ -3428,7 +3426,7 @@ void ArticleViewBase::slot_search_next()
 {
     if( m_article->empty() ) return;
 
-    CORE::core_set_command( "open_board_next", DBTREE::url_subject( m_url_article ) , m_url_article );
+    CORE::core_set_command( "open_board_next", DBTREE::url_boardbase( m_url_article ) , m_url_article );
 }
 
 
