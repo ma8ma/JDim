@@ -68,12 +68,13 @@ void TextLoader::reset()
 //
 // キャッシュからロード
 //
-void TextLoader::load_text()
+void TextLoader::load_text( const CharCode charcode )
 {
     if( get_path().empty() ) return;
 
     init();
     set_code( HTTP_INIT );
+    set_charcode( charcode );
     receive_finish();
 }
 
@@ -81,7 +82,7 @@ void TextLoader::load_text()
 //
 // ダウンロード開始
 //
-void TextLoader::download_text()
+void TextLoader::download_text( const CharCode charcode )
 {
 #ifdef _DEBUG
     std::cout << "TextLoader::download_text url = " << get_url() << std::endl;
@@ -90,7 +91,7 @@ void TextLoader::download_text()
     if( is_loading() ) return;
     if( m_loaded ) return; // 読み込み済み
     if( ! SESSION::is_online() ){
-        load_text();
+        load_text( charcode );
         return;
     }
 
@@ -101,6 +102,7 @@ void TextLoader::download_text()
     JDLIB::LOADERDATA data;
 
     init();
+    set_charcode( charcode );
     create_loaderdata( data );
     if( data.url.empty() ) return;
     if( ! start_load( data ) ) clear();
@@ -172,7 +174,7 @@ void TextLoader::receive_finish()
     set_str_code( std::string() );
 
     // UTF-8に変換しておく
-    JDLIB::Iconv libiconv( "UTF-8", get_charset() );
+    JDLIB::Iconv libiconv( CHARCODE_UTF8, get_charcode() );
     int byte_out;
     m_data = libiconv.convert( &*m_rawdata.begin(), m_rawdata.size(),  byte_out );
     clear();

@@ -3,6 +3,7 @@
 //#define _DEBUG
 #include "jddebug.h"
 
+#include "jdiconv.h"
 #include "misccharcode.h"
 
 #include <cstring>
@@ -10,6 +11,27 @@
 
 // チェックする最大バイト数
 #define CHECK_LIMIT 1024
+
+
+static constexpr const char* encoding_string[] = { "ISO-8859-1", "ASCII", "EUCJP-MS", "ISO2022-JP", "MS932", "UTF-8" };
+
+const char* MISC::charcode_to_cstr( const CharCode charcode )
+{
+    CharCode code = charcode;
+    if( code > CHARCODE_UTF8 || code < CHARCODE_UNKNOWN ) code = CHARCODE_UNKNOWN;
+    return encoding_string[ code ];
+}
+
+CharCode MISC::charcode_from_cstr( const char* encoding )
+{
+    CharCode code = CHARCODE_UNKNOWN;
+
+    for( size_t i = sizeof( encoding_string ) / sizeof( char * ) - 1; i > 0; --i ){
+        if( strcmp( encoding_string[ i ], encoding ) == 0 ){ code = CharCode( i ); break; }
+    }
+    return code;
+}
+
 
 /*--- 制御文字とASCII -----------------------------------------------*/
 
@@ -416,4 +438,20 @@ std::string MISC::utf8_fix_wavedash( const std::string& str, const MISC::WaveDas
     }
 
     return ret;
+}
+
+
+//
+// 文字コードを from から to に変換
+//
+// 遅いので連続的な処理が必要な時は使わないこと
+//
+std::string MISC::Iconv( const std::string& str, const CharCode to, const CharCode from )
+{
+    if( from == to ) return str;
+
+    JDLIB::Iconv icv( to, from );
+    int byte_out;
+
+    return icv.convert( str.c_str(), str.length(), byte_out );
 }
