@@ -229,6 +229,9 @@ int CONFIG::get_loader_timeout_checkupdate(){ return get_confitem()->loader_time
 bool CONFIG::get_use_ipv6(){ return get_confitem()->use_ipv6; }
 void CONFIG::set_use_ipv6( const bool set ){ get_confitem()->use_ipv6 = set; }
 
+// 信頼するルート証明書
+const std::string& CONFIG::get_root_cafile(){ return get_confitem()->root_cafile; }
+
 // 同一ホストに対する最大コネクション数( 1 または 2 )
 int CONFIG::get_connection_num(){ return get_confitem()->connection_num; }
 
