@@ -40,16 +40,13 @@ case "${host_os}" in
    AC_DEFINE(USE_MKTIME, , [use mktime])
    ;;
  darwin*)
-   AC_DEFUN([AM_ICONV], [])
    AC_DEFINE(USE_MKTIME, , [use mktime])
    ;;
 dnl linux*|gnu*|*-gnu
  *)
-   AC_DEFUN([AM_ICONV], [])
    ;;
 esac
 
-AM_ICONV
 
 
 dnl ---------------------------------------------------
@@ -114,6 +111,23 @@ AC_CHECK_LIB(z,inflate)
 
 
 dnl
+dnl iconv
+dnl
+found_iconv=no
+AC_CHECK_FUNC(iconv_open, [found_iconv=yes])
+if test $found_iconv = "no"; then
+  AC_CHECK_LIB(iconv, libiconv_open, [found_iconv=yes])
+
+  if test $found_iconv = "no"; then
+    AC_CHECK_LIB(iconv, iconv_open, ,AC_MSG_ERROR([iconv implementation not found]))
+  fi
+
+  ICONV_LIBS="-liconv"
+  AC_SUBST(ICONV_LIBS)
+fi
+
+
+dnl
 dnl packages dependent on platform 
 dnl
 use_windres=""
@@ -128,11 +142,8 @@ case "${host_os}" in
    AC_CHECK_HEADERS([winsock2.h])
    AC_CHECK_LIB(ws2_32,_head_libws2_32_a)
    
-   AC_CHECK_HEADERS([regex.h])
-   AC_CHECK_LIB(regex,regexec)
+   AC_CHECK_HEADERS([wspiapi.h])
    
-   AC_CHECK_HEADERS([iconv.h])
-   AC_CHECK_LIB(iconv,_head_libiconv_a)
    AC_CHECK_TOOL([WINDRES], [windres], [windres])
    AC_SUBST(WINDRES)
    AC_DEFINE(USE_WINDRES, , [use windres])
