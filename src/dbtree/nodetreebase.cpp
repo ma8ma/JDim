@@ -1691,14 +1691,13 @@ const char* NodeTreeBase::add_one_dat_line( const char* datline )
 //
 void NodeTreeBase::parse_name( NODE* header, std::string_view str, const int color_name )
 {
-    const bool bold = true;
     const bool ahref = false;
     NODE *node;
 
-    const bool defaultname{ m_default_noname.rfind( str, 0 ) == 0 };
-
     // 後ろの空白を除く
     while( str.size() > 0 && str.back() == ' ' ) str.remove_suffix( 1 );
+
+    const bool defaultname{ m_default_noname.size() == str.size() && m_default_noname.rfind( str, 0 ) == 0 };
 
     // 文字列置換
     std::string str_name;
@@ -1724,6 +1723,7 @@ void NodeTreeBase::parse_name( NODE* header, std::string_view str, const int col
     // デフォルト名無しと同じときはアンカーを作らない
     if( defaultname ){
         constexpr bool digitlink = false;
+        constexpr bool bold = true;
         parse_html( str, color_name, digitlink, bold, ahref, FONT_MAIL );
     }
     else{
@@ -1739,17 +1739,18 @@ void NodeTreeBase::parse_name( NODE* header, std::string_view str, const int col
                     && str[ i ] == '<'
                     && str[ i+1 ] == '/'
                     && ( str[ i+2 ] == 'b' || str[ i+2 ] == 'B' )
-                    && str[ i+3 ] == '>' ) break;
+                    && str[ i+3 ] == '>' ){ i += 4; break; }
             }
 
             // </b>の前までパース
             if( i != pos ){
                 // デフォルト名無しと同じときはアンカーを作らない
                 const bool digitlink{ m_default_noname.rfind( str.substr( pos, i - pos ), 0 ) != 0 };
+                constexpr bool bold = true;
                 parse_html( str.substr( pos, i - pos ), color_name, digitlink, bold, ahref, FONT_MAIL );
             }
             if( i >= str.size() ) break;
-            pos = i + 4; // 4 = strlen( "</b>" );
+            pos = i;
 
             // <b>の位置を探す
             std::size_t pos_end = str.size();
@@ -1770,28 +1771,24 @@ void NodeTreeBase::parse_name( NODE* header, std::string_view str, const int col
 
             // </b><b>の中をパース
             constexpr bool digitlink = false; // 数字が入ってもリンクしない
+            constexpr bool bold = false;
             parse_html( str.substr( pos, pos_end - pos ), COLOR_CHAR_NAME_B, digitlink, bold, ahref, FONT_MAIL );
 
-            pos = pos_end + 3; // 3 = strlen( "<b>" );
+            pos = pos_end;
         }
     }
 
     // plainな名前取得
     // 名前あぼーんや名前抽出などで使用する
-    if( defaultname ){
-        header->headinfo->name = m_heap.heap_alloc<char>( str.size() +2 );
-        str.copy( header->headinfo->name, str.size() );
-    }
-    else{
-        std::string str_tmp;
+    std::string str_tmp;
+    node = node->next_node;
+    while( node ){
+        if( node->text ) str_tmp += node->text;
         node = node->next_node;
-        while( node ){
-            if( node->text ) str_tmp += node->text;
-            node = node->next_node;
-        }
-        header->headinfo->name = m_heap.heap_alloc<char>( str_tmp.length() +2 );
-        memcpy( header->headinfo->name, str_tmp.c_str(), str_tmp.length() );
     }
+    header->headinfo->name = m_heap.heap_alloc<char>( str_tmp.length() + 1 );
+    memcpy( header->headinfo->name, str_tmp.c_str(), str_tmp.length() );
+    header->headinfo->name[ str_tmp.length() ] = '\0';
 }
 
 
