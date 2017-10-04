@@ -3,11 +3,13 @@
 #ifndef _URLREPLACEMANAGER_H
 #define _URLREPLACEMANAGER_H
 
-#include <string>
+#include "jdlib/jdregex.h"
+
 #include <list>
 #include <map>
+#include <memory>
+#include <string>
 
-#include "jdlib/jdregex.h"
 
 namespace CORE
 {
@@ -24,7 +26,7 @@ namespace CORE
 
     struct UrlreplaceItem
     {
-        std::string match;
+        JDLIB::RegexPattern creg;
         std::string replace;
         std::string referer;
         int imgctrl;
@@ -33,8 +35,7 @@ namespace CORE
 
     class Urlreplace_Manager
     {
-        std::list< UrlreplaceItem > m_list_cmd;
-        std::map< std::string, int > m_map_imgctrl; // 画像コントロールのキャッシュ
+        std::list< std::unique_ptr< UrlreplaceItem > > m_list_cmd;
 
       public:
 
@@ -45,7 +46,7 @@ namespace CORE
         bool exec( std::string& url );
 
         // URLからリファラを求める
-        bool referer( const std::string& url, std::string& referer );
+        bool referer( const std::string& url, std::string& refstr );
 
         // URLの画像コントロールを取得する
         int get_imgctrl( const std::string& url );
@@ -53,10 +54,6 @@ namespace CORE
       private:
 
         void conf2list( const std::string& conf );
-        int get_imgctrl_impl( const std::string& url );
-
-        // 置換文字列を変換
-        void replace( JDLIB::Regex& regex, std::string& str );
     };
 
     ///////////////////////////////////////
