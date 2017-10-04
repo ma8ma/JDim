@@ -57,7 +57,7 @@ ArticleViewRes::~ArticleViewRes()
 //
 // 画面を消してレイアウトやりなおし & 再描画
 //
-void ArticleViewRes::relayout()
+void ArticleViewRes::relayout( const bool completely )
 {
 #ifdef _DEBUG
     std::cout << "ArticleViewRes::relayout\n";
@@ -138,7 +138,7 @@ ArticleViewName::~ArticleViewName()
 //
 // 画面を消してレイアウトやりなおし & 再描画
 //
-void ArticleViewName::relayout()
+void ArticleViewName::relayout( const bool completely )
 {
 #ifdef _DEBUG
     std::cout << "ArticleViewName::relayout\n";
@@ -216,7 +216,7 @@ ArticleViewID::~ArticleViewID()
 //
 // 画面を消してレイアウトやりなおし & 再描画
 //
-void ArticleViewID::relayout()
+void ArticleViewID::relayout( const bool completely )
 {
 #ifdef _DEBUG
     std::cout << "ArticleViewID::relayout\n";
@@ -292,7 +292,7 @@ ArticleViewBM::~ArticleViewBM()
 //
 // 画面を消してレイアウトやりなおし & 再描画
 //
-void ArticleViewBM::relayout()
+void ArticleViewBM::relayout( const bool completely )
 {
 #ifdef _DEBUG
     std::cout << "ArticleViewBM::relayout\n";
@@ -369,7 +369,7 @@ ArticleViewPost::~ArticleViewPost()
 //
 // 画面を消してレイアウトやりなおし & 再描画
 //
-void ArticleViewPost::relayout()
+void ArticleViewPost::relayout( const bool completely )
 {
 #ifdef _DEBUG
     std::cout << "ArticleViewPost::relayout\n";
@@ -444,7 +444,7 @@ ArticleViewURL::~ArticleViewURL()
 //
 // 画面を消してレイアウトやりなおし & 再描画
 //
-void ArticleViewURL::relayout()
+void ArticleViewURL::relayout( const bool completely )
 {
 #ifdef _DEBUG
     std::cout << "ArticleViewURL::relayout\n";
@@ -523,7 +523,7 @@ ArticleViewRefer::~ArticleViewRefer()
 //
 // 画面を消してレイアウトやりなおし & 再描画
 //
-void ArticleViewRefer::relayout()
+void ArticleViewRefer::relayout( const bool completely )
 {
 #ifdef _DEBUG
     std::cout << "ArticleViewRefer::relayout\n";
@@ -611,7 +611,7 @@ ArticleViewDrawout::~ArticleViewDrawout()
 //
 // 画面を消してレイアウトやりなおし & 再描画
 //
-void ArticleViewDrawout::relayout()
+void ArticleViewDrawout::relayout( const bool completely )
 {
 #ifdef _DEBUG
     std::cout << "ArticleViewDrawout::relayout\n";
@@ -706,7 +706,7 @@ void ArticleViewPostlog::operate_search( const std::string& controlid )
 //
 // 画面を消してレイアウトやりなおし & 再描画
 //
-void ArticleViewPostlog::relayout()
+void ArticleViewPostlog::relayout( const bool completely )
 {
 #ifdef _DEBUG
     std::cout << "ArticleViewPostlog::relayout\n";
