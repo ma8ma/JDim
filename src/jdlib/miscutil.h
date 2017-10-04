@@ -125,8 +125,8 @@ namespace MISC
     std::string regex_unescape( const std::string& str );
 
     // HTMLエスケープ
-    // include_url : URL中でもエスケープする( デフォルト = true )
-    std::string html_escape( const std::string& str, const bool include_url = true );
+    // completely : URL中でもエスケープする( デフォルト = true )
+    std::string html_escape( const std::string& str, const bool completely = true );
 
     // HTMLアンエスケープ
     std::string html_unescape( const std::string& str );
