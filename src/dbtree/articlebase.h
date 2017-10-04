@@ -9,16 +9,18 @@
 #ifndef _ARTICLEBASE_H
 #define _ARTICLEBASE_H
 
-#include "skeleton/lockable.h"
-
-#include "jdlib/constptr.h"
-
 #include <ctime>
 #include <list>
 #include <string>
 #include <sys/time.h>
 #include <unordered_set>
 #include <vector>
+
+#include "skeleton/lockable.h"
+
+#include "jdlib/constptr.h"
+
+#include "charcode.h"
 
 namespace DBTREE
 {
@@ -47,6 +49,8 @@ namespace DBTREE
         std::string m_str_code;      // HTTPコード(文字列)
         std::string m_ext_err;       // HTTPコード以外のエラーメッセージ
         int m_status;                // 状態 ( global.h で定義 )
+
+        CharCode m_charcode;         // 文字エンコーディング
 
         // 移転する前にこのスレがあった旧ホスト名( 移転していないなら m_url に含まれているホスト名と同じ )
         // 詳しくはコンストラクタの説明を参照せよ
@@ -121,7 +125,7 @@ namespace DBTREE
 
       public:
 
-        ArticleBase( const std::string& datbase, const std::string& id, bool cached );
+        ArticleBase( const std::string& datbase, const std::string& id, bool cached, const CharCode charcode );
         ~ArticleBase();
 
         bool empty();
@@ -151,6 +155,9 @@ namespace DBTREE
         int get_number_seen() const {  return m_number_seen; }
         int get_number_max() const { return m_number_max; }
 
+        // 文字エンコーディング
+        CharCode get_charcode() const noexcept { return m_charcode; }
+        void set_charcode( const CharCode charcode ){ m_charcode = charcode; }
 
         // スレ速度
         int get_speed();
@@ -414,6 +421,9 @@ namespace DBTREE
         // スレッド924か
         bool is_924() const { return m_924; }
 
+        // NodeTree削除
+        void unlock_impl() override;
+
       private:
 
         // 更新チェック可能
@@ -429,7 +439,6 @@ namespace DBTREE
 
         void slot_node_updated();
         void slot_load_finished();
-        void unlock_impl() override;
 
         // お気に入りのアイコンとスレビューのタブのアイコンに更新マークを表示
         // update == true の時に表示。falseなら戻す

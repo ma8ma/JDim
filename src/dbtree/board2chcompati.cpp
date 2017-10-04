@@ -9,6 +9,7 @@
 #include "settingloader.h"
 #include "ruleloader.h"
 
+#include "jdlib/misccharcode.h"
 #include "jdlib/miscutil.h"
 #include "jdlib/miscmsg.h"
 #include "jdlib/jdregex.h"
@@ -47,7 +48,7 @@ Board2chCompati::Board2chCompati( const std::string& root, const std::string& pa
     set_subjecttxt( "subject.txt" );
     set_ext( ".dat" );
     set_id( path_board.substr( 1 ) ); // 先頭の '/' を除く
-    set_charset( "MS932" );
+    set_charcode( CHARCODE_SJIS );
 
     BoardBase::set_basicauth( basicauth );
 }
@@ -99,89 +100,26 @@ std::string Board2chCompati::cookie_for_write()
     std::cout << "Board2chCompati::cookie_for_write\n";
 #endif
 
-    JDLIB::Regex regex;
-    const size_t offset = 0;
-    const bool icase = false;
-    const bool newline = true;
-    const bool usemigemo = false;
-    const bool wchar = false;
-
-    std::string cookie_expire;
-    std::string cookie_path;
-    std::string cookie_pon;
     std::string cookie_hap = get_hap();
-    std::string cookie_name;
-    std::string cookie_mail;
-
-    const std::string query_expire = "expires=([^;]*)";
-    const std::string query_path = "path=([^;]*)";
-    const std::string query_pon = "PON=([^;]*)?";
-    const std::string query_hap = "HAP=([^;]*)?";
-    const std::string query_name = "NAME=([^;]*)?";
-    const std::string query_mail = "MAIL=([^;]*)?";
-
-    bool use_pon = false;
-    bool use_hap = ! cookie_hap.empty();
-    bool use_name = false;
-    bool use_mail = false;
-
+    std::string cookie;
     std::list< std::string >::const_iterator it = list_cookies.begin();
 
-    // expire と path は一つ目のcookieから取得
-    if( regex.exec( query_expire, (*it), offset, icase, newline, usemigemo, wchar ) ) cookie_expire = regex.str( 1 );
-    if( regex.exec( query_path, (*it), offset, icase, newline, usemigemo, wchar ) ) cookie_path = regex.str( 1 );
-
     for( ; it != list_cookies.end(); ++it ){
+        const std::string tmp_cookie = MISC::Iconv( (*it), get_charcode(), CHARCODE_UTF8 );
 
-        const std::string tmp_cookie = MISC::Iconv( (*it), get_charset(), "UTF-8" );
+        if( ! cookie_hap.empty() && tmp_cookie.compare( 0, 4, "HAP=" ) == 0 ) continue;
 
-#ifdef _DEBUG
-        std::cout << tmp_cookie << std::endl;
-#endif
-
-        if( regex.exec( query_pon, tmp_cookie, offset, icase, newline, usemigemo, wchar ) ){
-            use_pon = true;
-            cookie_pon = regex.str( 1 );
-        }
-        if( ! use_hap && regex.exec( query_hap, tmp_cookie, offset, icase, newline, usemigemo, wchar ) ){
-            use_hap = true;
-            cookie_hap = regex.str( 1 );
-        }
-        if( regex.exec( query_name, tmp_cookie, offset, icase, newline, usemigemo, wchar ) ){
-            use_name = true;
-            cookie_name = MISC::charset_url_encode( regex.str( 1 ), get_charset() );
-        }
-        if( regex.exec( query_mail, tmp_cookie, offset, icase, newline, usemigemo, wchar ) ){
-            use_mail = true;
-            cookie_mail = MISC::charset_url_encode( regex.str( 1 ), get_charset() );
-        }
+        if( ! cookie.empty() ) cookie += "; ";
+        if( tmp_cookie.find_first_of( ';' ) == std::string::npos )
+            cookie += tmp_cookie;
+        else
+            cookie += tmp_cookie.substr( 0, tmp_cookie.find_first_of( ';' ) );
     }
 
-    // PONを取得していないときはHAPを送らない
-    if( ! use_pon || cookie_pon.empty() ){
-        use_hap = false;
-        cookie_hap = std::string();
+    if( ! cookie_hap.empty() ){
+        if( ! cookie.empty() ) cookie += "; ";
+        cookie += "HAP=" + cookie_hap;
     }
-
-#ifdef _DEBUG
-    std::cout << "expire = " << cookie_expire << std::endl
-              << "path = " << cookie_path << std::endl    
-              << "pon = " << cookie_pon << " " << use_pon << std::endl
-              << "hap = " << cookie_hap << " " << use_hap << std::endl
-              << "name = " << cookie_name << " " << use_name << std::endl
-              << "mail = " << cookie_mail << " " << use_mail << std::endl;
-#endif    
-
-    std::string cookie;
-
-    if( use_pon ) cookie += "PON=" + cookie_pon + "; ";
-    if( use_hap ) cookie += "HAP=" + cookie_hap + "; ";
-    if( use_name ) cookie += "NAME=" + cookie_name + "; ";
-    if( use_mail ) cookie += "MAIL=" + cookie_mail + "; ";
-
-    if( cookie.empty() ) return std::string();
-
-    cookie += "expires=" + cookie_expire + "; path=" + cookie_path;
 
 #ifdef _DEBUG
     std::cout << "cookie = " << cookie << std::endl;
@@ -242,7 +180,7 @@ void Board2chCompati::analyze_keyword_for_write( const std::string& html )
 
         // キーワード取得
         if( ! keyword.empty() ) keyword += "&";
-        keyword += MISC::charset_url_encode( name, get_charset() ) + "=" + MISC::charset_url_encode( value, get_charset() );
+        keyword += MISC::url_encode( name, get_charcode() ) + "=" + MISC::url_encode( value, get_charcode() );
     }
 
 #ifdef _DEBUG
@@ -263,12 +201,12 @@ std::string Board2chCompati::create_newarticle_message( const std::string& subje
     std::stringstream ss_post;
     ss_post.clear();
     ss_post << "bbs="      << get_id()
-            << "&subject=" << MISC::charset_url_encode( subject, get_charset() )
+            << "&subject=" << MISC::url_encode( subject, get_charcode() )
             << "&time="    << get_time_modified()
-            << "&submit="  << MISC::charset_url_encode( "新規スレッド作成", get_charset() )
-            << "&FROM="    << MISC::charset_url_encode( name, get_charset() )
-            << "&mail="    << MISC::charset_url_encode( mail, get_charset() )
-            << "&MESSAGE=" << MISC::charset_url_encode( msg, get_charset() );
+            << "&submit="  << MISC::url_encode( std::string( "新規スレッド作成" ), get_charcode() )
+            << "&FROM="    << MISC::url_encode( name, get_charcode() )
+            << "&mail="    << MISC::url_encode( mail, get_charcode() )
+            << "&MESSAGE=" << MISC::url_encode( msg, get_charcode() );
 
 #ifdef _DEBUG
     std::cout << "Board2chCompati::create_newarticle_message " << ss_post.str() << std::endl;
@@ -314,7 +252,7 @@ ArticleBase* Board2chCompati::append_article( const std::string& datbase, const 
 {
     if( empty() ) return get_article_null();
 
-    ArticleBase* article = new DBTREE::Article2chCompati( datbase, id, cached );
+    ArticleBase* article = new DBTREE::Article2chCompati( datbase, id, cached, get_charcode() );
     if( article ){
         get_hash_article()->push( article );
     }
@@ -365,13 +303,9 @@ void Board2chCompati::parse_subject( const char* str_subject_txt )
         }
 
         // subject取得
-        bool exist_amp = false;
         ++pos;
         str_subject = pos;
-        while( *pos != '\0' && *pos != '\n' ){
-            if( *pos == '&' ) exist_amp = true;
-            ++pos;
-        }
+        while( *pos != '\0' && *pos != '\n' ) ++pos;
         --pos;
         while( *pos != '(' && *pos != '\n' && pos != str_subject ) --pos;
         
@@ -403,15 +337,7 @@ void Board2chCompati::parse_subject( const char* str_subject_txt )
 
         artinfo.id.assign( str_id_dat, lng_id_dat );
 
-        if( str_subject[ lng_subject-1 ] == ' ' ){
-            lng_subject--;  // 2chのsubject.txtは()の前に空白が一つ入る
-        }
         artinfo.subject.assign( str_subject, lng_subject );
-
-        if( exist_amp ){
-            artinfo.subject = MISC::replace_str( artinfo.subject, "&lt;", "<" );
-            artinfo.subject = MISC::replace_str( artinfo.subject, "&gt;", ">" );
-        }
 
         const auto num = std::atoi( str_num );
         artinfo.number = ( num < CONFIG::get_max_resnumber() ) ? num : CONFIG::get_max_resnumber();
@@ -559,10 +485,10 @@ void Board2chCompati::load_rule_setting()
 #endif
 
     if( ! m_ruleloader ) m_ruleloader = new RuleLoader( url_boardbase() );
-    m_ruleloader->load_text();
+    m_ruleloader->load_text( get_charcode() );
 
     if( ! m_settingloader ) m_settingloader = new SettingLoader( url_boardbase() );
-    m_settingloader->load_text();
+    m_settingloader->load_text( get_charcode() );
 }
 
 
@@ -578,10 +504,10 @@ void Board2chCompati::download_rule_setting()
 #endif
 
     if( ! m_ruleloader ) m_ruleloader = new RuleLoader( url_boardbase() );
-    m_ruleloader->download_text();
+    m_ruleloader->download_text( get_charcode() );
 
     if( ! m_settingloader ) m_settingloader = new SettingLoader( url_boardbase() );
-    m_settingloader->download_text();
+    m_settingloader->download_text( get_charcode() );
 }
 
 

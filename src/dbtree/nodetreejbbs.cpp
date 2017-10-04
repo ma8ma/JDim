@@ -45,6 +45,9 @@ NodeTreeJBBS::~NodeTreeJBBS()
 #endif
 
     clear();
+    // iconv 削除
+    if( m_iconv ) delete m_iconv;
+    m_iconv = NULL;
 }
 
 
@@ -80,8 +83,7 @@ void NodeTreeJBBS::init_loading()
     NodeTreeBase::init_loading();
 
     // iconv 初期化
-    std::string charset = DBTREE::board_charset( get_url() );
-    if( ! m_iconv ) m_iconv = new JDLIB::Iconv( charset, "UTF-8" );
+    if( ! m_iconv ) m_iconv = new JDLIB::Iconv( DBTREE::article_charcode( get_url() ), CHARCODE_UTF8 );
 
     if( ! m_decoded_lines ) m_decoded_lines = ( char* )malloc( BUF_SIZE_ICONV_OUT );
 }

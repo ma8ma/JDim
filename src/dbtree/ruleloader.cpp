@@ -49,12 +49,6 @@ std::string RuleLoader::get_path()
 }
 
 
-std::string RuleLoader::get_charset()
-{
-    return DBTREE::board_charset( m_url_boadbase );
-}
-
-
 // ロード用データ作成
 void RuleLoader::create_loaderdata( JDLIB::LOADERDATA& data )
 {

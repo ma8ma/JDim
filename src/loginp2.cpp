@@ -133,8 +133,7 @@ void Loginp2::start_login()
     data.str_post += "&regist_cookie=1"; // p2(rep2)
     data.str_post += "&ctl_register_cookie=1"; // p2.2ch.net(2012/01/24修正)
     data.str_post += "&register_cookie=1"; // p2.2ch.net(2012/01/24修正)
-//    data.str_post += "&submit_member=" + MISC::charset_url_encode( "ユーザログイン", "MS932" );  // 2009/12/20 仕様変更
-    data.str_post += "&submit_userlogin=" + MISC::charset_url_encode( "ユーザログイン", "MS932" );
+    data.str_post += "&submit_userlogin=" + MISC::url_encode( std::string( "ユーザログイン" ), CHARCODE_SJIS );
 
     logout();
     if( ! m_rawdata ) m_rawdata = ( char* )malloc( SIZE_OF_RAWDATA );

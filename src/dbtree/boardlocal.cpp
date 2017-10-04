@@ -91,7 +91,7 @@ ArticleBase* BoardLocal::append_article( const std::string& datbase, const std::
               << ", id = " << id << std::endl;
 #endif
 
-    ArticleBase* article = new DBTREE::ArticleLocal( datbase, id );
+    ArticleBase* article = new DBTREE::ArticleLocal( datbase, id, get_charcode() );
     if( article ){
 
         get_hash_article()->push( article );

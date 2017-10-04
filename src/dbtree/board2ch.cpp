@@ -179,7 +179,7 @@ std::string Board2ch::create_newarticle_message( const std::string& subject, con
     std::stringstream ss_post;
     ss_post.clear();
     ss_post << "bbs="      << get_id()
-            << "&subject=" << MISC::charset_url_encode( subject, get_charset() );
+            << "&subject=" << MISC::url_encode( subject, get_charcode() );
 
     // キーワード( hana=mogera や suka=pontan など )
     const std::string keyword = get_keyword_for_write();
@@ -193,14 +193,14 @@ std::string Board2ch::create_newarticle_message( const std::string& subject, con
     }
 
     ss_post << "&time="    << get_time_modified()
-            << "&submit="  << MISC::charset_url_encode( "新規スレッド作成", get_charset() )
-            << "&FROM="    << MISC::charset_url_encode( name, get_charset() )
-            << "&mail="    << MISC::charset_url_encode( mail, get_charset() )
-            << "&MESSAGE=" << MISC::charset_url_encode( msg, get_charset() );
+            << "&submit="  << MISC::url_encode( std::string( "新規スレッド作成" ), get_charcode() )
+            << "&FROM="    << MISC::url_encode( name, get_charcode() )
+            << "&mail="    << MISC::url_encode( mail, get_charcode() )
+            << "&MESSAGE=" << MISC::url_encode( msg, get_charcode() );
 
     if( CORE::get_loginp2()->login_now() ){
 
-        ss_post << "&detect_hint=" << MISC::charset_url_encode( "◎◇", get_charset() )
+        ss_post << "&detect_hint=" << MISC::url_encode( std::string( "◎◇" ), get_charcode() )
                 << "&host=" << MISC::url_encode( MISC::get_hostname( get_root(), false ) )
                 << "&key="
                 << "&popup=1"
@@ -255,7 +255,7 @@ ArticleBase* Board2ch::append_article( const std::string& datbase, const std::st
 {
     if( empty() ) return get_article_null();
 
-    ArticleBase* article = new DBTREE::Article2ch( datbase, id, cached );
+    ArticleBase* article = new DBTREE::Article2ch( datbase, id, cached, get_charcode() );
     if( article ){
         get_hash_article()->push( article );
     }

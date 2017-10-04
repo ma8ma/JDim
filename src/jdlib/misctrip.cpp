@@ -6,6 +6,7 @@
 #include <iomanip>
 #endif
 
+#include "misccharcode.h"
 #include "misctrip.h"
 #include "miscutil.h"
 
@@ -266,12 +267,12 @@ std::string create_trip_conventional( const std::string& key )
 // param2: 書き込む掲示板の文字コード
 // return: トリップ文字列
 /*--------------------------------------------------------------------*/
-std::string MISC::get_trip( const std::string& str, const std::string& charset )
+std::string MISC::get_trip( const std::string& str, const CharCode charcode )
 {
     if( str.empty() ) return std::string();
 
-    // str の文字コードを UTF-8 から charset に変更して key に代入する
-    std::string key = MISC::Iconv( str, "UTF-8", charset );
+    // str の文字コードを UTF-8 から変更して key に代入する
+    std::string key = MISC::Iconv( str, CHARCODE_UTF8, charcode );
 
     std::string trip;
 

@@ -9,6 +9,7 @@
 
 #include "skeleton/msgdiag.h"
 
+#include "jdlib/misccharcode.h"
 #include "jdlib/miscutil.h"
 #include "jdlib/misctime.h"
 #include "jdlib/miscmsg.h"
@@ -59,7 +60,7 @@ if( it2 != lines.end() ){ \
 
 
 
-ArticleBase::ArticleBase( const std::string& datbase, const std::string& id, bool cached )
+ArticleBase::ArticleBase( const std::string& datbase, const std::string& id, bool cached, const CharCode charcode )
     : SKELETON::Lockable(),
       m_id ( id ),
       m_key( std::string() ),
@@ -68,6 +69,7 @@ ArticleBase::ArticleBase( const std::string& datbase, const std::string& id, boo
       m_code( HTTP_INIT ),
       m_str_code( std::string() ),
       m_status( STATUS_UNKNOWN ),
+      m_charcode( charcode ),
       m_subject( std::string() ),
       m_number( 0 ),
       m_number_diff( 0 ),
@@ -1955,6 +1957,10 @@ void ArticleBase::read_info()
         GET_INFOVALUE( str_tmp, "status = " );
         if( ! str_tmp.empty() ) m_status = atoi( str_tmp.c_str() );
 
+        // charset
+        GET_INFOVALUE( str_tmp, "charset = " );
+        if( ! str_tmp.empty() ) set_charcode( MISC::charcode_from_cstr( str_tmp.c_str() ) );
+
         // あぼーん ID
         GET_INFOVALUE( str_tmp, "aboneid = " );
         if( ! str_tmp.empty() ) m_list_abone_id = MISC::strtolist( str_tmp );
@@ -2118,6 +2124,7 @@ void ArticleBase::read_info()
               << "writefixname = " << m_write_fixname << std::endl
               << "writefixmail = " << m_write_fixmail << std::endl
               << "status = " << m_status << std::endl
+              << "charcode = " << get_charcode() <<std::endl
               << "transparent_abone = " << m_abone_transparent << std::endl
               << "bookmarked_thread = " << m_bookmarked_thread << std::endl
     ;
@@ -2245,6 +2252,7 @@ void ArticleBase::save_info( const bool force )
          << "writefixname = " << m_write_fixname << std::endl
          << "writefixmail = " << m_write_fixmail << std::endl
          << "status = " << m_status << std::endl
+         << "charset = " << MISC::charcode_to_cstr( get_charcode() ) << std::endl
          << "aboneid = " << str_abone_id << std::endl
          << "abonename = " << str_abone_name << std::endl
          << "bookmark = " << ss_bookmark.str() << std::endl
