@@ -22,8 +22,12 @@ namespace MISC
     bool is_euc( const char* input, size_t read_byte );
     bool is_jis( const char* input, size_t& read_byte );
     bool is_sjis( const char* input, size_t read_byte );
-    bool is_utf( const char* input, size_t read_byte );
+    bool is_utf8( const char* input, size_t read_byte );
     int judge_char_code( const std::string& str );
+
+
+    // utf-8文字のbyte数
+    int utf8bytes( const char* utfstr );
 }
 
 #endif
