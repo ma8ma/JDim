@@ -885,20 +885,21 @@ std::string MISC::html_unescape( const std::string& str )
     if( str.find( '&' ) == std::string::npos ) return str;
 
     std::string str_out;
-    const size_t str_length = str.length();
+    const char* pos = str.c_str();
+    const char* pos_end = pos + str.length();
 
-    for( size_t pos = 0; pos < str_length; ++pos ){
+    while( pos < pos_end ){
 
-        const int bufsize = 64;
-        char out_char[ bufsize ];
-        int n_in, n_out;
-        DBTREE::decode_char( str.c_str() + pos, n_in, out_char, n_out, false );
+        // '&' までコピーする
+        while( *pos != '&' && *pos != '\0' ) str_out.push_back( *pos++ );
+        if( pos >= pos_end ) break;
 
-        if( n_out ){
-            str_out += out_char;
-            pos += n_in -1;
-        }
-        else str_out += str.c_str()[ pos ];
+        // エスケープ用の文字参照をデコード
+        if( memcmp( pos , "&quot;", 6 ) == 0 ){ str_out.push_back( '"' ); pos += 6; }
+        else if( memcmp( pos, "&amp;", 5 ) == 0 ){ str_out.push_back( '&' ); pos += 5; }
+        else if( memcmp( pos, "&lt;", 4 ) == 0 ){ str_out.push_back( '<' ); pos += 4; }
+        else if( memcmp( pos, "&gt;", 4 ) == 0 ){ str_out.push_back( '>' ); pos += 4; }
+        else str_out.push_back( *pos++ );
     }
 
 #ifdef _DEBUG
