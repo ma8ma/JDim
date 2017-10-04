@@ -1638,9 +1638,9 @@ const char* NodeTreeBase::add_one_dat_line( const char* datline )
 
         const char* str = section[3];
         int lng_msg = section_lng[3];
-        std::string str_msg;
 
         // 文字列置換
+        std::string str_msg;
         const CORE::ReplaceStr_Manager* const mgr = CORE::get_replacestr_manager();
         if( mgr->list_get_active( CORE::REPLACETARGET_MESSAGE ) ) {
             str_msg = mgr->replace( str, lng_msg, CORE::REPLACETARGET_MESSAGE );
