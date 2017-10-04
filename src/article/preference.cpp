@@ -75,13 +75,25 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     m_hbox_write.pack_start( m_label_write );
     m_hbox_write.pack_start( m_bt_clear_post_history, Gtk::PACK_SHRINK );    
 
+    // 最大レス数
+    const int max_res = DBTREE::article_number_max( get_url() );
+    m_label_maxres.set_text( "最大レス数 (0 : 未設定)：" );
+    m_spin_maxres.set_range( 0, CONFIG::get_max_resnumber() );
+    m_spin_maxres.set_increments( 1, 1 );
+    m_spin_maxres.set_value( max_res );
+    m_spin_maxres.set_sensitive( true );
+
+    m_hbox_size.pack_start( m_label_size );
+    m_hbox_size.pack_start( m_label_maxres, Gtk::PACK_SHRINK );
+    m_hbox_size.pack_start( m_spin_maxres, Gtk::PACK_SHRINK );
+
     m_vbox_info.set_border_width( 16 );
     m_vbox_info.set_spacing( 8 );
     m_vbox_info.pack_start( m_label_name, Gtk::PACK_SHRINK );
     m_vbox_info.pack_start( m_label_url, Gtk::PACK_SHRINK );
     m_vbox_info.pack_start( m_label_url_dat, Gtk::PACK_SHRINK );
     m_vbox_info.pack_start( m_label_cache, Gtk::PACK_SHRINK );
-    m_vbox_info.pack_start( m_label_size, Gtk::PACK_SHRINK );
+    m_vbox_info.pack_start( m_hbox_size, Gtk::PACK_SHRINK );
 
     m_vbox_info.pack_start( m_label_since, Gtk::PACK_SHRINK );
     m_vbox_info.pack_start( m_hbox_modified, Gtk::PACK_SHRINK );
@@ -253,6 +265,9 @@ void Preferences::slot_ok_clicked()
                          , m_check_transpabone.get_active(), m_check_chainabone.get_active(), m_check_ageabone.get_active(),
                          m_check_defnameabone.get_active(), m_check_noidabone.get_active(),
                          m_check_boardabone.get_active(), m_check_globalabone.get_active() );
+
+    //最大レス数
+    DBTREE::article_set_number_max( get_url(), m_spin_maxres.get_value_as_int() );
 
     // viewの再レイアウト
     CORE::core_set_command( "relayout_article", get_url() );
