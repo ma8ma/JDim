@@ -26,9 +26,13 @@ namespace CORE
         Gtk::VBox m_vbox_abone_thread;
         Gtk::Label m_label_abone_thread;
 
-        Gtk::HBox m_hbox_number;
-        Gtk::Label m_label_number;
-        Gtk::SpinButton m_spin_number;
+        Gtk::HBox m_hbox_min_number;
+        Gtk::Label m_label_min_number;
+        Gtk::SpinButton m_spin_min_number;
+
+        Gtk::HBox m_hbox_max_number;
+        Gtk::Label m_label_max_number;
+        Gtk::SpinButton m_spin_max_number;
 
         Gtk::HBox m_hbox_hour;
         Gtk::Label m_label_hour;
@@ -41,7 +45,8 @@ namespace CORE
             // 全体あぼーん再設定
 
             // スレ数、時間
-            CONFIG::set_abone_number_thread( m_spin_number.get_value_as_int() );
+            CONFIG::set_abone_min_number_thread( m_spin_min_number.get_value_as_int() );
+            CONFIG::set_abone_max_number_thread( m_spin_max_number.get_value_as_int() );
             CONFIG::set_abone_hour_thread( m_spin_hour.get_value_as_int() );
 
             // word
@@ -68,16 +73,27 @@ namespace CORE
             // スレ数、時間
             m_label_abone_thread.set_text( "以下の数字が0の時は未設定になります。\nまたキャッシュにログがあるスレはあぼ〜んされません。\n\n" );
 
-            m_label_number.set_text( "レス以上のスレをあぼ〜ん" );
-            m_spin_number.set_range( 0, 9999 );
-            m_spin_number.set_increments( 1, 1 );
-            m_spin_number.set_value( CONFIG::get_abone_number_thread() );
-            
-            m_hbox_number.set_spacing( 4 );
-            m_hbox_number.pack_start( m_spin_number, Gtk::PACK_SHRINK );
-            m_hbox_number.pack_start( m_label_number, Gtk::PACK_SHRINK );
+            m_label_min_number.set_text( "レス以下のスレをあぼ〜ん" );
+            m_spin_min_number.set_range( 0, CONFIG::get_max_resnumber() );
+            m_spin_min_number.set_increments( 1, 1 );
+            m_spin_min_number.set_value( CONFIG::get_abone_min_number_thread() );
 
-            set_activate_entry( m_spin_number );
+            m_hbox_min_number.set_spacing( 4 );
+            m_hbox_min_number.pack_start( m_spin_min_number, Gtk::PACK_SHRINK );
+            m_hbox_min_number.pack_start( m_label_min_number, Gtk::PACK_SHRINK );
+
+            set_activate_entry( m_spin_min_number );
+
+            m_label_max_number.set_text( "レス以上のスレをあぼ〜ん" );
+            m_spin_max_number.set_range( 0, CONFIG::get_max_resnumber() );
+            m_spin_max_number.set_increments( 1, 1 );
+            m_spin_max_number.set_value( CONFIG::get_abone_max_number_thread() );
+
+            m_hbox_max_number.set_spacing( 4 );
+            m_hbox_max_number.pack_start( m_spin_max_number, Gtk::PACK_SHRINK );
+            m_hbox_max_number.pack_start( m_label_max_number, Gtk::PACK_SHRINK );
+
+            set_activate_entry( m_spin_max_number );
 
             m_label_hour.set_text( "時間以上スレ立てから経過したスレをあぼ〜ん" );
             m_spin_hour.set_range( 0, 9999 );
@@ -93,7 +109,8 @@ namespace CORE
             m_vbox_abone_thread.set_border_width( 16 );
             m_vbox_abone_thread.set_spacing( 8 );
             m_vbox_abone_thread.pack_start( m_label_abone_thread, Gtk::PACK_SHRINK );
-            m_vbox_abone_thread.pack_start( m_hbox_number, Gtk::PACK_SHRINK );
+            m_vbox_abone_thread.pack_start( m_hbox_min_number, Gtk::PACK_SHRINK );
+            m_vbox_abone_thread.pack_start( m_hbox_max_number, Gtk::PACK_SHRINK );
             m_vbox_abone_thread.pack_start( m_hbox_hour, Gtk::PACK_SHRINK );
 
             // word
