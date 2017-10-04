@@ -40,14 +40,13 @@
 // 2バイト目 0xA1〜0xFE
 #define EUC_RANGE_MULTI( target ) ( (unsigned char)( target - 0xA1 ) < 0x5E )
 //
-bool MISC::is_euc( const char* input, size_t read_byte )
+bool MISC::is_eucjp( const char* input, const size_t length, size_t read_byte )
 {
-    if( ! input ) return false;
+    if( ! input || ! length ) return false;
 
     size_t byte = read_byte;
-    const size_t input_length = strlen( input );
 
-    while( byte < input_length && byte < CHECK_LIMIT )
+    while( byte < length && byte < CHECK_LIMIT )
     {
         // 制御文字かアスキー
         if( CTRL_AND_ASCII_RANGE( input[ byte ] ) )
@@ -89,13 +88,11 @@ bool MISC::is_euc( const char* input, size_t read_byte )
 // エスケープシーケンスの開始文字 ESC(0x1B)
 #define JIS_ESC_SEQ_START( target ) ( target == 0x1B )
 //
-bool MISC::is_jis( const char* input, size_t& byte )
+bool MISC::is_jis( const char* input, const size_t length, size_t& byte )
 {
-    if( ! input ) return false;
+    if( ! input || ! length ) return false;
 
-    const size_t input_length = strlen( input );
-
-    while( byte < input_length && byte < CHECK_LIMIT )
+    while( byte < length && byte < CHECK_LIMIT )
     {
         // ESCが出現したか否かだけで判断
         if( JIS_ESC_SEQ_START( input[ byte ] ) ) return true;
@@ -131,14 +128,13 @@ bool MISC::is_jis( const char* input, size_t& byte )
 // 0x80〜0xFC
 #define SJIS_RANGE_2_T( target ) ( (unsigned char)( target - 0x80 ) < 0x7D )
 //
-bool MISC::is_sjis( const char* input, size_t read_byte )
+bool MISC::is_sjis( const char* input, const size_t length, size_t read_byte )
 {
-    if( ! input ) return false;
+    if( ! input || ! length ) return false;
 
     size_t byte = read_byte;
-    const size_t input_length = strlen( input );
 
-    while( byte < input_length && byte < CHECK_LIMIT )
+    while( byte < length && byte < CHECK_LIMIT )
     {
         // 制御文字かアスキー
         if( CTRL_AND_ASCII_RANGE( input[ byte ] ) )
@@ -191,16 +187,15 @@ inline bool utf8_flag3( std::uint8_t target ) { return ( target & 0xF0 ) == 0xE0
 inline bool utf8_flag4( std::uint8_t target ) { return ( target & 0xF8 ) == 0xF0; }
 //
 } // namespace
-bool MISC::is_utf8( const char* input, size_t read_byte )
+bool MISC::is_utf8( const char* input, const size_t length, size_t read_byte )
 {
-    if( ! input ) return false;
+    if( ! input || ! length ) return false;
 
     bool valid = true;
 
     size_t byte = read_byte;
-    const size_t input_length = strlen( input );
 
-    while( byte < input_length && byte < CHECK_LIMIT )
+    while( byte < length && byte < CHECK_LIMIT )
     {
         // 制御文字かアスキー
         if( CTRL_AND_ASCII_RANGE( input[ byte ] ) )
@@ -249,25 +244,25 @@ bool MISC::is_utf8( const char* input, size_t read_byte )
 // 各コードの判定でtrueの間は文字数分繰り返されるので
 // 速度の求められる繰り返し処理などで使わない事
 //
-int MISC::judge_char_code( const std::string& str )
+CharCode MISC::judge_char_code( const std::string& str )
 {
-    int code = CHARCODE_UNKNOWN;
+    CharCode code = CHARCODE_UNKNOWN;
 
     if( str.empty() ) return code;
 
     size_t read_byte = 0;
 
     // JISの判定
-    if( is_jis( str.c_str(), read_byte ) ) code = CHARCODE_JIS;
+    if( is_jis( str.c_str(), str.length(), read_byte ) ) code = CHARCODE_JIS;
     // JISの判定で最後まで進んでいたら制御文字かアスキー
     else if( read_byte == str.length() ) code = CHARCODE_ASCII;
     // is_jis()でASCII範囲外のバイトが現れた箇所から判定する
     // UTF-8の範囲
-    else if( is_utf8( str.c_str(), read_byte ) ) code = CHARCODE_UTF;
+    else if( is_utf8( str.c_str(), str.length(), read_byte ) ) code = CHARCODE_UTF8;
     // EUC-JPの範囲
-    else if( is_euc( str.c_str(), read_byte ) ) code = CHARCODE_EUC_JP;
+    else if( is_eucjp( str.c_str(), str.length(), read_byte ) ) code = CHARCODE_EUCJP;
     // Shift_JISの範囲
-    else if( is_sjis( str.c_str(), read_byte ) ) code = CHARCODE_SJIS;
+    else if( is_sjis( str.c_str(), str.length(), read_byte ) ) code = CHARCODE_SJIS;
 
     return code;
 }
