@@ -17,10 +17,9 @@
 
 using namespace DBTREE;
 
-RuleLoader::RuleLoader( const std::string& url_boadbase, const char* override_charset )
+RuleLoader::RuleLoader( const std::string& url_boadbase )
     : SKELETON::TextLoader()
     , m_url_boadbase( url_boadbase )
-    , m_override_charset{ override_charset }
 {
 #ifdef _DEBUG
     std::cout << "RuleLoader::RuleLoader : " << RuleLoader::get_url() << std::endl;

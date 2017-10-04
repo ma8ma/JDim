@@ -217,11 +217,11 @@ std::string BoardJBBS::url_settingtxt() const
 //
 void BoardJBBS::load_rule_setting()
 {
-    if( ! m_ruleloader ) m_ruleloader.reset( new RuleLoader( url_boardbase(), "MS932" ) );
-    m_ruleloader->load_text();
+    if( ! m_ruleloader ) m_ruleloader.reset( new RuleLoader( url_boardbase() ) );
+    m_ruleloader->load_text( CHARCODE_SJIS );
 
     if( ! m_settingloader ) m_settingloader.reset( new SettingLoader( url_boardbase() ) );
-    m_settingloader->load_text();
+    m_settingloader->load_text( get_charcode() );
 }
 
 
@@ -233,11 +233,11 @@ void BoardJBBS::load_rule_setting()
 //
 void BoardJBBS::download_rule_setting()
 {
-    if( ! m_ruleloader ) m_ruleloader.reset( new RuleLoader( url_boardbase(), "MS932" ) );
-    m_ruleloader->download_text();
+    if( ! m_ruleloader ) m_ruleloader.reset( new RuleLoader( url_boardbase() ) );
+    m_ruleloader->download_text( CHARCODE_SJIS );
 
     if( ! m_settingloader ) m_settingloader.reset( new SettingLoader( url_boardbase() ) );
-    m_settingloader->download_text();
+    m_settingloader->download_text( get_charcode() );
 }
 
 
