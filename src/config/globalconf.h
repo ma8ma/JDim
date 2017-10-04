@@ -190,6 +190,9 @@ namespace CONFIG
     bool get_use_ipv6();
     void set_use_ipv6( const bool set );
 
+    // 信頼するルート証明書
+    const std::string& get_root_cafile();
+
     // 同一ホストに対する最大コネクション数( 1 または 2 )
     int get_connection_num();
 

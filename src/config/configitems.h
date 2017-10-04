@@ -87,6 +87,9 @@ namespace CONFIG
         // ipv6使用
         bool use_ipv6;
 
+        // 信頼するルート証明書
+        std::string root_cafile;
+
         // 同一ホストに対する最大コネクション数( 1 または 2 )
         int connection_num;
 

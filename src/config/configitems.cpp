@@ -150,6 +150,9 @@ bool ConfigItems::load( const bool restore )
     // ipv6使用
     use_ipv6 = cf.get_option_bool( "use_ipv6", CONF_USE_IPV6 );
 
+    // 信頼するルート証明書
+    root_cafile = cf.get_option_str( "root_cafile", CONF_ROOT_CAFILE );
+
     // 同一ホストに対する最大コネクション数( 1 または 2 )
     connection_num = cf.get_option_int( "connection_num", CONF_CONNECTION_NUM, 1, 2 );
 
@@ -714,6 +717,7 @@ void ConfigItems::save_impl( const std::string& path )
     cf.update( "loader_timeout_checkupdate", loader_timeout_checkupdate );
 
     cf.update( "use_ipv6", use_ipv6 );
+    cf.update( "root_cafile", root_cafile );
     cf.update( "connection_num", connection_num );
 
     cf.update( "use_cookie_hap", use_cookie_hap );
