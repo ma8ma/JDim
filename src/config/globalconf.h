@@ -218,6 +218,10 @@ namespace CONFIG
     bool get_use_offlaw2_2ch();
 #endif
 
+    // 2chの過去ログを外部のサイトから取得する
+    bool get_use_external_log();
+    const std::string& get_url_external_log();
+
     // リンクをクリックしたときに実行するコマンド
     const std::string& get_command_openurl();
     void set_command_openurl( const std::string& command );

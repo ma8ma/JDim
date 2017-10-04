@@ -106,6 +106,9 @@ namespace CONFIG
         std::string cookie_hap;
         std::string cookie_hap_bbspink;
 
+        // 2chの過去ログを外部のサイトから取得する
+        bool use_external_log;
+        std::string url_external_log;
 
         // リンクをクリックしたときに実行するコマンド
         std::string command_openurl;
