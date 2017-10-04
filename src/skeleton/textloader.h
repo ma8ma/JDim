@@ -9,6 +9,7 @@
 #ifndef _TEXTLODER_H
 #define _TEXTLODER_H
 
+#include "charcode.h"
 #include "loadable.h"
 
 #include <string>
@@ -38,17 +39,16 @@ namespace SKELETON
         void reset();
 
         // キャッシュからロード
-        void load_text();
+        void load_text( const CharCode charcode );
 
         // ダウンロード開始
         // not modifiedの時はキャッシュから読み込む
-        void download_text();
+        void download_text( const CharCode charcode );
 
       protected:
 
         virtual std::string get_url() = 0;
         virtual std::string get_path() = 0;
-        virtual std::string get_charset() = 0;
 
         // ロード用データ作成
         virtual void create_loaderdata( JDLIB::LOADERDATA& data ) = 0;

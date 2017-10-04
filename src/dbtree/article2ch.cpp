@@ -7,6 +7,7 @@
 #include "nodetree2ch.h"
 #include "interface.h"
 
+#include "jdlib/misccharcode.h"
 #include "jdlib/miscutil.h"
 #include "jdlib/misctime.h"
 
@@ -19,8 +20,8 @@
 using namespace DBTREE;
 
 
-Article2ch::Article2ch( const std::string& datbase, const std::string& id, bool cached )
-    : Article2chCompati( datbase, id, cached )
+Article2ch::Article2ch( const std::string& datbase, const std::string& id, bool cached, const CharCode charcode )
+    : Article2chCompati( datbase, id, cached, charcode )
 {}
 
 
@@ -31,8 +32,6 @@ Article2ch::~Article2ch() noexcept = default;
 std::string Article2ch::create_write_message( const std::string& name, const std::string& mail, const std::string& msg )
 {
     if( msg.empty() ) return std::string();
-
-    const std::string charset = DBTREE::board_charset( get_url() );
 
     std::stringstream ss_post;
     ss_post.clear();
@@ -50,10 +49,10 @@ std::string Article2ch::create_write_message( const std::string& name, const std
     }
 
     ss_post << "&time="    << get_time_modified()
-            << "&submit="  << MISC::charset_url_encode( "書き込む", charset )
-            << "&FROM="    << MISC::charset_url_encode( name, charset )
-            << "&mail="    << MISC::charset_url_encode( mail, charset )
-            << "&MESSAGE=" << MISC::charset_url_encode( msg, charset );
+            << "&submit="  << MISC::url_encode( std::string( "書き込む" ), get_charcode() )
+            << "&FROM="    << MISC::url_encode( name, get_charcode() )
+            << "&mail="    << MISC::url_encode( mail, get_charcode() )
+            << "&MESSAGE=" << MISC::url_encode( msg, get_charcode() );
 
 #ifdef _DEBUG
     std::cout << "Article2ch::create_write_message " << ss_post.str() << std::endl;

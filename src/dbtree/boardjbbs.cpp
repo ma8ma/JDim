@@ -33,7 +33,7 @@ BoardJBBS::BoardJBBS( const std::string& root, const std::string& path_board, co
     set_subjecttxt( "subject.txt" );
     set_ext( "" );
     set_id( path_board.substr( 1 ) ); // 先頭の '/' を除く  
-    set_charset( "EUCJP-WIN" );
+    set_charcode( CHARCODE_EUCJP );
 }
 
 
@@ -64,7 +64,7 @@ ArticleBase* BoardJBBS::append_article( const std::string& datbase, const std::s
 {
     if( empty() ) return get_article_null();
 
-    ArticleBase* article = new DBTREE::ArticleJBBS( datbase, id, cached );
+    ArticleBase* article = new DBTREE::ArticleJBBS( datbase, id, cached, get_charcode() );
     if( article ){
         get_hash_article()->push( article );
     }
@@ -103,11 +103,11 @@ std::string BoardJBBS::create_newarticle_message( const std::string& subject, co
 
     std::stringstream ss_post;
     ss_post.clear();
-    ss_post << "SUBJECT="  << MISC::charset_url_encode( subject, get_charset() )
-            << "&submit="  << MISC::charset_url_encode( "新規書き込み", get_charset() )
-            << "&NAME="    << MISC::charset_url_encode( name, get_charset() )
-            << "&MAIL="    << MISC::charset_url_encode( mail, get_charset() )
-            << "&MESSAGE=" << MISC::charset_url_encode( msg, get_charset() )
+    ss_post << "SUBJECT="  << MISC::url_encode( subject, get_charcode() )
+            << "&submit="  << MISC::url_encode( std::string( "新規書き込み" ), get_charcode() )
+            << "&NAME="    << MISC::url_encode( name, get_charcode() )
+            << "&MAIL="    << MISC::url_encode( mail, get_charcode() )
+            << "&MESSAGE=" << MISC::url_encode( msg, get_charcode() )
             << "&DIR="     << dir
             << "&BBS="     << bbs
             << "&TIME="    << get_time_modified();

@@ -10,7 +10,7 @@
 
 #include "skeleton/msgdiag.h"
 
-#include "jdlib/miscutil.h"
+#include "jdlib/misccharcode.h"
 #include "jdlib/misctime.h"
 
 #include "config/globalconf.h"
@@ -109,7 +109,7 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
         str_cookies = "クッキー:\n未取得\n";
     }
     else {
-        str_cookies = "クッキー:\n" + MISC::Iconv( temp_cookies, DBTREE::board_charset( get_url() ), "UTF-8" ) + "\n";
+        str_cookies = "クッキー:\n" + MISC::Iconv( temp_cookies, DBTREE::board_charcode( get_url() ), CHARCODE_UTF8 ) + "\n";
     }
 
     std::string keyword = DBTREE::board_keyword_for_write( get_url() );
@@ -149,9 +149,19 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     m_hbox_live.set_spacing( 4 );
     m_hbox_live.pack_start( m_label_live, Gtk::PACK_SHRINK );
     m_hbox_live.pack_start( m_spin_live, Gtk::PACK_SHRINK );
-    m_hbox_live.pack_start( m_check_live, Gtk::PACK_SHRINK );
+    m_hbox_live.pack_start( m_check_live );
 
     set_activate_entry( m_spin_live );
+
+    // 文字エンコーディング
+    m_label_charset.set_text( "エンコーディング：" );
+    m_combo_charset.append( MISC::charcode_to_cstr( CHARCODE_UTF8 ) );
+    m_combo_charset.append( MISC::charcode_to_cstr( CHARCODE_SJIS ) );
+    m_combo_charset.append( MISC::charcode_to_cstr( CHARCODE_EUCJP ) );
+    m_combo_charset.set_active_text( MISC::charcode_to_cstr( DBTREE::board_charcode( get_url() ) ) );
+
+    m_hbox_live.pack_start( m_label_charset, Gtk::PACK_SHRINK );
+    m_hbox_live.pack_start( m_combo_charset, Gtk::PACK_SHRINK );
 
     // 一般ページのパッキング
     m_label_max_line.set_text( std::to_string( DBTREE::line_number( get_url() ) * 2 ) );
@@ -513,6 +523,10 @@ void Preferences::slot_ok_clicked()
     if( tmpmail == CONFIG::get_write_mail() ) tmpmail = std::string();
     else if( tmpmail.empty() ) tmpmail = JD_MAIL_BLANK; // 空白の場合 JD_MAIL_BLANK をセットする
     DBTREE::board_set_write_mail( get_url(), tmpmail );
+
+    // charset
+    std::string tmpcharset = m_combo_charset.get_active_text();
+    DBTREE::board_set_charcode( get_url(), MISC::charcode_from_cstr( tmpcharset.c_str() ) );
 
     // 実況間隔
     int live_sec = 0;
