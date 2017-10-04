@@ -3502,9 +3502,10 @@ int DrawAreaBase::search( const std::list< std::string >& list_query, const bool
         constexpr bool icase = true; // 大文字小文字区別しない
         constexpr bool newline = true; // . に改行をマッチさせない
         constexpr bool usemigemo = true; // migemo使用
-        constexpr bool wchar = true;  // 全角半角の区別をしない
+        constexpr bool wchar = false; // 全角半角の区別をしない
+        constexpr bool norm = true; // Unicodeの互換文字を区別しない
 
-        return JDLIB::RegexPattern( query, icase, newline, usemigemo, wchar );
+        return JDLIB::RegexPattern( query, icase, newline, usemigemo, wchar, norm );
     };
 
 #ifdef _DEBUG
