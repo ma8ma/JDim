@@ -359,7 +359,9 @@ std::string Usrcmd_Manager::replace_cmd( const std::string& cmd,
 //
 bool Usrcmd_Manager::is_sensitive( int num, const std::string& link, const std::string& selection )
 {
-    const unsigned int max_selection_str = 1024;
+#ifdef _WIN32
+    constexpr unsigned int max_selection_str = 1024;
+#endif
 
     if( num >= m_size ) return false;
 
@@ -380,7 +382,11 @@ bool Usrcmd_Manager::is_sensitive( int num, const std::string& link, const std::
 
     if( cmd.find( "$TEXT" ) != std::string::npos && cmd.find( "$TEXTI" ) == std::string::npos ){
 
-        if( selection.empty() || selection.length() > max_selection_str ) return false;
+        if( selection.empty()
+#ifdef _WIN32
+                || selection.length() > max_selection_str
+#endif
+                ) return false;
     }
 
     if( cmd.find( "$CACHEDIMG" ) != std::string::npos ){
