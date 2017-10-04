@@ -167,12 +167,12 @@ namespace SKELETON
 
         void pack_separator();
         void pack_transparent_separator();
-        void set_tooltip( Gtk::ToolItem& toolitem, const std::string& tip );
+        void set_tooltip( Gtk::ToolItem& toolitem, const std::string& tip, const bool use_markup = false );
 
       private:
 
         // ラベル関係
-        void set_label( const std::string& label );
+        void set_label( const std::string& label, const bool use_markup = false );
         void set_color( const std::string& color );
 
         // 書き込みボタン関係

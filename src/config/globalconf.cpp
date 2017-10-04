@@ -602,6 +602,9 @@ void CONFIG::set_show_hide_menubar_diag( const bool set ){ get_confitem()->show_
 // 状態変更時にメインステータスバーの色を変える
 bool CONFIG::get_change_stastatus_color(){ return get_confitem()->change_stastatus_color; }
 
+// 状態変更時にスレビュータイトルの色を変える
+bool CONFIG::get_change_statitle_color(){ return get_confitem()->change_statitle_color; }
+
 // まちBBSの取得に offlaw.cgi を使用する
 bool CONFIG::get_use_machi_offlaw(){ return get_confitem()->use_machi_offlaw; }
 void CONFIG::set_use_machi_offlaw( const bool set ){ get_confitem()->use_machi_offlaw = set; }

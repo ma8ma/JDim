@@ -526,6 +526,9 @@ namespace CONFIG
         // 状態変更時にメインステータスバーの色を変える
         bool change_stastatus_color{};
 
+        // 状態変更時にスレビュータイトルの色を変える
+        bool change_statitle_color;
+
         // まちBBSの取得に offlaw.cgi を使用する
         bool use_machi_offlaw{};
 
