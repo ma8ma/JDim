@@ -608,6 +608,9 @@ bool ConfigItems::load( const bool restore )
     // 不正なMS932文字列をUTF-8と見なす
     broken_sjis_be_utf8 = cf.get_option_bool( "broken_sjis_be_utf8", CONF_BROKEN_SJIS_BE_UTF8 );
 
+    // 不正な数値文字参照を無理矢理変換する
+    correct_character_reference = cf.get_option_bool( "correct_character_reference", CONF_CORRECT_CHAR_REFERENCE );
+
     m_loaded = true;
 
     // 設定値に壊れている物がある
@@ -961,6 +964,7 @@ void ConfigItems::save_impl( const std::string& path )
 #endif
 
     cf.update( "broken_sjis_be_utf8", broken_sjis_be_utf8 );
+    cf.update( "correct_character_reference", correct_character_reference );
 
     cf.save();
 }
