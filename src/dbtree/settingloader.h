@@ -10,6 +10,8 @@
 
 #include <string>
 
+#define SETTING_TXT "SETTING.TXT"
+
 namespace JDLIB
 {
     class LOADERDATA;

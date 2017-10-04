@@ -402,6 +402,18 @@ std::string Board2chCompati::localrule()
 }
 
 
+//
+// SETTING.TXTのURL
+//
+// (例) "http://www.hoge2ch.net/hogeboard/SETTING.TXT"
+//
+//
+std::string Board2chCompati::url_settingtxt()
+{
+    return url_boardbase() + SETTING_TXT;
+}
+
+
 std::string Board2chCompati::settingtxt()
 {
     if( m_settingloader ){

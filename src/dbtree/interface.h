@@ -38,7 +38,6 @@ namespace DBTREE
     ArticleBase* get_article( const std::string& url );
 
     // urlの変換関係
-    std::string url_subject( const std::string& url ); // 板の subject.txt の URL
     std::string url_root( const std::string& url );
     std::string url_boardbase( const std::string& url );
     std::string url_datbase( const std::string& url );
@@ -58,6 +57,8 @@ namespace DBTREE
     std::string url_subbbscgi( const std::string& url );
     std::string url_bbscgi_new( const std::string& url );
     std::string url_subbbscgi_new( const std::string& url );
+
+    std::string url_settingtxt( const std::string& url );
 
     // 板が移転したかチェックする
     // 移転した時は移転後のURLを返す

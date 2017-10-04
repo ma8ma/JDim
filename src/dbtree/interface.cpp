@@ -60,12 +60,6 @@ DBTREE::ArticleBase* DBTREE::get_article( const std::string& url )
 
 //////////////////////////////////////
 
-std::string DBTREE::url_subject( const std::string& url )
-{
-    return DBTREE::get_board( url )->url_subject();
-}
-
-
 std::string DBTREE::url_root( const std::string& url )
 {
     return DBTREE::get_board( url )->url_root();
@@ -137,6 +131,13 @@ std::string DBTREE::url_subbbscgi_new( const std::string& url )
 {
     return DBTREE::get_board( url )->url_subbbscgi_new();
 }
+
+
+std::string DBTREE::url_settingtxt( const std::string& url )
+{
+    return DBTREE::get_board( url )->url_settingtxt();
+}
+
 
 
 // 簡易版
