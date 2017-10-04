@@ -2993,10 +2993,11 @@ void BoardViewBase::slot_abone_thread()
     // あぼーん情報更新
     std::list< std::string > words = DBTREE::get_abone_list_word_thread( get_url_board() );
     std::list< std::string > regexs = DBTREE::get_abone_list_regex_thread( get_url_board() );
-    const int number = DBTREE::get_abone_number_thread( get_url_board() );
+    const int min_number = DBTREE::get_abone_min_number_thread( get_url_board() );
+    const int max_number = DBTREE::get_abone_max_number_thread( get_url_board() );
     const int hour = DBTREE::get_abone_hour_thread( get_url_board() );
     const bool redraw = false; // 板の再描画はしない
-    DBTREE::reset_abone_thread( get_url_board(), threads, words, regexs, number, hour, redraw );
+    DBTREE::reset_abone_thread( get_url_board(), threads, words, regexs, min_number, max_number, hour, redraw );
 
     m_treeview.delete_selected_rows( true );
 }
