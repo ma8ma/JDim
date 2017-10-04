@@ -1778,15 +1778,17 @@ void NodeTreeBase::parse_mail( NODE* header, const char* str, const int lng )
     node = header->headinfo->block[ BLOCK_MAIL ] = create_node_block();
     node->fontid = FONT_MAIL;
 
-    if( ! lng )  create_node_text( "[]", color, false, FONT_MAIL );
-
+    const int lng_mail = lng;
+    if( lng_mail == 0 ){
+        create_node_text( "[]", color, false, FONT_MAIL );
+    }
     else{
         create_node_text( "[", color, false, FONT_MAIL );
 
         const bool digitlink = true;
         const bool bold = false;
         const bool ahref = false;
-        parse_html( str, lng, color, digitlink, bold, ahref, FONT_MAIL );
+        parse_html( str, lng_mail, color, digitlink, bold, ahref, FONT_MAIL );
 
         create_node_text( "]", color, false, FONT_MAIL );
     }
