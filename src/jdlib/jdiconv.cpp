@@ -5,8 +5,8 @@
 #include "jddebug.h"
 
 #include "jdiconv.h"
+#include "misccharcode.h"
 #include "miscmsg.h"
-#include "miscutil.h"
 
 #include <errno.h>
 #include <cstring>
@@ -174,22 +174,22 @@ const char* Iconv::convert( char* str_in, int size_in, int& size_out )
                 if( m_coding_from == "UTF-8" ){
 
                     int byte;
-                    const int ucs2 = MISC::utf8toucs2( m_buf_in_tmp, byte );
+                    const char32_t code = MISC::utf8tocp( m_buf_in_tmp, byte );
                     if( byte != 1 ){
 
-                        const std::string ucs2_str = std::to_string( ucs2 );
+                        const std::string ucs_str = std::to_string( code );
 #ifdef _DEBUG
-                        std::cout << "ucs2 = " << ucs2_str << " byte = " << byte << std::endl;
+                        std::cout << "ucs = " << ucs_str << " byte = " << byte << std::endl;
 #endif
                         m_buf_in_tmp += byte;
                         m_byte_left_in -= byte;
 
                         *(buf_out++) = '&';
                         *(buf_out++) = '#';
-                        memcpy( buf_out, ucs2_str.c_str(), ucs2_str.size() ); buf_out += ucs2_str.size();
+                        memcpy( buf_out, ucs_str.c_str(), ucs_str.size() ); buf_out += ucs_str.size();
                         *(buf_out++) = ';';
 
-                        byte_left_out -= ucs2_str.size() + 3;
+                        byte_left_out -= ucs_str.size() + 3;
 
                         continue;
                     }

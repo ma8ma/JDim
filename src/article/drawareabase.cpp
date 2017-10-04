@@ -1713,7 +1713,7 @@ int DrawAreaBase::get_width_of_one_char( const char* utfstr, int& byte, char& pr
         if( width_wide <= 0 ){
 
             int byte_tmp;
-            const unsigned int code = MISC::utf8toucs2( tmpchar.c_str(), byte_tmp );
+            const unsigned int code = MISC::utf8tocp( tmpchar.c_str(), byte_tmp );
 
             std::stringstream ss_err;
             ss_err << "unknown font byte = " << byte_tmp << " ucs2 = " << code << " width = " << width;
@@ -4466,15 +4466,15 @@ bool DrawAreaBase::set_carets_dclick( CARET_POSITION& caret_left, CARET_POSITION
                 }
 
                 int byte_char_pointer;
-                const int ucs2_pointer = MISC::utf8toucs2( layout->text + pos, byte_char_pointer );
-                const int ucs2mode_pointer = MISC::get_ucs2mode( ucs2_pointer );
+                const char32_t ucs_pointer = MISC::utf8tocp( layout->text + pos, byte_char_pointer );
+                const int ucstype_pointer = MISC::get_ucs2mode( ucs_pointer );
 #ifdef _DEBUG
-                std::cout << "ucs2 = " << std::hex << ucs2_pointer << std::dec
-                          << " mode = " << ucs2mode_pointer << " pos = " << pos << std::endl;
+                std::cout << "ucs = " << std::hex << ucs_pointer << std::dec
+                          << " type = " << ucstype_pointer << " pos = " << pos << std::endl;
 #endif
 
                 // 区切り文字をダブルクリックした
-                if( is_separate_char( ucs2_pointer ) ){
+                if( is_separate_char( ucs_pointer ) ){
                     caret_left.set( layout, pos );
                     caret_right.set( layout, pos + byte_char_pointer );
                     return true;
@@ -4486,20 +4486,17 @@ bool DrawAreaBase::set_carets_dclick( CARET_POSITION& caret_left, CARET_POSITION
                 while( pos_tmp < pos ){
 
                     int byte_char;
-                    const int ucs2 = MISC::utf8toucs2( layout->text + pos_tmp, byte_char );
-                    const int ucs2mode = MISC::get_ucs2mode( ucs2 );
+                    const char32_t ucs = MISC::utf8tocp( layout->text + pos_tmp, byte_char );
+                    const int ucstype = MISC::get_ucs2mode( ucs );
 
                     int byte_char_next;
-                    const int ucs2_next = MISC::utf8toucs2( layout->text + pos_tmp + byte_char, byte_char_next );
-                    const int ucs2mode_next = MISC::get_ucs2mode( ucs2_next );
+                    const char32_t ucs_next = MISC::utf8tocp( layout->text + pos_tmp + byte_char, byte_char_next );
+                    const int ucstype_next = MISC::get_ucs2mode( ucs_next );
 
                     // 区切り文字が来たら左位置を移動する
-                    if( ucs2_next == '\0'
-
-                        || is_separate_char( ucs2 )
-
+                    if( ucs_next == '\0' || is_separate_char( ucs )
                         // 文字種が変わった
-                        || ( ucs2mode != ucs2mode_pointer && ucs2mode_next == ucs2mode_pointer )
+                        || ( ucstype != ucstype_pointer && ucstype_next == ucstype_pointer )
 
                         ) pos_left = pos_tmp + byte_char;
 
@@ -4511,21 +4508,21 @@ bool DrawAreaBase::set_carets_dclick( CARET_POSITION& caret_left, CARET_POSITION
                 while( pos_right < layout->lng_text ){
 
                     int byte_char;
-                    const int ucs2 = MISC::utf8toucs2( layout->text + pos_right, byte_char );
-                    const int ucs2mode = MISC::get_ucs2mode( ucs2 );
+                    const char32_t ucs = MISC::utf8tocp( layout->text + pos_right, byte_char );
+                    const int ucstype = MISC::get_ucs2mode( ucs );
 
                     int byte_char_next;
-                    const int ucs2_next = MISC::utf8toucs2( layout->text + pos_right + byte_char, byte_char_next );
-                    const int ucs2mode_next = MISC::get_ucs2mode( ucs2_next );
+                    const char32_t ucs_next = MISC::utf8tocp( layout->text + pos_right + byte_char, byte_char_next );
+                    const int ucstype_next = MISC::get_ucs2mode( ucs_next );
 
                     // 区切り文字が来たらbreak
-                    if( is_separate_char( ucs2 ) ) break;
+                    if( is_separate_char( ucs ) ) break;
 
                     pos_right += ( byte_char ? byte_char : 1 );
 
                     // 文字種が変わった
-                    if( ucs2_next == '\0'
-                        || ( ucs2mode == ucs2mode_pointer && ucs2mode_next != ucs2mode_pointer )
+                    if( ucs_next == '\0'
+                        || ( ucstype == ucstype_pointer && ucstype_next != ucstype_pointer )
                         ) break;
                 }
 
