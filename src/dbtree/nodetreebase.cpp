@@ -1231,6 +1231,7 @@ void NodeTreeBase::download_dat( const bool check_update )
     if( m_check_update ){
         data.head = true;
         data.timeout = CONFIG::get_loader_timeout_checkupdate();
+        if( data.byte_readfrom ) data.byte_readfrom += 1;
     }
 
     if( data.url.empty() || ! start_load( data ) ){
