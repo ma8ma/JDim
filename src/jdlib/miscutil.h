@@ -162,7 +162,8 @@ namespace MISC
     bool is_url_char( const char* str_in, const bool loose_url );
 
     // URLデコード
-    std::string url_decode( const std::string& url );
+    std::string url_decode( const char* url, const size_t n );
+    inline std::string url_decode( const std::string& url ){ return url_decode( url.c_str(), url.length() ); }
 
     // urlエンコード
     std::string url_encode( const char* str, const size_t n );
