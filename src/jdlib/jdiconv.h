@@ -3,16 +3,14 @@
 #ifndef _JDICONV_H
 #define _JDICONV_H
 
+#include "charcode.h"
+
 #include <iconv.h>
 #include <string>
 
-// iconv の内部で確保するバッファサイズ(バイト)
-//  BUF_SIZE_ICONV_IN を超える入力は扱えないので注意
-enum
-{
-    BUF_SIZE_ICONV_IN = 1024 * 1024,
-    BUF_SIZE_ICONV_OUT = BUF_SIZE_ICONV_IN /2 * 3
-};
+
+constexpr std::size_t BUF_SIZE_ICONV_OUT = 512 * 1024;
+
 
 namespace JDLIB
 {
@@ -20,20 +18,21 @@ namespace JDLIB
     {
         iconv_t m_cd;
 
-        size_t m_byte_left_in;
-        char* m_buf_in;
-        char* m_buf_in_tmp;
+        char* m_buf;
+        size_t m_buf_size;
 
-        char* m_buf_out;
-
-        std::string m_coding_from;
+        CharCode m_coding_from;
+        CharCode m_coding_to;
 
     public:
         
-        Iconv( const std::string& coding_from, const std::string& coding_to );
+        Iconv( const CharCode from, const CharCode to );
         ~Iconv();
 
-        const char* convert( char* str_in, int size_in, int& size_out );
+        const char* convert( const char* str_in, int size_in, int& size_out );
+
+    private:
+        bool grow();
     };
 }
 
