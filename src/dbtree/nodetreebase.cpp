@@ -1139,8 +1139,6 @@ void NodeTreeBase::set_resume_data( const char* data, size_t length )
 //
 void NodeTreeBase::init_loading()
 {
-    clear();
-
     // 一時バッファ作成
     if( m_buffer_lines.capacity() < MAXSISE_OF_LINES ) {
         m_buffer_lines.reserve( MAXSISE_OF_LINES );
