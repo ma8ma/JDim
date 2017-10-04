@@ -365,13 +365,15 @@ std::string MISC::remove_spaces( const std::string& str )
 
     // 最後の文字の位置は文字数より1少ない
     size_t p = r - 1;
-    while( p > 0
+    while( p > l
          && ( str[p] == '\n'
            || str[p] == '\r'
            || str[p] == '\t'
-           || str[p] == ' ' ) ){ --p; --r; }
+           || str[p] == ' ' ) ) --p;
 
-    return str.substr( l, r - l );
+    if( l == 0 && p == r - 1 ) return str;
+
+    return str.substr( l, p + 1 - l );
 }
 
 
