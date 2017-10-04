@@ -2040,6 +2040,7 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
     int bgcolor = COLOR_NONE;
     int bgcolor_bak = COLOR_NONE;
     bool in_bold = bold;
+    std::vector< std::string >& colors = CORE::get_css_manager()->get_colors();
     char tmplink[ LNG_LINK ];
     
     if( *pos == ' ' ){
@@ -2420,6 +2421,76 @@ create_multispace:
                     bgcolor_bak = bgcolor;
                     if( css.color != -1 ) fgcolor = css.color;
                     if( css.bg_color != -1 ) bgcolor = css.bg_color;
+                }
+
+                if( CONFIG::get_use_color_html() ){
+                    // タグで指定された色を使う場合
+
+                    while( pos < pos_end && *pos != '>' ){
+                        bool background = false;
+
+                        while( pos < pos_end && *pos != '>' && *pos != ' '
+                                && *pos != '"' && *pos != '\'' ) ++pos;
+
+                        if( *pos == '>' ) break;
+
+                        else if( ( *pos == ' ' || *pos == '"' || *pos == '\'' )
+                                && ! memcmp( pos + 1, "color", 5 ) ) pos += 6;
+
+                        else if( ( *pos == ' ' || *pos == '"' || *pos == '\'' )
+                                && ! memcmp( pos + 1, "fgcolor", 7 ) ) pos += 8;
+
+                        else if( ( *pos == ' ' || *pos == '"' || *pos == '\'' )
+                                && ! memcmp( pos + 1, "foreground", 10 ) ) pos += 11;
+
+                        else if( ( *pos == ' ' || *pos == '"' || *pos == '\'' )
+                                && ! memcmp( pos + 1, "bgcolor", 7 ) ){ pos += 8; background = true; }
+
+                        else if( ( *pos == ' ' || *pos == '"' || *pos == '\'' )
+                                && ! memcmp( pos + 1, "background-color", 16 ) ){ pos += 17; background = true; }
+
+                        else if( ( *pos == ' ' || *pos == '"' || *pos == '\'' )
+                                && ! memcmp( pos + 1, "background", 10 ) ){ pos += 11; background = true; }
+
+                        else{ ++pos; continue; }
+
+                        if( *pos == '=' || *pos == ':' ) ++pos;
+                        if( *pos == ' ' || *pos == '"' ) ++pos;
+
+                        const char* st = pos;
+                        while( pos < pos_end && *pos != '>' && *pos != ' ' && *pos != ';' && *pos != '\'' && *pos != '"' ) ++pos;
+
+                        std::string col( st, pos - st );
+                        if( col == "transparent" ){
+                            // 透明の場合は基本の背景色（でよいか？）
+                            if( background ) bgcolor = COLOR_BACK;
+                            else fgcolor = COLOR_BACK;
+                            continue;
+                        }
+
+                        const std::string col_str = MISC::htmlcolor_to_str( col ) ;
+                        if( col_str.empty() ){
+                            MISC::ERRMSG( "unhandled color : " + col );
+                            continue;
+                        }
+
+                        std::vector< std::string >::const_iterator it = colors.begin();
+                        for( ; it < colors.end(); ++it )
+                            if( ! (*it).compare( col_str ) ) break;
+
+                        int num_color;
+                        if( it == colors.end() ){
+                            colors.push_back( col_str );
+                            num_color = colors.size() - 1;
+                        }
+                        else{
+                            num_color = it - colors.begin();
+                        }
+
+                        // 指定された文字色に変更する
+                        if( background ) bgcolor = num_color + USRCOLOR_BASE;
+                        else fgcolor = num_color + USRCOLOR_BASE;
+                    }
                 }
 
                 while( pos < pos_end && *pos != '>' ) ++pos;
