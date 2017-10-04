@@ -25,6 +25,7 @@
 #include "cache.h"
 #include "global.h"
 #include "login2ch.h"
+#include "replacestrmanager.h"
 #include "session.h"
 #include "updatemanager.h"
 
@@ -422,6 +423,23 @@ void ArticleBase::reset_status()
 #endif
 
     m_status = STATUS_UNKNOWN;
+}
+
+
+const std::string& ArticleBase::get_modified_subject( const bool renew )
+{
+    if( renew || m_modified_subject.empty() ){
+        const CORE::ReplaceStr_Manager* const mgr = CORE::get_replacestr_manager();
+
+        // タイトル文字列置換
+        if( mgr->list_get_active( CORE::REPLACETARGET_SUBJECT ) ){
+            m_modified_subject = mgr->replace( m_subject.c_str(), m_subject.length(), CORE::REPLACETARGET_SUBJECT );
+        }
+        else m_modified_subject = m_subject;
+
+    }
+
+    return m_modified_subject;
 }
 
 
