@@ -3,11 +3,11 @@
 //#define _DEBUG
 #include "jddebug.h"
 
+#include "charcode.h"
 #include "searchloader.h"
 #include "usrcmdmanager.h"
 
 #include "jdlib/loaderdata.h"
-#include "jdlib/miscutil.h"
 
 #include "config/globalconf.h"
 
@@ -19,19 +19,21 @@ SearchLoader::SearchLoader()
 {
     std::string url = CONFIG::get_url_search_title();
 
-    m_charset = "UTF-8";
+    Encoding charcode = Encoding::utf8;
 
     // 結果のエンコード指定を、検索結果のエンコードに設定する
-    if( url.find( "$OUTU" ) != std::string::npos ) m_charset = "UTF-8";
-    else if( url.find( "$OUTX" ) != std::string::npos ) m_charset = "EUC-JP";
-    else if( url.find( "$OUTE" ) != std::string::npos ) m_charset = "MS932";
+    if( url.find( "$OUTU" ) != std::string::npos ) charcode = Encoding::utf8;
+    else if( url.find( "$OUTX" ) != std::string::npos ) charcode = Encoding::eucjp;
+    else if( url.find( "$OUTE" ) != std::string::npos ) charcode = Encoding::sjis;
 
     // 結果のエンコード指定がない場合は、検索クエリのエンコードを検索結果のエンコードに設定する
-    else if( url.find( "$TEXTX" ) != std::string::npos ) m_charset = "EUC-JP";
-    else if( url.find( "$TEXTE" ) != std::string::npos ) m_charset = "MS932";
+    else if( url.find( "$TEXTX" ) != std::string::npos ) charcode = Encoding::eucjp;
+    else if( url.find( "$TEXTE" ) != std::string::npos ) charcode = Encoding::sjis;
+
+    set_charcode( charcode );
 
 #ifdef _DEBUG
-    std::cout << "SearchLoader::SearchLoader charset = " << m_charset << std::endl;;
+    std::cout << "SearchLoader::SearchLoader charcode = " << static_cast<int>( charcode ) << std::endl;;
 #endif
 }
 
@@ -64,7 +66,7 @@ void SearchLoader::search( const std::string& query )
     m_query = query;
 
     reset();
-    download_text();
+    download_text( get_charcode() );
 }
 
 

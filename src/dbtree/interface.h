@@ -7,6 +7,7 @@
 #ifndef _INTERFACE_H
 #define _INTERFACE_H
 
+#include "charcode.h"
 #include "etcboardinfo.h"
 
 #include <string>
@@ -104,7 +105,8 @@ namespace DBTREE
     void board_set_modified_setting( const std::string& url, const std::string& modified );
     std::string board_name( const std::string& url );
     std::string board_subjecttxt( const std::string& url );
-    std::string board_charset( const std::string& url );
+    Encoding board_charcode( const std::string& url );
+    void board_set_charcode( const std::string& url, const Encoding charcode );
     std::string board_cookie_by_host( const std::string& url );
     std::string board_cookie_for_request( const std::string& url );
     std::string board_cookie_for_post( const std::string& url );
@@ -220,6 +222,8 @@ namespace DBTREE
     time_t article_time_modified( const std::string& url ); // スレの更新時間( time_t )
     std::string article_date_modified( const std::string& url ); // スレの更新時間( 文字列 )
     void article_set_date_modified( const std::string& url, const std::string& date ); // スレの更新時間( 文字列 )をセット
+    Encoding article_charcode( const std::string& url );
+    void article_set_charcode( const std::string& url, const Encoding charcode );
     int article_hour( const std::string& url );
     time_t article_write_time( const std::string& url );
     std::string article_write_date( const std::string& url );

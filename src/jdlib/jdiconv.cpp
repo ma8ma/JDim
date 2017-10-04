@@ -24,7 +24,8 @@ Iconv::Iconv( const Encoding to, const Encoding from )
     , m_coding_to( to )
 {
 #ifdef _DEBUG
-    std::cout << "Iconv::Iconv coding = " << m_coding_from << " to " << m_coding_to << std::endl;
+    std::cout << "Iconv::Iconv coding = " << MISC::charcode_to_cstr( m_coding_from )
+              << " to " << MISC::charcode_to_cstr( m_coding_to ) << std::endl;
 #endif
 
     const char* from_str = MISC::charcode_to_cstr( ( from == Encoding::unknown ) ? to : from );

@@ -15,6 +15,7 @@
 #include "skeleton/editview.h"
 #include "skeleton/detaildiag.h"
 
+#include "jdlib/misccharcode.h"
 #include "jdlib/miscutil.h"
 #include "jdlib/misctime.h"
 #include "jdlib/misctrip.h"
@@ -77,7 +78,7 @@ MessageViewBase::MessageViewBase( const std::string& url )
     m_max_line = DBTREE::line_number( get_url() ) * 2;
     m_max_str = DBTREE::message_count( get_url() );
 
-    m_iconv = std::make_unique<JDLIB::Iconv>( DBTREE::board_charset( get_url() ), "UTF-8" );;
+    m_iconv = std::make_unique<JDLIB::Iconv>( DBTREE::board_charcode( get_url() ), Encoding::utf8 );
 
     m_lng_iconv = m_max_str * 3;
     if( ! m_lng_iconv ) m_lng_iconv = MAX_STR_ICONV;
@@ -891,7 +892,7 @@ void MessageViewBase::slot_switch_page( Gtk::Widget*, guint page )
             std::string trip;
             if( trip_pos != std::string::npos )
             {
-                trip = MISC::get_trip( name_field.substr( trip_pos + 1 ), DBTREE::board_charset( get_url() ) );
+                trip = MISC::get_trip( name_field.substr( trip_pos + 1 ), DBTREE::board_charcode( get_url() ) );
             }
 
             ss << name;
@@ -915,7 +916,7 @@ void MessageViewBase::slot_switch_page( Gtk::Widget*, guint page )
                 // MS932等に無い文字を数値文字参照にするために文字コードを変換する
                 int byte_out;
                 const std::string str_enc = m_iconv->convert( msg.data(), msg.size(), byte_out );
-                msg = MISC::Iconv( str_enc, "UTF-8", DBTREE::board_charset( get_url() ) );
+                msg = MISC::Iconv( str_enc, Encoding::utf8, DBTREE::board_charcode( get_url() ) );
             }
             else{
                 constexpr bool completely = true;
