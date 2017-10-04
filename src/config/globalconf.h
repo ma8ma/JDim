@@ -619,6 +619,10 @@ namespace CONFIG
     // migemo-dictの場所
     const std::string& get_migemodict_path();
 #endif
+
+    // 不正なMS932文字列をUTF-8と見なす
+    bool get_broken_sjis_be_utf8();
+    void set_broken_sjis_be_utf8( const bool set );
 }
 
 
