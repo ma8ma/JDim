@@ -75,8 +75,10 @@ Board2chCompati::~Board2chCompati()
 //
 bool Board2chCompati::is_valid( const std::string& filename )
 {
-    if( filename.find( get_ext() ) == std::string::npos ) return false;
-    if( filename.length() - filename.rfind( get_ext() ) != get_ext().length() ) return false;
+    const size_t lng_filename = filename.length();
+    const size_t lng_ext = get_ext().length();
+    if( lng_ext != 0 && ( lng_filename <= lng_ext ||
+            filename.compare( lng_filename - lng_ext, lng_ext, get_ext() ) ) ) return false;
 
     size_t dig, n;
     MISC::str_to_uint( filename.c_str(), dig, n );
