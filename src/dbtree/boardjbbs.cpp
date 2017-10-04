@@ -214,8 +214,8 @@ std::string BoardJBBS::url_settingtxt() const
 //
 void BoardJBBS::load_rule_setting()
 {
-    if( ! m_ruleloader ) m_ruleloader = std::make_unique<RuleLoader>( url_boardbase(), "MS932" );
-    m_ruleloader->load_text( get_charcode() );
+    if( ! m_ruleloader ) m_ruleloader = std::make_unique<RuleLoader>( url_boardbase() );
+    m_ruleloader->load_text( CHARCODE_SJIS );
 
     if( ! m_settingloader ) m_settingloader = std::make_unique<SettingLoader>( url_boardbase() );
     m_settingloader->load_text( get_charcode() );
@@ -230,8 +230,8 @@ void BoardJBBS::load_rule_setting()
 //
 void BoardJBBS::download_rule_setting()
 {
-    if( ! m_ruleloader ) m_ruleloader = std::make_unique<RuleLoader>( url_boardbase(), "MS932" );
-    m_ruleloader->download_text( get_charcode() );
+    if( ! m_ruleloader ) m_ruleloader = std::make_unique<RuleLoader>( url_boardbase() );
+    m_ruleloader->download_text( CHARCODE_SJIS );
 
     if( ! m_settingloader ) m_settingloader = std::make_unique<SettingLoader>( url_boardbase() );
     m_settingloader->download_text( get_charcode() );
