@@ -75,6 +75,7 @@ namespace SKELETON
         std::string m_date_modified;
         std::list< std::string > m_cookies;
         std::string m_location;
+        std::string m_error;
         size_t m_total_length;
         size_t m_current_length;
 
@@ -102,6 +103,8 @@ namespace SKELETON
 
         const std::list< std::string >& cookies() { return m_cookies; }
         const std::string& location() const { return m_location; }
+
+        const std::string& get_error() const { return m_error; }
 
         size_t total_length() const { return m_total_length; }
         void set_total_length( int length ){ m_total_length = length; }
@@ -154,6 +157,7 @@ namespace SKELETON
         std::list< std::string > get_loader_cookies() const;
         std::string get_loader_location() const;
         size_t get_loader_length() const;
+        std::string get_loader_error() const;
         CharCode get_loader_content_charset() const;
     };
 }
