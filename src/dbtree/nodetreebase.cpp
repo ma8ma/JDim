@@ -1685,11 +1685,15 @@ const char* NodeTreeBase::add_one_dat_line( const char* datline )
 //
 void NodeTreeBase::parse_name( NODE* header, const char* str, const int lng, const int color_name )
 {
-    bool digitlink = true;
-    const bool bold = true;
     const bool ahref = false;
+    std::string str_name;
+    int lng_name = lng;
 
-    const bool defaultname = ( strncmp( m_default_noname.data(), str, lng ) == 0 );
+    // 後ろの空白を除く
+    while( str[ lng_name - 1 ] == ' ' ) --lng_name;
+
+    const bool defaultname = ( m_default_noname.length() == ( size_t )lng_name
+            && m_default_noname.compare( 0, lng_name, str, lng_name ) == 0 );
 
     header->headinfo->block[ BLOCK_NAMELINK ] = create_node_block();
 
@@ -1704,36 +1708,39 @@ void NodeTreeBase::parse_name( NODE* header, const char* str, const int lng, con
 
     // デフォルト名無しと同じときはアンカーを作らない
     if( defaultname ){
-        digitlink = false;
-        parse_html( str, lng, color_name, digitlink, bold, ahref );
+        constexpr bool digitlink = false;
+        constexpr bool bold = true;
+        parse_html( str, lng_name, color_name, digitlink, bold, ahref );
     }
     else{
 
         int pos = 0;
         int i;
 
-        while( pos < lng ){
+        while( pos < lng_name ){
 
             // トリップなど</b>〜<b>の中の文字列は色を変えて数字をリンクにしない
-            for( i = pos; i < lng; ++i ){
+            for( i = pos; i < lng_name; ++i ){
                 if( str[ i ] == '<'
                     && str[ i+1 ] == '/'
                     && ( str[ i+2 ] == 'b' || str[ i+2 ] == 'B' )
-                    && str[ i+3 ] == '>' ) break;
+                    && str[ i+3 ] == '>' ){ i += 4; break; }
             }
 
             // </b>の前までパース
             if( i != pos ){
                 // デフォルト名無しと同じときはアンカーを作らない
-                digitlink = ( strncmp( m_default_noname.data(), str + pos, i - pos ) != 0 );
+                const size_t len = m_default_noname.size();
+                const bool digitlink = m_default_noname.compare( 0, len, str + pos, len );
+                constexpr bool bold = true;
                 parse_html( str + pos, i - pos, color_name, digitlink, bold, ahref );
             }
-            if( i >= lng ) break;
-            pos = i + 4; // 4 = strlen( "</b>" );
+            if( i >= lng_name ) break;
+            pos = i;
 
             // <b>の位置を探す
-            int pos_end = lng;
-            for( i = pos; i < lng; ++i ){
+            int pos_end = lng_name;
+            for( i = pos; i < lng_name; ++i ){
                 if( str[ i ] == '<'
                     && ( str[ i+1 ] == 'b' || str[ i+1 ] == 'B' )
                     && str[ i+2 ] == '>' ){
@@ -1752,29 +1759,25 @@ void NodeTreeBase::parse_name( NODE* header, const char* str, const int lng, con
 #endif
 
             // </b><b>の中をパース
-            digitlink = false; // 数字が入ってもリンクしない
+            constexpr bool digitlink = false; // 数字が入ってもリンクしない
+            constexpr bool bold = false;
             parse_html( str + pos, pos_end - pos, COLOR_CHAR_NAME_B, digitlink, bold, ahref );
 
-            pos = pos_end + 3; // 3 = strlen( "<b>" );
+            pos = pos_end;
         }
     }
 
     // plainな名前取得
     // 名前あぼーんや名前抽出などで使用する
-    if( defaultname ){
-        header->headinfo->name = ( char* )m_heap.heap_alloc( lng +2 );
-        memcpy( header->headinfo->name, str, lng );
-    }
-    else{
-        std::string str_tmp;
+    std::string str_tmp;
+    node = node->next_node;
+    while( node ){
+        if( node->text ) str_tmp += node->text;
         node = node->next_node;
-        while( node ){
-            if( node->text ) str_tmp += node->text;
-            node = node->next_node;
-        }
-        header->headinfo->name = ( char* )m_heap.heap_alloc( str_tmp.length() +2 );
-        memcpy( header->headinfo->name, str_tmp.c_str(), str_tmp.length() );
     }
+    header->headinfo->name = ( char* )m_heap.heap_alloc( str_tmp.length() + 1 );
+    memcpy( header->headinfo->name, str_tmp.c_str(), str_tmp.length() );
+    header->headinfo->name[ str_tmp.length() ] = '\0';
 }
 
 
