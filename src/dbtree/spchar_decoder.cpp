@@ -8,6 +8,7 @@
 #include "node.h"
 
 #include "jdlib/miscutil.h"
+#include "config/globalconf.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -48,16 +49,53 @@ int decode_char_number( const char* in_char, int& n_in,  char* out_char, int& n_
 
     if( only_check ) return ret;
 
-    const int num = MISC::decode_spchar_number( in_char, offset, lng );
+    int num = MISC::decode_spchar_number( in_char, offset, lng );
+
+    // 特殊条件を処理
+    if( num >= 0x80 && num <= 0x9F ) num = charref_tbl[ num - 0x80 ];
+    else if( num == 0 ||  num > 0x10FFFF ) num = UCS_REPLACE;
+    else if( num >= 0xD800 && num < 0xE000 ){
+
+        // 間違ったエンコードで壊れた追加面の文字を修復する
+        if( !CONFIG::get_correct_character_reference() ) num = UCS_REPLACE;
+        else {
+            const char *char_low = in_char + offset + lng + 1;
+            int offset_low;
+            int lng_low = MISC::spchar_number_ln( char_low, offset_low );
+            if( lng_low == -1 ) num = UCS_REPLACE;
+            else{
+                const int num_low = MISC::decode_spchar_number( char_low, offset_low, lng_low );
+                if( num < 0xDC01 && num_low >= 0xDC00 && num_low < 0xE000 ){
+                    num = 0x10000 + ( num - 0xD800 ) * 0x400 + ( num_low - 0xDC00 );
+                    offset += 1 + offset_low + lng_low;
+                }
+                else num = UCS_REPLACE;
+            }
+        }
+    }
 
     switch( num ){
 
-        //zwnj,zwj,lrm,rlm は今のところ無視(zwspにする)
+        //lfはspにする
+        case UCS_SP:
+        case UCS_LF:
+            ret = DBTREE::NODE_SP;
+            break;
+
+        case UCS_HT:
+            ret = DBTREE::NODE_HTAB;
+            break;
+
+        //zwnj,zwj,lrm,rlm,lre,rle,lro.rlo は今のところ無視
         case UCS_ZWSP:
-        case UCS_ZWNJ:
-        case UCS_ZWJ:
-        case UCS_LRM:
-        case UCS_RLM:
+//        case UCS_ZWNJ:
+//        case UCS_ZWJ:
+//        case UCS_LRM:
+//        case UCS_RLM:
+        case UCS_CR: // CRを無視
+        case UCS_FF: // FFを無視
+        case UCS_LS: // LSを無視
+        case UCS_PS: // PSを無視
             ret = DBTREE::NODE_ZWSP;
             break;
 
@@ -103,28 +141,25 @@ int DBTREE::decode_char( const char* in_char, int& n_in,  char* out_char, int& n
     int ret = DBTREE::NODE_TEXT;
     n_in = n_out = 0;
 
-    int i = 0;
-    for(;;){
+    const char ch = in_char[ 1 ];
+    UCSTBL const *tbl;
 
-        const int ucs = ucstbl[ i ].ucs;
-        if( ! ucs ) break;
-        if( in_char[ 1 ] == ucstbl[ i ].str[ 0 ] ){
+    if( ch >= 'a' && ch <= 'z' ) tbl = ucstbl_small[ ch - 'a' ];
+    else if( ch >= 'A' && ch <= 'Z' ) tbl = ucstbl_large[ ch - 'A' ];
+    else return DBTREE::NODE_NONE;
 
-            if( check_spchar( in_char +1, ucstbl[ i ].str ) ){
+    for( int ucs = tbl->ucs; ucs != 0; ucs = ( ++tbl )->ucs ){
+        if( check_spchar( in_char + 1, tbl->str ) ){
 
-                if( only_check ) return ret;
+            if( only_check ) return ret;
 
-                n_in = strlen( ucstbl[ i ].str ) +1;
+            n_in = strlen( tbl->str ) + 1; // 先頭の '&' の分を+1する
 
-                // zwnj, zwj, lrm, rlm は今のところ無視する(zwspにする)
-                if( ucs >= UCS_ZWSP && ucs <= UCS_RLM ) ret = DBTREE::NODE_ZWSP;
-                else n_out = g_unichar_to_utf8( static_cast<char32_t>( ucs ), out_char );
+            if( ucs == UCS_ZWSP ) ret = DBTREE::NODE_ZWSP;
+            else n_out = g_unichar_to_utf8( static_cast<char32_t>( ucs ), out_char );
 
-                break;
-            }
+            break;
         }
-
-        ++i;
     }
 
     if( !n_in ) ret = DBTREE::NODE_NONE;
