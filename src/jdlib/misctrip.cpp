@@ -12,7 +12,6 @@
 #include <sstream>
 #include <cstring>
 #include <ctype.h>
-#include <unistd.h> // crypt
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -26,8 +25,13 @@
 #include <gnutls/crypto.h>
 #endif
 
-#if __has_include(<crypt.h>)
-#include <crypt.h>
+// for crypt
+#if defined (USE_OPENSSL)
+#  include <openssl/des.h>
+#elif __has_include(<crypt.h>)
+#  include <crypt.h>
+#else
+#  include <unistd.h>
 #endif
 
 
@@ -147,12 +151,15 @@ std::string create_trip_newtype( const std::string& key )
                     salt.append( ".." );
 
                     // crypt (key は先頭8文字しか使われない)
-#ifdef HAVE_CRYPT_R
-                    struct crypt_data data;
-                    data.initialized = 0;
-                    const char* crypted = crypt_r( key_binary, salt.c_str(), &data );
+#ifdef USE_OPENSSL
+                    char ret[14];
+                    const char *crypted = DES_fcrypt( key_binary, salt.c_str(), ret );
+#elif defined(HAVE_CRYPT_R)
+                    struct crypt_data crydat;
+                    crydat.initialized = 0;
+                    const char *crypted = crypt_r( key_binary, salt.c_str(), &crydat );
 #else
-                    const char* crypted = crypt( key_binary, salt.c_str() );
+                    const char *crypted = crypt( key_binary, salt.c_str() );
 #endif
 
                     // 末尾から10文字(cryptの戻り値はnullptrでなければ必ず13文字)
@@ -227,12 +234,15 @@ std::string create_trip_conventional( const std::string& key )
     salt.append( "H." );
 
     // crypt (key は先頭8文字しか使われない)
-#ifdef HAVE_CRYPT_R
-    struct crypt_data data;
-    data.initialized = 0;
-    const char* crypted = crypt_r( key.c_str(), salt.c_str(), &data );
+#ifdef USE_OPENSSL
+    char ret[14];
+    const char *crypted = DES_fcrypt( key.c_str(), salt.c_str(), ret );
+#elif defined(HAVE_CRYPT_R)
+    struct crypt_data crydat;
+    crydat.initialized = 0;
+    const char *crypted = crypt_r( key.c_str(), salt.c_str(), &crydat );
 #else
-    const char* crypted = crypt( key.c_str(), salt.c_str() );
+    const char *crypted = crypt( key.c_str(), salt.c_str() );
 #endif
 
     std::string trip;
