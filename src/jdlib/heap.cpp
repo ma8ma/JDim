@@ -59,13 +59,18 @@ unsigned char* HEAP::heap_alloc( long n )
         m_used = 0;
 
 #ifdef _DEBUG
-        std::cout << "HEAP::heap_alloc malloc max = " << m_max <<  " total = " << m_total_size + n + 4 << std::endl;
+        std::cout << "HEAP::heap_alloc malloc max = " << m_max <<  " total = " << m_total_size + n << std::endl;
 #endif
     }
 
     unsigned char* heap = m_heap_list.back() + m_used;
-    m_used += n + 4;
-    m_total_size += n + 4;
+#ifdef __i386__
+    if( n & 3 ) n = ( n + 4 ) & ~ 3;
+#else // __x86_64__ or etc
+    if( n & 7 ) n = ( n + 8 ) & ~ 7;
+#endif
+    m_used += n;
+    m_total_size += n;
     
     return heap;
 }
