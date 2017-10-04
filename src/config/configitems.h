@@ -111,6 +111,10 @@ namespace CONFIG
 
         enum { use_offlaw2_2ch }; // Removed in v0.3.0 (2020-04)
 
+        // 2chの過去ログを外部のサイトから取得する
+        bool use_external_log;
+        std::string url_external_log;
+
         // リンクをクリックしたときに実行するコマンド
         std::string command_openurl;
 

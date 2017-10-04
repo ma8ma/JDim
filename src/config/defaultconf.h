@@ -42,6 +42,7 @@ namespace CONFIG
         CONF_VERIFY_CERT = 1,       // TLSでサーバの証明書をチェックする
         CONF_CONNECTION_NUM = 2,    // 同一ホストに対する最大コネクション数( 1 または 2 )
         CONF_USE_COOKIE_HAP = 0,    // 2chのクッキーを保存する (互換性のため設定名は旧名称を使う)
+        CONF_USE_EXTERNAL_LOG = 0,  // 2chの過去ログを外部サイトから取得する
         CONF_REFPOPUP_BY_MO = 0,    // レス番号の上にマウスオーバーしたときに参照ポップアップ表示する
         CONF_NAMEPOPUP_BY_MO = 0,   // 名前の上にマウスオーバーしたときにポップアップ表示する
         CONF_IDPOPUP_BY_MO = 0,     // IDの上にマウスオーバーしたときにIDをポップアップ表示する
@@ -237,6 +238,9 @@ namespace CONFIG
 // 2chのクッキー (互換性のため設定名は旧名称を使う)
 #define CONF_COOKIE_HAP ""
 #define CONF_COOKIE_HAP_BBSPINK ""
+
+// 過去ログを取得する外部サイトのURL
+#define CONF_URL_EXTERNAL_LOG "http://mimizun.com/log/2ch/$BBSNAME/$DATNAME.dat"
 
 // 色
 #define CONF_COLOR_CHAR    "#000000000000"     // スレの文字
