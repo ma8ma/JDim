@@ -1869,6 +1869,10 @@ void BoardViewBase::update_row_common( const Gtk::TreeModel::Row& row )
         row[ m_columns.m_col_new ] = -1;
     }
 
+    // 速度
+    if( ( art->get_status() & STATUS_NORMAL ) && ! art->is_924() )
+        row[ m_columns.m_col_speed ] = art->get_speed();
+
 
     //
     // マーク
