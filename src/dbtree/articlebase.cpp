@@ -474,21 +474,16 @@ void ArticleBase::set_subject( const std::string& subject )
 {
     if( subject.empty() ) return;
 
-    // 特殊文字の置き換え
-    if( subject.find( "&" ) != std::string::npos ){
+    std::string tmp_subject = MISC::remove_spaces( subject );
 
-        std::string subject_tmp = MISC::html_unescape( subject );
-
-        if( subject_tmp != m_subject ){
-            m_subject = subject_tmp;
-            m_save_info = true;
-        }
-    }
-    else if( subject != m_subject ){
-
-        m_subject = subject;
+    if( tmp_subject != m_subject ){
+        m_subject = std::move( tmp_subject );
         m_save_info = true;
     }
+
+    // 置換設定に変更がある場合も読み直すのでm_subjectが同じでも
+    // 次に読み込まれる時に生成させる為にクリア
+    m_modified_subject.clear();
 }
 
 
@@ -512,7 +507,7 @@ void ArticleBase::set_number( const int number, const bool is_online )
     // subject.txt に示されたレス数よりも実際の取得数の方が多い
     else if( is_online && number < m_number ){
 #ifdef _DEBUG
-        std::cout << "ArticleBase::set_number : broken_subject " << get_subject() << " "
+        std::cout << "ArticleBase::set_number : broken_subject " << m_subject << " "
                   << number << " / " << m_number << std::endl;
 #endif
         m_status |= STATUS_BROKEN_SUBJECT;
@@ -1695,7 +1690,7 @@ void ArticleBase::delete_cache( const bool cache_only )
 
         if( m_bookmarked_thread ){
 
-            const std::string msg = "「" + get_subject() +
+            const std::string msg = "「" + MISC::to_plain( get_modified_subject() ) +
             "」にはしおりが付けられています。\n\nスレを削除しますか？\n\nしおりを解除するにはスレの上で右クリックしてしおり解除を選択してください。";
 
             SKELETON::MsgDiag mdiag( nullptr, msg, false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
@@ -1705,7 +1700,7 @@ void ArticleBase::delete_cache( const bool cache_only )
 
         if( CONFIG::get_show_del_written_thread_diag() && m_write_time.tv_sec ){
 
-            const std::string msg = "「" + get_subject() + "」には書き込み履歴が残っています。\n\nスレを削除しますか？";
+            const std::string msg = "「" + MISC::to_plain( get_modified_subject() ) + "」には書き込み履歴が残っています。\n\nスレを削除しますか？";
 
             SKELETON::MsgCheckDiag mdiag( nullptr, msg,
                                           "今後表示しない(常に削除)(_D)",
@@ -1727,7 +1722,7 @@ void ArticleBase::delete_cache( const bool cache_only )
 
                 if( CONFIG::get_delete_img_in_thread() == 0 ){
 
-                    const std::string msg = "「" + get_subject() + "」には画像が貼られています。\n\n画像のキャッシュも削除しますか？";
+                    const std::string msg = "「" + MISC::to_plain( get_modified_subject() ) + "」には画像が貼られています。\n\n画像のキャッシュも削除しますか？";
 
                     SKELETON::MsgCheckDiag mdiag( nullptr, msg,
                                                   "今後表示しない(常に削除しない)(_D)",
@@ -1890,6 +1885,7 @@ void ArticleBase::read_info()
 
         // subject
         GET_INFOVALUE( m_subject, "subject = " );
+        m_modified_subject.clear(); // 読み込まれる時に生成
 
         // 旧ホスト名
         GET_INFOVALUE( m_org_host, "org_host = " );
