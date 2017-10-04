@@ -15,6 +15,7 @@
 #include "skeleton/editview.h"
 #include "skeleton/detaildiag.h"
 
+#include "jdlib/misccharcode.h"
 #include "jdlib/miscutil.h"
 #include "jdlib/misctime.h"
 #include "jdlib/misctrip.h"
@@ -85,7 +86,7 @@ MessageViewBase::MessageViewBase( const std::string& url )
     m_max_line = DBTREE::line_number( get_url() ) * 2;
     m_max_str = DBTREE::message_count( get_url() );
 
-    m_iconv = new JDLIB::Iconv( DBTREE::board_charset( get_url() ), "UTF-8" );;
+    m_iconv = new JDLIB::Iconv( DBTREE::board_charcode( get_url() ), CHARCODE_UTF8 );;
 
     m_lng_iconv = m_max_str * 3;
     if( ! m_lng_iconv ) m_lng_iconv = MAX_STR_ICONV;
@@ -915,7 +916,7 @@ void MessageViewBase::slot_switch_page( Gtk::Widget*, guint page )
             std::string trip;
             if( trip_pos != std::string::npos )
             {
-                trip = MISC::get_trip( name_field.substr( trip_pos + 1 ), DBTREE::board_charset( get_url() ) );
+                trip = MISC::get_trip( name_field.substr( trip_pos + 1 ), DBTREE::board_charcode( get_url() ) );
             }
 
             ss << name;

@@ -9,6 +9,7 @@
 #include "settingloader.h"
 #include "ruleloader.h"
 
+#include "jdlib/misccharcode.h"
 #include "jdlib/miscutil.h"
 #include "jdlib/miscmsg.h"
 #include "jdlib/jdregex.h"
@@ -49,7 +50,7 @@ Board2chCompati::Board2chCompati( const std::string& root, const std::string& pa
     set_subjecttxt( "subject.txt" );
     set_ext( ".dat" );
     set_id( path_board.substr( 1 ) ); // 先頭の '/' を除く
-    set_charset( "MS932" );
+    set_charcode( CHARCODE_SJIS );
 
     BoardBase::set_basicauth( basicauth );
 }
@@ -124,9 +125,9 @@ std::string Board2chCompati::analyze_keyword_impl( const std::string& html, bool
 
         // キーワード取得
         if( ! keyword.empty() ) keyword.push_back( '&' );
-        keyword.append( MISC::charset_url_encode( d.name, get_charset() ) );
+        keyword.append( MISC::url_encode( d.name, get_charcode() ) );
         keyword.push_back( '=' );
-        keyword.append( MISC::charset_url_encode( d.value, get_charset() ) );
+        keyword.append( MISC::url_encode( d.value, get_charcode() ) );
     }
 #ifdef _DEBUG
     std::cout << "Board2chCompati::analyze_keyword_impl form data = " << keyword << std::endl;
@@ -192,12 +193,12 @@ std::string Board2chCompati::create_newarticle_message( const std::string& subje
     std::stringstream ss_post;
     ss_post.clear();
     ss_post << "bbs="      << get_id()
-            << "&subject=" << MISC::charset_url_encode( subject, get_charset() )
+            << "&subject=" << MISC::url_encode( subject, get_charcode() )
             << "&time="    << get_time_modified()
-            << "&submit="  << MISC::charset_url_encode( "新規スレッド作成", get_charset() )
-            << "&FROM="    << MISC::charset_url_encode( name, get_charset() )
-            << "&mail="    << MISC::charset_url_encode( mail, get_charset() )
-            << "&MESSAGE=" << MISC::charset_url_encode( msg, get_charset() );
+            << "&submit="  << MISC::url_encode( std::string( "新規スレッド作成" ), get_charcode() )
+            << "&FROM="    << MISC::url_encode( name, get_charcode() )
+            << "&mail="    << MISC::url_encode( mail, get_charcode() )
+            << "&MESSAGE=" << MISC::url_encode( msg, get_charcode() );
 
 #ifdef _DEBUG
     std::cout << "Board2chCompati::create_newarticle_message " << ss_post.str() << std::endl;
@@ -243,7 +244,7 @@ ArticleBase* Board2chCompati::append_article( const std::string& datbase, const 
 {
     if( empty() ) return get_article_null();
 
-    ArticleBase* article = new DBTREE::Article2chCompati( datbase, id, cached );
+    ArticleBase* article = new DBTREE::Article2chCompati( datbase, id, cached, get_charcode() );
     if( article ){
         get_hash_article()->push( article );
     }
@@ -293,13 +294,9 @@ void Board2chCompati::parse_subject( const char* str_subject_txt )
         }
 
         // subject取得
-        bool exist_amp = false;
         ++pos;
         str_subject = pos;
-        while( *pos != '\0' && *pos != '\n' ){
-            if( *pos == '&' ) exist_amp = true;
-            ++pos;
-        }
+        while( *pos != '\0' && *pos != '\n' ) ++pos;
         --pos;
         while( *pos != '(' && *pos != '\n' && pos != str_subject ) --pos;
         
@@ -330,15 +327,7 @@ void Board2chCompati::parse_subject( const char* str_subject_txt )
 
         artinfo.id.assign( str_id_dat, lng_id_dat );
 
-        if( str_subject[ lng_subject-1 ] == ' ' ){
-            lng_subject--;  // 2chのsubject.txtは()の前に空白が一つ入る
-        }
         artinfo.subject.assign( str_subject, lng_subject );
-
-        if( exist_amp ){
-            artinfo.subject = MISC::replace_str( artinfo.subject, "&lt;", "<" );
-            artinfo.subject = MISC::replace_str( artinfo.subject, "&gt;", ">" );
-        }
 
         const auto num = std::atoi( str_num.c_str() );
         artinfo.number = ( num < CONFIG::get_max_resnumber() ) ? num : CONFIG::get_max_resnumber();
@@ -497,10 +486,10 @@ void Board2chCompati::load_rule_setting()
 #endif
 
     if( ! m_ruleloader ) m_ruleloader = new RuleLoader( url_boardbase() );
-    m_ruleloader->load_text();
+    m_ruleloader->load_text( get_charcode() );
 
     if( ! m_settingloader ) m_settingloader = new SettingLoader( url_boardbase() );
-    m_settingloader->load_text();
+    m_settingloader->load_text( get_charcode() );
 }
 
 
@@ -516,10 +505,10 @@ void Board2chCompati::download_rule_setting()
 #endif
 
     if( ! m_ruleloader ) m_ruleloader = new RuleLoader( url_boardbase() );
-    m_ruleloader->download_text();
+    m_ruleloader->download_text( get_charcode() );
 
     if( ! m_settingloader ) m_settingloader = new SettingLoader( url_boardbase() );
-    m_settingloader->download_text();
+    m_settingloader->download_text( get_charcode() );
 }
 
 

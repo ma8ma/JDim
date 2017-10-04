@@ -50,7 +50,6 @@ namespace DBTREE
 
         std::string get_url() override;
         std::string get_path() override;
-        std::string get_charset() override;
 
         // ロード用データ作成
         void create_loaderdata( JDLIB::LOADERDATA& data ) override;

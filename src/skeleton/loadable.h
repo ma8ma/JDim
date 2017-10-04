@@ -44,6 +44,7 @@
 #ifndef _LOADABLE_H
 #define _LOADABLE_H
 
+#include "charcode.h"
 #include "dispatchable.h"
 
 #include <gtkmm.h>
@@ -65,6 +66,8 @@ namespace SKELETON
 
         bool m_low_priority; 
 
+        CharCode m_charcode;
+
         // ローダからコピーしたデータ
         int m_code;
         std::string m_str_code;
@@ -85,6 +88,9 @@ namespace SKELETON
 
         // ロード中かどうか
         bool is_loading() const;
+
+        CharCode get_charcode() const { return m_charcode; }
+        void set_charcode( const CharCode charcode ){ m_charcode = charcode; }
 
         int get_code() const { return m_code; }
         void set_code( int code ) { m_code = code; }
@@ -148,6 +154,7 @@ namespace SKELETON
         std::list< std::string > get_loader_cookies() const;
         std::string get_loader_location() const;
         size_t get_loader_length() const;
+        CharCode get_loader_content_charset() const;
     };
 }
 

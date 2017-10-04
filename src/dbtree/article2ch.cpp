@@ -7,6 +7,7 @@
 #include "nodetree2ch.h"
 #include "interface.h"
 
+#include "jdlib/misccharcode.h"
 #include "jdlib/miscutil.h"
 #include "jdlib/misctime.h"
 
@@ -19,8 +20,8 @@
 using namespace DBTREE;
 
 
-Article2ch::Article2ch( const std::string& datbase, const std::string& id, bool cached )
-    : Article2chCompati( datbase, id, cached )
+Article2ch::Article2ch( const std::string& datbase, const std::string& id, bool cached, const CharCode charcode )
+    : Article2chCompati( datbase, id, cached, charcode )
 {}
 
 
@@ -32,16 +33,14 @@ std::string Article2ch::create_write_message( const std::string& name, const std
 {
     if( msg.empty() ) return std::string();
 
-    const std::string charset = DBTREE::board_charset( get_url() );
-
     std::stringstream ss_post;
-    ss_post << "FROM=" << MISC::charset_url_encode( name, charset )
-            << "&mail=" << MISC::charset_url_encode( mail, charset )
-            << "&MESSAGE=" << MISC::charset_url_encode( msg, charset )
+    ss_post << "FROM=" << MISC::url_encode( name, get_charcode() )
+            << "&mail=" << MISC::url_encode( mail, get_charcode() )
+            << "&MESSAGE=" << MISC::url_encode( msg, get_charcode() )
             << "&bbs=" << DBTREE::board_id( get_url() )
             << "&key=" << get_key()
             << "&time=" << get_time_modified()
-            << "&submit=" << MISC::charset_url_encode( "書き込む", charset )
+            << "&submit=" << MISC::url_encode( std::string{ "書き込む" }, get_charcode() )
             // XXX: ブラウザの種類に関係なく含めて問題ないか？
             << "&oekaki_thread1=";
 
@@ -51,8 +50,8 @@ std::string Article2ch::create_write_message( const std::string& name, const std
 
     // ログイン中
     if( CORE::get_login2ch()->login_now() ){
-                std::string sid = CORE::get_login2ch()->get_sessionid();
-                ss_post << "&sid=" << MISC::url_encode( sid.c_str(), sid.length() );
+        const std::string sid = CORE::get_login2ch()->get_sessionid();
+        ss_post << "&sid=" << MISC::url_encode( sid );
     }
 
 #ifdef _DEBUG
