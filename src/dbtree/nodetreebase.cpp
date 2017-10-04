@@ -9,6 +9,7 @@
 
 #include "jdlib/loaderdata.h"
 #include "jdlib/misccharcode.h"
+#include "jdlib/miscgtk.h"
 #include "jdlib/miscmsg.h"
 #include "jdlib/miscutil.h"
 
