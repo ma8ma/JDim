@@ -752,10 +752,17 @@ std::string NodeTreeBase::get_time_str( int number )
 std::string NodeTreeBase::get_id_name( int number )
 {
     NODE* head = res_header( number );
-    if( ! head ) return std::string();
-    if( ! head->headinfo->block[ BLOCK_ID_NAME ] ) return std::string();
+    if( ! head || ! head->headinfo->block[ BLOCK_ID_NAME ] ) return std::string();
 
-    return head->headinfo->block[ BLOCK_ID_NAME ]->next_node->linkinfo->link;
+    NODE* idnode = head->headinfo->block[ BLOCK_ID_NAME ]->next_node;
+    while( idnode && ( ! idnode->linkinfo || ! idnode->linkinfo->link
+                        || idnode->linkinfo->link[ 0 ] != 'I' ) ){
+        idnode = idnode->next_node;
+    }
+
+    if( idnode ) return idnode->linkinfo->link;
+
+    return std::string();
 }
 
 
@@ -1562,8 +1569,8 @@ const char* NodeTreeBase::add_one_dat_line( const char* datline )
     for( i = 0; i < SECTION_NUM ; ++i ){
         
         section[ i ] = pos;
-        while( !( *pos == '<' && *( pos + 1 ) == '>' ) && ( *pos != '\0' && *pos != '\n' ) ) ++pos;
-        section_lng[ i ] = ( int )( pos - section[ i ] );
+        while( *pos != '\0' && *pos != '\n' && !( *pos == '<' && *( pos + 1 ) == '>' ) ) ++pos;
+        section_lng[ i ] = pos - section[ i ];
         
         if( ( *pos == '\0' || *pos == '\n' ) && i < SECTION_NUM -1 ) break; // 壊れてる
 
@@ -1588,7 +1595,7 @@ const char* NodeTreeBase::add_one_dat_line( const char* datline )
         const char str_broken[] = "ここ";
         create_node_link( str_broken, strlen( str_broken ) , PROTO_BROKEN, strlen( PROTO_BROKEN ), COLOR_CHAR_LINK, false );
         create_node_text( "をクリックしてスレを再取得して下さい。", COLOR_CHAR );
-        
+
         return pos;
     }
     
@@ -1613,7 +1620,7 @@ const char* NodeTreeBase::add_one_dat_line( const char* datline )
 
     // サブジェクト
     if( header->id_header == 1 ){
-        m_subject = std::string( section[ 4 ] ).substr( 0, section_lng[ 4 ] );
+        m_subject.assign( section[ 4 ], section_lng[ 4 ] );
 
 #ifdef _DEBUG
         std::cout << "subject = " << m_subject << std::endl;
@@ -1879,7 +1886,7 @@ void NodeTreeBase::parse_date_id( NODE* header, const char* str, const int lng )
         // BE:
         else if( str[ start_block ] == 'B' && str[ start_block + 1 ] == 'E' ){
 
-            const int strlen_of_BE = 3; // = strlen( "BE:" );
+            const int strlen_of_BE = strlen( "BE:" );
 
             // フラッシュ
             if( lng_text ) create_node_ntext( str + start, lng_text, COLOR_CHAR, false, FONT_MAIL );
@@ -2126,9 +2133,9 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
 
                 ) br = true;
 
-            // <li>は・にする
-            else if( ( *( pos + 1 ) == 'l' || *( pos + 2 ) == 'L' )
-                     && ( *( pos + 2 ) == 'i' || *( pos + 3 ) == 'I' )
+            // <li>はBULLET (•)にする
+            else if( ( *( pos + 1 ) == 'l' || *( pos + 1 ) == 'L' )
+                     && ( *( pos + 2 ) == 'i' || *( pos + 2 ) == 'I' )
                 ){
 
                 pos += 4;
@@ -2341,7 +2348,7 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
 
             int n_out = 0;
             char out_char[kMaxBytesOfUTF8Char]{};
-            const int ret_decode = DBTREE::decode_char( pos, n_in, out_char, n_out, false );
+            const int ret_decode = decode_char( pos, n_in, out_char, n_out, false );
 
             if( ret_decode != NODE_NONE ){
 
@@ -2993,15 +3000,17 @@ bool NodeTreeBase::check_abone_id( const int number )
         else return false;
     }
 
-    const int ln_protoid = strlen( PROTO_ID );
+    NODE* idnode = head->headinfo->block[ BLOCK_ID_NAME ]->next_node;
+    if( ! idnode || ! idnode->linkinfo ) return false;
+
+    const char* protoid = idnode->linkinfo->link + strlen( PROTO_ID );
 
     // ローカルID
     if( check_id ){
         std::list< std::string >::iterator it = m_list_abone_id.begin();
         for( ; it != m_list_abone_id.end(); ++it ){
 
-            // std::string の find は遅いのでstrcmp使う
-            if( strcmp( head->headinfo->block[ BLOCK_ID_NAME ]->next_node->linkinfo->link + ln_protoid, ( *it ).c_str() ) == 0 ){
+            if( *protoid == ( *it )[ 0 ] && ( *it ).compare( protoid ) == 0 ){
                 head->headinfo->abone = true;
                 return true;
             }
@@ -3013,8 +3022,7 @@ bool NodeTreeBase::check_abone_id( const int number )
         std::list< std::string >::iterator it = m_list_abone_id_board.begin();
         for( ; it != m_list_abone_id_board.end(); ++it ){
 
-            // std::string の find は遅いのでstrcmp使う
-            if( strcmp( head->headinfo->block[ BLOCK_ID_NAME ]->next_node->linkinfo->link + ln_protoid, ( *it ).c_str() ) == 0 ){
+            if( *protoid == ( *it )[ 0 ] && ( *it ).compare( protoid ) == 0 ){
                 head->headinfo->abone = true;
                 return true;
             }
@@ -3148,9 +3156,8 @@ bool NodeTreeBase::check_abone_word( const int number )
     // ローカル NG word
     if( check_word ){
 
-        std::list< std::string >::iterator it = m_list_abone_word.begin();
-        for( ; it != m_list_abone_word.end(); ++it ){
-            if( res_str.find( *it ) != std::string::npos ){
+        for( const std::string& word : m_list_abone_word ) {
+            if( res_str.find( word ) != std::string::npos ){
                 head->headinfo->abone = true;
                 return true;
             }
@@ -3171,9 +3178,8 @@ bool NodeTreeBase::check_abone_word( const int number )
     // 板レベル NG word
     if( check_word_board ){
 
-        std::list< std::string >::iterator it = m_list_abone_word_board.begin();
-        for( ; it != m_list_abone_word_board.end(); ++it ){
-            if( res_str.find( *it ) != std::string::npos ){
+        for( const std::string& word : m_list_abone_word_board ) {
+            if( res_str.find( word ) != std::string::npos ){
                 head->headinfo->abone = true;
                 return true;
             }
@@ -3194,9 +3200,8 @@ bool NodeTreeBase::check_abone_word( const int number )
     // 全体 NG word
     if( check_word_global ){
 
-        std::list< std::string >::iterator it = m_list_abone_word_global.begin();
-        for( ; it != m_list_abone_word_global.end(); ++it ){
-            if( res_str.find( *it ) != std::string::npos ){
+        for( const std::string& word : m_list_abone_word_global ) {
+            if( res_str.find( word ) != std::string::npos ){
                 head->headinfo->abone = true;
                 return true;
             }
@@ -3522,13 +3527,15 @@ void NodeTreeBase::update_id_name( const int from_number, const int to_number )
 //
 void NodeTreeBase::set_num_id_name( NODE* header, const int num_id_name )
 {
-    if( ! header->headinfo->block[ BLOCK_ID_NAME ] ) return;
+    if( ! header->headinfo->block[ BLOCK_ID_NAME ] ||
+        ! header->headinfo->block[ BLOCK_ID_NAME ]->next_node ) return;
 
     header->headinfo->num_id_name = num_id_name;        
 
-    if( num_id_name >= m_num_id[ LINK_HIGH ] ) header->headinfo->block[ BLOCK_ID_NAME ]->next_node->color_text = COLOR_CHAR_LINK_ID_HIGH;
-    else if( num_id_name >= m_num_id[ LINK_LOW ] ) header->headinfo->block[ BLOCK_ID_NAME ]->next_node->color_text = COLOR_CHAR_LINK_ID_LOW;
-    else header->headinfo->block[ BLOCK_ID_NAME ]->next_node->color_text = COLOR_CHAR;
+    NODE* idnode = header->headinfo->block[ BLOCK_ID_NAME ]->next_node;
+    if( num_id_name >= m_num_id[ LINK_HIGH ] ) idnode->color_text = COLOR_CHAR_LINK_ID_HIGH;
+    else if( num_id_name >= m_num_id[ LINK_LOW ] ) idnode->color_text = COLOR_CHAR_LINK_ID_LOW;
+    else idnode->color_text = COLOR_CHAR;
 }
 
 
