@@ -299,9 +299,11 @@ namespace DBTREE
         NODE* create_node_br();
         NODE* create_node_hr();
         NODE* create_node_space( const int type );
-        NODE* create_node_multispace( const char* text, const int n, const char fontid = FONT_MAIN );
+        NODE* create_node_multispace( const char* text, const int n, const int bg, const char fontid = FONT_MAIN );
+        NODE* create_node_multispace( const char* text, const int n, const int bg );
         NODE* create_node_htab();
-        NODE* create_node_link( const char* text, const int n, const char* link, const int n_link, const int color_text, const bool bold, const char fontid = FONT_MAIN );
+        NODE* create_node_link( const char* text, const int n, const char* link, const int n_link,
+                                const int color_text, const int color_back, const bool bold, const char fontid = FONT_MAIN );
         NODE* create_node_anc( const char* text, const int n, const char* link, const int n_link,
                                const int color_text, const bool bold,
                                const ANCINFO* ancinfo, const int lng_ancinfo, const char fontid = FONT_MAIN );
@@ -309,7 +311,8 @@ namespace DBTREE
         NODE* create_node_img( const char* text, const int n, const char* link, const int n_link, const int color_text,
                                const bool bold, const char fontid = FONT_MAIN );
         NODE* create_node_text( const char* text, const int color_text, const bool bold = false, const char fontid = FONT_MAIN );
-        NODE* create_node_ntext( const char* text, const int n, const int color_text, const bool bold = false, const char fontid = FONT_MAIN );
+        NODE* create_node_ntext( const char* text, const int n, const int color_text, const int color_back = 0,
+                                 const bool bold = false, const char fontid = FONT_MAIN );
         NODE* create_node_thumbnail( const char* text, const int n, const char* link, const int n_link, const char* thumb, const int n_thumb,
                                      const int color_text, const bool bold, const char fontid = FONT_MAIN );
 
