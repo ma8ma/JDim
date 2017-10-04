@@ -209,8 +209,10 @@ namespace CONFIG
     void set_cookie_hap( const std::string& cookie_hap );
     void set_cookie_hap_bbspink( const std::string& cookie_hap );
 
+#ifdef WITHOUT_5CH_API
     // 2chの過去ログ取得時にofflaw2を使用する
     bool get_use_offlaw2_2ch();
+#endif
 
     // リンクをクリックしたときに実行するコマンド
     const std::string& get_command_openurl();

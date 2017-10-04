@@ -246,8 +246,10 @@ const std::string& CONFIG::get_cookie_hap_bbspink(){ return get_confitem()->cook
 void CONFIG::set_cookie_hap( const std::string& cookie_hap ){ get_confitem()->cookie_hap = cookie_hap; }
 void CONFIG::set_cookie_hap_bbspink( const std::string& cookie_hap ){ get_confitem()->cookie_hap_bbspink = cookie_hap; }
 
+#ifdef WITHOUT_5CH_API
 // 2chの過去ログ取得時にofflaw2を使用する
 bool CONFIG::get_use_offlaw2_2ch(){ return get_confitem()->use_offlaw2_2ch; }
+#endif
 
 const std::string& CONFIG::get_command_openurl() { return get_confitem()->command_openurl; }
 void CONFIG::set_command_openurl( const std::string& command ){ get_confitem()->command_openurl = command; }

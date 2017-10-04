@@ -44,9 +44,9 @@ std::string Article2ch::create_write_message( const std::string& name, const std
     if( ! keyword.empty() ) ss_post << "&" << keyword;
 
     // ログイン中
-    if( CORE::get_login2ch()->login_now() ){
-                std::string sid = CORE::get_login2ch()->get_sessionid();
-                ss_post << "&sid=" << MISC::url_encode( sid.c_str(), sid.length() );
+    if( CORE::get_login2ch()->login_now() && ! CORE::get_login2ch()->get_username().empty() ){
+        const std::string sid = CORE::get_login2ch()->get_sessionid();
+        ss_post << "&sid=" << MISC::url_encode( sid );
     }
 
     ss_post << "&time="    << get_time_modified()
@@ -115,7 +115,6 @@ NodeTreeBase* Article2ch::create_nodetree()
 bool Article2ch::is_load_olddat()
 {
     // 2chにログインしている場合
-    // または、offlaw2を使う設定の場合 ( bbspinkを除く )
-    return CORE::get_login2ch()->login_now()
-            || ( CONFIG::get_use_offlaw2_2ch() && get_url().find( ".bbspink.com" ) == std::string::npos );
+    // または、read.cgiを使う設定の場合
+    return ( CORE::get_login2ch()->login_now() && ! CORE::get_login2ch()->get_username().empty() );
 }
