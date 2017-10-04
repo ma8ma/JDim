@@ -39,7 +39,6 @@ ReplaceStrDiag::ReplaceStrDiag( Gtk::Window* parent, ReplaceStrCondition conditi
 
     m_check_active.set_active( condition.active );
     m_check_icase.set_active( condition.icase );
-    m_check_icase.set_sensitive( condition.regex );
     m_check_regex.set_active( condition.regex );
     m_check_wchar.set_active( condition.wchar );
     m_check_wchar.set_sensitive( condition.regex );
@@ -113,7 +112,6 @@ void ReplaceStrDiag::slot_copy()
 //
 void ReplaceStrDiag::slot_sens()
 {
-    m_check_icase.set_sensitive( get_regex() );
     m_check_wchar.set_sensitive( get_regex() );
 }
 
