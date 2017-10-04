@@ -1021,6 +1021,52 @@ static std::string chref_decode_one( const char* str, int& n_in, const char pre_
 
 
 //
+// HTMLをプレーンテキストに変換する
+//
+std::string MISC::to_plain( const std::string& html )
+{
+    if( html.empty() ) return html;
+    if( html.find_first_of( '<' ) == std::string::npos
+            && html.find_first_of( '&' ) == std::string::npos ) return html;
+
+    std::string str_out;
+    const char* pos = html.c_str();
+    const char* pos_end = pos + html.length();
+
+    while( pos < pos_end ){
+
+        // '<' か '&' までコピーする
+        while( *pos != '<' && *pos != '&' && *pos != '\0' ) str_out.push_back( *pos++ );
+        if( pos >= pos_end ) break;
+
+        // タグを取り除く
+        if( *pos == '<' ){
+            while( *pos != '>' && *pos != '\0' ) pos++;
+            if( *pos == '>' ) ++pos;
+            continue;
+        }
+
+        // 文字参照を処理する
+        if( *pos == '&' ){
+            int n_in;
+            char pre = str_out.length() ? *( str_out.end() - 1 ) : 0;
+            str_out += chref_decode_one( pos, n_in, pre, true );
+            pos += n_in;
+        }
+    }
+
+#ifdef _DEBUG
+    if( html != str_out )
+        std::cout << "MISC::to_plain" << std::endl
+                  << "html = " << html << std::endl
+                  << "plain = " << str_out << std::endl;
+#endif
+
+    return str_out;
+}
+
+
+//
 // HTMLの文字参照をデコード
 //
 // completely = true の時は'"' '&' '<' '>'もデコードする
