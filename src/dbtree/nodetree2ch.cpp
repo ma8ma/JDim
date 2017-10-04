@@ -9,6 +9,7 @@
 #include "jdlib/jdregex.h"
 #include "jdlib/loaderdata.h"
 #include "jdlib/miscutil.h"
+#include "jdlib/miscmsg.h"
 
 #include "config/globalconf.h"
 
@@ -24,10 +25,9 @@ using namespace DBTREE;
 enum
 {
     MODE_NORMAL = 0,
-    MODE_OFFLAW,
+    MODE_CGI,
     MODE_KAKO_GZ,
     MODE_KAKO,
-    MODE_OLDURL
 };
 
 
@@ -61,31 +61,39 @@ NodeTree2ch::~NodeTree2ch()
 //
 // 先頭にrawモードのステータスが入っていたら取り除く
 //
-char* NodeTree2ch::process_raw_lines( char* rawlines )
+char* NodeTree2ch::process_raw_lines( char* rawlines, size_t& size )
 {
-    char* pos = rawlines;
-
-    if( m_mode == MODE_OFFLAW ){
-        // rokka独自のステータスが入っている
-
-        int status = 0;
-        if( strncmp( pos, "Success", 7 ) == 0 ) status = 1;
-        if( strncmp( pos, "Error", 5 ) == 0 ) status = 2;
-
+    if( ! is_loading() && memcmp( rawlines, "<dt>", 4 ) == 0 ){
 #ifdef _DEBUG
-        std::cout << "NodeTree2ch::process_raw_lines : raw mode status = " << status << std::endl;
+        std::cout << "NodeTree2ch::process_raw_lines ignore HTML lines" << std::endl;
 #endif
+        *rawlines = '\0';
+    }
+    else if( ! is_loading() && memcmp( rawlines, "ng (", 4 ) == 0
+            && strstr( rawlines, "<>" ) == NULL ){
+        set_code( HTTP_ERR );
+        set_str_code( rawlines );
+        MISC::ERRMSG( rawlines );
+        *rawlines = '\0';
+    }
+    else if( size == 16 && memcmp( rawlines, "Dat doesnt exist", 16 ) == 0 ){
+        set_ext_err( rawlines );
+        *rawlines = '\0';
+    }
+    else if( m_mode == MODE_NORMAL && is_loading() && ! id_header() ){
+        char *l1, *l2;
+        if( ! ( l1 = strchr( rawlines, '\n' ) ) ) return rawlines;
+        if( ! ( l2 = strchr( l1 + 1, '\n' ) ) || *( l2 + 1 ) != '\0' ) return rawlines;
 
-        if( status != 0 ){
-            pos = skip_status_line( pos, status );
+        char *id = strstr( l1 + 1, " ID:\?\?\?\?\?\?\?\?<>" );
+        if( id && id < l2 ){
+            // ログ落ち案内レス
+            m_operate_info = l1 + 1;       // レスをプールする
+            *( l1 + 1 ) = '\0';
         }
     }
 
-    else {
-        pos = NodeTree2chCompati::process_raw_lines( rawlines );
-    }
-
-    return pos;
+    return rawlines;
 }
 
 
@@ -99,71 +107,45 @@ void NodeTree2ch::create_loaderdata( JDLIB::LOADERDATA& data )
 
 #endif
 
-    data.url = std::string();
     data.byte_readfrom = 0;
 
-    //rokka使用 (旧offlaw, offlaw2は廃止)
-    if( m_mode == MODE_OFFLAW ){
+    JDLIB::Regex regex;
+    const size_t offset = 0;
+    const bool icase = false;
+    const bool newline = true;
+    const bool usemigemo = false;
+    const bool wchar = false;
 
-        JDLIB::Regex regex;
-        const size_t offset = 0;
-        const bool icase = false;
-        const bool newline = true;
-        const bool usemigemo = false;
-        const bool wchar = false;
-
-        if( ! regex.exec( "(https?://)([^/\\.]+)(\\.[^/]+)(/.*)/dat(/.*)\\.dat$", m_org_url, offset, icase, newline, usemigemo, wchar ) ) return;
-
-        // http://rokka(.2ch.net|.bbspink.com)/<SERVER NAME>/<BOARD NAME>/<DAT NUMBER>/<OPTIONS>?sid=<SID>
-        std::ostringstream ss;
-        ss << regex.str( 1 ) << "rokka" << regex.str( 3 ) << "/" << regex.str( 2 )
-           << regex.str( 4 ) << regex.str( 5 );
-
-        std::string sid = CORE::get_login2ch()->get_sessionid();
-        ss << "/?sid=" << MISC::url_encode( sid.c_str(), sid.length() );
-
-        // レジューム設定
-        // レジュームを有りにして、サーバが range を無視して送ってきた場合と同じ処理をする
-        if( get_lng_dat() ) {
-            set_resume( true );
-        }
-        else set_resume( false );
-
-        data.url = ss.str();
-    }
-
+    // ( rokka, 旧offlaw, offlaw2は廃止 )
     // 過去ログ倉庫使用
-    else if( m_mode == MODE_KAKO_GZ || m_mode == MODE_KAKO ){
-
-        JDLIB::Regex regex;
-        const size_t offset = 0;
-        const bool icase = false;
-        const bool newline = true;
-        const bool usemigemo = false;
-        const bool wchar = false;
+    if( m_mode == MODE_KAKO_GZ || m_mode == MODE_KAKO ){
 
         if( ! regex.exec( "(https?://[^/]*)(/.*)/dat(/.*)\\.dat$", m_org_url, offset, icase, newline, usemigemo, wchar ) ) return;
         const int id = atoi( regex.str( 3 ).c_str() + 1 );
 
-        std::ostringstream ss;
+        std::string url;
 
         // スレIDが10桁の場合 → http://サーバ/板ID/kako/IDの上位4桁/IDの上位5桁/ID.dat.gz
-        if( id / 1000000000 ) ss << regex.str( 1 ) << regex.str( 2 ) << "/kako/" << ( id / 1000000 ) << "/" << ( id / 100000 ) << regex.str( 3 );
+        if( id / 1000000000 ) url = regex.str( 1 ) + regex.str( 2 ) + "/kako/" + std::to_string( id / 1000000 )
+                                    + "/" + std::to_string( id / 100000 ) + regex.str( 3 );
 
         // スレIDが9桁の場合 → http://サーバ/板ID/kako/IDの上位3桁/ID.dat.gz
-        else ss << regex.str( 1 ) << regex.str( 2 ) << "/kako/" << ( id / 1000000 ) << regex.str( 3 );
+        else url = regex.str( 1 ) + regex.str( 2 ) + "/kako/" + std::to_string( id / 1000000 ) + regex.str( 3 );
 
-        if( m_mode == MODE_KAKO_GZ ) ss << ".dat.gz";
-        else ss << ".dat";
+        if( m_mode == MODE_KAKO_GZ ) url += ".dat.gz";
+        else url += ".dat";
 
-        // レジュームは無し
-        set_resume( false );
+        data.url = url;
 
-        data.url = ss.str();
+        // レジューム設定
+        if( get_lng_dat() ) set_resume( true );
+        else set_resume( false );
     }
 
-    // 普通もしくは旧URLからの読み込み
+    // 普通の読み込み
     else{
+
+        data.url = get_url();
 
         // レジューム設定
         // 1byte前からレジュームして '\n' が返ってこなかったらあぼーんがあったってこと
@@ -172,28 +154,36 @@ void NodeTree2ch::create_loaderdata( JDLIB::LOADERDATA& data )
             set_resume( true );
         }
         else set_resume( false );
-
-        data.url = ( m_mode == MODE_OLDURL ) ? m_org_url : get_url();
     }
 
 #ifdef _DEBUG    
     std::cout << "load from " << data.url << std::endl;
 #endif
 
+    if( !CONFIG::get_url_login2ch().compare( 0, CONFIG::get_url_login2ch().length(), data.url, 0, CONFIG::get_url_login2ch().length() ) ){
+        if( data.agent.empty() ) data.agent = CONFIG::get_agent_for2ch();
 
-    data.agent = DBTREE::get_agent( get_url() );
+        if( CONFIG::get_use_proxy_for2ch() ){
+            data.host_proxy = CONFIG::get_proxy_for2ch();
+            data.port_proxy = CONFIG::get_proxy_port_for2ch();
+        }
+        data.basicauth_proxy = CONFIG::get_proxy_basicauth_for2ch();
+    }
+    else{
+        if( data.agent.empty() ) data.agent = DBTREE::get_agent( data.url );
+
+        data.host_proxy = DBTREE::get_proxy_host( data.url );
+        data.port_proxy = DBTREE::get_proxy_port( data.url );
+        data.basicauth_proxy = DBTREE::get_proxy_basicauth( data.url );
+    }
+
+    data.cookie_for_request = DBTREE::board_cookie_for_request( get_url() );
+    data.size_buf = CONFIG::get_loader_bufsize();
+    data.timeout = CONFIG::get_loader_timeout();
 
 #ifdef _DEBUG
     std::cout << "agent = " << data.agent << std::endl;
 #endif
-
-    data.host_proxy = DBTREE::get_proxy_host( get_url() );
-    data.port_proxy = DBTREE::get_proxy_port( get_url() );
-    data.basicauth_proxy = DBTREE::get_proxy_basicauth( get_url() );
-    data.cookie_for_request = DBTREE::board_cookie_for_request( get_url() );
-
-    data.size_buf = CONFIG::get_loader_bufsize();
-    data.timeout = CONFIG::get_loader_timeout();
 
     if( ! get_date_modified().empty() ) data.modified = get_date_modified();
 }
@@ -209,61 +199,46 @@ void NodeTree2ch::receive_finish()
               << "mode = " << m_mode << " code = " << get_code() << std::endl;
 #endif
 
-    // 更新チェックではない、オンラインの場合は offlaw や 過去ログ倉庫から取得出来るか試みる
+    // 保留データを処理する
+    sweep_buffer();
+
+    // 更新チェックではない、オンラインの場合は read.cgi や 過去ログ倉庫から取得出来るか試みる
     if( ! is_checking_update()
         && SESSION::is_online()
-        && ( get_code() == HTTP_REDIRECT || get_code() == HTTP_MOVED_PERM || get_code() == HTTP_NOT_FOUND
-             || ( m_mode == MODE_OFFLAW && ! get_ext_err().empty() ) // rokka 読み込み失敗
+        && ( get_code() == HTTP_REDIRECT || get_code() == HTTP_MOVED_PERM
+            || get_code() == HTTP_NOT_FOUND || get_code() == HTTP_NOT_IMPREMENTED
+            || ( ( m_mode == MODE_KAKO || m_mode == MODE_KAKO_GZ )
+                     && get_code() == HTTP_AUTH_REQ ) // 過去ログ読み込み失敗
+            || ( m_mode == MODE_CGI && get_code() == HTTP_ORIGN_ERR )
+            || ! get_ext_err().empty() // スレが存在しない
             )
         ){
 
 /*
-
-  ・スレIDが10桁の場合 → http://サーバ/板ID/kako/IDの上位4桁/IDの上位5桁/ID.dat.gz
-
-  (例) http://HOGE.2ch.net/test/read.cgi/hoge/1234567890/ を取得
-
-  (1) http://HOGE.2ch.net/hoge/dat/1234567890.dat から dat を取得。302で●がある場合(2-1)、旧URLがある場合(2-2)、無い場合は(2-3)へ(※)
-
-  (2-1) offlaw.cgiを使って取得
-
-  (2-2) 旧URLから取得
-
-  (2-3) http://HOGE.2ch.net/hoge/kako/1234/12345/1234567890.dat.gz から取得。302なら(3)へ
-
-  (3) http://HOGE.2ch.net/hoge/kako/1234/12345/1234567890.dat から取得 
+  (1) 読み込み( dat直接, read.cgi, API )
+  (2) 過去ログ倉庫(gz)から読み込み (※1)
+    ・スレIDが10桁の場合 → http://サーバ/板ID/kako/IDの上位4桁/IDの上位5桁/ID.dat.gz
+    ・スレIDが9桁の場合 → http://サーバ/板ID/kako/IDの上位3桁/ID.dat.gz
+  (3) 過去ログ倉庫から読み込み (※2)
+    ・スレIDが10桁の場合 → http://サーバ/板ID/kako/IDの上位4桁/IDの上位5桁/ID.dat
+    ・スレIDが9桁の場合 → http://サーバ/板ID/kako/IDの上位3桁/ID.dat
+  (4) 外部のログ保存サービスから読み込み
+  (5) read.cgiで読み込んでない場合にはread.cgiからの読み込み
 
 
-  ・スレIDが9桁の場合 → http://サーバ/板ID/kako/IDの上位3桁/ID.dat.gz
+  (※1)ただし 2008年1月1日以降に立てられたスレは除く
+  (※2)少なくても rokka導入(2013年9月27日)以降に立てられたスレ除く
 
-  (例) http://HOGE.2ch.net/test/read.cgi/hoge/123456789/ を取得
-
-  (1) http://HOGE.2ch.net/hoge/dat/1234567890.dat から dat を取得。302で●がある場合(2-1)、旧URLがある場合(2-2)、無い場合は(2-3)へ(※)
-
-  (2-1) offlaw.cgiを使って取得
-
-  (2-2) 旧URLから取得
-
-  (2-3) http://HOGE.2ch.net/hoge/kako/123/123456789.dat.gz から取得。302なら(3)へ
-
-  (3) http://HOGE.2ch.net/hoge/kako/123/123456789.dat から取得 
-
-
-  (※)ただし 2008年1月1日以降に立てられたスレは除く
-
-  (注) 古すぎる(2000年頃)のdatは形式が違う(<>ではなくて,で区切られている)ので読み込みに失敗する
+  (注) 古すぎる(2000年頃)のdatは形式が違う(<>ではなくて,で区切られている)ので読み込みに考慮が必要
 
 */
 
-        // ログインしている場合は rokka 経由で旧URLで再取得
-        if( m_mode == MODE_NORMAL && CORE::get_login2ch()->login_now() ) m_mode = MODE_OFFLAW;
-
-        // 旧URLがある場合、そのURLで再取得
-        else if( ( m_mode == MODE_NORMAL || m_mode == MODE_OFFLAW ) && get_url() != m_org_url ) m_mode = MODE_OLDURL;
-
         // 過去ログ倉庫(gz圧縮)
-        // ただし 2008年1月1日以降に立てられたスレは除く
-        else if( ( m_mode == MODE_NORMAL || m_mode == MODE_OFFLAW || m_mode == MODE_OLDURL ) && m_since_time < 1199113200 ) m_mode = MODE_KAKO_GZ;
+        if( m_mode <= MODE_CGI && m_since_time < 1380246829 ){
+            // ただし 2008年1月1日以降に立てられたスレは除く
+            if( m_since_time < 1199113200 ) m_mode = MODE_KAKO_GZ;
+            else m_mode = MODE_KAKO;
+        }
 
         // 過去ログ倉庫
         else if( m_mode == MODE_KAKO_GZ ) m_mode = MODE_KAKO;
@@ -271,20 +246,29 @@ void NodeTree2ch::receive_finish()
         // 失敗
         else m_mode = MODE_NORMAL;
 
-#ifdef _DEBUG    
-        std::cout << "switch mode to " << m_mode << std::endl;
-#endif
         if( m_mode != MODE_NORMAL ){
-            download_dat( is_checking_update() );
+#ifdef _DEBUG
+            std::cout << "switch mode to " << m_mode << std::endl;
+#endif
+            set_date_modified( std::string() );
+            set_ext_err( std::string() );
+            download_dat( false );
             return;
+        }
+
+        // プールしていたレスを追加
+        if( ! m_operate_info.empty() ){
+            NodeTreeBase::receive_data( m_operate_info.c_str(), m_operate_info.length() );
         }
     }
 
-    // offlaw や 過去ログから読み込んだ場合は DAT 落ちにする
-    if( m_mode != MODE_NORMAL ){
-        m_mode = MODE_NORMAL;
+    m_operate_info = std::string();
+
+    // 過去ログから読み込んだ場合は DAT 落ちにする
+    if( m_mode >= MODE_KAKO_GZ ){
         set_code( HTTP_OLD );
     }
 
     NodeTreeBase::receive_finish();
+    m_mode = MODE_NORMAL;
 }
