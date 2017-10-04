@@ -30,7 +30,6 @@ namespace JDLIB
     class Loader
     {
         LOADERDATA m_data;
-        struct addrinfo* m_addrinfo;
 
         bool m_stop; // = true にするとスレッド停止
         bool m_loading;
@@ -84,10 +83,7 @@ namespace JDLIB
 
         void clear();
         void run_main();
-        struct addrinfo* get_addrinfo( const std::string& hostname, const int port );
         std::string create_msg_send();
-        bool wait_recv_send( const int fd, const bool recv );
-        bool send_connect( const int soc, std::string& errmsg );
 
         // ローディング終了処理
         void finish_loading();
