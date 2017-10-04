@@ -308,7 +308,7 @@ void Core::run( const bool init, const bool skip_setupdiag )
     m_action_group->add( Gtk::Action::create( "OpenURL", "OpenURL"), sigc::mem_fun( *this, &Core::slot_openurl ) );
     m_action_group->add( Gtk::ToggleAction::create( "Online", "オフライン作業(_W)", std::string(), ! SESSION::is_online() ),
                          sigc::mem_fun( *this, &Core::slot_toggle_online ) );
-    m_action_group->add( Gtk::ToggleAction::create( "Login2ch", "2chにログイン(_L)", std::string(), false ),
+    m_action_group->add( Gtk::ToggleAction::create( "Login2ch", "5chにログイン(_L)", std::string(), false ),
                          sigc::mem_fun( *this, &Core::slot_toggle_login2ch ) );
     m_action_group->add( Gtk::ToggleAction::create( "LoginBe", "BEにログイン(_B)", std::string(), false ),
                         sigc::mem_fun( *this, &Core::slot_toggle_loginbe ) );
