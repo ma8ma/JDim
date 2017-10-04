@@ -487,6 +487,9 @@ int main( int argc, char **argv )
     }
 #endif
 
+    // デフォルトのbackend指定
+    Glib::setenv( "PANGOCAIRO_BACKEND", "fc", 0 );
+
 #if !GLIB_CHECK_VERSION(2,45,5)
 #ifdef _DEBUG_MEM_PROFILE
     g_mem_set_vtable( glib_mem_profiler_table );
