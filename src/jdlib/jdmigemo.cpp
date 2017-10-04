@@ -17,80 +17,63 @@
 
 #include "jdmigemo.h"
 
-#include <stdlib.h>
 #include <string>
-#include <cstring>
+#include <vector>
 
 migemo *migemo_object;
 
 
-int jd_migemo_regcomp(regex_t *preg,const char *regex,int cflags)
+std::string jd_migemo_regcreate(const char* regex)
 {
-    migemo *m;
-    int retval,i;
-    size_t len;
-    unsigned char *p,*utmp;
-    char *ctmp;
-    m=migemo_object;
+    migemo* m = migemo_object;
     if(!m){
-        return -1;
+        return {};
     }
     //migemo_load(m,MIGEMO_DICTID_MIGEMO,JD_MIGEMO_DICTNAME);
     if(!migemo_is_enable(m)){
-        return -1;
+        return {};
     }
-    utmp=(unsigned char *)calloc(sizeof(unsigned char),strlen(regex)+1);
-    memcpy(utmp,regex,strlen(regex));
-    for(i=0;utmp[i]!='\0';i++){
-        if(utmp[i]=='\n'){
-            utmp[i]='\0';
-            break;
-        }
+
+    std::vector<unsigned char> utmp;
+    while(*regex != '\0' && *regex != '\n') {
+        utmp.push_back(*regex);
+        ++regex;
     }
-    p=migemo_query(m,utmp);
-    free(utmp);
-    for(len=0;p[len]!='\0';len++);
-    ctmp=(char *)calloc(sizeof(char),len+1);
-    memcpy(ctmp,p,len);
+    utmp.push_back('\0');
+
+    unsigned char *owner = migemo_query(m, utmp.data());
+    std::string ctmp{ reinterpret_cast<char*>(owner) };
 
 #ifdef _DEBUG
     std::cout << "migemo comp:" << ctmp << std::endl;
 #endif
 
-    retval=regcomp(preg,ctmp,cflags);
-    free(ctmp);
-    if(retval!=0){
-        regfree(preg);
-    }
-    migemo_release(m,p);
-    return retval;
+    migemo_release(m, owner);
+    return ctmp;
 }
 
 
-
-int jd_migemo_init(const char *filename)
+int jd_migemo_init(const char* filename)
 {
 #ifdef _DEBUG
 	std::cout << "migemo-dict: " << filename << std::endl;
 #endif
-    migemo_object=migemo_open(filename);
+    migemo_object = migemo_open(filename);
     if(migemo_is_enable(migemo_object)){
         return 1;
     }else{
         migemo_close(migemo_object);
-        migemo_object=nullptr;
+        migemo_object = nullptr;
         return 0;
     }
 }
 
 
-int jd_migemo_close(void)
+int jd_migemo_close()
 {
     migemo_close(migemo_object);
-    migemo_object=nullptr;
+    migemo_object = nullptr;
     return 1;
 }
 
 #endif
-
-

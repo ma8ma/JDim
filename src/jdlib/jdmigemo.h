@@ -12,19 +12,14 @@
 #ifdef HAVE_MIGEMO_H
 
 #include <migemo.h>
-#include "jdregex.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <string>
 
-    int jd_migemo_regcomp(regex_t *preg,const char *regex,int cflags);
-    int jd_migemo_init(const char *filename);
-    int jd_migemo_close(void);
 
-#ifdef __cplusplus
-}
-#endif
+std::string jd_migemo_regcreate(const char* regex);
+int jd_migemo_init(const char* filename);
+int jd_migemo_close();
+
 
 #define JD_MIGEMO_DICTNAME ("/usr/share/migemo/utf-8/migemo-dict")
 
