@@ -3111,6 +3111,29 @@ int NodeTreeBase::check_link( const char* str_in, int& lng_in, char* str_text, s
     lng_text = pos_text - str_text;
     lng_link = pos_link - str_link;
 
+    // パーセントコードの処理
+    if( CONFIG::get_percent_decode() && memchr( str_text, '%', lng_text ) != nullptr )
+    {
+        std::string tmp = MISC::url_decode( str_text, lng_text );
+
+        const CharCode charcode = MISC::judge_char_code( tmp );
+
+        if( charcode == CHARCODE_SJIS || charcode == CHARCODE_EUCJP ||
+                charcode == CHARCODE_JIS ){
+            tmp = MISC::Iconv( tmp, charcode, CHARCODE_UTF8 );
+        }
+
+        if( charcode != CHARCODE_UNKNOWN ){
+            // 改行はパーセントエンコード( 元に戻す )
+            tmp = MISC::replace_newlines_to_str( tmp, "%0A" );
+
+            if( tmp.length() < lng_text ){
+                tmp.copy( str_text, std::string::npos );
+                lng_text = tmp.length();
+            }
+        }
+    }
+
     // URLとして短かすぎる場合は除外する( 最短ドメイン名の例 "1.cc" )
     if( lng_in - delim_pos < 4 ) return MISC::SCHEME_NONE;
 
