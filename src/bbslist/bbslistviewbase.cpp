@@ -1578,9 +1578,21 @@ void BBSListViewBase::slot_copy_title_url()
     if( m_path_selected.empty() ) return;
 
     const std::string url = path2url( m_path_selected );
-    const std::string name = path2name( m_path_selected );
+    std::string name;
 
-    MISC::CopyClipboard( name + '\n' + url );
+    const int type = path2type( m_path_selected );
+    switch( type ){
+        case TYPE_THREAD:
+        case TYPE_THREAD_UPDATE:
+        case TYPE_THREAD_OLD:
+            name = MISC::to_plain( DBTREE::article_subject( url ) );
+            break;
+
+        default:
+            name = path2name( m_path_selected );
+    }
+
+    MISC::CopyClipboard( name + '\n' + url + '\n' );
 }
 
 
@@ -2531,7 +2543,7 @@ void BBSListViewBase::replace_thread( const std::string& url, const std::string&
     const std::string urldat_new = DBTREE::url_dat( url_new );
     if( urldat_new.empty() ) return;
 
-    const std::string name_new = DBTREE::article_subject( urldat_new );
+    const std::string name_new = MISC::to_plain( DBTREE::article_modified_subject( urldat_new ) );
     if( name_new.empty() ) return;
 
     bool show_diag = CONFIG::show_diag_replace_favorite();
@@ -2539,8 +2551,7 @@ void BBSListViewBase::replace_thread( const std::string& url, const std::string&
     if( ! show_diag && mode == REPLACE_NEXT_NO ) return;
 
     const std::string urldat = DBTREE::url_dat( url );
-    const std::string urlcgi = DBTREE::url_readcgi( url, 0, 0 );
-    const std::string name_old = MISC::remove_space( DBTREE::article_subject( urldat ) );
+    const std::string name_old = MISC::to_plain( DBTREE::article_modified_subject( urldat ) );
 
     int type = TYPE_THREAD;
     const int status = DBTREE::article_status( urldat_new );

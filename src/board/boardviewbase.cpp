@@ -1877,7 +1877,7 @@ void BoardViewBase::update_row_common( const Gtk::TreeModel::Row& row )
     const int res = art->get_number();
 
     // タイトル、レス数、抽出
-    row[ m_columns.m_col_subject ] = art->get_subject();
+    row[ m_columns.m_col_subject ] = MISC::to_markup( art->get_modified_subject( true ) );
     row[ m_columns.m_col_res ] = res;
 
     // 読み込み数
@@ -2248,7 +2248,7 @@ bool BoardViewBase::slot_query_tooltip( int x, int y, bool keyboard_tooltip,
         // セルの内容が空ならツールチップを表示しない
         if( cell_text.empty() ) return false;
 
-        const auto layout = m_treeview.create_pango_layout( cell_text );
+        const auto layout = m_treeview.create_pango_layout( MISC::to_plain( cell_text ) );
         int pixel_width, ph;
         layout->get_pixel_size( pixel_width, ph );
         constexpr int offset{ 8 };
@@ -2256,7 +2256,12 @@ bool BoardViewBase::slot_query_tooltip( int x, int y, bool keyboard_tooltip,
         if( pixel_width + offset < column->get_width() ) return false;
 
         // ツールチップにセルの内容をセットする
-        tooltip->set_text( cell_text );
+        if( title == ITEM_NAME_NAME ) {
+            tooltip->set_markup( cell_text );
+        }
+        else {
+            tooltip->set_text( cell_text );
+        }
         return true;
     }
     return false;
@@ -2424,7 +2429,7 @@ void BoardViewBase::slot_copy_title_url()
     if( m_path_selected.empty() ) return;
 
     const std::string url = DBTREE::url_readcgi( path2daturl( m_path_selected ), 0, 0 );
-    const std::string name = DBTREE::article_subject( url );
+    const std::string name = MISC::to_plain( DBTREE::article_subject( url ) );
 
     MISC::CopyClipboard( name + '\n' + url );
 }
@@ -2631,7 +2636,7 @@ bool BoardViewBase::drawout( const bool force_reset )
         const Glib::ustring subject = row[ m_columns.m_col_subject ];
 
         if( reset ) row[ m_columns.m_col_drawbg ] = false;
-        else if( regex.match( regexptn, subject, 0 ) ){
+        else if( regex.match( regexptn, MISC::to_plain( subject ), 0 ) ){
             row[ m_columns.m_col_drawbg ] = true;
             ++hit;
 
@@ -2730,7 +2735,7 @@ void BoardViewBase::exec_search()
         if( path == path_start ) break;
 
         Glib::ustring subject = get_name_of_cell( path, m_columns.m_col_subject );
-        if( regex.exec( query, subject, offset, icase, newline, usemigemo, wchar, norm ) ){
+        if( regex.exec( query, MISC::to_plain( subject ), offset, icase, newline, usemigemo, wchar, norm ) ){
             m_treeview.scroll_to_row( path, 0 );
             m_treeview.set_cursor( path );
             return;
@@ -3040,7 +3045,7 @@ void BoardViewBase::set_article_to_buffer()
             info.type = TYPE_THREAD;
             info.parent = BOARD::get_admin()->get_win();
             info.url = art->get_url();
-            info.name = name.raw();
+            info.name = MISC::to_plain( name.raw() );
             info.path = path.to_string();
 
             list_info.push_back( info );

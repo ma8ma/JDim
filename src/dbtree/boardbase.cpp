@@ -1543,7 +1543,7 @@ bool BoardBase::is_abone_thread( ArticleBase* article )
     if( check_thread ){
         std::list< std::string >::iterator it = m_list_abone_thread.begin();
         for( ; it != m_list_abone_thread.end(); ++it ){
-            if( MISC::remove_space( article->get_subject() ) == MISC::remove_space(*it) ){
+            if( article->get_subject() == *it ){
 
                 // 対象スレがDat落ちした場合はあぼーんしなかったスレ名をリストから消去する
                 // remove_old_abone_thread() も参照
