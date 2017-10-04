@@ -3180,8 +3180,8 @@ void NodeTreeBase::update_abone_all()
     update_abone( 1, m_id_header );
 
     // 発言数更新
-    clear_id_name();
-    update_id_name( 1, m_id_header );
+    //clear_id_name();
+    //update_id_name( 1, m_id_header );
 
     // 参照状態更新
     clear_reference();
