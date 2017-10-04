@@ -90,6 +90,12 @@ namespace CONFIG
         // ipv6使用
         bool use_ipv6{};
 
+        // TLSでノンブロッキングI/Oを使用する
+        bool tls_nonblocking;
+
+        // TLSでサーバの証明書をチェックする
+        bool verify_cert;
+
         // 信頼するルート証明書
         std::string root_cafile;
 

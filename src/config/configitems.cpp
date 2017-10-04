@@ -153,6 +153,12 @@ bool ConfigItems::load( const bool restore )
     // ipv6使用
     use_ipv6 = cf.get_option_bool( "use_ipv6", CONF_USE_IPV6 );
 
+    // TLSでノンブロッキングI/Oを使用する
+    tls_nonblocking = cf.get_option_bool( "tls_nonblocking", CONF_TLS_NONBLOCKING );
+
+    // TLSでサーバの証明書をチェックする
+    verify_cert = cf.get_option_bool( "verify_cert", CONF_VERIFY_CERT );
+
     // 信頼するルート証明書
     root_cafile = cf.get_option_str( "root_cafile", CONF_ROOT_CAFILE );
 
@@ -708,6 +714,8 @@ void ConfigItems::save_impl( const std::string& path )
     cf.update( "loader_timeout_checkupdate", loader_timeout_checkupdate );
 
     cf.update( "use_ipv6", use_ipv6 );
+    cf.update( "tls_nonblocking", tls_nonblocking );
+    cf.update( "verify_cert", verify_cert );
     cf.update( "root_cafile", root_cafile );
     cf.update( "connection_num", connection_num );
 
