@@ -2129,8 +2129,9 @@ bool DrawAreaBase::draw_one_node( LAYOUT* layout, const CLIPINFO& ci )
             if( layout->rect ){
                 const int x = layout->rect->x;
                 const int y = layout->rect->y - ci.pos_y;
-                const int color_text = get_colorid_text();
-
+                int color_text = get_colorid_text();
+                if( color_text == COLOR_CHAR && layout->div && layout->div->css->color >= 0 )
+                    color_text = layout->div->css->color;
                 cairo_t* const cr = cairo_create( m_backscreen.get() );
                 gdk_cairo_set_source_rgba( cr, m_color[ color_text ].gobj() );
                 cairo_set_line_width( cr, 1.0 );
@@ -2752,6 +2753,8 @@ void DrawAreaBase::draw_string( LAYOUT* node, const CLIPINFO& ci,
                 width_line = PANGO_PIXELS( width_line );
             }
         }
+
+        if( color >= int( m_color.size() ) || color_back >= int( m_color.size() ) ) init_color();
 
         if( width_line ){
 
