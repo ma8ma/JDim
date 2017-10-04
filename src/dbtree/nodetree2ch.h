@@ -35,6 +35,8 @@ namespace DBTREE
 
         void create_loaderdata( JDLIB::LOADERDATA& data ) override;
 
+        void parse_extattr( const char* str, const int lng ) override;
+
       private:
 
         void receive_finish() override;

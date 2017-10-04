@@ -98,6 +98,40 @@ char* NodeTree2ch::process_raw_lines( char* rawlines, size_t& size )
 
 
 //
+// 拡張属性を取り出す
+//
+void NodeTree2ch::parse_extattr( const char* str, const int lng )
+{
+    const char* pos = str;
+
+    while( pos < str + lng && ( pos = (const char *)memchr( pos, '<', str + lng - pos ) ) != NULL ){
+        if( memcmp( pos, "<hr>VIPQ2_EXTDAT: ", 18 ) == 0 ){ pos += 18; break; }
+        ++pos;
+    }
+
+    if( pos != NULL && pos < str + lng ){
+        JDLIB::Regex regex;
+        constexpr size_t offset = 0;
+        constexpr bool icase = false; // 大文字小文字区別しない
+        constexpr bool newline = true; // . に改行をマッチさせない
+        constexpr bool usemigemo = false; // migemo使用
+        constexpr bool wchar = false; // 全角半角の区別をしない
+
+        const std::string extattr( pos, str + lng - pos );
+        if( regex.exec( "[^:]+:[^:]+:([^:]+):[^ ]+ EXT was configured",
+                    extattr.c_str(), offset, icase, newline, usemigemo, wchar ) ){
+
+            // 最大レス数を取得
+            if( regex.str( 1 ) == "V" ) m_res_number_max = 0;
+            else if( regex.str( 1 )[ 0 ] >= '0' && regex.str( 1 )[ 0 ] <= '9' ){
+                m_res_number_max = atoi( regex.str( 1 ).c_str() );
+            }
+        }
+    }
+}
+
+
+//
 // ロード用データ作成
 //
 void NodeTree2ch::create_loaderdata( JDLIB::LOADERDATA& data )
