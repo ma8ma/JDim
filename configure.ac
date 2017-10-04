@@ -177,7 +177,7 @@ AS_IF(
    AC_SUBST(GNUTLS_LIBS)],
 
   [test "x$with_tls" = xopenssl],
-  [PKG_CHECK_MODULES(OPENSSL, [openssl >= 0.9])
+  [PKG_CHECK_MODULES(OPENSSL, [openssl >= 0.9.7])
    AC_DEFINE(USE_OPENSSL, , [use openssl])
    AC_SUBST(OPENSSL_CFLAGS)
    AC_SUBST(OPENSSL_LIBS)],
