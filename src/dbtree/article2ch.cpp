@@ -104,5 +104,6 @@ bool Article2ch::is_load_olddat()
 {
     // 2chにログインしている場合
     // または、read.cgiを使う設定の場合
-    return ( CORE::get_login2ch()->login_now() && ! CORE::get_login2ch()->get_username().empty() );
+    return ( CORE::get_login2ch()->login_now() && ! CORE::get_login2ch()->get_username().empty() )
+            || CONFIG::get_use_external_log();
 }
