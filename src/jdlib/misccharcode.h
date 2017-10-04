@@ -29,6 +29,13 @@ namespace MISC
         Other,
     };
 
+    // utf8_fix_wavedash のモード
+    enum class WaveDashFix
+    {
+        UnixToWin = 0,
+        WinToUnix,
+    };
+
     bool is_euc( const char* input, size_t read_byte );
     bool is_jis( const char* input, size_t& read_byte );
     bool is_sjis( const char* input, size_t read_byte );
@@ -46,6 +53,9 @@ namespace MISC
 
     // ucs の種類
     UcsType get_ucstype( const char32_t code );
+
+    // WAVEDASHなどのWindows系UTF-8文字をUnix系文字と相互変換
+    std::string utf8_fix_wavedash( const std::string& str, const WaveDashFix mode );
 }
 
 #endif
