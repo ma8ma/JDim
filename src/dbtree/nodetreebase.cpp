@@ -612,6 +612,7 @@ std::list< int > NodeTreeBase::get_res_query( const std::string& query, const bo
 node = head->headinfo->block[ id ]; \
 while( node ){ \
 if( node->type == DBTREE::NODE_BR ) str_res += "\n" + ref_prefix; \
+else if( node->type == DBTREE::NODE_SP ) str_res += " "; \
 else if( node->type == DBTREE::NODE_HTAB ) str_res += "\t"; \
 else if( node->text ) str_res += node->text; \
 node = node->next_node; \
@@ -870,7 +871,8 @@ NODE* NodeTreeBase::create_node_idnum()
 //
 NODE* NodeTreeBase::create_node_br()
 {
-    NODE* tmpnode = create_node();
+    // 改行前の空白を取り除く
+    NODE* tmpnode = ( m_node_previous->type == NODE_SP ) ? m_node_previous : create_node();
     tmpnode->type = NODE_BR;
     return tmpnode;
 }
@@ -890,10 +892,23 @@ NODE* NodeTreeBase::create_node_hr()
 //
 // スペースノード
 //
-NODE* NodeTreeBase::create_node_space( const int type )
+NODE* NodeTreeBase::create_node_space( const int type, const int bg )
 {
-    NODE* tmpnode = create_node();
-    tmpnode->type = type;
+    NODE* tmpnode;
+
+    if( type != NODE_SP ||
+            ( m_node_previous->type != type && m_node_previous->type != NODE_MULTISP
+              && m_node_previous->type != NODE_HTAB ) ){
+        tmpnode = create_node();
+        tmpnode->type = type;
+        tmpnode->color_text = COLOR_CHAR;
+        tmpnode->color_back = bg;
+        tmpnode->bold = false;
+    }
+    else{
+        tmpnode = m_node_previous;
+    }
+
     return tmpnode;
 }
 
@@ -905,17 +920,6 @@ NODE* NodeTreeBase::create_node_multispace( const char* text, const int n, const
 {
     NODE* tmpnode = create_node_ntext( text, n, COLOR_CHAR, bg, false );
     tmpnode->type = NODE_MULTISP;
-    return tmpnode;
-}
-
-
-//
-// 水平タブノード
-//
-NODE* NodeTreeBase::create_node_htab()
-{
-    NODE* tmpnode = create_node();
-    tmpnode->type = NODE_HTAB;
     return tmpnode;
 }
 
@@ -1795,7 +1799,8 @@ void NodeTreeBase::parse_name( NODE* header, const char* str, const int lng, con
     std::string str_tmp;
     node = node->next_node;
     while( node ){
-        if( node->text ) str_tmp += node->text;
+        if( node->type == NODE_TEXT && node->text ) str_tmp += node->text;
+        if( node->type == NODE_SP ) str_tmp += " ";
         node = node->next_node;
     }
     header->headinfo->name = ( char* )m_heap.heap_alloc( str_tmp.length() + 1 );
@@ -1952,7 +1957,7 @@ void NodeTreeBase::parse_date_id( NODE* header, const char* str, const int lng )
             if( ! header->headinfo->block[ BLOCK_ID_NAME ] )
                 header->headinfo->block[ BLOCK_ID_NAME ] = create_node_block();
             else
-                create_node();
+                create_node_space( NODE_SP, COLOR_NONE );
 
             memcpy( tmplink, PROTO_BE, sizeof( PROTO_BE ) );
             memcpy( tmplink + sizeof( PROTO_BE ) - 1, str + start_block + strlen_of_BE, lng_id );
@@ -1988,7 +1993,7 @@ void NodeTreeBase::parse_date_id( NODE* header, const char* str, const int lng )
             if( ! header->headinfo->block[ BLOCK_ID_NAME ] )
                 header->headinfo->block[ BLOCK_ID_NAME ] = create_node_block();
             else
-                create_node();
+                create_node_space( NODE_SP, COLOR_NONE );
 
             const bool digitlink = false;
             const bool bold = false;
@@ -2074,12 +2079,34 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
         }
     }
    
-    for( ; pos < pos_end; ++pos, digitlink = false ){
+    for( ; pos < pos_end; digitlink = false ){
+
+        ///////////////////////
+        // 半角空白, LF(0x0A), CR(0x0D)
+        if( *pos == ' ' || *pos == 10 || *pos == 13 ){
+
+            // フラッシュしてから半角空白ノードを作る
+            create_node_ntext( m_parsed_text, lng_text, fgcolor, bgcolor, in_bold ); lng_text = 0;
+
+            ++pos;
+            if( pos < pos_end ) create_node_space( NODE_SP, bgcolor );
+
+create_multispace:
+            // 連続スペースノードを作成
+            if( *pos == ' ' ){
+                while( *pos == ' ' ) m_parsed_text[ lng_text++ ] = *pos++;
+                if( pos < pos_end ){
+                    create_node_multispace( m_parsed_text, lng_text, bgcolor ); lng_text = 0;
+                }
+            }
+
+            continue;
+        }
 
 
         ///////////////////////
         // HTMLタグ
-        if( *pos == '<' ){ 
+        else if( *pos == '<' ){
 
             bool br = false;
 
@@ -2290,7 +2317,6 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
             if( br ){
 
                 // フラッシュ
-                if( *( pos - 1 ) == ' ' ) --lng_text; // 改行前の空白を取り除く
                 create_node_ntext( m_parsed_text, lng_text, fgcolor, bgcolor, in_bold ); lng_text = 0;
 
                 // 改行ノード作成
@@ -2314,8 +2340,6 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
                 }
             }
 
-            // forのところで++されるので--しておく
-            --pos;
             continue;
         }
 
@@ -2357,8 +2381,6 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
 
             create_node_anc( tmpstr, lng_str, tmplink, lng_link, COLOR_CHAR_LINK, bold, ancinfo, lng_anc );
 
-            // forのところで++されるので--しておく
-            --pos;
             continue;
         }
 
@@ -2440,9 +2462,6 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
             }
 
             pos += n_in;
-
-            // forのところで++されるので--しておく
-            --pos;
             continue;
         }
 
@@ -2458,54 +2477,77 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
                 if( ret_decode != NODE_TEXT ){
                     create_node_ntext( m_parsed_text, lng_text, fgcolor, bgcolor, in_bold );
                     lng_text = 0;
-                    create_node_space( ret_decode );
+                    create_node_space( ret_decode, bgcolor );
+                }
+                else if( m_parsed_text[ lng_text ] == '\xc2'
+                        && m_parsed_text[ lng_text + 1 ] == '\xa0' ){
+                    // &nbsp; は空白に置き換える
+                    m_parsed_text[ lng_text++ ] = ' ';
                 }
                 else lng_text += n_out;
 
                 pos += n_in;
-
-                // forのところで++されるので--しておく
-                --pos;
                 continue;
             }
         }
 
         ///////////////////////
         // 水平タブ(0x09)
-        if( *pos == 0x09 ){
+        else if( *pos == '\t' ){
 
             // フラッシュしてからタブノードをつくる
             create_node_ntext( m_parsed_text, lng_text, fgcolor, bgcolor, in_bold ); lng_text = 0;
-            create_node_htab();
+            create_node_space( NODE_HTAB, bgcolor );
+            ++pos;
+
+            goto create_multispace;
+        }
+
+        ///////////////////////
+        // フォームフィード(0x0C)
+        else if( *pos == '\f' ){
+
+            // フラッシュしてからZWSPノードをつくる
+            create_node_ntext( m_parsed_text, lng_text, fgcolor, bgcolor, in_bold ); lng_text = 0;
+            create_node_space( NODE_ZWSP, bgcolor );
+            ++pos;
+
             continue;
         }
 
         ///////////////////////
-        // LF(0x0A), CR(0x0D)
-        if( *pos == 0x0A || *pos == 0x0D ){
+        // NBSP(0xC2 0xA0)
+        else if( *pos == '\xc2' && *(pos + 1) == '\xa0' ){
+            // 空白に置き換える
+            m_parsed_text[ lng_text++ ] = ' ';
+            pos += 2;
 
-            // 無視する
             continue;
         }
 
         ///////////////////////
-        // 連続半角空白
-        if( *pos == ' ' && *( pos + 1 ) == ' ' ){
+        // その他のASCIIおよびマルチバイト文字
+        switch( MISC::utf8bytes( pos ) ){
+        case 4: m_parsed_text[ lng_text++ ] = *pos++;
+                // fallthrough
+        case 3: m_parsed_text[ lng_text++ ] = *pos++;
+                // fallthrough
+        case 2: m_parsed_text[ lng_text++ ] = *pos++;
+                // fallthrough
+        case 1: m_parsed_text[ lng_text++ ] = *pos++;
+                break;
+        default:
+            // Iconvでエンコード変換済みなので不正な文字が
+            // ここで検出されるのは何かがおかしい
+            MISC::ERRMSG( "invalid char = " + std::to_string( (unsigned char) *pos ) );
 
-            m_parsed_text[ lng_text++ ] = *(pos++);
-
-            // フラッシュしてから連続半角ノードを作る
-            create_node_ntext( m_parsed_text, lng_text, fgcolor, bgcolor, bold ); lng_text = 0;
-
-            while( *pos == ' ' ) m_parsed_text[ lng_text++ ] = *(pos++);
-            create_node_multispace( m_parsed_text, lng_text, bgcolor ); lng_text = 0;
-
-            // forのところで++されるので--しておく
-            --pos;
-            continue;
+            // REPLACEMENT CHARACTERに置き換える
+            ++pos;
+            m_parsed_text[ lng_text++ ] = static_cast< char >( 0xef );
+            m_parsed_text[ lng_text++ ] = static_cast< char >( 0xbf );
+            m_parsed_text[ lng_text++ ] = static_cast< char >( 0xbd );
+            break;
         }
-
-        m_parsed_text[ lng_text++ ] = *pos;
     }
 
     create_node_ntext( m_parsed_text, lng_text, fgcolor, bgcolor, in_bold );

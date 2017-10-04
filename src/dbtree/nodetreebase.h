@@ -298,9 +298,8 @@ namespace DBTREE
         NODE* create_node_idnum();
         NODE* create_node_br();
         NODE* create_node_hr();
-        NODE* create_node_space( const int type );
+        NODE* create_node_space( const int type, const int bg );
         NODE* create_node_multispace( const char* text, const int n, const int bg );
-        NODE* create_node_htab();
         NODE* create_node_link( const char* text, const int n, const char* link, const int n_link, const int color_text, const int color_back, const bool bold );
         NODE* create_node_anc( const char* text, const int n, const char* link, const int n_link,
                                const int color_text, const bool bold,
