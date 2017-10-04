@@ -277,6 +277,13 @@ namespace CONFIG
 #define CONF_MIGEMO_PATH "/usr/share/migemo/utf-8/migemo-dict"
 #endif
 
+// TLSのルート証明書
+#ifdef DEFAULT_CAFILE
+#define CONF_ROOT_CAFILE DEFAULT_CAFILE
+#else
+#define CONF_ROOT_CAFILE "/etc/ssl/certs/ca-certificates.crt"
+#endif
+
 }
 
 #endif

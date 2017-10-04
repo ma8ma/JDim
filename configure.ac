@@ -233,6 +233,18 @@ AS_IF(
 )
 
 
+AC_MSG_CHECKING(for --with-rootcert)
+AC_ARG_WITH(rootcert,
+AC_HELP_STRING([--with-rootcert=PATH],[specifiy the path of root certification file]),
+[with_rootcert="$withval"], [with_rootcert=no])
+AC_MSG_RESULT($with_rootcert)
+
+AS_IF(
+  [test "x$with_rootcert" != xno],
+  [AC_DEFINE_UNQUOTED(DEFAULT_CAFILE, "$with_rootcert", [root cert])]
+)
+
+
 dnl
 dnl enable gprof
 dnl
