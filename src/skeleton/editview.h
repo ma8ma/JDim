@@ -8,7 +8,7 @@
 #include <gtkmm.h>
 
 #include "control/control.h"
-#include "jdlib/miscutil.h"
+#include "jdlib/misccharcode.h"
 
 namespace SKELETON
 {
