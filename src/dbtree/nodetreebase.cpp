@@ -2055,6 +2055,7 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
     const char* pos = str;
     const char* pos_end = str + lng;
     int lng_text = 0;
+    bool in_bold = bold;
     
     if( *pos == ' ' ){
 
@@ -2087,7 +2088,7 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
                      ( *( pos + 1 ) == 'a' || *( pos + 1 ) == 'A' ) && *( pos + 2 ) == ' ' ){
 
                 // フラッシュ
-                create_node_ntext( m_parsed_text, lng_text, color_text, bold ); lng_text = 0;
+                create_node_ntext( m_parsed_text, lng_text, color_text, in_bold ); lng_text = 0;
 
                 while( pos < pos_end && *pos != '=' ) ++pos;
                 ++pos;
@@ -2229,7 +2230,7 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
                      && ( *( pos + 2 ) == 'r' || *( pos + 2 ) == 'R' ) ){
 
                 // フラッシュ
-                create_node_ntext( m_parsed_text, lng_text, color_text, bold ); lng_text = 0;
+                create_node_ntext( m_parsed_text, lng_text, color_text, in_bold ); lng_text = 0;
 
                 // 水平線ノード作成
                 create_node_hr();
@@ -2237,11 +2238,30 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
                 pos += 4;
             }
 
-            // その他のタグは無視。タグを取り除いて中身だけを見る
+            // ボールド <B>
+            else if( ( *( pos + 1 ) == 'b' || *( pos + 1 ) == 'B' ) && *( pos + 2 ) == '>' ){
+
+                // フラッシュ
+                create_node_ntext( m_parsed_text, lng_text, color_text, in_bold ); lng_text = 0;
+                in_bold = true;
+                pos += 3;
+            }
+
+            // </B>
+            else if( *( pos + 1 ) == '/' && ( *( pos + 2 ) == 'b' || *( pos + 2 ) == 'B' )
+                     && *( pos + 3 ) == '>' ){
+
+                // フラッシュ
+                create_node_ntext( m_parsed_text, lng_text, color_text, in_bold ); lng_text = 0;
+                in_bold = bold;
+                pos += 4;
+            }
+
+            // その他のタグはタグを取り除いて中身だけを見る
             else {
 
                 // フラッシュ
-                create_node_ntext( m_parsed_text, lng_text, color_text, bold ); lng_text = 0;
+                create_node_ntext( m_parsed_text, lng_text, color_text, in_bold ); lng_text = 0;
                 
                 while( pos < pos_end && *pos != '>' ) ++pos;
                 ++pos;
@@ -2252,7 +2272,7 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
 
                 // フラッシュ
                 if( *( pos - 1 ) == ' ' ) --lng_text; // 改行前の空白を取り除く
-                create_node_ntext( m_parsed_text, lng_text, color_text, bold ); lng_text = 0;
+                create_node_ntext( m_parsed_text, lng_text, color_text, in_bold ); lng_text = 0;
 
                 // 改行ノード作成
                 create_node_br();
@@ -2297,7 +2317,7 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
         if( check_anchor( mode , pos, n_in, tmpstr + lng_str, tmplink + lng_link, LNG_LINK - lng_link, ancinfo + lng_anc ) ){
 
             // フラッシュしてからアンカーノードをつくる
-            create_node_ntext( m_parsed_text, lng_text, color_text, bold ); lng_text = 0;
+            create_node_ntext( m_parsed_text, lng_text, color_text, in_bold ); lng_text = 0;
 
             memcpy( tmplink, PROTO_ANCHORE, strlen( PROTO_ANCHORE ) );
             lng_str += strlen( tmpstr ) - lng_str;
@@ -2370,7 +2390,7 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
         // リンクノードか再チェック
         if( linktype != MISC::SCHEME_NONE ){
             // フラッシュしてからリンクノードつくる
-            create_node_ntext( m_parsed_text, lng_text, color_text, bold ); lng_text = 0;
+            create_node_ntext( m_parsed_text, lng_text, color_text, in_bold ); lng_text = 0;
 
             // リンクノードの表示テキスト
             memcpy( tmpstr, pos, n_in );
@@ -2417,7 +2437,7 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
 
                 // 文字以外の空白ノードならフラッシュして空白ノード追加
                 if( ret_decode != NODE_TEXT ){
-                    create_node_ntext( m_parsed_text, lng_text, color_text, bold );
+                    create_node_ntext( m_parsed_text, lng_text, color_text, in_bold );
                     lng_text = 0;
                     create_node_space( ret_decode );
                 }
@@ -2436,7 +2456,7 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
         if( *pos == 0x09 ){
 
             // フラッシュしてからタブノードをつくる
-            create_node_ntext( m_parsed_text, lng_text, color_text, bold ); lng_text = 0;
+            create_node_ntext( m_parsed_text, lng_text, color_text, in_bold ); lng_text = 0;
             create_node_htab();
             continue;
         }
@@ -2469,7 +2489,7 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
         m_parsed_text[ lng_text++ ] = *pos;
     }
 
-    create_node_ntext( m_parsed_text, lng_text, color_text, bold );
+    create_node_ntext( m_parsed_text, lng_text, color_text, in_bold );
 }
 
 
