@@ -93,31 +93,31 @@ namespace DBTREE
     time_t get_time_modified(); // bbsmenuの更新時間( time_t )
 
     // board 系
-    std::string board_path( const std::string& url );
-    std::string board_id( const std::string& url );
+    const std::string& board_path( const std::string& url );
+    const std::string& board_id( const std::string& url );
     time_t board_time_modified( const std::string& url ); // 板の更新時間( time_t )
-    std::string board_date_modified( const std::string& url ); // 板の更新時間( 文字列 )
+    const std::string& board_date_modified( const std::string& url ); // 板の更新時間( 文字列 )
     void board_set_date_modified( const std::string& url, const std::string& date ); // 板の更新時間( 文字列 )をセット
     const std::string& board_get_modified_localrule( const std::string& url );
     void board_set_modified_localrule( const std::string& url, const std::string& modified );
     const std::string& board_get_modified_setting( const std::string& url );
     void board_set_modified_setting( const std::string& url, const std::string& modified );
-    std::string board_name( const std::string& url );
-    std::string board_subjecttxt( const std::string& url );
+    const std::string& board_name( const std::string& url );
+    const std::string& board_subjecttxt( const std::string& url );
     CharCode board_charcode( const std::string& url );
     void board_set_charcode( const std::string& url, const CharCode charcode );
     std::string board_cookie_for_write( const std::string& url );
     const std::list< std::string >& board_list_cookies_for_write( const std::string& url );
     void board_set_list_cookies_for_write( const std::string& url, const std::list< std::string>& list_cookies );
     void board_reset_list_cookies_for_write( const std::string& url );
-    std::string board_keyword_for_write( const std::string& url );
+    const std::string& board_keyword_for_write( const std::string& url );
     void board_set_keyword_for_write( const std::string& url, const std::string& keyword );
     void board_analyze_keyword_for_write( const std::string& url, const std::string& html );
-    std::string board_basicauth( const std::string& url );
-    std::string board_ext( const std::string& url );
+    const std::string& board_basicauth( const std::string& url );
+    const std::string& board_ext( const std::string& url );
     int board_status( const std::string& url );
     int board_code( const std::string& url );
-    std::string board_str_code( const std::string& url );
+    const std::string& board_str_code( const std::string& url );
     void board_save_info( const std::string& url );
     void board_download_subject( const std::string& url, const std::string& url_update_view );
     void board_read_subject_from_cache( const std::string& url );
@@ -220,7 +220,7 @@ namespace DBTREE
     int article_code( const std::string& url );
     std::string article_str_code( const std::string& url );
     std::string article_ext_err( const std::string& url );
-    std::string article_subject( const std::string& url );
+    const std::string& article_subject( const std::string& url );
     int article_number( const std::string& url );
     int article_number_load( const std::string& url );
     int article_number_seen( const std::string& url );
