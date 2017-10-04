@@ -489,24 +489,6 @@ std::string MISC::replace_newlines_to_str( const std::string& str_in, const std:
 
 
 //
-// " を \" に置き換え
-//
-std::string MISC::replace_quot( const std::string& str )
-{
-    return MISC::replace_str( str, "\"", "\\\"" );
-}
-
-
-//
-// \" を " に置き換え
-//
-std::string MISC::recover_quot( const std::string& str )
-{
-    return MISC::replace_str( str, "\\\"", "\"" );
-}
-
-
-//
 // str 中に含まれている str2 の 数を返す
 //
 int MISC::count_str( const std::string& str, const std::string& str2  )
