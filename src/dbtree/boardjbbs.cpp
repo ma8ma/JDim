@@ -250,7 +250,7 @@ void BoardJBBS::download_rule_setting()
 void BoardJBBS::parse_subject( const char* str_subject_txt )
 {
 #ifdef _DEBUG
-    std::cout << "BoardJBBS::parse_subject\n";
+    std::cout << "BoardJBBS::parse_subject" << std::endl;
 #endif 
    
     const char* pos = str_subject_txt;
