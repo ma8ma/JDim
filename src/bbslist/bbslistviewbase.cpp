@@ -1149,21 +1149,21 @@ bool BBSListViewBase::slot_motion_notify( GdkEventMotion* event )
     if( m_treeview.get_path_at_pos( x, y, path, column, cell_x, cell_y ) && m_treeview.get_row( path ) ){
 
         Gtk::TreeModel::Row row = m_treeview.get_row( path );
-        Glib::ustring subject = row[ m_columns.m_name ];
-        Glib::ustring url = row[ m_columns.m_url ];
+        const Glib::ustring& ustr_subject = row[ m_columns.m_name ];
+        const Glib::ustring& ustr_url = row[ m_columns.m_url ];
         int type = row[ m_columns.m_type ];
 
-        m_treeview.reset_pre_popupurl( url );
+        m_treeview.reset_pre_popupurl( ustr_url.raw() );
 
         // 画像ポップアップ
         if( type == TYPE_IMAGE ){
 
-            if( DBIMG::get_type_ext( url ) != DBIMG::T_UNKNOWN && DBIMG::get_code( url ) != HTTP_INIT ){
+            if( DBIMG::get_type_ext( ustr_url.raw() ) != DBIMG::T_UNKNOWN && DBIMG::get_code( ustr_url.raw() ) != HTTP_INIT ){
 
-                if( m_treeview.pre_popup_url() != url ){
+                if( m_treeview.pre_popup_url() != ustr_url.raw() ){
 
-                    SKELETON::View* view = CORE::ViewFactory( CORE::VIEW_IMAGEPOPUP,  url );
-                    m_treeview.show_popup( url, view );
+                    SKELETON::View* view = CORE::ViewFactory( CORE::VIEW_IMAGEPOPUP, ustr_url.raw() );
+                    m_treeview.show_popup( ustr_url.raw(), view );
                 }
             }
             else m_treeview.hide_popup();
@@ -2303,7 +2303,7 @@ void BBSListViewBase::update_urls()
     for( ; ! it.end(); ++it ){
 
         Gtk::TreeModel::Row row = *it;
-        const Glib::ustring url = row[ m_columns.m_url ];
+        const Glib::ustring& ustr_url = row[ m_columns.m_url ];
         const int type = row[ m_columns.m_type ];
 
 #ifdef _DEBUG
@@ -2316,12 +2316,12 @@ void BBSListViewBase::update_urls()
             case TYPE_BOARD: // 板
             case TYPE_BOARD_UPDATE:
 
-                url_new = DBTREE::url_boardbase( url );
-                if( url != url_new ){
+                url_new = DBTREE::url_boardbase( ustr_url.raw() );
+                if( ustr_url.raw() != url_new ){
                     updated = true;
                     row[ m_columns.m_url ] = url_new;
 #ifdef _DEBUG
-                    std::cout << url << " -> " << url_new << std::endl;
+                    std::cout << ustr_url << " -> " << url_new << std::endl;
 #endif
                 }
 
@@ -2329,19 +2329,19 @@ void BBSListViewBase::update_urls()
                 break;
 
             case TYPE_VBOARD:
-                m_set_board.insert( url );
+                m_set_board.insert( ustr_url.raw() );
                 break;
 
             case TYPE_THREAD: // スレ
             case TYPE_THREAD_UPDATE:
             case TYPE_THREAD_OLD:
 
-                url_new = DBTREE::url_dat( url );
-                if( url != url_new ){
+                url_new = DBTREE::url_dat( ustr_url.raw() );
+                if( ustr_url.raw() != url_new ){
                     updated = true;
                     row[ m_columns.m_url ] = url_new;
 #ifdef _DEBUG
-                    std::cout << url << " -> " << url_new << std::endl;
+                    std::cout << ustr_url << " -> " << url_new << std::endl;
 #endif
                 }
 
@@ -2349,7 +2349,7 @@ void BBSListViewBase::update_urls()
                 break;
 
             case TYPE_IMAGE:
-                m_set_image.insert( url );
+                m_set_image.insert( ustr_url.raw() );
                 break;
         }
     }
@@ -2394,7 +2394,7 @@ void BBSListViewBase::toggle_articleicon( const std::string& url )
 
         if( type_row == TYPE_THREAD || type_row == TYPE_THREAD_UPDATE || type_row == TYPE_THREAD_OLD ){
 
-            if( url == url_row ){
+            if( url == url_row.raw() ){
 #ifdef _DEBUG
                 std::cout << "hit " << url << " == " << url_row << std::endl;
                 std::cout << row2name( row ) << std::endl;
@@ -2443,7 +2443,7 @@ void BBSListViewBase::toggle_boardicon( const std::string& url )
 
         if( type_row == TYPE_BOARD || type_row == TYPE_BOARD_UPDATE ){
 
-            if( url_boardbase == url_row ){
+            if( url_boardbase == url_row.raw() ){
 #ifdef _DEBUG
                 std::cout << "hit " << url_boardbase << " == " << url_row << std::endl;
                 std::cout << row2name( row ) << std::endl;
@@ -2577,7 +2577,7 @@ void BBSListViewBase::replace_thread( const std::string& url, const std::string&
     for( ; ! it.end(); ++it ){
 
         Gtk::TreeModel::Row row = *it;
-        const Glib::ustring url_row = row[ m_columns.m_url ];
+        const Glib::ustring& ustr_url = row[ m_columns.m_url ];
 
         switch( row[ m_columns.m_type ] ){
 
@@ -2585,7 +2585,7 @@ void BBSListViewBase::replace_thread( const std::string& url, const std::string&
             case TYPE_THREAD_UPDATE:
             case TYPE_THREAD_OLD:
 
-                if( urldat == url_row || urlcgi == url_row ){
+                if( urldat == ustr_url.raw() ){
 
                     if( show_diag ){
 
@@ -2630,11 +2630,11 @@ void BBSListViewBase::replace_thread( const std::string& url, const std::string&
 
                         // 名前が古いものであったら更新
                         // 手動で変更されていたらそのまま
-                        const Glib::ustring name_row = row[ m_columns.m_name ];
+                        const Glib::ustring& ustr_name = row[ m_columns.m_name ];
 #ifdef _DEBUG
-                        std::cout << "name_row = " << name_row << std::endl;
+                        std::cout << "name_row = " << ustr_name << std::endl;
 #endif
-                        if( MISC::remove_space( name_row ) == name_old ){
+                        if( ustr_name.raw() == name_old ){
 #ifdef _DEBUG
                             std::cout << "replace name\n";
 #endif
@@ -3019,7 +3019,7 @@ void BBSListViewBase::remove_item( const std::string& url )
     for( ; ! it.end(); ++it ){
 
         Gtk::TreeModel::Row row = *it;
-        const Glib::ustring url = row[ m_columns.m_url ];
+        const Glib::ustring& ustr_url = row[ m_columns.m_url ];
         const int type = row[ m_columns.m_type ];
 
         switch( type ){
@@ -3033,7 +3033,7 @@ void BBSListViewBase::remove_item( const std::string& url )
 
             case TYPE_IMAGE: // 画像
 
-                if( url == url_target ){
+                if( ustr_url.raw() == url_target ){
 #ifdef _DEBUG
                     std::cout << "hit " << url << " == " << url_target << std::endl;
                     std::cout << row2name( row ) << std::endl;
