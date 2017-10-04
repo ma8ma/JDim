@@ -10,6 +10,7 @@
 #include "jdlib/misccharcode.h"
 #include "jdlib/miscgtk.h"
 #include "jdlib/miscmsg.h"
+#include "jdlib/misctrip.h"
 #include "jdlib/loaderdata.h"
 
 #include "dbimg/imginterface.h"
@@ -56,6 +57,7 @@ constexpr size_t MAXSISE_OF_LINES = 256 * 1024;  // ロード時に１回の呼�
 constexpr size_t SIZE_OF_HEAP = 512 * 1024;
 
 constexpr size_t INITIAL_RES_BUFSIZE = 128;  // レスの文字列を返すときの初期バッファサイズ
+constexpr size_t IDHASH_TBLSIZE = 1024;  // IDのハッシュテーブルサイズ
 
 
 // レジュームのモード
@@ -93,7 +95,8 @@ NodeTreeBase::NodeTreeBase( const std::string& url, const std::string& modified 
       m_check_update( false ),
       m_check_write( false ),
       m_loading_newthread( false ),
-      m_fout ( nullptr )
+      m_fout ( nullptr ),
+      m_idhash( nullptr )
 {
     set_date_modified( modified );
 
@@ -240,10 +243,17 @@ int NodeTreeBase::get_num_id_name( const std::string& id )
     }
 
     // IDの数を数えている場合
-
-    for( int i = 1; i <= m_id_header; ++i ){
-
-        if( get_id_name( i ) == id ) return get_num_id_name( i );
+    if( m_idhash ){
+        const size_t key = MISC::fnv_hash( id.c_str(), id.length() ) % IDHASH_TBLSIZE;
+        IDHASH* idhash = m_idhash[ key ];
+        if( idhash ){
+            while( true ){
+                const int cmp = strcmp( id.c_str(), idhash->id );
+                if( cmp == 0 ) return get_num_id_name( idhash->num );
+                if( ! idhash->child[ cmp>0 ] ) break;
+                idhash = idhash->child[ cmp>0 ];
+            }
+        }
     }
 
     return 0;
@@ -3853,28 +3863,74 @@ void NodeTreeBase::clear_id_name()
 void NodeTreeBase::update_id_name( const int from_number, const int to_number )
 {
     if( ! CONFIG::get_check_id() ) return;
+
     if( empty() ) return;
     if( to_number < from_number ) return;
+    for( int i = from_number ; i <= to_number; ++i ) check_id_name( i );
+}
 
-    //まずIDをキーにしたレス番号の一覧を集計
-    for( int i = from_number ; i <= to_number; ++i ) {
-        NODE* header = res_header( i );
-        if( ! header ) continue;
-        if( ! header->headinfo->block[ BLOCK_ID_NAME ] ) continue;
 
-        std::string str_id = header->headinfo->block[ BLOCK_ID_NAME ]->next_node->linkinfo->link;
-        m_map_id_name_resnumber[ str_id ].insert( i );
+
+//
+// number番のレスの発言数を更新
+//
+void NodeTreeBase::check_id_name( const int number )
+{
+    NODE* header = res_header( number );
+    if( ! header ) return;
+//    if( header->headinfo->abone ) return;
+    if( ! header->headinfo->block[ BLOCK_ID_NAME ] ) return;
+
+    NODE* idnode = header->headinfo->block[ BLOCK_ID_NAME ]->next_node;
+    if( ! idnode || ! idnode->linkinfo ) return;
+
+    const char* str_id = idnode->linkinfo->link;
+
+    // ID:???はカウントしない
+    if( str_id[ sizeof( PROTO_ID ) + 2 ] == '?' ) return;
+
+    // 同じIDのレスを持つ一つ前のレスを探す
+    if( ! m_idhash ){
+        m_idhash = ( IDHASH** ) m_heap.heap_alloc( sizeof( IDHASH* ) * IDHASH_TBLSIZE );
     }
-
-    //集計したものを元に各ノードの情報を更新
-    for( const auto &a: m_map_id_name_resnumber ){ // ID = a.first, レス番号の一覧 = a.second
-        for( const auto &num: a.second ) {
-            NODE* header = res_header( num );
-            if( ! header ) continue;
-            if( ! header->headinfo->block[ BLOCK_ID_NAME ] ) continue;
-            set_num_id_name( header, a.second.size() );
+    const size_t key = MISC::fnv_hash( str_id, strlen( str_id ) ) % IDHASH_TBLSIZE;
+    IDHASH* idhash = m_idhash[ key ];
+    if( ! idhash ){
+        idhash = ( IDHASH* )m_heap.heap_alloc( sizeof( IDHASH ) );
+        m_idhash[ key ] = idhash;
+        idhash->id = str_id;
+    }
+    else do{
+        const int cmp = strcmp( str_id, idhash->id );
+        if( cmp == 0 ) break;
+        if( ! idhash->child[ cmp>0 ] ){
+            idhash->child[ cmp>0 ] = ( IDHASH* )m_heap.heap_alloc( sizeof( IDHASH ) );
+            idhash = idhash->child[ cmp>0 ];
+            idhash->id = str_id;
+            break;
         }
-     }
+        idhash = idhash->child[ cmp>0 ];
+    } while( true );
+
+    NODE* prehead = res_header( idhash->num );
+    idhash->num = number;
+
+    // 見つからなかった
+    if( ! prehead ) set_num_id_name( header, 1, nullptr );
+
+    // 見つかった
+    else{
+
+        set_num_id_name( header, prehead->headinfo->num_id_name+1, prehead );
+
+        // 以前に出た同じIDのレスの発言数を更新
+        NODE* tmphead = prehead;
+        while( tmphead ){
+
+            set_num_id_name( tmphead, tmphead->headinfo->num_id_name+1, tmphead->headinfo->pre_id_name_header );
+            tmphead = tmphead->headinfo->pre_id_name_header;
+        }
+    }
 }
 
 
@@ -3883,12 +3939,13 @@ void NodeTreeBase::update_id_name( const int from_number, const int to_number )
 //
 // IDノードの色も変更する
 //
-void NodeTreeBase::set_num_id_name( NODE* header, const int num_id_name )
+void NodeTreeBase::set_num_id_name( NODE* header, const int num_id_name, NODE* pre_id_name_header )
 {
     if( ! header->headinfo->block[ BLOCK_ID_NAME ] ||
         ! header->headinfo->block[ BLOCK_ID_NAME ]->next_node ) return;
 
     header->headinfo->num_id_name = num_id_name;        
+    header->headinfo->pre_id_name_header = pre_id_name_header;
 
     NODE* idnode = header->headinfo->block[ BLOCK_ID_NAME ]->next_node;
     if( num_id_name >= m_num_id[ LINK_HIGH ] ) idnode->color_text = COLOR_CHAR_LINK_ID_HIGH;
