@@ -623,3 +623,7 @@ int CONFIG::get_save_session(){ return get_confitem()->save_session; }
 #ifdef HAVE_MIGEMO_H
 const std::string& CONFIG::get_migemodict_path() { return get_confitem()->migemodict_path; }
 #endif
+
+// 不正なMS932文字列をUTF-8と見なす
+bool CONFIG::get_broken_sjis_be_utf8(){ return get_confitem()->broken_sjis_be_utf8; }
+void CONFIG::set_broken_sjis_be_utf8( const bool set ){ get_confitem()->broken_sjis_be_utf8 = set; }

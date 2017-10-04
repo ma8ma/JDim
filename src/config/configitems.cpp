@@ -594,6 +594,9 @@ bool ConfigItems::load( const bool restore )
     migemodict_path = cf.get_option_str( "migemodict_path", CONF_MIGEMO_PATH );
 #endif
 
+    // 不正なMS932文字列をUTF-8と見なす
+    broken_sjis_be_utf8 = cf.get_option_bool( "broken_sjis_be_utf8", CONF_BROKEN_SJIS_BE_UTF8 );
+
     m_loaded = true;
 
     // 設定値に壊れている物がある
@@ -937,6 +940,8 @@ void ConfigItems::save_impl( const std::string& path )
 #ifdef HAVE_MIGEMO_H
     cf.update( "migemodict_path", migemodict_path );
 #endif
+
+    cf.update( "broken_sjis_be_utf8", broken_sjis_be_utf8 );
 
     cf.save();
 }
