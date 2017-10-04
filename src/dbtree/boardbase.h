@@ -241,6 +241,10 @@ namespace DBTREE
         // クッキー:HAPの更新 (クッキーをセットした時に実行)
         virtual void update_hap(){}
 
+        // subject.txt の URLを取得
+        // (例) "http://www.hoge2ch.net/hogeboard/subject.txt"
+        std::string url_subject();
+
       public:
 
         BoardBase( const std::string& root, const std::string& path_board, const std::string& name );
@@ -362,9 +366,9 @@ namespace DBTREE
         // "http://www.hoge2ch.net/test/read.cgi/hogeboard/12345/12-15"
         virtual std::string url_readcgi( const std::string& url, int num_from, int num_to );
 
-        // subject.txt の URLを取得
-        // (例) "http://www.hoge2ch.net/hogeboard/subject.txt"
-        std::string url_subject();
+        // SETTING.TXT の URLを取得
+        // (例) "http://www.hoge2ch.net/hogeboard/SETTING.TXT"
+        virtual std::string url_settingtxt() { return {}; }
 
         // ルートアドレス
         // (例) "http://www.hoge2ch.net/hogeboard/" なら "http://www.hoge2ch.net/"

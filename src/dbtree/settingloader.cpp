@@ -12,8 +12,7 @@
 #include "config/globalconf.h"
 
 #include "cache.h"
-
-#define SETTING_TXT "SETTING.TXT"
+#include "global.h"
 
 using namespace DBTREE;
 
@@ -41,7 +40,7 @@ SettingLoader::~SettingLoader()
 
 std::string SettingLoader::get_url()
 {
-    return m_url_boadbase + SETTING_TXT;
+    return DBTREE::url_settingtxt( m_url_boadbase );
 }
 
 
