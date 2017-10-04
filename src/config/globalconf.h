@@ -195,6 +195,12 @@ namespace CONFIG
     bool get_use_ipv6();
     void set_use_ipv6( const bool set );
 
+    // TLSでノンブロッキングI/Oを使用する
+    bool get_tls_nonblocking();
+
+    // TLSでサーバの証明書をチェックする
+    bool get_verify_cert();
+
     // 信頼するルート証明書
     const std::string& get_root_cafile();
 
