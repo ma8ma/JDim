@@ -47,6 +47,8 @@ using namespace CORE;
     "# 詳細な書式はマニュアルを参照してください。\n" \
     "# この機能を無効にする場合は、このファイルの内容を空にして保存してください。\n" \
     "#\n" \
+    "(http://[^.]+\\.2ch\\.net/test/read\\.cgi)\\?bbs=([^&]+)&[amp]*key=([0-9]+)(&[amp]*st=([0-9]+))?(&[amp]*to=([0-9]+))?	$1/$2/$3/$5-$7		$BREAK\n" \
+    "http://jbbs\\.(shitaraba\\.(net|com)|livedoor\\.jp)/(bbs/read(_archive)?\\.cgi/)?([^/]+/[0-9]+/)(storage/)?([0-9]+/?[-0-9ln]*)(\\.html)?$	http://jbbs.shitaraba.net/bbs/read.cgi/$5$7		$BREAK\n" \
     "https?://www\\.youtube\\.com/watch\\?(|[^#]+&)v=([^&#/]+)	http://img.youtube.com/vi/$2/0.jpg\n" \
     "https?://youtu\\.be/([^#&=/]+)	http://img.youtube.com/vi/$1/0.jpg\n" \
     "https?://img\\.youtube\\.com/vi/[^/]+/0.jpg	$0		$THUMBNAIL\n" \
