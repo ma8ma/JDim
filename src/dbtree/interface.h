@@ -328,7 +328,8 @@ namespace DBTREE
     const std::list< std::string >& get_abone_list_word_thread( const std::string& url );
     const std::list< std::string >& get_abone_list_regex_thread( const std::string& url );
     const std::unordered_set< int >& get_abone_reses( const std::string& url );
-    int get_abone_number_thread( const std::string& url );
+    int get_abone_min_number_thread( const std::string& url );
+    int get_abone_max_number_thread( const std::string& url );
     int get_abone_hour_thread( const std::string& url );
 
     // subject.txtのロード後にdat落ちしたスレッドをスレあぼーんのリストから取り除く
@@ -344,7 +345,8 @@ namespace DBTREE
                              const std::list< std::string >& threads,
                              const std::list< std::string >& words,
                              const std::list< std::string >& regexs,
-                             const int number, const int hour, const bool redraw );
+                             const int min_number, const int max_number,
+                             const int hour, const bool redraw );
 
     //
     // 各articlebase別のあぼーん情報

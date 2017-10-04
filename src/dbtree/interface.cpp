@@ -741,9 +741,14 @@ const std::list< std::string >& DBTREE::get_abone_list_regex_thread( const std::
     return DBTREE::get_board( url )->get_abone_list_regex_thread();
 }
 
-int DBTREE::get_abone_number_thread( const std::string& url )
+int DBTREE::get_abone_min_number_thread( const std::string& url )
 {
-    return DBTREE::get_board( url )->get_abone_number_thread();
+    return DBTREE::get_board( url )->get_abone_min_number_thread();
+}
+
+int DBTREE::get_abone_max_number_thread( const std::string& url )
+{
+    return DBTREE::get_board( url )->get_abone_max_number_thread();
 }
 
 int DBTREE::get_abone_hour_thread( const std::string& url )
@@ -766,12 +771,13 @@ void DBTREE::reset_abone_thread( const std::string& url,
                                  const std::list< std::string >& threads,
                                  const std::list< std::string >& words,
                                  const std::list< std::string >& regexs,
-                                 const int number,
+                                 const int min_number,
+                                 const int max_number,
                                  const int hour,
                                  const bool redraw
     )
 {
-    DBTREE::get_board( url )->reset_abone_thread( threads, words, regexs, number, hour, redraw );
+    DBTREE::get_board( url )->reset_abone_thread( threads, words, regexs, min_number, max_number, hour, redraw );
 }
 
 /////////////////////////////////////////////////

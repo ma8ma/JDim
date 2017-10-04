@@ -1530,7 +1530,8 @@ bool BoardBase::is_abone_thread( ArticleBase* article )
     if( ! article ) return false;
     if( article->empty() ) return false;
 
-    const int check_number = article->get_number_load() ? 0: ( m_abone_number_thread ? m_abone_number_thread : get_abone_number_global() );
+    const int check_min_number = article->get_number_load() ? 0: ( m_abone_min_number_thread ? m_abone_min_number_thread : get_abone_min_number_global() );
+    const int check_max_number = article->get_number_load() ? 0: ( m_abone_max_number_thread ? m_abone_max_number_thread : get_abone_max_number_global() );
     const int check_hour = article->get_number_load() ? 0: ( m_abone_hour_thread ? m_abone_hour_thread : CONFIG::get_abone_hour_thread() );
     const bool check_thread = ! m_list_abone_thread.empty();
     const bool check_word = ! m_list_abone_word_thread.empty();
@@ -1538,7 +1539,7 @@ bool BoardBase::is_abone_thread( ArticleBase* article )
     const bool check_word_global = ! CONFIG::get_list_abone_word_thread().empty();
     const bool check_regex_global = ! CONFIG::get_list_abone_regex_thread().empty();
 
-    if( !check_number && !check_hour && !check_thread && !check_word && !check_regex && !check_word_global && !check_regex_global ) return false;
+    if( !check_min_number && !check_max_number && !check_hour && !check_thread && !check_word && !check_regex && !check_word_global && !check_regex_global ) return false;
 
     JDLIB::Regex regex;
     const size_t offset = 0;
@@ -1548,7 +1549,8 @@ bool BoardBase::is_abone_thread( ArticleBase* article )
     const bool wchar = CONFIG::get_abone_wchar();
 
     // レスの数であぼーん
-    if( check_number ) if( article->get_number() >= check_number ) return true;
+    if( check_min_number ) if( article->get_number() <= check_min_number ) return true;
+    if( check_max_number ) if( article->get_number() >= check_max_number ) return true;
 
     // スレ立てからの時間であぼーん
     if( check_hour ) if( article->get_hour() >= check_hour ) return true;
@@ -1763,7 +1765,8 @@ void BoardBase::add_abone_word_board( const std::string& word )
 void BoardBase::reset_abone_thread( const std::list< std::string >& threads,
                                     const std::list< std::string >& words,
                                     const std::list< std::string >& regexs,
-                                    const int number,
+                                    const int min_number,
+                                    const int max_number,
                                     const int hour,
                                     const bool redraw
     )
@@ -1785,7 +1788,8 @@ void BoardBase::reset_abone_thread( const std::list< std::string >& threads,
     m_list_abone_regex_thread = MISC::remove_space_from_list( regexs );
     m_list_abone_regex_thread = MISC::remove_nullline_from_list( m_list_abone_regex_thread );
 
-    m_abone_number_thread = number;
+    m_abone_min_number_thread = min_number;
+    m_abone_max_number_thread = max_number;
     m_abone_hour_thread = hour;
 
     update_abone_thread( redraw );
@@ -2042,7 +2046,8 @@ void BoardBase::read_board_info()
     if( ! str_tmp.empty() ) m_list_abone_regex_thread = MISC::strtolist( str_tmp );
 
     // レス数であぼーん
-    m_abone_number_thread = cf.get_option_int( "abonenumberthread", 0, 0, 9999 );
+    m_abone_min_number_thread = cf.get_option_int( "aboneminnumberthread", 0, 0, CONFIG::get_max_resnumber() );
+    m_abone_max_number_thread = cf.get_option_int( "abonenumberthread", 0, 0, CONFIG::get_max_resnumber() );
 
     // スレ立てからの経過時間であぼーん
     m_abone_hour_thread = cf.get_option_int( "abonehourthread", 0, 0, 9999 );
@@ -2169,7 +2174,8 @@ void BoardBase::save_jdboard_info()
          << "abonethread = " << str_abone_thread << std::endl
          << "abonewordthread = " << str_abone_word_thread << std::endl
          << "aboneregexthread = " << str_abone_regex_thread << std::endl
-         << "abonenumberthread = " << m_abone_number_thread << std::endl
+         << "aboneminnumberthread = " << m_abone_min_number_thread << std::endl
+         << "abonenumberthread = " << m_abone_max_number_thread << std::endl
          << "abonehourthread = " << m_abone_hour_thread << std::endl
          << "mode_local_proxy = " << m_mode_local_proxy << std::endl
 
