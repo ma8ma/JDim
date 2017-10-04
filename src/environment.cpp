@@ -1,8 +1,10 @@
 // License GPL2
 
 #ifdef _WIN32
+#  ifndef WINVER
 // require Windows XP SP2 or Server 2003 SP1 for GetNativeSystemInfo, KEY_WOW64_64KEY
-#define WINVER 0x0502
+#    define WINVER 0x0502
+#  endif
 #endif
 
 //#define _DEBUG
@@ -277,12 +279,20 @@ std::string ENVIRONMENT::get_distname()
             // OS architecture
             if (osvi.dwMajorVersion >= 5)
             {
-                SYSTEM_INFO sysi;
-                GetNativeSystemInfo(&sysi);
-                if (sysi.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64)
-                    vstr << " x64";
-                else if (sysi.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_IA64)
-                    vstr << " ia64";
+                void (CALLBACK *pfn)(LPSYSTEM_INFO);
+
+                (*(FARPROC*)&pfn) = GetProcAddress( GetModuleHandle( "Kernel32.dll" ),
+                                                    "GetNativeSystemInfo" );
+                if( pfn != NULL )
+                {
+                    SYSTEM_INFO sysi;
+
+                    pfn( &sysi );
+                    if (sysi.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64)
+                        vstr << " x64";
+                    else if (sysi.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_IA64)
+                        vstr << " ia64";
+                }
             }
             break;
         case VER_PLATFORM_WIN32_WINDOWS:
@@ -458,11 +468,12 @@ std::string ENVIRONMENT::get_distname()
         ( strlen( machine ) != 4
           || ! ( machine[0] == 'i'
                && machine[1] >= '3' && machine[1] <= '6'
-               && machine[2] == '8' && machine[3] == '6' ) ) )
+               && machine[2] == '8' && machine[3] == '6' ) ) &&
+        dist_name.find( machine, 0 ) == std::string::npos )
     {
-        const std::string arch = "(" + std::string( machine ) + ")";
-
-        if ( dist_name.find(arch, 0) == std::string::npos ) dist_name.append( " " + arch);
+        dist_name += " (";
+        dist_name += machine;
+        dist_name += ")";
     }
 
     free( uts );
