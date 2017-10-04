@@ -31,6 +31,8 @@
 #  include <gnutls/gnutls.h>
 #elif defined(USE_OPENSSL)
 #  include <openssl/ssl.h>
+#elif defined(USE_NSS)
+#  include <nss/nss.h>
 #endif
 
 std::string ENVIRONMENT::get_progname() { return "JDim"; }
@@ -581,6 +583,9 @@ std::string ENVIRONMENT::get_tlslib_version()
     version += gnutls_check_version(nullptr);
 #elif defined(USE_OPENSSL)
     version = SSLeay_version(SSLEAY_VERSION);
+#elif defined(USE_NSS)
+    version = "NSS ";
+    version += NSS_GetVersion();
 #endif
 
     return version;
