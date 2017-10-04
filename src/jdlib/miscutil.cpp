@@ -452,6 +452,63 @@ std::string MISC::replace_str( const std::string& str, const std::string& str1, 
     return str_out;
 }
 
+//
+// str1 を str2 に置き換え(ignore case)
+//
+std::string MISC::replace_casestr( const std::string& str, const std::string& str1, const std::string& str2 )
+{
+    std::string str_out;
+
+//#ifndef _GNU_SOURCE
+#if 0
+    // 日本語ロケールだとラテン文字[a-zA-Z]以外はcase判定しないもよう
+    // コードは簡潔になるが遅くなるし旨味がない
+
+    const char *p0 = str.c_ctr(), *p1;
+
+    while( ( p1 = strcasestr( p0, str1.c_str() ) ) != NULL ){
+        str_out.append( p0, p1 - p0 );
+        str_out.append( str2 );
+        p0 = p1 + str1.length();
+    }
+#else
+    char accept[2] = { 0, 0 };
+
+    if( ( str1[ 0 ] >= 'A' && str1[ 0 ] <= 'Z' ) || ( str1[ 0 ] >= 'a' && str1[ 0 ] <= 'z' ) ){
+        accept[ 0 ] = str1[ 0 ] & ~0x20;
+        accept[ 1 ] = str1[ 0 ] | 0x20;
+    }
+    else accept[ 0 ] = str1[ 0 ];
+
+    const char *p0, *p1, *p2;
+    p0 = p1 = str.c_str();
+
+    struct searcheither{
+        inline static const char* fn( const char *p, const char* a ){
+            while( *p != a[ 0 ] && *p != a[ 1 ] && *p != '\0' ) ++p;
+            return ( *p == '\0' ) ? nullptr : p;
+        }
+    };
+
+    while( ( p2 = searcheither::fn( p1, accept ) ) != nullptr ){
+
+        if( strncasecmp( p2, str1.c_str(), str1.length() ) == 0 ){
+            str_out.append( p0, p2 - p0 );
+            str_out.append( str2 );
+            p0 = p1 = p2 + str1.length();
+            continue;
+        }
+        p1 = p2 + 1;
+    }
+#endif
+
+    if( p0 == str.c_str() ) return str;
+
+    str_out.append( str, p0 - str.c_str(), std::string::npos );
+
+    return str_out;
+}
+
 
 //
 // list_inから str1 を str2 に置き換えてリストを返す
