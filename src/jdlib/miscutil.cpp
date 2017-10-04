@@ -959,6 +959,62 @@ std::string MISC::html_unescape( const std::string& str )
 
 
 //
+// 特殊文字のデコード内部処理
+//
+// strは'&'で始まる文字列を指定すること
+// completely = true の時は'"' '&' '<' '>'も含めて変換する
+//
+static std::string spchar_impl( const char* str, int& n_in, const char pre_char, const bool completely )
+{
+    constexpr int bufsize = 32;
+    char out_char[ bufsize ];
+    int n_out;
+    const int type = DBTREE::decode_char( str, n_in, out_char, n_out, false );
+
+    // 改行、タブ、スペースの処理
+    if( type == DBTREE::NODE_SP && pre_char != ' ' ){
+        out_char[ 0 ] = ' ';
+        n_out = 1;
+    }
+    // 変換できない文字
+    else if( type == DBTREE::NODE_NONE ){
+        out_char[ 0 ] = *str;
+        n_out = 1;
+        n_in = 1;
+    }
+    // エスケープする文字の場合は元に戻す
+    else if( ! completely && n_out == 1 ){
+        switch( *out_char ){
+            case '"':
+                out_char[ 0 ] = '&'; out_char[ 1 ] = 'q'; out_char[ 2 ] = 'u';
+                out_char[ 3 ] = 'o'; out_char[ 4 ] = 't'; out_char[ 5 ] = ';';
+                n_out = 6;
+                break;
+            case '&':
+                out_char[ 0 ] = '&'; out_char[ 1 ] = 'a'; out_char[ 2 ] = 'm';
+                out_char[ 3 ] = 'p'; out_char[ 4 ] = ';';
+                n_out = 5;
+                break;
+            case '<':
+                out_char[ 0 ] = '&'; out_char[ 1 ] = 'l'; out_char[ 2 ] = 't';
+                out_char[ 3 ] = ';';
+                n_out = 4;
+                break;
+            case '>':
+                out_char[ 0 ] = '&'; out_char[ 1 ] = 'g'; out_char[ 2 ] = 't';
+                out_char[ 3 ] = ';';
+                n_out = 4;
+                break;
+            default:
+                break;
+        }
+    }
+
+    return std::string( out_char, n_out );
+}
+
+
+//
 // URL中のスキームを判別する
 //
 // 戻り値 : スキームタイプ
