@@ -900,12 +900,6 @@ void MessageViewBase::slot_switch_page( GtkNotebookPage*, guint page )
         std::string new_subject = MESSAGE::get_admin()->get_new_subject();
         if( ! new_subject.empty() ) set_label( new_subject );
 
-        // URLを除外してエスケープ
-        const bool include_url = false;
-        std::string msg;
-        if( m_text_message ) msg = MISC::html_escape( m_text_message->get_text(), include_url );
-        msg = MISC::replace_str( msg, "\n", " <br> " );
-
         std::stringstream ss;
 
         // 名前 + トリップ
@@ -935,9 +929,29 @@ void MessageViewBase::slot_switch_page( GtkNotebookPage*, guint page )
         struct timeval tv;
         struct timezone tz;
         gettimeofday( &tv, &tz );
-        ss << MISC::timettostr( tv.tv_sec, MISC::TIME_WEEK );
+        ss << MISC::timettostr( tv.tv_sec, MISC::TIME_WEEK ) << " ID:\?\?\?<>";
 
-        ss << " ID:???" << "<>" << msg << "<>\n";
+        if( m_text_message ){
+            std::string msg = m_text_message->get_text();
+            if( DBTREE::get_unicode( get_url() ) == "change" ){
+                // MS932等に無い文字を数値参照にするために文字コードを変換する
+                int byte_out;
+                const std::string str_enc = m_iconv->convert( msg.c_str(), msg.length(), byte_out );
+                msg = MISC::Iconv( str_enc, DBTREE::board_charcode( get_url() ), CHARCODE_UTF8 );
+            }
+            else{
+                // XXX 2chでは文字実態参照はデコードされない
+                msg = MISC::chref_decode( msg );
+            }
+
+            // URLを除外してエスケープ
+            constexpr bool include_url = false;
+            msg = MISC::html_escape( msg, include_url );
+
+            ss << MISC::replace_str( msg, "\n", " <br> " );
+        }
+
+        ss << "<>\n";
 
 #ifdef _DEBUG
         std::cout << ss.str() << std::endl;
