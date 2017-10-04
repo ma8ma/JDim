@@ -73,7 +73,7 @@ namespace XML
         void parse( const Gtk::TreeModel::Children& children, SKELETON::EditColumns& columns );
 
         // プロパティをセットするアクセッサ
-        void parentNode( Dom* parent );
+        void parentNode( Dom* parent ){ m_parentNode = parent; }
         void copy_childNodes( const Dom& dom ); // dom の子ノードをコピーする
 
         // ノードを分解して Gtk::TreeStore へ Gtk::TreeModel::Row を追加
@@ -100,10 +100,10 @@ namespace XML
         DomList getElementsByTagName( const std::string& name ) const;
 
         // プロパティを扱うアクセッサ
-        int nodeType();
-        std::string nodeName();
-        std::string nodeValue();
-        void nodeValue( const std::string& value );
+        int nodeType() const { return m_nodeType; }
+        const std::string& nodeName() const { return m_nodeName; }
+        const std::string& nodeValue() const { return m_nodeValue; }
+        void nodeValue( const std::string& value ) { m_nodeValue = value; }
 
         // ノード
         // 注意：appendChild(), replaceChild(), insertBefore() は
@@ -114,8 +114,8 @@ namespace XML
         // を返すようにしてあります。
 
         Dom* ownerDocument() const;
-        Dom* parentNode();
-        bool hasChildNodes();
+        Dom* parentNode() const { return m_parentNode; }
+        bool hasChildNodes() const { return ! m_childNodes.empty(); }
         DomList childNodes() const;
         Dom* firstChild() const;
         Dom* lastChild() const;
@@ -127,9 +127,12 @@ namespace XML
         Dom* nextSibling() const;
 
         // 属性
-        bool hasAttributes();
-        std::map< std::string, std::string > attributes();
-        void attributes( const std::map< std::string, std::string > attributes );
+        bool hasAttributes() const { return ! m_attributes.empty(); }
+        std::map< std::string, std::string >& attributes(){ return m_attributes; }
+        void attributes( std::map< std::string, std::string > attributes )
+        {
+            if( ! attributes.empty() ){ m_attributes = std::move( attributes ); }
+        }
         bool hasAttribute( const std::string& name ) const;
         std::string getAttribute( const std::string& name ) const;
         bool setAttribute( const std::string& name, const std::string& value );
