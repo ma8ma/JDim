@@ -2923,6 +2923,7 @@ void NodeTreeBase::copy_abone_info( const std::list< std::string >& list_abone_i
                                     const std::list< std::string >& list_abone_regex,
                                     const std::unordered_set< int >& abone_reses,
                                     const bool abone_transparent, const bool abone_chain, const bool abone_age,
+                                    const bool abone_default_name, const bool abone_noid,
                                     const bool abone_board, const bool abone_global )
 {
     m_list_abone_id = list_abone_id;
@@ -2966,6 +2967,8 @@ void NodeTreeBase::copy_abone_info( const std::list< std::string >& list_abone_i
     else m_abone_chain = abone_chain;
 
     m_abone_age = abone_age;
+    m_abone_default_name = abone_default_name;
+    m_abone_noid = abone_noid;
     m_abone_board = abone_board;
     m_abone_global = abone_global;
 }
@@ -3043,13 +3046,20 @@ bool NodeTreeBase::check_abone_id( const int number )
     const bool check_id = ! m_list_abone_id.empty();
     const bool check_id_board = ! m_list_abone_id_board.empty();
 
-    if( !check_id && !check_id_board ) return false;
+    if( !m_abone_noid && !check_id && !check_id_board ) return false;
 
     NODE* head = res_header( number );
     if( ! head ) return false;
     if( ! head->headinfo ) return false;
     if( head->headinfo->abone ) return true;
-    if( ! head->headinfo->block[ BLOCK_ID_NAME ] ) return false;
+    if( ! head->headinfo->block[ BLOCK_ID_NAME ] ){
+        // ID無し
+        if( m_abone_noid ){
+            head->headinfo->abone = true;
+            return true;
+        }
+        else return false;
+    }
 
     const int ln_protoid = strlen( PROTO_ID );
 
@@ -3094,13 +3104,22 @@ bool NodeTreeBase::check_abone_name( const int number )
     const bool check_name_board = ! m_list_abone_name_board.empty();
     const bool check_name_global = ! CONFIG::get_list_abone_name().empty();
 
-    if( !check_name && !check_name_board && !check_name_global ) return false;
+    if( !m_abone_default_name && !check_name && !check_name_board && !check_name_global ) return false;
 
     NODE* head = res_header( number );
     if( ! head ) return false;
     if( ! head->headinfo ) return false;
     if( head->headinfo->abone ) return true;
     if( ! head->headinfo->name ) return false;
+
+    // デフォルト名無し
+    if( m_abone_default_name && head->headinfo->block[ BLOCK_NAMELINK ] ){
+        NODE* idnode = head->headinfo->block[ BLOCK_NAMELINK ]->next_node;
+        if( idnode && ! idnode->linkinfo ){
+            head->headinfo->abone = true;
+            return true;
+        }
+    }
 
     std::list< std::string >::const_iterator it;
     const std::string name_str( head->headinfo->name );
