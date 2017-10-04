@@ -314,3 +314,46 @@ int MISC::utf8bytes( const char* utfstr )
 
     return byte;
 }
+
+
+//
+// utf-8 -> code point 変換
+//
+// 入力 : utfstr 入力文字 (UTF-8)
+// 出力 :  byte  長さ(バイト) utfstr が ascii なら 1, UTF-8 なら 2 or 3 or 4 を入れて返す
+// 戻り値 : code point
+//
+char32_t MISC::utf8tocp( const char* utfstr, int& byte )
+{
+    char32_t code = 0;
+    byte = utf8bytes( utfstr );
+
+    switch( byte ){
+    case 1:
+        code =  utfstr[ 0 ];
+        break;
+
+    case 2:
+        code = utfstr[ 0 ] & 0x1f;
+        code = ( code << 6 ) + ( utfstr[ 1 ] & 0x3f );
+        break;
+
+    case 3:
+        code = utfstr[ 0 ] & 0x0f;
+        code = ( code << 6 ) + ( utfstr[ 1 ] & 0x3f );
+        code = ( code << 6 ) + ( utfstr[ 2 ] & 0x3f );
+        break;
+
+    case 4:
+        code = utfstr[ 0 ] & 0x07;
+        code = ( code << 6 ) + ( utfstr[ 1 ] & 0x3f );
+        code = ( code << 6 ) + ( utfstr[ 2 ] & 0x3f );
+        code = ( code << 6 ) + ( utfstr[ 3 ] & 0x3f );
+        break;
+
+    default:
+        break;
+    }
+
+    return code;
+}
