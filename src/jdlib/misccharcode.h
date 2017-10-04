@@ -5,20 +5,13 @@
 #ifndef _MISCCHARCODE_H
 #define _MISCCHARCODE_H
 
+#include "charcode.h"
+
 #include <string>
+
 
 namespace MISC
 {
-    enum CodeSet
-    {
-        CHARCODE_UNKNOWN = -1,
-        CHARCODE_ASCII = 0,
-        CHARCODE_EUC_JP,
-        CHARCODE_JIS,
-        CHARCODE_SJIS,
-        CHARCODE_UTF
-    };
-
     // get_ucstype()の戻り値
     enum class UcsType
     {
@@ -29,6 +22,7 @@ namespace MISC
         Other,
     };
 
+
     // utf8_fix_wavedash のモード
     enum class WaveDashFix
     {
@@ -36,11 +30,11 @@ namespace MISC
         WinToUnix,
     };
 
-    bool is_euc( const char* input, size_t& read_byte );
-    bool is_jis( const char* input, size_t& read_byte );
-    bool is_sjis( const char* input, size_t& read_byte );
-    bool is_utf( const char* input, size_t& read_byte );
-    int judge_char_code( const std::string& str );
+    bool is_eucjp( const char* input, const size_t length, size_t& read_byte );
+    bool is_jis( const char* input, const size_t length, size_t& read_byte );
+    bool is_sjis( const char* input, const size_t length, size_t& read_byte );
+    bool is_utf8( const char* input, const size_t length, size_t& read_byte );
+    CharCode judge_char_code( const std::string& str );
 
     // utf-8 -> code point 変換
     // 入力 : utfstr 入力文字 (UTF-8)
