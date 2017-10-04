@@ -1230,7 +1230,7 @@ int MISC::spchar_number_ln( const char* in_char, int& offset )
     // offset == 2 なら 10 進数、3 なら16進数
     if( in_char[ offset ] == 'x' || in_char[ offset ] == 'X' ) ++offset;
 
-    // UCS2の2バイトの範囲でデコードするので最大65535
+    // UCS-4の範囲でデコードするので最大1114111
     // デコードするとき「;」で終端されていなくてもよい
 
     // デコード可能かチェック
@@ -1401,7 +1401,7 @@ std::string MISC::decode_spchar_number( const std::string& str )
             const int num = MISC::decode_spchar_number( str.c_str()+i, offset, lng );
 
             char out_char[ 64 ];
-            const int n_out = MISC::ucs2toutf8( num, out_char );
+            const int n_out = MISC::cptoutf8( num, out_char );
             if( ! n_out ){
                 str_out += str[ i ];
                 continue;
@@ -1467,50 +1467,6 @@ int MISC::utf8toucs2( const char* utfstr, int& byte )
     }
 
     return ucs2;
-}
-
-
-
-
-//
-// ucs2 -> utf8 変換
-//
-// 出力 : utfstr 変換後の文字
-//
-// 戻り値 : バイト数
-//
-int MISC::ucs2toutf8( const int ucs2,  char* utfstr )
-{
-    int byte = 0;
-
-    if( ucs2 <= 0x7f ){ // ascii
-        byte = 1;
-        utfstr[ 0 ] = ucs2;
-    }
-
-    else if( ucs2 <= 0x07ff ){
-        byte = 2;
-        utfstr[ 0 ] = ( 0xc0 ) + ( ucs2 >> 6 );
-        utfstr[ 1 ] = ( 0x80 ) + ( ucs2 & 0x3f );
-    }
-
-    else if( ucs2 <= 0xffff){
-        byte = 3;
-        utfstr[ 0 ] = ( 0xe0 ) + ( ucs2 >> 12 );
-        utfstr[ 1 ] = ( 0x80 ) + ( ( ucs2 >>6 ) & 0x3f );
-        utfstr[ 2 ] = ( 0x80 ) + ( ucs2 & 0x3f );
-    }
-
-    else{
-        byte = 4;
-        utfstr[ 0 ] = ( 0xf0 ) + ( ucs2 >> 18 );
-        utfstr[ 1 ] = ( 0x80 ) + ( ( ucs2 >>12 ) & 0x3f );
-        utfstr[ 2 ] = ( 0x80 ) + ( ( ucs2 >>6 ) & 0x3f );
-        utfstr[ 3 ] = ( 0x80 ) + ( ucs2 & 0x3f );
-    }
-
-    utfstr[ byte ] = 0;
-    return byte;
 }
 
 

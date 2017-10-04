@@ -46,6 +46,11 @@ namespace MISC
 
     // ucs の種類
     UcsType get_ucstype( const char32_t code );
+
+    // code point -> utf8 変換
+    // 出力 : utfstr 変換後の文字
+    // 戻り値 : バイト数
+    int cptoutf8( const char32_t code, char* utfstr );
 }
 
 #endif
