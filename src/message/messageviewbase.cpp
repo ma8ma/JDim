@@ -1007,8 +1007,7 @@ void MessageViewBase::show_status()
     else if( m_text_changed )
     {
         int byte_out;
-        const char* msgc = message.c_str();
-        std::string str_enc = m_iconv->convert( (char*)msgc, strlen( msgc ), byte_out );
+        std::string str_enc = m_iconv->convert( message.c_str(), message.length(), byte_out );
         m_lng_str_enc = str_enc.length();
 
         // 特殊文字の文字数を計算
