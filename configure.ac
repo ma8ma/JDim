@@ -292,23 +292,29 @@ dnl TLS
 dnl
 AC_MSG_CHECKING(for --with-tls)
 AC_ARG_WITH(tls,
-AC_HELP_STRING([--with-tls=@<:@gnutls|openssl@:>@],
+AC_HELP_STRING([--with-tls=@<:@gnutls|openssl|nss@:>@],
                [use TLS library @<:@default=gnutls@:>@]),
 [with_tls="$withval"], [with_tls=gnutls])
 AC_MSG_RESULT($with_tls)
 
 AS_IF(
   [test "x$with_tls" = xgnutls],
-  [PKG_CHECK_MODULES(GNUTLS, [gnutls >= 2.12])
+  [PKG_CHECK_MODULES(GNUTLS, [gnutls >= 2.12.0], , [AC_MSG_ERROR([gnitls >= 2.12.0 required])])
    AC_DEFINE(USE_GNUTLS, , [use gnutls])
    AC_SUBST(GNUTLS_CFLAGS)
    AC_SUBST(GNUTLS_LIBS)],
 
   [test "x$with_tls" = xopenssl],
-  [PKG_CHECK_MODULES(OPENSSL, [openssl >= 0.9])
+  [PKG_CHECK_MODULES(OPENSSL, [openssl >= 0.9.7], , [AC_MSG_ERROR([openssl >= 0.9.7 required])])
    AC_DEFINE(USE_OPENSSL, , [use openssl])
    AC_SUBST(OPENSSL_CFLAGS)
    AC_SUBST(OPENSSL_LIBS)],
+
+  [test "x$with_tls" = xnss],
+  [PKG_CHECK_MODULES(NSS, [nss >= 1.0], , [AC_MSG_ERROR([nss >= 1.0 required])])
+   AC_DEFINE(USE_NSS, , [use nss])
+   AC_SUBST(NSS_CFLAGS)
+   AC_SUBST(NSS_LIBS)],
 
   [AC_MSG_ERROR([TLS library not found])]
 )
