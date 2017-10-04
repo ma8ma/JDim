@@ -498,9 +498,6 @@ void BoardBase::set_number_max_res( const int number )
 #endif
 
     m_number_max_res = MAX( 0, MIN( CONFIG::get_max_resnumber(), number ) );
-
-    ArticleHashIterator it = m_hash_article->begin();
-    for( ; it != m_hash_article->end(); ++it ) ( *it )->set_number_max( m_number_max_res );
 }
 
 
