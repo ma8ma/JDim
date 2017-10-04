@@ -129,7 +129,7 @@ namespace BOARD
         void write() override;
         void stop() override;
         void show_view() override;
-        void relayout() override;
+        void relayout( const bool completely = false ) override;
         void focus_view() override;
         void focus_out() override;
         void close_view() override;
