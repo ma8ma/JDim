@@ -25,16 +25,6 @@ namespace MISC
                 SCHEME_SSSP
 	};
 
-     // get_ucs2mode()の戻り値
-     enum
-     {
-         UCS2MODE_BASIC_LATIN = 0,
-         UCS2MODE_HIRA,
-         UCS2MODE_KATA,
-
-         UCS2MODE_OTHER
-     };
-
 
      // utf8_fix_wavedash のモード
      enum
@@ -216,9 +206,6 @@ namespace MISC
     // 出力 :  byte  長さ(バイト) utfstr が ascii なら 1, UTF-8 なら 2 or 3 or 4 を入れて返す
     // 戻り値 : ucs2
     int utf8toucs2( const char* utfstr, int& byte );
-
-    // ucs2 の種類
-    int get_ucs2mode( const int ucs2 );
 
     // ucs2 -> utf8 変換
     // 出力 : utfstr 変換後の文字
