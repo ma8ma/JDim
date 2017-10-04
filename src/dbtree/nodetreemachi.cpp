@@ -158,7 +158,7 @@ void NodeTreeMachi::create_loaderdata( JDLIB::LOADERDATA& data )
 //
 // キャッシュに保存する前の前処理
 //
-char* NodeTreeMachi::process_raw_lines( char* rawlines )
+char* NodeTreeMachi::process_raw_lines( char* rawlines, size_t& size )
 {
     // オフラインか offlaw 形式を使用する場合はそのまま返す
     if( ! is_loading() || CONFIG::get_use_machi_offlaw() ) return rawlines;
@@ -298,7 +298,7 @@ const char* NodeTreeMachi::raw2dat( char* rawlines, int& byte )
         // read.cgi 形式
         else{
 
-            std::string reg( "<dt>([1-9][0-9]*) ?名前：(<a href=\"mailto:([^\"]*)\"><b>|<font[^>]*><b>) ?(<font[^>]*>)?([^<]*)(</font>)? ?</[bB]>.+ ?投稿日： ?([^<]*)( <font[^>]*>\\[ ?(.*) ?\\]</font>)?<br><dd> ?(.*) ?<br><br>$" );
+            std::string reg( "<dt>([1-9][0-9]*) ?名前：(<a href=\"mailto:([^\"]*)\"><b>|<font[^>]*><b>) ?(<font[^>]*>)?([^<]*)(</font>)? ?</[bB]>.+ ?投稿日： ?([^<]*)( <font[^>]*>\\[ ?(.*) ?\\]</font>)?<br><dd> ?(.*) ?<br><br>(<script [^>]+>)?$" );
 
             if( ! m_regex->exec( reg, line, offset, icase, newline, usemigemo, wchar ) ){
 #ifdef _DEBUG

@@ -50,8 +50,8 @@ constexpr size_t MAX_ANCINFO = 64;
 constexpr int RANGE_REF = 20;
 constexpr size_t MAX_RES_DIGIT = std::numeric_limits< int >::digits10 + 1;  // レスアンカーや発言数で使われるレスの桁数
 
-constexpr size_t MAXSISE_OF_LINES = 512 * 1024;  // ロード時に１回の呼び出しで読み込まれる最大データサイズ
-constexpr size_t SIZE_OF_HEAP = MAXSISE_OF_LINES + 64;
+constexpr size_t MAXSISE_OF_LINES = 256 * 1024;  // ロード時に１回の呼び出しで読み込まれる最大データサイズ
+constexpr size_t SIZE_OF_HEAP = 512 * 1024;
 
 constexpr size_t INITIAL_RES_BUFSIZE = 128;  // レスの文字列を返すときの初期バッファサイズ
 
@@ -85,6 +85,7 @@ NodeTreeBase::NodeTreeBase( const std::string& url, const std::string& modified 
       m_broken( false ),
       m_heap( SIZE_OF_HEAP ),
       m_buffer_lines( nullptr ),
+      m_byte_buffer_lines_left( 0 ),
       m_parsed_text( nullptr ),
       m_buffer_write( nullptr ),
       m_check_update( false ),
@@ -1132,19 +1133,16 @@ void NodeTreeBase::load_cache()
         std::string str;
         if( CACHE::load_rawdata( path_cache, str ) ){
 
-            const char* data = str.data();
-            size_t size = 0;
             m_check_update = false;
             m_check_write = false;
             m_loading_newthread = false;
             set_resume( false );
             init_loading();
+
+            const char* data = str.data();
             const size_t str_length = str.length();
-            while( size < str_length ){
-                size_t size_tmp = MIN( MAXSISE_OF_LINES - m_byte_buffer_lines_left, str_length - size );
-                receive_data( data + size, size_tmp );
-                size += size_tmp;
-            }
+
+            receive_data( data, str_length );
             receive_finish();
 
             // レジューム時のチェックデータをキャッシュ
@@ -1280,8 +1278,6 @@ void NodeTreeBase::download_dat( const bool check_update )
 //
 void NodeTreeBase::receive_data( const char* data, size_t size )
 {
-    // BOF防止
-    size = MIN( MAXSISE_OF_LINES, size );
 
     if( is_loading()
         && ( get_code() != HTTP_OK && get_code() != HTTP_PARTIAL_CONTENT ) ){
@@ -1331,32 +1327,60 @@ void NodeTreeBase::receive_data( const char* data, size_t size )
 
     if( !size ) return;
     
-    // バッファが '\n' で終わるように調整
-    const char* pos = data + size;
-    if( *pos == '\n' && pos != data ) --pos;
-    if( *pos == '\0' ) --pos; // '\0' を除く
-    while( *pos != '\n' && pos != data ) --pos;
+    while( size > 0 ){
 
-    // 前回の残りのデータに新しいデータを付け足して add_raw_lines()にデータを送る
-    size_t size_in = ( int )( pos - data );
-    if( size_in > 0 ){
-        size_in ++; // '\n'を加える
-        memcpy( m_buffer_lines + m_byte_buffer_lines_left , data, size_in );
-        m_buffer_lines[ m_byte_buffer_lines_left + size_in ] = '\0';
-        add_raw_lines( m_buffer_lines, m_byte_buffer_lines_left + size_in );
-    }
+        // BOF防止
+        size_t size_in = MIN( MAXSISE_OF_LINES - m_byte_buffer_lines_left - 1, size );
 
-    // add_raw_lines() でレジュームに失敗したと判断したら、バッファをクリアする
-    if( m_resume == RESUME_FAILED ){
-        m_byte_buffer_lines_left = 0;
-        return;
+        // バッファが '\n' で終わるように調整
+        const char* pos = data + size_in;
+        while( pos != data && *(pos - 1) != '\n' ) --pos;
+
+        if( pos != data ) size_in = pos - data;
+        // バッファサイズの半分までは改行を待ってみる
+        else if( ( m_byte_buffer_lines_left + size ) < ( MAXSISE_OF_LINES / 2 ) ) size_in = 0;
+
+        if( size_in > 0 ){
+            // 前回の残りのデータに新しいデータを付け足して add_raw_lines()にデータを送る
+            memcpy( m_buffer_lines + m_byte_buffer_lines_left, data, size_in );
+            m_buffer_lines[ m_byte_buffer_lines_left + size_in ] = '\0';
+            size_t lng = add_raw_lines( m_buffer_lines, m_byte_buffer_lines_left + size_in );
+            m_byte_buffer_lines_left = m_byte_buffer_lines_left + size_in - lng;
+            memmove( m_buffer_lines, m_buffer_lines + lng, m_byte_buffer_lines_left );
+            data += size_in;
+            size -= size_in;
+        }
+        else break;
+
+        // add_raw_lines() でレジュームに失敗したと判断したら、バッファをクリアする
+        if( m_resume == RESUME_FAILED ){
+            m_byte_buffer_lines_left = 0;
+            return;
+        }
     }
 
     // 残りの分をバッファにコピーしておく
-    m_byte_buffer_lines_left = size - size_in;
-    if( m_byte_buffer_lines_left ) memcpy( m_buffer_lines, data + size_in, m_byte_buffer_lines_left );
+    if( size > 0 ){
+        memcpy( m_buffer_lines + m_byte_buffer_lines_left, data, size );
+        m_byte_buffer_lines_left += size;
+    }
 }
 
+
+//
+// 保留された受信データのはき出し
+//
+void NodeTreeBase::sweep_buffer()
+{
+    // 特殊スレのdatには、最後の行に'\n'がない場合がある
+    if( m_byte_buffer_lines_left > 0 ){
+        // 正常に読込完了した場合で、バッファが残っていれば add_raw_lines()にデータを送る
+        m_buffer_lines[ m_byte_buffer_lines_left ] = '\0';
+        add_raw_lines( m_buffer_lines, m_byte_buffer_lines_left );
+        // バッファをクリア
+        m_byte_buffer_lines_left = 0;
+    }
+}
 
 
 //
@@ -1381,22 +1405,15 @@ void NodeTreeBase::receive_finish()
         MISC::ERRMSG( err.str() );
     }
 
-    if( ! m_check_update ){
+    // 保留データの処理
+    if( ! is_error ) sweep_buffer();
+    else m_byte_buffer_lines_left = 0;
 
-        if( ! is_error ){
-            // 特殊スレのdatには、最後の行に'\n'がない場合がある
-            if( m_byte_buffer_lines_left > 0 ){
-                // 正常に読込完了した場合で、バッファが残っていれば add_raw_lines()にデータを送る
-                m_buffer_lines[ m_byte_buffer_lines_left ] = '\0';
-                add_raw_lines( m_buffer_lines, m_byte_buffer_lines_left );
-                // バッファをクリア
-                m_byte_buffer_lines_left = 0;
-            }
-        }
+    if( ! m_check_update ){
 
         // Requested Range Not Satisfiable
         if( get_code() == HTTP_RANGE_ERR ){
-            m_broken = true;
+//            m_broken = true;
             MISC::ERRMSG( "Requested Range Not Satisfiable" );
         }
 
@@ -1452,7 +1469,7 @@ void NodeTreeBase::receive_finish()
 //
 // 鯖から生の(複数)行のデータを受け取ってdat形式に変換して add_one_dat_line() に出力
 //
-void NodeTreeBase::add_raw_lines( char* rawlines, size_t size )
+size_t NodeTreeBase::add_raw_lines( char* rawlines, size_t size )
 {
     // 時々サーバ側のdatファイルが壊れていてデータ中に \0 が
     // 入っている時があるので取り除く
@@ -1466,10 +1483,10 @@ void NodeTreeBase::add_raw_lines( char* rawlines, size_t size )
     }
 
     // 保存前にrawデータを加工
-    rawlines = process_raw_lines( rawlines );
+    rawlines = process_raw_lines( rawlines, size );
 
     size_t lng = strlen( rawlines );
-    if( ! lng ) return;
+    if( ! lng ) return size;
 
     // サーバが range を無視してデータを送ってきたときのレジューム処理
     if( m_resume == RESUME_MODE2 ){
@@ -1491,7 +1508,7 @@ void NodeTreeBase::add_raw_lines( char* rawlines, size_t size )
             m_broken = true;
             MISC::ERRMSG( "failed to resume" );
             m_resume = RESUME_FAILED;
-            return;
+            return size;
         }
     }
 
@@ -1504,7 +1521,7 @@ void NodeTreeBase::add_raw_lines( char* rawlines, size_t size )
 #endif
 
         m_resume_lng += lng;
-        if( m_resume_lng <= m_lng_dat ) return;
+        if( m_resume_lng <= m_lng_dat ) return size;
 
         // 越えた分をカットしてレジューム処理終了
         rawlines += ( lng  - ( m_resume_lng - m_lng_dat ) );
@@ -1516,7 +1533,7 @@ void NodeTreeBase::add_raw_lines( char* rawlines, size_t size )
 #endif
     }
 
-    if( ! lng ) return;
+    if( ! lng ) return size;
 
     m_lng_dat += lng;
 
@@ -1535,7 +1552,7 @@ void NodeTreeBase::add_raw_lines( char* rawlines, size_t size )
     // dat形式に変換
     int byte;
     const char* datlines = raw2dat( rawlines, byte );
-    if( !byte ) return;
+    if( !byte ) return size;
 
     // '\n' 単位で区切って add_one_dat_line() に渡す
     int num_before = m_id_header;
@@ -1560,6 +1577,7 @@ void NodeTreeBase::add_raw_lines( char* rawlines, size_t size )
         // articlebase クラスに状態が変わったことを知らせる
         m_sig_updated.emit();
     }
+    return size;
 }
 
 
