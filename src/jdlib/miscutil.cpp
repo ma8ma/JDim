@@ -1170,7 +1170,7 @@ std::string MISC::url_decode( const char* url, const size_t n )
 //
 // url エンコード
 //
-std::string MISC::url_encode( const char* str, const size_t n )
+std::string MISC::url_encode( const char* str, const size_t n, const CharCode coding )
 {
     if( str[ n ] != '\0' ){
         ERRMSG( "url_encode : invalid input." );
@@ -1178,68 +1178,82 @@ std::string MISC::url_encode( const char* str, const size_t n )
     }
 
     std::string str_encoded;
-    
-    for( size_t i = 0; i < n; i++ ){
-        
-        unsigned char c = str[ i ];
+    JDLIB::Iconv* icv = nullptr;
+    if( coding != CHARCODE_UTF8 ) icv = new JDLIB::Iconv( coding, CHARCODE_UTF8 );
+
+    size_t pos = 0;
+    while( pos < n ){
+
         const int tmplng = 16;
         char str_tmp[ tmplng ];
-        
-        if( ! ( 'a' <= c && c <= 'z' ) &&
-            ! ( 'A' <= c && c <= 'Z' ) &&
-            ! ( '0' <= c && c <= '9' ) &&            
-            ( c != '*' ) &&
-            ( c != '-' ) &&
-            ( c != '.' ) &&
-            ( c != '@' ) &&
-            ( c != '_' )){
 
-            std::snprintf( str_tmp, tmplng, "%%%02X", c );
+        if( icv ){
+            size_t pos_start = pos;
+            while( str[ pos ] & 0x80 ) ++pos;
+            if( pos != pos_start ){
+                int byte_out;
+                const std::string str_enc = icv->convert( str + pos_start, pos - pos_start, byte_out );
+
+                // マルチバイト文字は全てパーセントエンコードする
+                for( int i = 0; i < byte_out; ++i ){
+                    unsigned char c = str_enc[ i ];
+                    std::snprintf( str_tmp, tmplng, "%%%02X", c );
+                    str_encoded += str_tmp;
+                }
+
+                if( pos >= n ) break;
+            }
         }
-        else {
+
+        unsigned char c = str[ pos ];
+
+        // 非予約文字はそのまま
+        if( ( 'a' <= c && c <= 'z' ) || ( 'A' <= c && c <= 'Z' )
+            || ( '0' <= c && c <= '9' )
+            || ( c == '-' ) || ( c == '.' ) || ( c == '_' ) || ( c == '~' ) ){
             str_tmp[ 0 ] = c;
             str_tmp[ 1 ] = '\0';
         }
+        // スペースは'+'に置換
+        else if( c == ' ' ){
+            str_tmp[ 0 ] = '+';
+            str_tmp[ 1 ] = '\0';
+        }
+        // 改行を正規化
+        else if( c == '\n' ){
+            str_tmp[ 0 ] = '%'; str_tmp[ 1 ] = '0'; str_tmp[ 2 ] = 'D'; // CR ( %0d )
+            str_tmp[ 3 ] = '%'; str_tmp[ 4 ] = '0'; str_tmp[ 5 ] = 'A'; // LF ( %0a )
+            str_tmp[ 6 ] = '\0';
+        }
+        // CR は無視
+        else if( c == '\r' ){
+            str_tmp[ 0 ] = '\0';
+        }
+        // その他はパーセントエンコード
+        else{
+            snprintf( str_tmp, tmplng , "%%%02X", c );
+        }
 
         str_encoded += str_tmp;
+        ++pos;
     }
+
+    if( icv ) delete icv;
 
     return str_encoded;
 }
 
 
-std::string MISC::url_encode( const std::string& str )
-{
-    return url_encode( str.c_str(), str.length() );
-}
-
-
 //
-// 文字コード変換して url エンコード
+// 半角スペースまたは "" 単位で区切って url エンコード
 //
-// str は UTF-8 であること
-//
-std::string MISC::charset_url_encode( const std::string& str, const std::string& charset )
-{
-    if( charset.empty() || charset == "UTF-8" ) return MISC::url_encode( str.c_str(), str.length() );
-
-    const std::string str_enc = MISC::Iconv( str, charset, "UTF-8" );
-    return  MISC::url_encode( str_enc.c_str(), str_enc.length() );
-}
-
-
-//
-// 文字コード変換して url エンコード
-//
-// ただし半角スペースのところを+に置き換えて区切る
-//
-std::string MISC::charset_url_encode_split( const std::string& str, const std::string& charset )
+std::string MISC::url_encode_split( const std::string& str, const CharCode charcode )
 {
     std::list< std::string > list_str = MISC::split_line( str );
     std::string str_out;
     for( const std::string& s : list_str ) {
         if( ! str_out.empty() ) str_out.push_back( '+' );
-        str_out.append( MISC::charset_url_encode( s, charset ) );
+        str_out.append( MISC::url_encode( s.c_str(), s.size(), charcode ) );
     }
 
     return str_out;
@@ -1291,27 +1305,6 @@ std::string MISC::base64( const std::string& str )
     return out;
 }
 
-
-
-
-//
-// 文字コードを coding_from から coding_to に変換
-//
-// 遅いので連続的な処理が必要な時は使わないこと
-//
-std::string MISC::Iconv( const std::string& str, const std::string& coding_to, const std::string& coding_from )
-{
-    if( coding_from == coding_to ) return str;
-
-    std::string str_bk = str;
-
-    JDLIB::Iconv libiconv( coding_to, coding_from );
-    int byte_out;
-
-    std::string str_enc = libiconv.convert( &*str_bk.begin(), str_bk.size(), byte_out );
-
-    return str_enc;
-}
 
 
 //

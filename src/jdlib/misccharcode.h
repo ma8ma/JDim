@@ -31,6 +31,8 @@ namespace MISC
         WinToUnix, ///< Windows から Unix へ
     };
 
+    const char* charcode_to_cstr( const CharCode charcode );
+    CharCode charcode_from_cstr( const char* encoding );
     bool is_eucjp( std::string_view input, std::size_t read_byte );
     bool is_jis( std::string_view input, std::size_t& read_byte );
     bool is_sjis( std::string_view input, std::size_t read_byte );
@@ -56,6 +58,11 @@ namespace MISC
 
     /// WAVE DASH(U+301C)などのWindows系UTF-8文字をUnix系文字と相互変換
     std::string utf8_fix_wavedash( const std::string& str, const WaveDashFix mode );
+
+    // 文字コードを from から to に変換
+    // 遅いので連続的な処理が必要な時は使わないこと
+    std::string Iconv( const std::string& str, const CharCode to, const CharCode from );
+
 }
 
 #endif
