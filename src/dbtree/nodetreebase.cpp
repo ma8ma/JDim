@@ -3661,27 +3661,52 @@ void NodeTreeBase::check_fontid( const int number )
 //static member
 bool NodeTreeBase::remove_imenu( char* str_link )
 {
-    char *p = str_link;
-
-    if ( memcmp( p, "http", strlen( "http" ) ) != 0 ) return false;
-    p += strlen( "http" );
-    if ( *p == 's' ) p++;
-    if ( memcmp( p, "://", strlen( "://" ) ) != 0 ) return false;
-    p += strlen( "://" );
-
-    const char *cut_sites[] = { "ime.nu/", "ime.st/", "nun.nu/", "pinktower.com/", nullptr };
-    const char **q = cut_sites;
-    while ( *q ) {
-        size_t cs_len = strlen( *q );
-        if ( memcmp( p, *q, cs_len ) == 0 ) {
-            // "http://ime.nu/"等、URLがそれだけだった場合は削除しない
-            if ( p[cs_len] == '\0' ) return false;
-            memmove( p, p + cs_len, strlen( p + cs_len ) + 1 );
-            return true;
+    int lng_cut = 4;
+    char *str_colon = str_link + lng_cut;
+    if( memcmp( str_link, "http", lng_cut ) == 0 ){
+        if( str_link[ lng_cut ] == 's' ){
+            lng_cut++;
+            str_colon++;
         }
-        q ++;
     }
-    return false;
+    else return false;
+
+    if(
+      ! (
+        ( str_colon[ 3 ] == 'i' && str_colon[ 4 ] == 'm' )
+        || ( str_colon[ 3 ] == 'n' && str_colon[ 4 ] == 'u' )
+        || ( str_colon[ 3 ] == 'p' && str_colon[ 4 ] == 'i' )
+        || ( str_colon[ 3 ] == 'j' && str_colon[ 4 ] == 'u' )
+      )
+    ) return false;
+
+    if( memcmp( str_colon, "://ime.nu/", 10 ) == 0 ||
+        memcmp( str_colon, "://ime.st/", 10 ) == 0 ||
+        memcmp( str_colon, "://nun.nu/", 10 ) == 0 ){
+        lng_cut += 10;
+    }
+    else if( memcmp( str_colon, "://pinktower.com/", 17 ) == 0 ||
+             memcmp( str_colon, "://jump.2ch.net/?", 17 ) == 0 ||
+             memcmp( str_colon, "://jump.5ch.net/?", 17 ) == 0 ){
+        lng_cut += 17;
+    }
+    else return false;
+
+    int lng_link = strlen( str_link );
+
+    // "http://ime.nu/"等、URLがそれだけだった場合は削除しない
+    if( lng_link == lng_cut ) return false;
+
+    if( memcmp( str_link + lng_cut, "http", 4 ) == 0 ){
+        // プロトコルが続く場合は頭から削る
+        memmove( str_link, str_link + lng_cut, lng_link + 1 - lng_cut );
+    }
+    else{
+        // 上記以外はプロトコルを残して削る
+        memmove( str_colon + 3, str_link + lng_cut, lng_link + 1 - lng_cut );
+    }
+
+    return true;
 }
 
 
