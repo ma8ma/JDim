@@ -141,6 +141,8 @@ void AboutConfig::append_rows()
     append_row( "2chのクッキーを保存する", get_confitem()->use_cookie_hap, CONF_USE_COOKIE_HAP );
     append_row( "2chのクッキー", get_confitem()->cookie_hap, CONF_COOKIE_HAP );
     append_row( "BBSPINKのクッキー", get_confitem()->cookie_hap_bbspink, CONF_COOKIE_HAP_BBSPINK );
+    append_row( "5chの過去ログを外部のサイトから取得する", get_confitem()->use_external_log, CONF_USE_EXTERNAL_LOG );
+    append_row( "5chの過去ログを取得するサイトのURL", get_confitem()->url_external_log, CONF_URL_EXTERNAL_LOG );
 
     // ツリービュー
     append_row( "" );
