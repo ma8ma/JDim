@@ -1631,6 +1631,8 @@ const char* NodeTreeBase::add_one_dat_line( const char* datline )
     constexpr bool digitlink = false;
     constexpr bool bold = false;
     if( i > 3 ){
+        // EXTDAT情報を取得
+        if( header->id_header == 1 ) parse_extattr( section[ 3 ], section_lng[ 3 ] );
 
         header->headinfo->block[ BLOCK_MES ] = create_node_block();
 
