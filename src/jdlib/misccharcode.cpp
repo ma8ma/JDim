@@ -360,6 +360,53 @@ char32_t MISC::utf8tocp( const char* utfstr, int& byte )
 
 
 //
+// ucs2 -> utf8 変換
+//
+// 出力 : utfstr 変換後の文字
+// 戻り値 : バイト数
+//
+int MISC::cptoutf8( const char32_t code,  char* utfstr )
+{
+    int byte = 0;
+
+    if( code <= 0x7f ){ // ascii
+        byte = 1;
+        utfstr[ 0 ] = code;
+    }
+
+    else if( code <= 0x07ff ){
+        byte = 2;
+        utfstr[ 0 ] = ( 0xc0 ) + ( code >> 6 );
+        utfstr[ 1 ] = ( 0x80 ) + ( code & 0x3f );
+    }
+
+    else if( code <= 0xffff){
+        byte = 3;
+        utfstr[ 0 ] = ( 0xe0 ) + ( code >> 12 );
+        utfstr[ 1 ] = ( 0x80 ) + ( ( code >>6 ) & 0x3f );
+        utfstr[ 2 ] = ( 0x80 ) + ( code & 0x3f );
+    }
+
+    else if( code <= 0x1fffff ){
+        byte = 4;
+        utfstr[ 0 ] = ( 0xf0 ) + ( code >> 18 );
+        utfstr[ 1 ] = ( 0x80 ) + ( ( code >>12 ) & 0x3f );
+        utfstr[ 2 ] = ( 0x80 ) + ( ( code >>6 ) & 0x3f );
+        utfstr[ 3 ] = ( 0x80 ) + ( code & 0x3f );
+    }
+
+#ifdef _DEBUG
+    else{
+        std::cout << "MISC::cptoutf8 : invalid code = " << code << std::endl;
+    }
+#endif
+
+    utfstr[ byte ] = 0;
+    return byte;
+}
+
+
+//
 // ucs の種類
 //
 MISC::UcsType MISC::get_ucstype( const char32_t code )

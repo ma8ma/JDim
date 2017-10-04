@@ -7,7 +7,7 @@
 #include "spchar_decoder.h"
 #include "interface.h"
 
-#include "jdlib/miscutil.h"
+#include "jdlib/misccharcode.h"
 #include "jdlib/miscmsg.h"
 #include "jdlib/loaderdata.h"
 #include "jdlib/jdregex.h"
@@ -2521,7 +2521,7 @@ void NodeTreeBase::parse_write( const char* str, const int lng, const std::size_
 
             const int num = MISC::decode_spchar_number( pos, offset_num, lng_num );
             char utf8[kMaxBytesOfUTF8Char]{};
-            const int n_out = MISC::ucs2toutf8( num, utf8 );
+            const int n_out = MISC::cptoutf8( num, utf8 );
             m_buffer_write.append( utf8, n_out );
             pos += offset_num + lng_num;
 
