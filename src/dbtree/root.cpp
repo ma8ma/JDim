@@ -417,7 +417,7 @@ void Root::bbsmenu2xml( const std::string& menu )
         // 要素b( カテゴリ名 )
         if( (*it)->nodeName() == "b" )
         {
-            const std::string category = (*it)->firstChild()->nodeValue();
+            const std::string category = MISC::chref_decode( (*it)->firstChild()->nodeValue() );
 
             // 追加しないカテゴリ
             if( category == "チャット"
@@ -437,7 +437,7 @@ void Root::bbsmenu2xml( const std::string& menu )
         // 要素bに続く要素a( 板URL )
         else if( subdir && enabled && (*it)->nodeName() == "a" )
         {
-            const std::string board_name = (*it)->firstChild()->nodeValue();
+            const std::string board_name = MISC::chref_decode( (*it)->firstChild()->nodeValue() );
             const std::string url = (*it)->getAttribute( "href" );
 
             // 板として扱うURLかどうかで要素名を変える
