@@ -167,27 +167,31 @@ bool MISC::is_sjis( const char* input, size_t read_byte )
 }
 
 
+namespace {
 /*---- UTF ---------------------------------------------------------*/
 //
 // 0xC0・0xC1はセキュリティ上の問題で使用が禁止されている
 //
-// [ 1バイト目の範囲 ] 0xC2〜0xFD [ RFC2279(破棄) ]
-// [ 1バイト目の範囲 ] 0xC2〜0xF4 [ RFC6329 ]
-#define UTF_RANGE_1( target ) ( (unsigned char)( target - 0xC2 ) < 0x33 )
+// [ 1バイト目の範囲 ] 0xC2～0xFD [ RFC2279(破棄) ]
+// [ 1バイト目の範囲 ] 0xC2～0xF4 [ RFC6329 ]
+inline bool utf8_range1( std::uint8_t target ) { return static_cast< std::uint8_t >( target - 0xC2 ) < 0x33; }
 //
-// [ 1バイト目 (2バイト文字) ] 先頭2ビットが1
-#define UTF_FLAG_2( target ) ( ( target & 0xC0 ) == 0xC0 )
+// [ 2バイト目以降 ] 0x80～0xBF 先頭ビットが10
+inline bool utf8_range_multi_byte( std::uint8_t target ) { return ( target & 0xC0 ) == 0x80; }
 //
-// [ 1バイト目 (3バイト文字) ] 先頭3ビットが1
-#define UTF_FLAG_3( target ) ( ( target & 0xE0 ) == 0xE0 )
+// [ 1バイト目 (2バイト文字) ] 先頭ビットが110
+//#define UTF_FLAG_2( target ) ( ( target & 0xE0 ) == 0xC0 )
+// [ 1バイト目 (2バイト文字) ] 0xC2～0xDF
+inline bool utf8_flag2( std::uint8_t target ) { return static_cast< std::uint8_t >( target - 0xC2 ) < 0x1E; }
 //
-// [ 1バイト目 (4バイト文字) ] 先頭4ビットが1
-#define UTF_FLAG_4( target ) ( ( target & 0xF0 ) == 0xF0 )
+// [ 1バイト目 (3バイト文字) ] 先頭ビットが1110
+inline bool utf8_flag3( std::uint8_t target ) { return ( target & 0xF0 ) == 0xE0; }
 //
-// [ 2バイト目以降 ] 0x80〜0xBF
-#define UTF_RANGE_MULTI_BYTE( target ) ( (unsigned char)( target - 0x80 ) < 0x40 )
+// [ 1バイト目 (4バイト文字) ] 先頭ビットが11110
+inline bool utf8_flag4( std::uint8_t target ) { return ( target & 0xF8 ) == 0xF0; }
 //
-bool MISC::is_utf( const char* input, size_t read_byte )
+} // namespace
+bool MISC::is_utf8( const char* input, const size_t length, size_t read_byte )
 {
     if( ! input ) return false;
 
@@ -205,7 +209,7 @@ bool MISC::is_utf( const char* input, size_t read_byte )
             continue;
         }
         // UTF-8の1バイト目の範囲ではない
-        else if( ! UTF_RANGE_1( input[ byte ] ) )
+        else if( ! utf8_range1( input[ byte ] ) )
         {
             return false;
         }
@@ -213,16 +217,16 @@ bool MISC::is_utf( const char* input, size_t read_byte )
         int byte_count = 1;
 
         // 4,3,2バイト
-        if( UTF_FLAG_4( input[ byte ] ) ) byte_count = 4;
-        else if( UTF_FLAG_3( input[ byte ] ) ) byte_count = 3;
-        else if( UTF_FLAG_2( input[ byte ] ) ) byte_count = 2;
+        if( utf8_flag4( input[ byte ] ) ) byte_count = 4;
+        else if( utf8_flag3( input[ byte ] ) ) byte_count = 3;
+        else if( utf8_flag2( input[ byte ] ) ) byte_count = 2;
 
         ++byte;
 
         // 2バイト目以降
         while( byte_count > 1 )
         {
-            if( UTF_RANGE_MULTI_BYTE( input[ byte ] ) )
+            if( utf8_range_multi_byte( input[ byte ] ) )
             {
                 ++byte;
             }
@@ -268,3 +272,45 @@ int MISC::judge_char_code( const std::string& str )
     return code;
 }
 
+
+//
+// utf-8 byte数
+//
+// 入力 : utfstr 入力文字 (UTF-8)
+// 戻り値 :  byte  長さ(バイト) utfstr が ascii なら 1, UTF-8 なら 2 or 3 or 4 を返す
+//
+int MISC::utf8bytes( const char* utfstr )
+{
+    int byte = 0;
+
+    if( utfstr && *utfstr != '\0' ){
+        const unsigned char ch = static_cast< unsigned char >( *utfstr );
+        if( ch <= 0x7f ) byte = 1;
+        else if( utf8_flag3( ch ) ) byte = 3;
+        else if( utf8_flag4( ch ) ) byte = 4;
+        else if( utf8_flag2( ch ) ) byte = 2;
+#ifdef _DEBUG
+        else { // 不正なUTF8
+            std::cout << "MISC::utf8bytes : invalid 1st byte: char = "
+                      << static_cast< unsigned int >( ch ) << std::endl;
+        }
+#endif
+    }
+
+    for( int i = 1; i < byte; ++i ){
+        if( ! utf8_range_multi_byte( utfstr[ i ] ) ){
+#ifdef _DEBUG
+            // 不正なUTF8
+            std::cout << "MISC::utf8bytes : invalid code: char = " << static_cast< unsigned int >( utfstr[ 0 ] );
+            std::cout << ", " << static_cast< unsigned int >( utfstr[ 1 ] );
+            if( byte > 2 ) std::cout << ", " << static_cast< unsigned int >( utfstr[ 2 ] );
+            if( byte > 3 ) std::cout << ", " << static_cast< unsigned int >( utfstr[ 3 ] );
+            std::cout << std::endl;
+#endif
+            byte = 0;
+            break;
+        }
+    }
+
+    return byte;
+}
