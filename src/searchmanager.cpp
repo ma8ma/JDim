@@ -272,9 +272,6 @@ void Search_Manager::search_fin_title()
 
             if( line.empty() ) continue;
 
-            // & が &amp; に置き換わっているので直す
-            if( line.find( "&" ) != std::string::npos ) line = MISC::replace_str( line, "&amp;", "&" );
-
             offset = 0;
             while( regex.match( regexptn, line, offset ) ){
 
