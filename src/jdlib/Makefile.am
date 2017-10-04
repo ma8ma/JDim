@@ -14,6 +14,7 @@ libjdlib_a_SOURCES = \
 	loader.cpp \
 	imgloader.cpp \
 	ssl.cpp \
+	jdsocket.cpp \
 	loaderdata.cpp \
 	cookiemanager.cpp \
 	confloader.cpp \
@@ -38,6 +39,10 @@ noinst_HEADERS = \
 	loader.h \
 	imgloader.h \
 	ssl.h \
+	jdsocket.h \
+	jdsocketgnutls.h \
+	jdsocketnss.h \
+	jdsocketopenssl.h \
 	loaderdata.h \
 	cookiemanager.h \
 	confloader.h \
@@ -47,5 +52,5 @@ noinst_HEADERS = \
 	timeout.h \
 	hkana.h
 
-AM_CXXFLAGS = @GTKMM_CFLAGS@ @GNUTLS_CFLAGS@ @OPENSSL_CFLAGS@ @X11_CFLAGS@
+AM_CXXFLAGS = @GTKMM_CFLAGS@ @GNUTLS_CFLAGS@ @OPENSSL_CFLAGS@ @NSS_CFLAGS@ @X11_CFLAGS@
 AM_CPPFLAGS = -I$(top_srcdir)/src
