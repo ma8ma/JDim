@@ -200,7 +200,7 @@ namespace CONFIG
 #define CONF_LOGIN2CH "https://2chv.tora3.net/futen.cgi"
 
 // BEの認証サーバのアドレス
-#define CONF_LOGINBE "http://be.2ch.net/test/login.php"
+#define CONF_LOGINBE "http://be.5ch.net/test/login.php"
 
 // bbsmenu.htmlのURL
 #define CONF_URL_BBSMENU "https://menu.5ch.net/bbsmenu.html"
