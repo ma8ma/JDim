@@ -280,3 +280,21 @@ std::string MISC::get_trip( const std::string& str, const CharCode charcode )
 
     return trip;
 }
+
+
+//
+// FNV Hash Algorithm
+//
+uint32_t MISC::fnv_hash( const char *key, size_t length )
+{
+    constexpr uint32_t OFFSET = 2166136261U;
+    constexpr uint32_t PRIME = 16777619U;
+
+    uint32_t hash = OFFSET;
+    uint8_t *bytes = (uint8_t*)key;
+    for(size_t i = 0 ; i < length ; ++i) {
+        hash = (PRIME * hash) ^ bytes[i];
+    }
+
+    return hash;
+}
