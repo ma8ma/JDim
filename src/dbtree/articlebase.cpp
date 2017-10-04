@@ -1652,17 +1652,9 @@ void ArticleBase::delete_cache( const bool cache_only )
         // スレ内の画像キャッシュ削除
         if( CONFIG::get_delete_img_in_thread() != 2 ){
 
-            bool delete_img_cache = false;
+            const std::list< std::string > list_urls = get_nodetree()->get_imglinks();
 
-            std::list< std::string > list_urls = get_nodetree()->get_urls();
-            std::list< std::string >::iterator it = list_urls.begin();
-            for( ; it != list_urls.end(); ++it ){
-
-                if( DBIMG::get_type_ext( *it ) != DBIMG::T_UNKNOWN && DBIMG::is_cached( *it ) ){
-                    delete_img_cache = true;
-                    break;
-                }
-            }
+            bool delete_img_cache = std::any_of( list_urls.begin(), list_urls.end(), &DBIMG::is_cached );
 
             if( delete_img_cache ){
 
@@ -1689,15 +1681,14 @@ void ArticleBase::delete_cache( const bool cache_only )
 
                 if( delete_img_cache ){
 
-                    it = list_urls.begin();
-                    for( ; it != list_urls.end(); ++it ){
+                    for( const std::string& url : list_urls ) {
 
-                        if( DBIMG::get_type_ext( *it ) != DBIMG::T_UNKNOWN && DBIMG::is_cached( *it ) ){
+                        if( DBIMG::is_cached( url ) ){
 
 #ifdef _DEBUG
-                            std::cout << "delete " << *it << std::endl;
+                            std::cout << "delete " << url << std::endl;
 #endif
-                            DBIMG::delete_cache( *it );
+                            DBIMG::delete_cache( url );
                         }
                     }
                 }
