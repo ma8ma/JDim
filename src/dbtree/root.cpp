@@ -691,11 +691,20 @@ bool Root::set_board( const std::string& url, const std::string& name, const std
     std::cout << "Root::set_board " << url << " " << name << std::endl;
 #endif
 
+    std::string real_url;
     std::string root;
     std::string path_board;
 
+    // scheme省略の場合は補う
+    if( url.compare( 0, 2, "//" ) == 0 ){
+        const std::string menu_url = CONFIG::get_url_bbsmenu();
+        const size_t pos = menu_url.find("://");
+        if( pos != std::string::npos ) real_url = menu_url.substr( 0, pos + 1 );
+    }
+    real_url += url;
+
     // タイプ判定
-    int type = get_board_type( url, root, path_board, etc );
+    const int type = get_board_type( real_url, root, path_board, etc );
     if( type == TYPE_BOARD_UNKNOWN ) return false;
 
     // 移転チェック
@@ -731,7 +740,7 @@ bool Root::set_board( const std::string& url, const std::string& name, const std
             MISC::ERRMSG( tmp_msg );
 
             const std::string path1 = CACHE::path_board_root_fast( board->url_boardbase() );
-            const std::string path2 = CACHE::path_board_root_fast( url );
+            const std::string path2 = CACHE::path_board_root_fast( real_url );
 
 #ifdef _DEBUG
             std::cout << "path1 = " << path1 << std::endl
