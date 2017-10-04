@@ -380,6 +380,7 @@ namespace DBTREE
                       const std::list< std::string >& regexs,
                       const std::vector< char >& vec_abone_res,
                       const bool transparent, const bool chain, const bool age,
+                      const bool default_name, const bool noid,
                       const bool board, const bool global
         );
 
@@ -400,6 +401,14 @@ namespace DBTREE
     // ageあぼーん
     bool get_abone_age( const std::string& url );
     void set_abone_age( const std::string& url, const bool set );
+
+    // デフォルト名無しあぼーん
+    bool get_abone_default_name( const std::string& url );
+    void set_abone_default_name( const std::string& url, const bool set );
+
+    // ID無しあぼーん
+    bool get_abone_noid( const std::string& url );
+    void set_abone_noid( const std::string& url, const bool set );
 
     // 板レベルでのあぼーん
     bool get_abone_board( const std::string& url );
