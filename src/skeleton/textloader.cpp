@@ -16,10 +16,9 @@
 #include <cstring>
 #include <memory>
 
-enum
-{
-    SIZE_OF_RAWDATA = 1024 * 1024
-};
+
+constexpr std::size_t SIZE_OF_RAWDATA = 256 * 1024;
+
 
 using namespace SKELETON;
 
