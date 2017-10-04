@@ -1045,8 +1045,7 @@ NODE* NodeTreeBase::append_html( const std::string& html )
 
     const bool digitlink = false;
     const bool bold = false;
-    const bool ahref = true;
-    parse_html( html.c_str(), html.length(), COLOR_CHAR, digitlink, bold, ahref );
+    parse_html( html.c_str(), html.length(), COLOR_CHAR, digitlink, bold );
 
     clear();
 
@@ -2062,8 +2061,7 @@ void NodeTreeBase::parse_date_id( NODE* header, const char* str, const int lng )
 //
 // bold : ボールド表示
 //
-// ahref : <a href=～></a> からリンクノードを作成する
-// (例) parse_html( "<a href=\"hoge.com\">hoge</a>", 27, COLOR_CHAR, false, false );
+// (例) parse_html( "<a href=\"hoge.com\">hoge</a>", 27, COLOR_CHAR, false );
 //
 // (パッチ)
 //
@@ -2142,9 +2140,8 @@ create_multispace:
                 && ( *( pos + 2 ) == 'r' || *( pos + 2 ) == 'R' )
                 ) br = true;
 
-            //  ahref == true かつ <a href=～></a>
-            else if( ahref &&
-                     ( *( pos + 1 ) == 'a' || *( pos + 1 ) == 'A' ) && *( pos + 2 ) == ' ' ){
+            //  <a href=～></a>
+            else if( ( *( pos + 1 ) == 'a' || *( pos + 1 ) == 'A' ) && *( pos + 2 ) == ' ' ){
 
                 // フラッシュ
                 create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
