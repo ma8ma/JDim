@@ -29,7 +29,7 @@ static bool strict_of_char = false;
 
 enum
 {
-    UCS2_MAX = 1114111
+    NUM_CHAR_MAX = 0x110000 // フォントの幅を記録する文字数
 };
 
 
@@ -45,14 +45,13 @@ void ARTICLE::init_font()
 
         if( width_of_char[ i ]  ){
 
-            for( int j = 0; j < UCS2_MAX; ++j ){
+            for( size_t j = 0; j < NUM_CHAR_MAX; ++j ){
                 
                 if( width_of_char[ i ][ j ].width ) delete[] width_of_char[ i ][ j ].width;
             }
             delete[] width_of_char[ i ];
+            width_of_char[ i ] = nullptr;
         }
-
-        width_of_char[ i ] = nullptr;
     }
 }
 
@@ -61,50 +60,64 @@ void ARTICLE::init_font()
 //
 // 登録された文字の幅を返す関数
 //
-// utfstr : 入力文字 (UTF-8)
-// byte   : 長さ(バイト) utfstr が ascii なら 1, UTF-8 なら 2 or 3 or 4 を入れて返す
+// code   : 入力文字 (コードポイント)
 // pre_char : ひとつ前の文字 ( 前の文字が全角の場合は 0 )
 // width  : 半角モードでの幅
 // width_wide : 全角モードでの幅
 // mode   : fontid.h で定義されているフォントのID
 // 戻り値 : 登録されていればtrue
 // 
-bool ARTICLE::get_width_of_char( const char* utfstr, int& byte, const char pre_char, int& width, int& width_wide, const int mode )
+bool ARTICLE::get_width_of_char( const char32_t code, const char pre_char, int& width, int& width_wide, const int mode )
 {
-    byte = 0;
     width = 0;
     width_wide = 0;
 
     if( ! width_of_char[ mode ] ){
-        width_of_char[ mode ] = new WIDTH_DATA[ UCS2_MAX ]{} ;
+        width_of_char[ mode ] = new WIDTH_DATA[ NUM_CHAR_MAX ]{};
+
+        // 合成文字の初期化
+        for( int i = 0x300; i <= 0x36f; i++ ) // Combining Diacritical Marks
+            width_of_char[ mode ][ i ].width_wide = -1;
+        for( int i = 0x180b; i <= 0x180d; i++ ) // Mongolian Free Variation Selector
+            width_of_char[ mode ][ i ].width_wide = -1;
+        for( int i = 0x200b; i <= 0x200f; i++ ) // ZWSP,ZWNJ,ZWJ,LRM,RLM
+            width_of_char[ mode ][ i ].width_wide = -1;
+        for( int i = 0x202a; i <= 0x202e; i++ ) // LRE,RLE,PDF,LRO,RLO
+            width_of_char[ mode ][ i ].width_wide = -1;
+        for( int i = 0x20d0; i <= 0x20ff; i++ ) // Combining Diacritical Marks for Symbols
+            width_of_char[ mode ][ i ].width_wide = -1;
+        for( int i = 0x3099; i <= 0x309a; i++ ) // COMBINING KATAKANA-HIRAGANA (SEMI-)VOICED SOUND MARK
+            width_of_char[ mode ][ i ].width_wide = -1;
+        for( int i = 0xfe00; i <= 0xfe0f; i++ ) // VS1-VS16
+            width_of_char[ mode ][ i ].width_wide = -1;
+        width_of_char[ mode ][ 0xfeff ].width_wide = -1; // ZERO WIDTH NO-BREAK SPACE
     }
 
-    const int ucs2 = MISC::utf8toucs2( utfstr, byte );
-    if( byte && ucs2 < UCS2_MAX ){
+    if( code > 0 && code < NUM_CHAR_MAX ){
 
         // 全角モードの幅
-        width_wide = width_of_char[ mode ][ ucs2 ].width_wide;
+        width_wide = width_of_char[ mode ][ code ].width_wide;
 
         // 半角モードの幅
         width = width_wide;
 
         // 厳密に求める場合
-        if( byte == 1 && strict_of_char ){
+        if( code < 128 && strict_of_char ){
 
-            if( ! width_of_char[ mode ][ ucs2 ].width ){
-                width_of_char[ mode ][ ucs2 ].width = new unsigned int[ 128 ]{} ;
+            if( ! width_of_char[ mode ][ code ].width ){
+                width_of_char[ mode ][ code ].width = new unsigned int[ 128 ]{};
             }
 
             const int pre_char_num = ( int ) pre_char;
-            if( pre_char_num < 128 ) width = width_of_char[ mode ][ ucs2 ].width[ pre_char_num ];
+            if( pre_char_num < 128 ) width = width_of_char[ mode ][ code ].width[ pre_char_num ];
         }
     }
 
-    if( width && width_wide ) return true;
-    else if( width == -1 ){ // フォント幅の取得に失敗した場合
+    if( width == -1 ){ // フォント幅の取得に失敗した場合
         width = width_wide = 0;
         return true;
     }
+    else if( width && width_wide ) return true;
 
     return false;
 }
@@ -120,7 +133,7 @@ void ARTICLE::set_width_of_char( const char* utfstr, int& byte, const char pre_c
 {    
     const int ucs2 = MISC::utf8toucs2( utfstr, byte );
     if( ! byte ) return;
-    if( ucs2 >= UCS2_MAX ) return;
+    if( ucs2 >= NUM_CHAR_MAX ) return;
 
     // 半角モードの幅を厳密に求める場合
     if( byte == 1 && strict_of_char ){
