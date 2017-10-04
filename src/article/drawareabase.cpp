@@ -3852,23 +3852,20 @@ int DrawAreaBase::search( const std::list< std::string >& list_query, const bool
 
     if( list_query.size() == 0 ) return 0;
 
-    std::list< JDLIB::Regex > list_regex;
-    const bool icase = true; // 大文字小文字区別しない
-    const bool newline = true; // . に改行をマッチさせない
-    const bool usemigemo = true; // migemo使用
-    const bool wchar = true;  // 全角半角の区別をしない
+    JDLIB::Regex regex;
+    std::list< JDLIB::RegexPattern > list_regex;
+    constexpr bool icase = true; // 大文字小文字区別しない
+    constexpr bool newline = true; // . に改行をマッチさせない
+    constexpr bool usemigemo = true; // migemo使用
+    constexpr bool wchar = false;  // 全角半角の区別をしない
+    constexpr bool norm = true;  // Unicodeの互換文字を区別しない
 
 #ifdef _DEBUG
     std::cout << "ArticleViewBase::search size = " << list_query.size() << std::endl;
 #endif
 
-    std::list< std::string >::const_iterator it_query;
-    for( it_query = list_query.begin(); it_query != list_query.end() ; ++it_query ){
-
-        const std::string &query = ( *it_query );
-
-        list_regex.push_back( JDLIB::Regex() );
-        list_regex.back().compile( query, icase, newline, usemigemo, wchar );
+    for( const std::string& qstr : list_query ) {
+        list_regex.emplace_back( qstr, icase, newline, usemigemo, wchar, norm );
     }
 
     m_multi_selection.clear();
@@ -3922,11 +3919,9 @@ int DrawAreaBase::search( const std::list< std::string >& list_query, const bool
 
                     int min_offset = -1;
                     int lng = 0;
-                    std::list< JDLIB::Regex >::iterator it_regex;
-                    for( it_regex = list_regex.begin(); it_regex != list_regex.end() ; ++it_regex ){
+                    for( const JDLIB::RegexPattern& pattern : list_regex ) {
 
-                        JDLIB::Regex &regex = ( *it_regex );
-                        if( regex.exec( target, offset ) ){
+                        if( regex.match( pattern, target, offset ) ){
 
                             if( min_offset == -1 || regex.pos( 0 ) <= min_offset ){
                                 min_offset = regex.pos( 0 );

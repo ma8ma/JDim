@@ -344,7 +344,7 @@ bool Regex::match( const RegexPattern& creg, const std::string& target, const si
 //
 // マッチした文字列と $0〜$9 or \0〜\9 を置換する
 //
-std::string Regex::replace( const std::string& repstr )
+std::string Regex::replace( const std::string& repstr ) const
 {
     if( repstr.empty() ) return repstr;
 
@@ -352,14 +352,14 @@ std::string Regex::replace( const std::string& repstr )
     const char* p1;
     std::string str_out;
 
-    while( ( p1 = strchr( p0, '\\' ) ) != NULL ){
+    while( ( p1 = strchr( p0, '\\' ) ) != nullptr ){
         int n = p1[ 1 ] - '0';
         str_out.append( p0, p1 - p0 );
         p0 = p1 + 2;
         if( n < 0 || n > 9 ){
             str_out.push_back( p1[ 1 ] );
         }
-        else if( m_results.size() > ( size_t )n && m_pos[ n ] != -1 ){
+        else if( m_results.size() > static_cast< size_t >( n ) && m_pos[ n ] != -1 ){
             str_out += m_results[ n ];
         }
     }
@@ -378,7 +378,7 @@ std::string Regex::str( const size_t num ) const
 }
 
 
-int Regex::pos( const size_t num ) const
+int Regex::pos( const size_t num ) const noexcept
 {
     if( m_results.size() > num ) return m_pos[ num ];
 
