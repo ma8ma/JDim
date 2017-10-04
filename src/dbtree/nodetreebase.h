@@ -284,7 +284,7 @@ namespace DBTREE
 
         // 保存前にrawデータを加工
         // デフォルトでは何もしない
-        virtual char* process_raw_lines( char* rawlines ){ return rawlines; }
+        virtual char* process_raw_lines( char* rawlines, size_t& size ){ return rawlines; }
 
         // raw データを dat に変換
         // デフォルトでは何もしない
@@ -295,6 +295,7 @@ namespace DBTREE
 
         void receive_data( const char* data, size_t size ) override;
         void receive_finish() override;
+        void sweep_buffer();
 
         // 拡張属性を取り出す
         virtual void parse_extattr( std::string_view str ) {};
@@ -324,7 +325,7 @@ namespace DBTREE
                                      const int color_text, const bool bold, const char fontid = FONT_MAIN );
 
         // 以下、構文解析用関数
-        void add_raw_lines( char* rawines, size_t size );
+        size_t add_raw_lines( char* rawines, size_t size );
         const char* add_one_dat_line( const char* datline );
 
         void parse_name( NODE* header, std::string_view str, const int color_name );

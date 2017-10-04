@@ -20,6 +20,8 @@ namespace DBTREE
         int m_res_number_max; // 最大レス数
         std::size_t m_dat_volume_max{}; // 最大DATサイズ(KB)
 
+        std::string m_operate_info;
+
       public:
 
         NodeTree2ch( const std::string& url, const std::string& org_url,
@@ -31,7 +33,7 @@ namespace DBTREE
 
       protected:
 
-        char* process_raw_lines( char* rawlines ) override;
+        char* process_raw_lines( char* rawlines, size_t& size ) override;
 
         void create_loaderdata( JDLIB::LOADERDATA& data ) override;
 
