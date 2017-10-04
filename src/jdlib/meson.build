@@ -17,7 +17,6 @@ sources = [
   'misctrip.cpp',
   'miscutil.cpp',
   'miscx.cpp',
-  'ssl.cpp',
   'tfidf.cpp',
   'timeout.cpp',
 ]
