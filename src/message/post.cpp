@@ -310,10 +310,8 @@ void Post::receive_finish()
         newline = false; // . に改行をマッチさせる
         // Smaba24規制の場合
         //   ＥＲＲＯＲ - 593 60 sec たたないと書けません。(1回目、8 sec しかたってない)
-        // 忍法帖規制の場合 ( samba秒だけ取得する。 )
-        //   ＥＲＲＯＲ：修行が足りません(Lv=2)。しばらくたってから投稿してください。(48 sec)
-        //   この板のsambaは samba=30 sec
-        if( regex.exec( "ＥＲＲＯＲ( +- +593 +|：.+samba=)([0-9]+) +sec", m_errmsg, offset, icase, newline, usemigemo, wchar ) ){
+        //   ERROR: Samba24:Caution 25 秒たたないと書けません。(1 回目、24 秒しかたってない)
+        if( regex.exec( "(ＥＲＲＯＲ +- +593|ERROR: +Samba24:Caution|) +([0-9]+) +", m_errmsg, offset, icase, newline, usemigemo, wchar ) ){
             time_t sec = atoi( regex.str( 2 ).c_str() );
 #ifdef _DEBUG
             std::cout << "samba = " << sec << std::endl;
@@ -357,6 +355,10 @@ void Post::receive_finish()
     std::cout << "location: [" << location() << "]\n";
 #endif
 
+    // クッキーのセット
+    const bool empty_cookies = DBTREE::board_list_cookies_for_write( m_url ).empty();
+    if( list_cookies.size() ) DBTREE::board_set_list_cookies_for_write( m_url, list_cookies );
+
     // 成功
     if( title.find( "書きこみました" ) != std::string::npos
         || tag_2ch.find( "true" ) != std::string::npos
@@ -367,9 +369,6 @@ void Post::receive_finish()
         std::cout << "write ok" << std::endl;
 #endif        
 
-        // クッキーのセット
-        DBTREE::board_set_list_cookies_for_write( m_url, list_cookies );
-
         DBTREE::article_update_writetime( m_url );
         emit_sigfin();
         return;
@@ -379,7 +378,7 @@ void Post::receive_finish()
     else if( m_count < 1 && // 永久ループ防止
         ( title.find( "書き込み確認" ) != std::string::npos
           || tag_2ch.find( "cookie" ) != std::string::npos
-          || ( ! DBTREE::board_list_cookies_for_write( m_url ).size() && list_cookies.size() )
+          || ( empty_cookies && list_cookies.size() )
             ) ){
 
         clear();
@@ -412,9 +411,6 @@ void Post::receive_finish()
         const std::string& keyword = DBTREE::board_keyword_for_write( m_url );
         if( ! keyword.empty() && m_msg.find( keyword ) == std::string::npos ) m_msg += "&" + keyword;
 
-        // クッキーのセット
-        DBTREE::board_set_list_cookies_for_write( m_url, list_cookies );
-
         ++m_count; // 永久ループ防止
         post_msg();
 
@@ -432,9 +428,6 @@ void Post::receive_finish()
         const std::string& keyword = DBTREE::board_keyword_for_write( m_url );
         if( ! keyword.empty() && m_msg.find( keyword ) == std::string::npos ) m_msg += "&" + keyword;
 
-        // クッキーのセット
-        DBTREE::board_set_list_cookies_for_write( m_url, list_cookies );
-
         // subbbs.cgi にポスト先を変更してもう一回ポスト
         m_subbbs = true;
         ++m_count; // 永久ループ防止
@@ -446,13 +439,10 @@ void Post::receive_finish()
 
 #ifdef _DEBUG
     std::cout << "Error" << std::endl;
-    std::cout << m_errmsg << std::endl;
+    std::cout << m_return_html << std::endl;
 #endif        
 
-    // クッキー関係のエラーの時はクッキーをセット
-    if( tag_2ch.find( "cookie" ) != std::string::npos ) DBTREE::board_set_list_cookies_for_write( m_url, list_cookies );
-
-    MISC::ERRMSG( m_return_html );
+    MISC::ERRMSG( m_errmsg );
 
     set_code( HTTP_ERR );
     emit_sigfin();
