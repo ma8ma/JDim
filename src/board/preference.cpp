@@ -12,6 +12,7 @@
 
 #include "jdlib/misccharcode.h"
 #include "jdlib/misctime.h"
+#include "jdlib/miscutil.h"
 
 #include "config/globalconf.h"
 
