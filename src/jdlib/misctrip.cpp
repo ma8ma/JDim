@@ -13,7 +13,6 @@
 #include <sstream>
 #include <cstring>
 #include <ctype.h>
-#include <unistd.h> // crypt
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -27,8 +26,13 @@
 #  include <openssl/hmac.h>
 #endif
 
-#ifdef HAVE_CRYPT_H
-#include <crypt.h>
+// for crypt
+#if defined (USE_OPENSSL)
+#  include <openssl/des.h>
+#elif defined (HAVE_CRYPT_H)
+#  include <crypt.h>
+#else
+#  include <unistd.h>
 #endif
 
 
@@ -139,7 +143,16 @@ std::string create_trip_newtype( const std::string& key )
                     salt.append( ".." );
 
                     // crypt (key は先頭8文字しか使われない)
+#ifdef USE_OPENSSL
+                    char ret[14];
+                    const char *crypted = DES_fcrypt( key_binary, salt.c_str(), ret );
+#elif defined( _GNU_SOURCE )
+                    struct crypt_data crydat;
+                    crydat.initialized = 0;
+                    const char *crypted = crypt_r( key_binary, salt.c_str(), &crydat );
+#else
                     const char *crypted = crypt( key_binary, salt.c_str() );
+#endif
 
                     // 末尾から10文字(cryptの戻り値はnullptrでなければ必ず13文字)
                     if( crypted ) trip = std::string( crypted + 3 );
@@ -213,7 +226,16 @@ std::string create_trip_conventional( const std::string& key )
     salt.append( "H." );
 
     // crypt (key は先頭8文字しか使われない)
+#ifdef USE_OPENSSL
+    char ret[14];
+    const char *crypted = DES_fcrypt( key.c_str(), salt.c_str(), ret );
+#elif defined( _GNU_SOURCE )
+    struct crypt_data crydat;
+    crydat.initialized = 0;
+    const char *crypted = crypt_r( key.c_str(), salt.c_str(), &crydat );
+#else
     const char *crypted = crypt( key.c_str(), salt.c_str() );
+#endif
 
     std::string trip;
 
