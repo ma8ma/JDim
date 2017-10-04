@@ -24,6 +24,7 @@ namespace DBTREE
     {
         std::unique_ptr< JDLIB::Iconv > m_iconv;
         std::string m_decoded_lines;
+        int m_mode; // 読み込みモード
 
       public:
 
@@ -35,7 +36,13 @@ namespace DBTREE
         void clear() override;
         void init_loading() override;
         void create_loaderdata( JDLIB::LOADERDATA& data ) override;
+        char* process_raw_lines( char* rawlines, size_t& size ) override;
         const char* raw2dat( char* rawlines, int& byte ) override;
+
+      private:
+
+        void receive_finish() override;
+        void html2dat( char* lines );
     };
 }
 
