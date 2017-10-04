@@ -20,7 +20,7 @@
 
 enum
 {
-    SIZE_OF_HEAP = 256 * 1024,
+    SIZE_OF_HEAP = 512 * 1024,
 
     STEP_ID = 10,
     STEP_SEPARATOR = 1,
@@ -306,6 +306,8 @@ void LayoutTree::append_node( DBTREE::NODE* node_header, const bool joint )
     // 連結モード
     // 本文ブロックだけ追加
     if( joint ){
+        const int classid = CORE::get_css_manager()->get_classid( "mes" );
+        create_layout_div( classid );
         create_layout_br( m_last_dom_attr & CORE::DOMATTR_NOBR );
         append_block( headinfo->block[ DBTREE::BLOCK_MES ], res_number, nullptr, m_last_dom_attr );
     }
