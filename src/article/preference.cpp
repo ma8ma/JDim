@@ -14,6 +14,7 @@
 
 #include "cache.h"
 #include "command.h"
+#include "global.h"
 
 #include <list>
 #include <set>
