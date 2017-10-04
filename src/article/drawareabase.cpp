@@ -586,13 +586,15 @@ int DrawAreaBase::get_current_res_num()
 
     // 先頭のヘッダブロックから順に調べる
     LAYOUT* header = m_layout_tree->top_header();
-    while( header ){
+    LAYOUT* next_header = header ? header->next_header : nullptr;
+    while( next_header ){
 
         // y が含まれているブロックを探す
-        if( header->rect->y >= y ) return header->res_number -1;
+        if( next_header->rect->y >= y ) return header->res_number;
 
         // 次のブロックへ
-        header = header->next_header;
+        header = next_header;
+        next_header = header->next_header;
     }
 
     return max_number();
