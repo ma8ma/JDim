@@ -19,6 +19,16 @@ namespace MISC
         CHARCODE_UTF
     };
 
+    // get_ucstype()の戻り値
+    enum class UcsType
+    {
+        BasicLatin = 0,
+        Hira,
+        Kata,
+
+        Other,
+    };
+
     bool is_euc( const char* input, size_t& read_byte );
     bool is_jis( const char* input, size_t& read_byte );
     bool is_sjis( const char* input, size_t& read_byte );
@@ -33,6 +43,9 @@ namespace MISC
 
     // utf-8文字のbyte数
     int utf8bytes( const char* utfstr );
+
+    // ucs の種類
+    UcsType get_ucstype( const char32_t code );
 }
 
 #endif
