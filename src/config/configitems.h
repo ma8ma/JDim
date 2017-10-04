@@ -549,6 +549,9 @@ namespace CONFIG
         // 不正なMS932文字列をUTF-8と見なす
         bool broken_sjis_be_utf8;
 
+        // 不正な数値文字参照を無理矢理変換する
+        bool correct_character_reference;
+
         /////////////////////////
 
 
