@@ -357,3 +357,16 @@ char32_t MISC::utf8tocp( const char* utfstr, int& byte )
 
     return code;
 }
+
+
+//
+// ucs の種類
+//
+MISC::UcsType MISC::get_ucstype( const char32_t code )
+{
+    if( code <= 0x007f ) return UcsType::BasicLatin;
+    if( code >= 0x3040 && code <= 0x309f ) return UcsType::Hira;
+    if( code >= 0x30a0 && code <= 0x30ff ) return UcsType::Kata;
+
+    return UcsType::Other;
+}
