@@ -262,7 +262,7 @@ void Search_Manager::search_fin_title()
         const bool newline = true;
         const bool usemigemo = false;
         const bool wchar = false;
-        regex.compile( CONFIG::get_regex_search_title(), icase, newline, usemigemo, wchar );
+        const JDLIB::RegexPattern regexptn( CONFIG::get_regex_search_title(), icase, newline, usemigemo, wchar );
 
         std::list< std::string > lines = MISC::get_lines( m_searchloader->get_data() );
         std::list< std::string >::iterator it;
@@ -276,7 +276,7 @@ void Search_Manager::search_fin_title()
             if( line.find( "&" ) != std::string::npos ) line = MISC::replace_str( line, "&amp;", "&" );
 
             offset = 0;
-            while( regex.exec( line, offset ) ){
+            while( regex.match( regexptn, line, offset ) ){
 
                 SEARCHDATA data;
 

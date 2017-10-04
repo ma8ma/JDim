@@ -12,19 +12,17 @@
 
 #include <cstring>
 
-enum
-{
-    MAX_TARGET_SIZE = 64 * 1024,   // 全角半角変換のバッファサイズ
-    REGEX_MAX_NMATCH = 32
-};
+constexpr std::size_t MAX_TARGET_SIZE = 64 * 1024;  // 全角半角変換のバッファサイズ
+#if USE_REGEX_COMPAT
+constexpr std::size_t REGEX_MAX_NMATCH = 32;
+#endif
+
 
 using namespace JDLIB;
 
 
 RegexPattern::RegexPattern( const std::string& reg, const bool icase, const bool newline,
                             const bool usemigemo, const bool wchar, const bool norm )
-    : m_compiled( false )
-    , m_error( 0 )
 {
     set( reg, icase, newline, usemigemo, wchar, norm );
 }
@@ -131,15 +129,13 @@ bool RegexPattern::set( const std::string& reg, const bool icase, const bool new
 #ifdef HAVE_MIGEMO_H
 
     if( usemigemo ){
-        char *mgm_reg = jd_migemo_regcreate( asc_reg, cflags );
-        if( mgm_reg != NULL ){
+        const std::string mgm_reg = jd_migemo_regcreate( asc_reg );
+        if( !mgm_reg.empty() ){
 #if USE_REGEX_COMPAT
-            m_error = regcomp( &m_regex, mgm_reg, cflags );
-            free( mgm_reg );
+            m_error = regcomp( &m_regex, mgm_reg.c_str(), cflags );
             if( m_error != 0 ) regfree( &m_regex );
 #else
-            m_regex = g_regex_new( mgm_reg, GRegexCompileFlags( cflags ), GRegexMatchFlags( 0 ), &m_error );
-            free( mgm_reg );
+            m_regex = g_regex_new( mgm_reg.c_str(), GRegexCompileFlags( cflags ), GRegexMatchFlags( 0 ), &m_error );
             if( m_regex == NULL ) g_clear_error( &m_error );
 #endif
             else goto compile_done;
@@ -205,11 +201,7 @@ std::string RegexPattern::errstr() const
 
 ///////////////////////////////////////////////
 
-Regex::Regex() noexcept
-{
-    m_results.clear();
-    m_pos.clear();
-}
+Regex::Regex() noexcept = default;
 
 
 Regex::~Regex() noexcept = default;
@@ -299,7 +291,7 @@ bool Regex::match( const RegexPattern& creg, const std::string& target, const si
     if( ! creg.m_newline ){
 
         std::string target_copy = asc_target;
-        for( size_t i = 0; i < target_copy.size(); ++i ) if( target_copy[ i ] == '\n' ) target_copy[ i ] = ' ';
+        std::replace( target_copy.begin(), target_copy.end(), '\n', ' ' );
         if( regexec( &creg.m_regex, target_copy.c_str(), REGEX_MAX_NMATCH, pmatch, eflags ) != 0 ){
             return false;
         }
@@ -368,7 +360,7 @@ bool Regex::match( const RegexPattern& creg, const std::string& target, const si
 //
 // マッチした文字列と $0〜$9 or \0〜\9 を置換する
 //
-std::string Regex::replace( const std::string& repstr )
+std::string Regex::replace( const std::string& repstr ) const
 {
     if( repstr.empty() ) return repstr;
 
@@ -376,14 +368,14 @@ std::string Regex::replace( const std::string& repstr )
     const char* p1;
     std::string str_out;
 
-    while( ( p1 = strchr( p0, '\\' ) ) != NULL ){
+    while( ( p1 = strchr( p0, '\\' ) ) != nullptr ){
         int n = p1[ 1 ] - '0';
         str_out.append( p0, p1 - p0 );
         p0 = p1 + 2;
         if( n < 0 || n > 9 ){
             str_out.push_back( p1[ 1 ] );
         }
-        else if( m_results.size() > ( size_t )n && m_pos[ n ] != -1 ){
+        else if( m_results.size() > static_cast< size_t >( n ) && m_pos[ n ] != -1 ){
             str_out += m_results[ n ];
         }
     }
@@ -402,7 +394,7 @@ std::string Regex::str( const size_t num ) const
 }
 
 
-int Regex::pos( const size_t num ) const
+int Regex::pos( const size_t num ) const noexcept
 {
     if( m_results.size() > num ) return m_pos[ num ];
 

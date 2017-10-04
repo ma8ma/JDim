@@ -41,24 +41,24 @@ namespace JDLIB
 #else
         GRegex *m_regex;
 #endif
-        bool m_compiled;
+        bool m_compiled = false;
         bool m_newline;
         bool m_wchar;
         bool m_norm;
 #if USE_REGEX_COMPAT
-        int m_error;
+        int m_error = 0;
 #else
-        GError *m_error;
+        GError *m_error = nullptr;
 #endif
 
     public:
-        RegexPattern() : m_compiled( false ), m_error( 0 ){};
+        RegexPattern() noexcept = default;
         RegexPattern( const std::string& reg, const bool icase, const bool newline,
-                        const bool usemigemo = false, const bool wchar = false,
-                        const bool norm = false );
+                      const bool usemigemo = false, const bool wchar = false,
+                      const bool norm = false );
         ~RegexPattern();
 
-        // m_regexを複製する方法がないためcopy禁止にする
+        // regex_tを複製する方法がないためcopy禁止にする
         RegexPattern( const RegexPattern& ) = delete;
         RegexPattern& operator=( const RegexPattern& ) = delete;
         // moveは許可
@@ -69,7 +69,7 @@ namespace JDLIB
                         const bool usemigemo = false, const bool wchar = false,
                         const bool norm = false );
         void clear();
-        bool compiled() const { return m_compiled; }
+        bool compiled() const noexcept { return m_compiled; }
         std::string errstr() const;
     };
 
@@ -106,9 +106,9 @@ namespace JDLIB
         }
 
         // マッチした文字列と \0〜\9 を置換する
-        std::string replace( const std::string& repstr );
+        std::string replace( const std::string& repstr ) const;
 
-        int pos( const size_t num ) const;
+        int pos( const size_t num ) const noexcept;
         std::string str( const size_t num ) const;
     };
 }

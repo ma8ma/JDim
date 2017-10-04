@@ -2591,15 +2591,17 @@ bool BoardViewBase::drawout( const bool force_reset )
     unsorted_column();
 
     JDLIB::Regex regex;
-    const bool icase = true; // 大文字小文字区別しない
-    const bool newline = true; // . に改行をマッチさせない
-    const bool usemigemo = true; // migemo使用
-    const bool wchar = true;  // 全角半角の区別をしない
+    JDLIB::RegexPattern regexptn;
+    constexpr bool icase = true; // 大文字小文字区別しない
+    constexpr bool newline = true; // . に改行をマッチさせない
+    constexpr bool usemigemo = true; // migemo使用
+    constexpr bool wchar = false;  // 全角半角の区別をしない
+    constexpr bool norm = true; // Unicodeの互換文字を区別しない
 
     Gtk::TreeModel::Children child = m_liststore->children();
     Gtk::TreeModel::Children::iterator it = child.begin();
 
-    if ( ! reset ) regex.compile( query, icase, newline, usemigemo, wchar );
+    if ( ! reset ) regexptn.set( query, icase, newline, usemigemo, wchar, norm );
 
     for( ; it != child.end() ; ++it ){
 
@@ -2607,7 +2609,7 @@ bool BoardViewBase::drawout( const bool force_reset )
         const Glib::ustring subject = row[ m_columns.m_col_subject ];
 
         if( reset ) row[ m_columns.m_col_drawbg ] = false;
-        else if( regex.exec( subject, 0 ) ){
+        else if( regex.match( regexptn, subject, 0 ) ){
             row[ m_columns.m_col_drawbg ] = true;
             ++hit;
 
@@ -2675,11 +2677,12 @@ void BoardViewBase::exec_search()
 
     Gtk::TreePath path_start = path;
     JDLIB::Regex regex;
-    const size_t offset = 0;
-    const bool icase = true; // 大文字小文字区別しない
-    const bool newline = true; // . に改行をマッチさせない
-    const bool usemigemo = true; // migemo使用
-    const bool wchar = true;  // 全角半角の区別をしない
+    constexpr size_t offset = 0;
+    constexpr bool icase = true; // 大文字小文字区別しない
+    constexpr bool newline = true; // . に改行をマッチさせない
+    constexpr bool usemigemo = true; // migemo使用
+    constexpr bool wchar = false;  // 全角半角の区別をしない
+    constexpr bool norm = true; // Unicodeの互換文字を区別しない
 
 #ifdef _DEBUG
     std::cout << "BoardViewBase::search start = " << path_start.to_string() << " query = " <<  query << std::endl;
@@ -2705,7 +2708,7 @@ void BoardViewBase::exec_search()
         if( path == path_start ) break;
 
         Glib::ustring subject = get_name_of_cell( path, m_columns.m_col_subject );
-        if( regex.exec( query, subject, offset, icase, newline, usemigemo, wchar ) ){
+        if( regex.exec( query, subject, offset, icase, newline, usemigemo, wchar, norm ) ){
             m_treeview.scroll_to_row( path, 0 );
             m_treeview.set_cursor( path );
             return;
