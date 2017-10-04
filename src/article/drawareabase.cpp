@@ -4092,10 +4092,10 @@ bool DrawAreaBase::set_carets_dclick( CARET_POSITION& caret_left, CARET_POSITION
 
                 int byte_char_pointer;
                 const char32_t ucs_pointer = MISC::utf8tocp( layout->text + pos, byte_char_pointer );
-                const int ucstype_pointer = MISC::get_ucs2mode( ucs_pointer );
+                const MISC::UcsType ucstype_pointer = MISC::get_ucstype( ucs_pointer );
 #ifdef _DEBUG
                 std::cout << "ucs = " << std::hex << ucs_pointer << std::dec
-                          << " type = " << ucstype_pointer << " pos = " << pos << std::endl;
+                          << " type = " << static_cast< int >( ucstype_pointer ) << " pos = " << pos << std::endl;
 #endif
 
                 // 区切り文字をダブルクリックした
@@ -4112,11 +4112,11 @@ bool DrawAreaBase::set_carets_dclick( CARET_POSITION& caret_left, CARET_POSITION
 
                     int byte_char;
                     const char32_t ucs = MISC::utf8tocp( layout->text + pos_tmp, byte_char );
-                    const int ucstype = MISC::get_ucs2mode( ucs );
+                    const MISC::UcsType ucstype = MISC::get_ucstype( ucs );
 
                     int byte_char_next;
                     const char32_t ucs_next = MISC::utf8tocp( layout->text + pos_tmp + byte_char, byte_char_next );
-                    const int ucstype_next = MISC::get_ucs2mode( ucs_next );
+                    const MISC::UcsType ucstype_next = MISC::get_ucstype( ucs_next );
 
                     // 区切り文字が来たら左位置を移動する
                     if( ucs_next == '\0' || is_separate_char( ucs )
@@ -4134,11 +4134,11 @@ bool DrawAreaBase::set_carets_dclick( CARET_POSITION& caret_left, CARET_POSITION
 
                     int byte_char;
                     const char32_t ucs = MISC::utf8tocp( layout->text + pos_right, byte_char );
-                    const int ucstype = MISC::get_ucs2mode( ucs );
+                    const MISC::UcsType ucstype = MISC::get_ucstype( ucs );
 
                     int byte_char_next;
                     const char32_t ucs_next = MISC::utf8tocp( layout->text + pos_right + byte_char, byte_char_next );
-                    const int ucstype_next = MISC::get_ucs2mode( ucs_next );
+                    const MISC::UcsType ucstype_next = MISC::get_ucstype( ucs_next );
 
                     // 区切り文字が来たらbreak
                     if( is_separate_char( ucs ) ) break;
