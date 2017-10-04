@@ -1790,6 +1790,54 @@ void MISC::asc( const char* str1, std::string& str2, std::vector< int >& table_p
 
 
 //
+// UTF-8文字列の正規化(NFKD)
+//
+// str1 : 変換する文字列
+// str2 : 出力先
+// table_pos : 置き換えた文字列の位置
+//
+void MISC::norm( const char* str1, std::string& str2, std::vector<int>* table_pos )
+{
+    std::size_t pos = 0;
+    Glib::ustring ustr;
+
+    while( str1[ pos ] != '\0' ) {
+
+        ustr.assign( str1 + pos, std::size_t( 1u ) );
+        if( ustr.bytes() <= 1 ) {
+            str2.push_back( str1[ pos ] );
+            if( table_pos ) table_pos->push_back( pos );
+            pos++;
+            continue;
+        }
+
+        // 異字体は纏める
+        constexpr gssize nul_terminated = -1;
+        const char32_t next = g_utf8_get_char_validated( str1 + pos + ustr.bytes(), nul_terminated );
+        if( ( 0x180B <= next && next <= 0x180D ) ||
+            ( 0xFE00 <= next && next <= 0xFE0F ) ||
+            ( 0xE0100 <= next && next <= 0xE01EF ) ) {
+            ustr.push_back( next );
+        }
+
+        const std::size_t lng_before = str2.size();
+        str2.append( ustr.normalize( Glib::NORMALIZE_NFKD ) );
+        if( table_pos ) {
+            std::size_t n = pos;
+            std::generate_n( std::back_inserter( *table_pos ), str2.size() - lng_before, [&n] { return n++; } );
+        }
+
+        pos += ustr.bytes();
+    }
+    // 文字列の終端（ヌル文字）の位置を追加する。
+    // ヌル文字の位置がないと検索対象の末尾にマッチングしたとき範囲外アクセスが発生する。
+    if( table_pos ) {
+        table_pos->push_back( pos );
+    }
+}
+
+
+//
 // selfの先頭部分がstartsと等しいか（ヌル終端文字列バージョン）
 // Unicode正規化は行わなずバイト列として比較する
 //
