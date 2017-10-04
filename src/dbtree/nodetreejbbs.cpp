@@ -7,13 +7,15 @@
 #include "interface.h"
 
 #include "jdlib/jdiconv.h"
+#include "jdlib/miscutil.h"
 #include "jdlib/loaderdata.h"
 
 #include "config/globalconf.h"
 
-#include "global.h"
+#include "httpcode.h"
+#include "session.h"
 
-#include <sstream>
+#include <strings.h>
 
 
 #define APPEND_SECTION( num ) do {\
@@ -26,8 +28,16 @@ m_decoded_lines.append( lines + pos_sec[ num ], lng_sec[ num ] ); \
 using namespace DBTREE;
 
 
+enum
+{
+    MODE_NORMAL = 0,
+    MODE_KAKO
+};
+
+
 NodeTreeJBBS::NodeTreeJBBS( const std::string& url, const std::string& date_modified )
     : NodeTreeBase( url, date_modified )
+    , m_mode( MODE_NORMAL )
 {
 #ifdef _DEBUG
     std::cout << "NodeTreeJBBS::NodeTreeJBBS url = " << get_url() << " modified = " << date_modified << std::endl;
@@ -91,14 +101,13 @@ void NodeTreeJBBS::init_loading()
 //
 void NodeTreeJBBS::create_loaderdata( JDLIB::LOADERDATA& data )
 {
-    std::stringstream ss;
-    ss << get_url() << "/";
+    if( m_mode == MODE_KAKO ) data.url = MISC::replace_str( get_url(), "rawmode", "read_archive" ) + "/";
+    else data.url = get_url() + "/";
+    if( id_header() ) data.url += std::to_string( id_header() + 1 ) + "-";
 
-    // レジュームはしない代わりにスレを直接指定
+    // レジュームはしない
     set_resume( false );
-    if( id_header() ) ss << id_header() + 1 << "-";
 
-    data.url = ss.str();
     data.agent = DBTREE::get_agent( get_url() );
     data.host_proxy = DBTREE::get_proxy_host( get_url() );
     data.port_proxy = DBTREE::get_proxy_port( get_url() );
@@ -112,6 +121,52 @@ void NodeTreeJBBS::create_loaderdata( JDLIB::LOADERDATA& data )
 #ifdef _DEBUG    
     std::cout << "NodeTreeJBBS::create_loader : " << data.url << std::endl;
 #endif
+}
+
+
+//
+// キャッシュに保存する前の前処理
+//
+char* NodeTreeJBBS::process_raw_lines( char* rawlines, size_t& size )
+{
+    if( m_mode == MODE_KAKO ) html2dat( rawlines );
+
+    return rawlines;
+}
+
+
+//
+// ロード完了
+//
+void NodeTreeJBBS::receive_finish()
+{
+#ifdef _DEBUG
+    std::cout << "NodeTreeJBBS::receive_finish : " << get_url() << std::endl
+              << "mode = " << m_mode << " code = " << get_code() << std::endl;
+#endif
+
+    // 更新チェックではない、オンラインの場合はログ倉庫から取得出来るか試みる
+    if( ! is_checking_update() && SESSION::is_online()
+            && m_mode == MODE_NORMAL && get_error() == "STORAGE IN" ){
+
+        m_mode = MODE_KAKO;
+#ifdef _DEBUG
+        std::cout << "switch mode to " << m_mode << std::endl;
+#endif
+        set_date_modified( std::string() );
+        download_dat( false );
+        return;
+    }
+
+    if( ! get_error().empty() ) set_str_code( get_error() );
+
+    // 過去ログから読み込んだ場合は DAT 落ちにする
+    if( m_mode != MODE_NORMAL ){
+        set_code( HTTP_OLD );
+    }
+
+    NodeTreeBase::receive_finish();
+    m_mode = MODE_NORMAL;
 }
 
 
@@ -248,4 +303,165 @@ const char* NodeTreeJBBS::raw2dat( char* rawlines, int& byte )
 #endif
 
     return m_decoded_lines.c_str();
+}
+
+
+void NodeTreeJBBS::html2dat( char* lines )
+{
+    char* pd( lines );
+    char* nextline( lines );
+    char* pos;
+    std::string title;
+    int num_next = id_header() + 1;
+
+    while( (pos = strchr( nextline, '\n' ) ) != NULL ){
+        *pos = '\0';
+        char* ps = nextline;
+        nextline = pos + 1;
+        if( ( pos = strstr( ps, "<dt><a name=\"" ) ) == NULL ){
+            if( ( pos = strstr( ps, "<title>" ) ) != NULL ){
+                // title
+                pos += 7;
+                char* epos;
+                if( ( epos = strstr( pos, "</title>" ) ) != NULL )
+                    title.assign( pos, epos - pos );
+            }
+        }
+        else{
+            int num;
+            pos += 13;
+
+            // number
+            while( *pos != '>' && *pos != '\0' ) ++pos;
+            if( *pos == '\0' ) continue;
+            ps = pos + 1;
+            pos = strstr( ps, "</a>" );
+            if( pos == NULL || *pos == '\0' ) continue;
+            *pos = '\0';
+            num = atoi( ps );
+
+            // 既に読み込んでいる場合は飛ばす
+            if( num < num_next ) continue;
+
+            while( ps != pos ) *(pd++) = *(ps++);
+            if( *( pd - 1 ) == ' ' ) --pd;
+            *(pd++) = '<'; *(pd++) = '>';
+            pos += 4;
+            while( *pos != '<' && *pos != '\0' ) ++pos;
+            if( *pos == '\0' ) continue;
+            ps = pos;
+
+            // mail
+            std::string mail;
+            if( memcmp( ps, "<a href=\"mailto:", 16 ) == 0 ){
+                pos = ps + 16;
+                while( *pos != '\"' && *pos != '\0' ) mail.push_back( *pos++ );
+                if( *pos == '\0' ) continue;
+                while( *pos != '>' && *pos != '\0' ) ++pos;
+                if( *pos == '\0' ) continue;
+                else ++pos;
+                ps = pos;
+            }
+
+            char* body;
+            if( ( body = strstr( ps, "<dd>" ) ) == NULL ) continue;
+            else *body = '\0';
+
+            // name
+            if( memcmp( ps, "<font color=\"#008800\">", 22 ) == 0 ) ps += 22;
+            if( memcmp( ps, "<b>", 3 ) == 0 ) ps += 3;
+            pos = body;
+            while( pos != ps && !( *pos == '\241' && *( pos + 1 ) == '\247' ) ) --pos;
+            if( pos == ps ) continue;
+            char* date = pos + 2;
+            while( pos != ps && !( *pos == ' ' && *( pos + 1 ) == '\305'
+                                    && *( pos + 2 ) == '\352' ) ) --pos;
+            if( pos == ps ) pos = date - 2;
+            if( *ps == ' ' ) ++ps;
+            memmove( pd, ps, pos - ps ); pd += pos - ps;
+            if( strncasecmp( pd - 7, "</font>", 7 ) == 0 ) pd -= 7;
+            if( strncasecmp( pd - 4, "</a>", 4 ) == 0 ) pd -= 4;
+            if( strncasecmp( pd - 4, "</b>", 4 ) == 0 ) pd -= 4;
+            if( *( pd - 1 ) == ' ' ) --pd;
+            *(pd++) = '<'; *(pd++) = '>';
+            mail.copy( pd, mail.length() );
+            pd += mail.length();
+            *(pd++) = '<'; *(pd++) = '>';
+            ps = date;
+            if( *ps == ' ' ) ++ps;
+
+            // date
+            pos = strstr( ps, " ID:" );
+            if( pos == NULL ) pos = strstr( ps, " <!--" );
+            if( pos == NULL || *pos == '\0' ) pos = body;
+            memmove( pd, ps, pos - ps );
+            pd += pos - ps;
+            if( *( pd - 1 ) == ' ' ) --pd;
+            if( strncasecmp( pd - 4, "<br>", 4 ) == 0 ) pd -= 4;
+            *(pd++) = '<'; *(pd++) = '>';
+
+            // id
+            std::string id;
+            if( pos != body ){
+                pos += 4;
+                if( *pos == '-' ) pos += 4;
+                ps = pos;
+                while( *pos != ' ' && *pos != '\0' ) ++pos;
+                *pos = '\0';
+                id = ps;
+                if( ! id.empty() && id.back() == ' ' ) id.pop_back();
+            }
+            ps = body + 4;
+            if( *ps == ' ' ) ++ps;
+
+            // message
+            while( ( pos = strchr( ps, '<' ) ) != NULL ){
+
+                if( pos != ps ){
+                    memmove( pd, ps, pos - ps );
+                    pd += pos - ps;
+                    ps = pos;
+                }
+
+                else if( ( memcmp( ps, "<a href=\"", 9 ) == 0 )
+                        && ( *( ps + 9 ) != '.' && *( ps + 9 ) != '/' ) ){
+                    // 外部リンクのURL
+                    if( ( pos = strchr( ps + 9, '>' ) ) != NULL ){
+                        ps = pos + 1;
+                        if( ( pos = strstr( ps, "</a>" ) ) != NULL ){
+                            memmove( pd, ps, pos - ps );
+                            pd += pos - ps;
+                            ps = pos + 4;
+                        }
+                    }
+                }
+
+                else {
+                    *(pd++) = '<';
+                    ps += 1;
+                }
+            }
+
+            pos = ps;
+            while( *pos != '\0' ) *(pd++) = *(pos++);
+            if( memcmp( pd - 8, "<br><br>", 8 ) == 0 ) pd -= 8;
+            if( *( pd - 1 ) == ' ' ) --pd;
+            *(pd++) = '<'; *(pd++) = '>';
+
+            if( num == 1 ){
+                title.copy( pd, title.length() );
+                pd += title.length();
+            }
+            *(pd++) = '<'; *(pd++) = '>';
+
+            if( ! id.empty() ){
+                id.copy( pd, id.length() );
+                pd += id.length();
+            }
+
+            *(pd++) = '\n';
+            num_next = num + 1;
+        }
+    }
+    *pd = '\0';
 }
