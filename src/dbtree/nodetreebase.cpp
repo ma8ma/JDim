@@ -1090,8 +1090,7 @@ NODE* NodeTreeBase::append_html( const std::string& html )
 
     const bool digitlink = false;
     const bool bold = false;
-    const bool ahref = true;
-    parse_html( html.c_str(), html.length(), COLOR_CHAR, digitlink, bold, ahref );
+    parse_html( html.c_str(), html.length(), COLOR_CHAR, digitlink, bold );
 
     clear();
 
@@ -1647,7 +1646,7 @@ const char* NodeTreeBase::add_one_dat_line( const char* datline )
         const char* str = section[ 3 ];
         int lng_msg = section_lng[ 3 ];
 
-        parse_html( str, lng_msg, COLOR_CHAR, digitlink, bold, false );
+        parse_html( str, lng_msg, COLOR_CHAR, digitlink, bold );
     }
 
     // 壊れている
@@ -1661,7 +1660,7 @@ const char* NodeTreeBase::add_one_dat_line( const char* datline )
         m_broken = true;
 
         if( i <= 2 ) header->headinfo->block[ BLOCK_MES ] = create_node_block();
-        parse_html( "<br> <br> 壊れています<br>", 32, COLOR_CHAR, digitlink, true, false );
+        parse_html( "<br> <br> 壊れています<br>", 32, COLOR_CHAR, digitlink, true );
 
         const char str_broken[] = "ここ";
         create_node_link( str_broken, strlen( str_broken ) , PROTO_BROKEN, strlen( PROTO_BROKEN ), COLOR_CHAR_LINK, COLOR_NONE, false );
@@ -1714,7 +1713,6 @@ const char* NodeTreeBase::add_one_dat_line( const char* datline )
 //
 void NodeTreeBase::parse_name( NODE* header, const char* str, const int lng, const int color_name )
 {
-    const bool ahref = false;
     std::string str_name;
     int lng_name = lng;
 
@@ -1739,7 +1737,7 @@ void NodeTreeBase::parse_name( NODE* header, const char* str, const int lng, con
     if( defaultname ){
         constexpr bool digitlink = false;
         constexpr bool bold = true;
-        parse_html( str, lng_name, color_name, digitlink, bold, ahref );
+        parse_html( str, lng_name, color_name, digitlink, bold );
     }
     else{
 
@@ -1759,10 +1757,9 @@ void NodeTreeBase::parse_name( NODE* header, const char* str, const int lng, con
             // </b>の前までパース
             if( i != pos ){
                 // デフォルト名無しと同じときはアンカーを作らない
-                const size_t len = m_default_noname.size();
-                const bool digitlink = m_default_noname.compare( 0, len, str + pos, len );
+                const bool digitlink = ( strncmp( m_default_noname.data(), str + pos, i - pos ) != 0 );
                 constexpr bool bold = true;
-                parse_html( str + pos, i - pos, color_name, digitlink, bold, ahref );
+                parse_html( str + pos, i - pos, color_name, digitlink, bold );
             }
             if( i >= lng_name ) break;
             pos = i;
@@ -1790,7 +1787,7 @@ void NodeTreeBase::parse_name( NODE* header, const char* str, const int lng, con
             // </b><b>の中をパース
             constexpr bool digitlink = false; // 数字が入ってもリンクしない
             constexpr bool bold = false;
-            parse_html( str + pos, pos_end - pos, COLOR_CHAR_NAME_B, digitlink, bold, ahref );
+            parse_html( str + pos, pos_end - pos, COLOR_CHAR_NAME_B, digitlink, bold );
 
             pos = pos_end;
         }
@@ -1837,10 +1834,9 @@ void NodeTreeBase::parse_mail( NODE* header, const char* str, const int lng )
     else{
         const bool digitlink = true;
         const bool bold = false;
-        const bool ahref = false;
 
         create_node_text( "[", color );
-        parse_html( str, lng_mail, color, digitlink, bold, ahref );
+        parse_html( str, lng_mail, color, digitlink, bold );
         create_node_text( "]", color );
     }
 }
@@ -1898,7 +1894,7 @@ void NodeTreeBase::parse_date_id( NODE* header, const char* str, const int lng )
 
             // フラッシュ
             if( lng_text ){
-                parse_html( str + start, lng_text, COLOR_CHAR, digitlink, bold, false );
+                parse_html( str + start, lng_text, COLOR_CHAR, digitlink, bold );
             }
 
             int offset = 0;
@@ -1946,7 +1942,7 @@ void NodeTreeBase::parse_date_id( NODE* header, const char* str, const int lng )
 
             // フラッシュ
             if( lng_text ){
-                parse_html( str + start, lng_text, COLOR_CHAR, digitlink, bold, false );
+                parse_html( str + start, lng_text, COLOR_CHAR, digitlink, bold );
             }
 
             // id 取得
@@ -1982,7 +1978,7 @@ void NodeTreeBase::parse_date_id( NODE* header, const char* str, const int lng )
 
             // フラッシュ
             if( lng_text ){
-                parse_html( str + start, lng_text, COLOR_CHAR, digitlink, bold, false );
+                parse_html( str + start, lng_text, COLOR_CHAR, digitlink, bold );
             }
 
             // </a>までブロックの長さを伸ばす
@@ -1999,8 +1995,7 @@ void NodeTreeBase::parse_date_id( NODE* header, const char* str, const int lng )
 
             const bool digitlink = false;
             const bool bold = false;
-            const bool ahref = true;
-            parse_html( str + start_block, lng_block, COLOR_CHAR, digitlink, bold, ahref );
+            parse_html( str + start_block, lng_block, COLOR_CHAR, digitlink, bold );
 
             // 次のブロックへ移動
             start = start_block + lng_block;
@@ -2017,7 +2012,7 @@ void NodeTreeBase::parse_date_id( NODE* header, const char* str, const int lng )
             if( ( no_date || lng_block == 1 ) && ! header->headinfo->block[ BLOCK_ID_NAME ] ){
                 if( lng_text ){
                     // フラッシュ
-                    parse_html( str + start, lng_text, COLOR_CHAR, digitlink, bold, false );
+                    parse_html( str + start, lng_text, COLOR_CHAR, digitlink, bold );
                     lng_text = 0;
                 }
 
@@ -2035,7 +2030,7 @@ void NodeTreeBase::parse_date_id( NODE* header, const char* str, const int lng )
     if( lng_text ){
         // 末端の空白を削ってフラッシュ
         while( lng_text > 0 && str[ start + lng_text - 1 ] == ' ' ) --lng_text;
-        parse_html( str + start, lng_text, COLOR_CHAR, digitlink, bold, false );
+        parse_html( str + start, lng_text, COLOR_CHAR, digitlink, bold );
     }
 }
 
@@ -2048,8 +2043,7 @@ void NodeTreeBase::parse_date_id( NODE* header, const char* str, const int lng )
 //
 // bold : ボールド表示
 //
-// ahref : <a href=～></a> からリンクノードを作成する
-// (例) parse_html( "<a href=\"hoge.com\">hoge</a>", 27, COLOR_CHAR, false, false );
+// (例) parse_html( "<a href=\"hoge.com\">hoge</a>", 27, COLOR_CHAR, false );
 //
 // (パッチ)
 //
@@ -2057,8 +2051,7 @@ void NodeTreeBase::parse_date_id( NODE* header, const char* str, const int lng )
 // Thanks to 「パッチ投稿スレ」の28氏
 // http://jd4linux.sourceforge.jp/cgi-bin/bbs/test/read.cgi/support/1151836078/28
 //
-void NodeTreeBase::parse_html( const char* str, const int lng, const int color_text,
-                               bool digitlink, const bool bold, const bool ahref )
+void NodeTreeBase::parse_html( const char* str, const int lng, const int color_text, bool digitlink, const bool bold )
 {
     const char* pos = str;
     const char* pos_end = str + lng;
@@ -2118,9 +2111,8 @@ create_multispace:
                 && ( *( pos + 2 ) == 'r' || *( pos + 2 ) == 'R' )
                 ) br = true;
 
-            //  ahref == true かつ <a href=～></a>
-            else if( ahref &&
-                     ( *( pos + 1 ) == 'a' || *( pos + 1 ) == 'A' ) && *( pos + 2 ) == ' ' ){
+            //  <a href=～></a>
+            else if( ( *( pos + 1 ) == 'a' || *( pos + 1 ) == 'A' ) && *( pos + 2 ) == ' ' ){
 
                 // フラッシュ
                 create_node_ntext( m_parsed_text, lng_text, fgcolor, bgcolor, in_bold ); lng_text = 0;
