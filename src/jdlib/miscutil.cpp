@@ -351,13 +351,15 @@ std::string MISC::remove_spaces( const std::string& str )
 
     // 最後の文字の位置は文字数より1少ない
     size_t p = r - 1;
-    while( p > 0
+    while( p > l
          && ( str[p] == '\n'
            || str[p] == '\r'
            || str[p] == '\t'
-           || str[p] == ' ' ) ){ --p; --r; }
+           || str[p] == ' ' ) ) --p;
 
-    return str.substr( l, r - l );
+    if( l == 0 && p == r - 1 ) return str;
+
+    return str.substr( l, p + 1 - l );
 }
 
 
@@ -454,8 +456,8 @@ std::list< std::string > MISC::replace_str_list( const std::list< std::string >&
                                                  const std::string& str1, const std::string& str2 )
 {
     std::list< std::string > list_out;
-    std::list< std::string >::const_iterator it = list_in.begin();
-    for( ; it != list_in.end(); ++it ) list_out.push_back( replace_str( *it, str1, str2 ) );
+    std::transform( list_in.cbegin(), list_in.cend(), std::back_inserter( list_out ),
+                    [&]( const std::string& s ) { return MISC::replace_str( s, str1, str2 ); } );
     return list_out;
 }
 
@@ -837,11 +839,11 @@ std::string MISC::html_escape( const std::string& str, const bool include_url )
         {
             // URLとして扱うかどうか
             // エスケープには影響がないので loose_url としておく
-            if( scheme != SCHEME_NONE ) is_url = is_url_char( str.c_str() + pos, true );
+            if( scheme != SCHEME_NONE ) is_url = MISC::is_url_char( str.c_str() + pos, true );
 
             // URLスキームが含まれているか判別
             int len = 0;
-            if( ! is_url ) scheme = is_url_scheme( str.c_str() + pos, &len );
+            if( ! is_url ) scheme = MISC::is_url_scheme( str.c_str() + pos, &len );
 
             // URLスキームが含まれていた場合は文字数分進めてループに戻る
             if( len > 0 )
@@ -871,7 +873,8 @@ std::string MISC::html_escape( const std::string& str, const bool include_url )
 
 #ifdef _DEBUG
     if( str != str_out ){
-        std::cout << "MISC::html_escape\nstr = " << str << std::endl
+        std::cout << "MISC::html_escape" << std::endl
+                  << "str = " << str << std::endl
                   << "out = " << str_out << std::endl;
     }
 #endif
