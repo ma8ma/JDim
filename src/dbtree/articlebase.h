@@ -149,8 +149,8 @@ namespace DBTREE
         int get_number_new() const { return m_number_new; }
         int get_number_load() const { return m_number_load; }
         int get_number_seen() const {  return m_number_seen; }
+        int get_number_max() const { return m_number_max; }
 
-        void set_number_max( const int number ){ m_number_max = number; }
 
         // スレ速度
         int get_speed();
@@ -293,6 +293,7 @@ namespace DBTREE
         void set_number( const int number, const bool is_online );
         void set_number_load( const int number_load );
         void set_number_seen( const int number_seen );
+        void set_number_max( const int number_max );
         void update_writetime();
 
         // キャッシュ削除
