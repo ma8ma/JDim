@@ -664,15 +664,11 @@ Dom* Dom::lastChild() const
 //
 Dom* Dom::appendChild( const int node_type, const std::string& node_name )
 {
-    Dom* node = nullptr;
-    
-    {
-        node = new Dom( node_type, node_name, m_html );
+    Dom* node = new Dom( node_type, node_name, m_html );
 
-        node->parentNode( this );
+    node->parentNode( this );
 
-        m_childNodes.push_back( node );
-    }
+    m_childNodes.push_back( node );
 
     return node;
 }
