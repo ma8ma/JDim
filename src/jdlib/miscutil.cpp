@@ -1697,3 +1697,53 @@ void MISC::asc( const char* str1, std::string& str2, std::vector< int >& table_p
         ++pos;
     }
 }
+
+
+//
+// UTF8文字列の正規化
+//
+// str1 : 変換する文字列
+// str2 : 出力先
+// table_pos : 置き換えた文字列の位置
+//
+void MISC::norm( const char* str1, std::string& str2, std::vector< int >* table_pos )
+{
+    size_t pos1 = 0;
+    Glib::ustring ustr;
+    std::string str_norm;
+
+    while( str1[ pos1 ] != '\0' ){
+
+        int nbytes = MISC::utf8bytes( str1 + pos1 );
+        if( nbytes <= 1 ){
+            str2.push_back( str1[ pos1 ] );
+            if( table_pos ) table_pos->push_back( pos1 );
+            pos1++;
+            continue;
+        }
+
+        // 異字体は纏める
+        int lng;
+        const char32_t next = MISC::utf8tocp( str1 + pos1 + nbytes, lng );
+        size_t nchars = 1;
+        if( ( next >= 0x180b && next <= 0x180d ) ||
+            ( next >= 0xfe00 && next <= 0xfe0f ) ||
+            ( next >= 0xe0100 && next <= 0xe01ef ) ){
+            nchars++;
+            nbytes += lng;
+        }
+
+        ustr.assign( str1 + pos1, nchars );
+        str_norm.assign( ustr.normalize( Glib::NORMALIZE_NFKD ) );
+
+        lng = str_norm.length();
+
+        std::copy( str_norm.begin(), str_norm.end(), std::back_inserter( str2 ) );
+        if( table_pos ){
+            table_pos->push_back( pos1 );
+            std::fill_n( std::back_inserter( *table_pos ), lng -1, -1 );
+        }
+
+        pos1 += nbytes;
+    }
+}
