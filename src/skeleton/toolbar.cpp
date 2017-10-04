@@ -72,8 +72,15 @@ void ToolBar::set_view( SKELETON::View* view )
     set_url( view->get_url() );
 
     // ラベル表示更新
-    set_label( view->get_label() );
-    if( view->is_broken() || view->is_old() || view->is_overflow() ) set_color( view->get_color() );
+    set_label( view->get_label(), view->get_label_use_markup() );
+    if( m_tool_label ){
+        if( view->get_tooltip_label().empty() )
+            set_tooltip( *m_tool_label, view->get_label(), view->get_label_use_markup() );
+        else
+            set_tooltip( *m_tool_label, view->get_tooltip_label(), view->get_label_use_markup() );
+    }
+    if( CONFIG::get_change_statitle_color() && ( view->is_broken() || view->is_old() ) )
+        set_color( view->get_color() );
 
     // 閉じるボタンの表示更新
     if( m_button_close ){
@@ -240,9 +247,10 @@ void ToolBar::pack_transparent_separator()
 //
 // ツールチップ
 //
-void ToolBar::set_tooltip( Gtk::ToolItem& toolitem, const std::string& tip )
+void ToolBar::set_tooltip( Gtk::ToolItem& toolitem, const std::string& tip, const bool use_markup )
 {
-    toolitem.set_tooltip_text( tip );
+    if( use_markup ) toolitem.set_tooltip_markup( tip );
+    else toolitem.set_tooltip_text( tip );
 }
 
 
@@ -289,12 +297,12 @@ Gtk::ToolItem* ToolBar::get_label()
 }
 
 
-void ToolBar::set_label( const std::string& label )
+void ToolBar::set_label( const std::string& label, const bool use_markup )
 {
     if( ! m_ebox_label ) return;
 
     m_label->set_text( label );
-    if( m_tool_label ) set_tooltip( *m_tool_label, label );
+    m_label->set_use_markup( use_markup );
     set_color( "" );
 }
 
