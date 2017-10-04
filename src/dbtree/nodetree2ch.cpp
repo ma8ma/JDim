@@ -28,6 +28,7 @@ enum
     MODE_CGI,
     MODE_KAKO_GZ,
     MODE_KAKO,
+    MODE_KAKO_EXT,
 };
 
 
@@ -176,6 +177,21 @@ void NodeTree2ch::create_loaderdata( JDLIB::LOADERDATA& data )
         else set_resume( false );
     }
 
+    else if( m_mode == MODE_KAKO_EXT ){
+        if( ! regex.exec( "https?://([^./]+)\\.[^/]+/(.*)/dat/(.*)\\.dat$", m_org_url, offset, icase, newline, usemigemo, wchar ) ) return;
+
+        std::string cmd = CONFIG::get_url_external_log();
+        cmd = MISC::replace_str( cmd, "$OLDHOST", regex.str( 1 ) );
+        cmd = MISC::replace_str( cmd, "$BBSNAME", regex.str( 2 ) );
+        cmd = MISC::replace_str( cmd, "$DATNAME", regex.str( 3 ) );
+
+        data.url = cmd;
+
+        // レジューム設定
+        if( get_lng_dat() ) set_resume( true );
+        else set_resume( false );
+    }
+
     // 普通の読み込み
     else{
 
@@ -276,6 +292,9 @@ void NodeTree2ch::receive_finish()
 
         // 過去ログ倉庫
         else if( m_mode == MODE_KAKO_GZ ) m_mode = MODE_KAKO;
+
+        // 外部のログ保存サービス
+        else if( m_mode != MODE_KAKO_EXT && CONFIG::get_use_external_log() ) m_mode = MODE_KAKO_EXT;
 
         // 失敗
         else m_mode = MODE_NORMAL;
