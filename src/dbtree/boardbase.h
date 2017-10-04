@@ -450,7 +450,7 @@ namespace DBTREE
         const std::list< std::string >& get_abone_list_regex_thread(){ return m_list_abone_regex_thread; }
         int get_abone_min_number_thread() { return m_abone_min_number_thread; }
         int get_abone_max_number_thread() { return m_abone_max_number_thread; }
-        int get_abone_hour_thread(){ return m_abone_hour_thread; }
+        int get_abone_hour_thread() { return m_abone_hour_thread; }
 
         // subject.txtのロード後にdat落ちしたスレッドをスレあぼーんのリストから取り除く
         void remove_old_abone_thread();
