@@ -53,6 +53,7 @@ void Loadable::clear_load_data()
     m_date_modified = std::string();
     m_cookies.clear();
     m_location = std::string();
+    m_error = std::string();
     m_total_length = 0;
     m_current_length = 0;
 }
@@ -116,6 +117,7 @@ bool Loadable::start_load( const JDLIB::LOADERDATA& data )
     m_code = HTTP_INIT;
     m_str_code = std::string();
     m_location = std::string();
+    m_error = std::string();
     m_total_length = 0;
     m_current_length = 0;
 
@@ -185,6 +187,7 @@ void Loadable::callback_dispatch()
     if( ! get_loader_modified().empty() ) m_date_modified = get_loader_modified();
     if( ! get_loader_cookies().empty() ) m_cookies = get_loader_cookies();
     if( ! get_loader_location().empty() ) m_location = get_loader_location();
+    if( ! get_loader_error().empty() ) m_error = get_loader_error();
 
     const CharCode charcode = get_loader_content_charset();
     if( charcode != CHARCODE_UNKNOWN ) set_charcode( charcode );
@@ -266,6 +269,13 @@ size_t Loadable::get_loader_length() const
     if( ! m_loader ) return 0;
 
     return m_loader->data().length;
+}
+
+std::string Loadable::get_loader_error() const
+{
+    if( ! m_loader ) return std::string();
+
+    return m_loader->data().error;
 }
 
 
