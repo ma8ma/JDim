@@ -63,7 +63,8 @@ namespace DBTREE
         void download_rule_setting() override;
 
         // レス数であぼーん(グローバル)
-        int get_abone_number_global() override;
+        int get_abone_min_number_global() override;
+        int get_abone_max_number_global() override;
 
         // htmlからキーワードを解析する
         std::string analyze_keyword_impl( const std::string& html );
