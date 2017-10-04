@@ -1691,8 +1691,9 @@ void ArticleViewBase::show_id( const std::string& id_name, const bool show_optio
     comment << raw_id << "  " << list_resnum.size() << " 件<br>";
     comment << "総参照数:" << m_article->get_res_reference( list_resnum ).size() << " 件";
 
+#if 0
     // 末尾判定
-    if( raw_id.length() == 9 ){
+    if( raw_id.length() == 12 ){
 
         char c = raw_id.c_str()[ 8 ];
         switch( c ){
@@ -1706,6 +1707,7 @@ void ArticleViewBase::show_id( const std::string& id_name, const bool show_optio
             case '0': comment << "<br>末尾:" << c << " PC";  break;
         }
     }
+#endif
 
     if( show_option && ! list_resnum.empty() ){
         if( !m_show_url4report ) comment << "<br><br><a href=\"" << PROTO_URL4REPORT << "\">抽出したレスのURLをリスト表示</a>";
