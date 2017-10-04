@@ -139,6 +139,9 @@ namespace MISC
     // HTMLをプレーンテキストに変換する
     std::string to_plain( const std::string& html );
 
+    // HTMLをPango Markupテキストに変換する
+    std::string to_markup( const std::string& html );
+
     // URL中のスキームを判別する
     // 戻り値 : スキームタイプ
     // length    : "http://"等の文字数
