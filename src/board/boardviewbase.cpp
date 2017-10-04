@@ -1255,7 +1255,7 @@ void BoardViewBase::redraw_scrollbar()
 //
 // 色、フォント、表示内容の更新
 //
-void BoardViewBase::relayout()
+void BoardViewBase::relayout( const bool completely )
 {
     m_treeview.init_color( COLOR_CHAR_BOARD, COLOR_BACK_BOARD, COLOR_BACK_BOARD_EVEN );
     m_treeview.init_font( CONFIG::get_fontname( FONT_BOARD ) );
