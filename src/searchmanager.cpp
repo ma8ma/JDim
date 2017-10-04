@@ -279,8 +279,23 @@ void Search_Manager::search_fin_title()
             while( regex.exec( line, offset ) ){
 
                 SEARCHDATA data;
-                data.url_readcgi = DBTREE::url_readcgi( regex.str( 1 ), 0, 0 );
-                data.subject = MISC::html_unescape( regex.str( 2 ) );
+
+                // びんたんのURLだったら変換する
+                // http://bintan.ula.cc/test/read.cgi/server.2ch.net/board/0000000000/l50
+                if( !regex.str( 1 ).compare( 0, 21, "http://bintan.ula.cc/" ) ){
+                    const size_t pos = regex.str( 1 ).find_first_of( '/', 35 );
+                    if( pos != std::string::npos ){
+                        data.url_readcgi = regex.str( 1 ).substr( 0, 7 )
+                            + regex.str( 1 ).substr( 35, pos - 35 )
+                            + regex.str( 1 ).substr( 20, 14 )
+                            + regex.str( 1 ).substr( pos, std::string::npos );
+                    }
+                }
+                else{
+                    data.url_readcgi = DBTREE::url_readcgi( regex.str( 1 ), 0, 0 );
+                }
+
+                data.subject = regex.str( 2 );
                 data.num = atoi( regex.str( 3 ).c_str() );
                 data.bookmarked = false;
                 data.num_bookmarked = 0;
