@@ -579,7 +579,7 @@ int Root::get_board_type( const std::string& url, std::string& root, std::string
     int type = TYPE_BOARD_UNKNOWN;
 
     // 2ch
-    if( ! etc && is_2ch( url ) ){
+    if( /*! etc &&*/ is_2ch( url ) ){
 
         if( regex.exec( "(https?://[^/]*)(/[^/]*)/$" , url, offset, icase, newline, usemigemo, wchar ) ){
             root = regex.str( 1 );
@@ -656,7 +656,7 @@ int Root::get_board_type( const std::string& root, const bool etc ){
     int type = TYPE_BOARD_UNKNOWN;
 
     // 2ch
-    if( ! etc && is_2ch( root ) )
+    if( /*! etc &&*/ is_2ch( root ) )
         type = TYPE_BOARD_2CH;
 
     // JBBS
