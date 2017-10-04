@@ -142,6 +142,10 @@ namespace MISC
     // HTMLをPango Markupテキストに変換する
     std::string to_markup( const std::string& html );
 
+    // HTML文字参照をデコード( completely=trueの場合は '&' '<' '>' '"' を含める )
+    std::string chref_decode( const char* str, const int lng, const bool completely = true );
+    inline std::string chref_decode( const std::string& str, const bool completely = true ){ return MISC::chref_decode( str.c_str(), str.length(), completely ); }
+
     // URL中のスキームを判別する
     // 戻り値 : スキームタイプ
     // length    : "http://"等の文字数
