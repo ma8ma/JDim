@@ -1063,7 +1063,8 @@ NODE* NodeTreeBase::append_html( const std::string& html )
 
     const bool digitlink = false;
     const bool bold = false;
-    parse_html( html.c_str(), html.length(), COLOR_CHAR, digitlink, bold );
+    const bool ahref = true;
+    parse_html( html.c_str(), html.length(), COLOR_CHAR, digitlink, bold, ahref );
 
     clear();
 
@@ -1622,7 +1623,7 @@ const char* NodeTreeBase::add_one_dat_line( const char* datline )
         const char* str = section[ 3 ];
         int lng_msg = section_lng[ 3 ];
 
-        parse_html( str, lng_msg, COLOR_CHAR, digitlink, bold );
+        parse_html( str, lng_msg, COLOR_CHAR, digitlink, bold, false );
     }
 
     // 壊れている
@@ -1741,7 +1742,8 @@ void NodeTreeBase::parse_name( NODE* header, const char* str, const int lng, con
             // </b>の前までパース
             if( i != pos ){
                 // デフォルト名無しと同じときはアンカーを作らない
-                const bool digitlink = ( strncmp( m_default_noname.data(), str + pos, i - pos ) != 0 );
+                const size_t len = m_default_noname.size();
+                const bool digitlink = m_default_noname.compare( 0, len, str + pos, len );
                 constexpr bool bold = true;
                 parse_html( str + pos, i - pos, color_name, digitlink, bold, ahref, FONT_MAIL );
             }
@@ -2038,7 +2040,8 @@ void NodeTreeBase::parse_date_id( NODE* header, const char* str, const int lng )
 //
 // bold : ボールド表示
 //
-// (例) parse_html( "<a href=\"hoge.com\">hoge</a>", 27, COLOR_CHAR, false );
+// ahref : <a href=～></a> からリンクノードを作成する
+// (例) parse_html( "<a href=\"hoge.com\">hoge</a>", 27, COLOR_CHAR, false, false );
 //
 // (パッチ)
 //
@@ -2117,8 +2120,9 @@ create_multispace:
                 && ( *( pos + 2 ) == 'r' || *( pos + 2 ) == 'R' )
                 ) br = true;
 
-            //  <a href=～></a>
-            else if( ( *( pos + 1 ) == 'a' || *( pos + 1 ) == 'A' ) && *( pos + 2 ) == ' ' ){
+            //  ahref == true かつ <a href=～></a>
+            else if( ahref &&
+                     ( *( pos + 1 ) == 'a' || *( pos + 1 ) == 'A' ) && *( pos + 2 ) == ' ' ){
 
                 // フラッシュ
                 create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
