@@ -182,7 +182,7 @@ bool Log_Manager::check_write( const std::string& url, const bool newthread, con
     const char* msg = msg_in;
 #else
     // WAVE DASH 問題 ( UNIX用の文字コードになっていることがある )
-    const std::string msg_buf = MISC::utf8_fix_wavedash( msg_in, MISC::UNIXtoWIN );
+    const std::string msg_buf = MISC::utf8_fix_wavedash( msg_in, MISC::WaveDashFix::UnixToWin );
     const char* msg = msg_buf.c_str();
 #endif
 
