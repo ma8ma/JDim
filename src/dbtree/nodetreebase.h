@@ -323,7 +323,9 @@ namespace DBTREE
         // digitlink : true の時は先頭に数字が現れたらアンカーにする( parse_name() などで使う )
         //             false なら数字の前に >> がついてるときだけアンカーにする
         // bold : ボールド表示
-        void parse_html( const char* str, const int lng, const int color_text, bool digitlink, const bool bold );
+        // ahref : <a href=～></a> からリンクノードを作成する
+        void parse_html( const char* str, const int lng, const int color_text,
+                         bool digitlink, const bool bold, const bool ahref );
 
         // 書き込みログ比較用文字列作成
         // m_buffer_write に作成した文字列をセットする
