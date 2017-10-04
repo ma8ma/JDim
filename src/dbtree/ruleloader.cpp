@@ -50,12 +50,6 @@ std::string RuleLoader::get_path() const
 }
 
 
-std::string RuleLoader::get_charset() const
-{
-    return m_override_charset ? m_override_charset : DBTREE::board_charset( m_url_boadbase );
-}
-
-
 // ロード用データ作成
 void RuleLoader::create_loaderdata( JDLIB::LOADERDATA& data )
 {

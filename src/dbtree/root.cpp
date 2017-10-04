@@ -394,7 +394,7 @@ void Root::receive_finish()
     }
 
     // 文字コードを変換してXML作成
-    JDLIB::Iconv libiconv{ "UTF-8", "MS932" };
+    JDLIB::Iconv libiconv{ CHARCODE_UTF8, CHARCODE_SJIS };
     int byte_out;
     const std::string rawdata_utf8 = libiconv.convert( &*m_rawdata.begin(), m_rawdata.size(),  byte_out );
     bbsmenu2xml( rawdata_utf8 );

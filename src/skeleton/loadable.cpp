@@ -7,12 +7,14 @@
 
 #include "jdlib/loader.h"
 #include "jdlib/misctime.h"
+#include "jdlib/miscutil.h"
 
 #include "httpcode.h"
 
 using namespace SKELETON;
 
 Loadable::Loadable()
+    : m_charcode( CHARCODE_UNKNOWN )
 {
     clear_load_data();
 }
@@ -132,6 +134,9 @@ void Loadable::receive( const char* data, size_t size )
     if( ! m_total_length && m_code != HTTP_INIT ) m_total_length = get_loader_length();
     m_current_length += size;
 
+    const CharCode charcode = get_loader_content_charset();
+    if( charcode != CHARCODE_UNKNOWN ) set_charcode( charcode );
+
     receive_data( data, size );
 }
 
@@ -166,6 +171,9 @@ void Loadable::callback_dispatch()
     if( ! get_loader_cookies().empty() ) m_cookies = get_loader_cookies();
     if( ! get_loader_location().empty() ) m_location = get_loader_location();
 
+    const CharCode charcode = get_loader_content_charset();
+    if( charcode != CHARCODE_UNKNOWN ) set_charcode( charcode );
+
 #ifdef _DEBUG
     std::cout << "delete loader\n";
 #endif
@@ -180,6 +188,7 @@ void Loadable::callback_dispatch()
     std::cout << "location = " << m_location << std::endl;
     std::cout << "total_length = " << m_total_length << std::endl;
     std::cout << "current length = " << m_current_length << std::endl;
+    std::cout << "charset = " << get_charcode() << std::endl;
 #endif
 
     receive_finish();
@@ -242,4 +251,27 @@ size_t Loadable::get_loader_length() const
     if( ! m_loader ) return 0;
 
     return m_loader->data().length;
+}
+
+
+CharCode Loadable::get_loader_content_charset() const
+{
+    CharCode charcode = CHARCODE_UNKNOWN;
+
+    if( m_loader ){
+        const std::string& contenttype = m_loader->data().contenttype;
+        size_t pos = contenttype.find( "charset=" );
+        if( pos != std::string::npos ){
+            const std::string raw_charset =
+                MISC::toupper_str( MISC::remove_space( contenttype.substr( pos + 8, std::string::npos ) ) );
+            const std::string tmp_charset = MISC::remove_str( MISC::remove_str( raw_charset, "_" ), "-" );
+            if( tmp_charset == "UTF8" ) charcode = CHARCODE_UTF8;
+            else if( tmp_charset == "SHIFTJIS" || tmp_charset == "XSJIS"
+                    || tmp_charset == "WINDOWS31J" ) charcode = CHARCODE_SJIS;
+            else if( tmp_charset == "EUCJP" || tmp_charset == "XEUCJP" ) charcode = CHARCODE_EUCJP;
+            // else charset = "iso-8859-1"; // その他は無視する
+        }
+    }
+
+    return charcode;
 }

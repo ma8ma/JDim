@@ -237,8 +237,7 @@ void Post::receive_finish()
 #endif
 
     {
-        const std::string charset = DBTREE::board_charset( m_url );
-        JDLIB::Iconv libiconv( "UTF-8", charset );
+        JDLIB::Iconv libiconv( CHARCODE_UTF8, DBTREE::board_charcode( m_url ) );
         int byte_out;
         m_return_html = libiconv.convert( &*m_rawdata.begin(), m_rawdata.size(), byte_out );
     }

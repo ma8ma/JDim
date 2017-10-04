@@ -293,9 +293,15 @@ std::string DBTREE::board_subjecttxt( const std::string& url )
 }
 
 
-std::string DBTREE::board_charset( const std::string& url )
+CharCode DBTREE::board_charcode( const std::string& url )
 {
-    return DBTREE::get_board( url )->get_charset();
+    return DBTREE::get_board( url )->get_charcode();
+}
+
+
+void DBTREE::board_set_charcode( const std::string& url, const CharCode charcode )
+{
+    return DBTREE::get_board( url )->set_charcode( charcode );
 }
 
 
@@ -878,7 +884,19 @@ void DBTREE::article_set_date_modified( const std::string& url, const std::strin
     DBTREE::get_article( url )->set_date_modified( date );
 }
 
-int  DBTREE::article_hour( const std::string& url )
+// スレの文字コード
+CharCode DBTREE::article_charcode( const std::string& url )
+{
+    return DBTREE::get_article( url )->get_charcode();
+}
+
+// スレの文字コードをセット
+void DBTREE::article_set_charcode( const std::string& url, const CharCode charcode )
+{
+    DBTREE::get_article( url )->set_charcode( charcode );
+}
+
+int DBTREE::article_hour( const std::string& url )
 {
     return DBTREE::get_article( url )->get_hour();
 }
@@ -1000,6 +1018,13 @@ int DBTREE::article_get_speed( const std::string& url )
 void DBTREE::article_clear_post_history( const std::string& url )
 {
     DBTREE::get_article( url )->clear_post_history();
+}
+
+
+// NodeTree削除
+void DBTREE::article_clear_nodetree( const std::string& url )
+{
+    DBTREE::get_article( url )->unlock_impl();
 }
 
 
