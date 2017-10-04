@@ -1206,7 +1206,7 @@ std::string MISC::chref_decode( std::string_view str, const bool completely )
 
         // 文字参照のデコード
         int n_in;
-        str_out.append( chref_decode_one( pos, n_in, completely ) );
+        str_out.append( chref_decode_one( pos, n_in, '\0', completely ) );
         pos += n_in;
     }
 
