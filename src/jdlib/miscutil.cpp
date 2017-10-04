@@ -980,7 +980,7 @@ std::string MISC::html_unescape( const std::string& str )
 // strは'&'で始まる文字列を指定すること
 // completely = true の時は'"' '&' '<' '>'も含めて変換する
 //
-static std::string chref_decode_one( const char* str, int& n_in, const bool completely )
+static std::string chref_decode_one( const char* str, int& n_in, const char pre_char, const bool completely )
 {
     std::string out_char( 15u, '\0' );
     int n_out;
@@ -988,7 +988,7 @@ static std::string chref_decode_one( const char* str, int& n_in, const bool comp
     out_char.resize( n_out );
 
     // 改行、タブ、スペースの処理
-    if( type != DBTREE::NODE_NONE && ( out_char[0] == ' ' || out_char[0] == '\n' ) ) {
+    if( type == DBTREE::NODE_SP && pre_char != ' ' ) {
         out_char.assign( 1u, ' ' );
     }
     // 変換できない文字
