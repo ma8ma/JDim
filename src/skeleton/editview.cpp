@@ -508,8 +508,8 @@ void EditTextView::on_populate_popup( Gtk::Menu* menu )
     menuitem->signal_activate().connect( sigc::mem_fun( *this, &EditTextView::slot_write_jdinfo ) );
     menu->prepend( *menuitem );
 
-    // 変換(スペース⇔&nbsp;)
-    menuitem = Gtk::manage( new Gtk::MenuItem( "変換(スペース⇔&nbsp;)" ) );
+    // 変換(スペース⇔&#160;)
+    menuitem = Gtk::manage( new Gtk::MenuItem( "変換(スペース⇔&#160;)" ) );
     menuitem->signal_activate().connect( sigc::mem_fun( *this, &EditTextView::slot_convert_space ) );
     menu->prepend( *menuitem );
 
@@ -565,7 +565,7 @@ void EditTextView::slot_quote_clipboard()
 
 
 //
-// 変換(スペース⇔&nbsp;)
+// 変換(スペース⇔&#160;)
 //
 void EditTextView::slot_convert_space()
 {
@@ -575,32 +575,34 @@ void EditTextView::slot_convert_space()
     std::string text = buffer->get_text();
     std::string converted;
 
-    // &nbsp;が含まれていたらスペースに変換する
-    if( text.find( "&nbsp;", 0 ) != std::string::npos )
+    // &#160;が含まれていたらスペースに変換する
+    if( text.find( "&#160;", 0 ) != std::string::npos )
     {
-        converted = MISC::replace_str( text, "&nbsp;", " " );
+        converted = MISC::replace_str( text, "&#160;", " " );
     }
     else
     {
-        size_t rpos = std::string::npos;
-        size_t nlpos = std::string::npos;
+        for( std::string& line : MISC::get_lines( text ) ) {
 
-        // 改行前のスペースを取り除く
-        while( ( nlpos = text.rfind( "\n", rpos ) ) != std::string::npos )
-        {
-            if( nlpos == 0 ) break;
-            rpos = nlpos;
-            while( text[ rpos - 1 ] == ' ' ) rpos--;
-            text.erase( rpos, nlpos - rpos );
-            rpos--;
+            if( !line.empty() ) {
+
+                // 行末のスペースを取り除く
+                line.erase( line.find_last_not_of( ' ' ) + 1 );
+
+                // 行頭のスペースを&#160;に変換する
+                if( line.find( ' ' ) == 0 ) {
+                    line.replace( 0, 1, "&#160;" );
+                }
+
+                // 連続スペースを&#160;に変換する
+                converted += MISC::replace_str( line, "  ", " &#160;" );
+            }
+
+            converted.push_back( '\n' );
         }
 
-        // 最後のスペースを取り除く
-        rpos = text.length();
-        while( text[ rpos - 1 ] == ' ' ) rpos--;
-        text.erase( rpos, std::string::npos );
-
-        converted = MISC::replace_str( text, " ", "&nbsp;" );
+        // 最後の改行を取り除く
+        converted.pop_back();
     }
 
     buffer->set_text( converted );
