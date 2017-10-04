@@ -941,6 +941,10 @@ const std::string& DBTREE::article_subject( const std::string& url )
     return DBTREE::get_article( url )->get_subject();
 }
 
+const std::string& DBTREE::article_modified_subject( const std::string& url, const bool renew )
+{
+    return DBTREE::get_article( url )->get_modified_subject( renew );
+}
 
 int DBTREE::article_number( const std::string& url )
 {
