@@ -7,6 +7,8 @@
 #ifndef _POPUPWINBASE_H
 #define _POPUPWINBASE_H
 
+#include "gtkmmversion.h"
+
 #include <gtkmm.h>
 
 namespace SKELETON
@@ -26,7 +28,9 @@ namespace SKELETON
     class PopupWinBase : public Gtk::Window
     {
         SIG_CONFIGURED_POPUP m_sig_configured;
+#if !GTKMM_CHECK_VERSION(2,10,0)
         Glib::RefPtr< Gdk::GC > m_gc;
+#endif
 
         bool m_draw_frame;
 
@@ -46,8 +50,10 @@ namespace SKELETON
         {
             Gtk::Window::on_realize();
 
+#if !GTKMM_CHECK_VERSION(2,10,0)
             Glib::RefPtr< Gdk::Window > window = get_window();
             m_gc = Gdk::GC::create( window );    
+#endif
         }
 
         bool on_expose_event( GdkEventExpose* event ) override
@@ -56,8 +62,17 @@ namespace SKELETON
 
             // 枠の描画
             if( m_draw_frame ){
+#if GTKMM_CHECK_VERSION(2, 10, 0)
+                Cairo::RefPtr< Cairo::Context > cr =
+                    get_window()->create_cairo_context();
+                Gdk::Cairo::set_source_color( cr, Gdk::Color( "black" ) );
+                cr->set_line_width( 1.0 );
+                cr->rectangle( 0.0, 0.0, get_width(), get_height() );
+                cr->stroke();
+#else
                 m_gc->set_foreground( Gdk::Color( "black" ) );
                 get_window()->draw_rectangle( m_gc, false, 0, 0, get_width()-1, get_height()-1 );
+#endif
             }
 
             return ret;
