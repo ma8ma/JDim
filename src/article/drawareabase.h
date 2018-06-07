@@ -122,8 +122,14 @@ namespace ARTICLE
 
         // 描画用
         Glib::RefPtr< Gdk::Window > m_window;
+#if GTKMM_CHECK_VERSION(2,22,0)
+        Cairo::RefPtr< Cairo::Context > m_cr;
+        Cairo::RefPtr< Cairo::Surface > m_backscreen;
+#else
         Glib::RefPtr< Gdk::GC > m_gc;
         Glib::RefPtr< Gdk::Pixmap > m_backscreen;
+#endif
+
         Glib::RefPtr< Pango::Layout > m_pango_layout;
         Glib::RefPtr< Pango::Context > m_context;
         RECTANGLE m_rect_backscreen; // バックスクリーンが描画されている範囲
@@ -147,7 +153,13 @@ namespace ARTICLE
 
         // 枠
         bool m_draw_frame;  // 枠を描画する
+#if GTKMM_CHECK_VERSION(2, 22, 0)
+        // 枠線に隠れる部分のバックアップを分ける
+        Cairo::RefPtr< Cairo::Surface > m_back_frame_top;
+        Cairo::RefPtr< Cairo::Surface > m_back_frame_bottom;
+#else
         Glib::RefPtr< Gdk::Pixmap > m_back_frame; // 枠の背景
+#endif
         bool m_ready_back_frame;
 
         // 範囲選択
@@ -181,7 +193,11 @@ namespace ARTICLE
         int m_pre_pos_y; // ひとつ前のスクロールバーの位置。スクロールした時の差分量計算に使用する
         std::vector< int > m_jump_history;  // ジャンプ履歴
         bool m_cancel_change_adjust; // adjust の値変更イベントをキャンセル
+#if GTKMM_CHECK_VERSION(2,22,0)
+        Cairo::RefPtr< Cairo::Surface > m_back_marker;
+#else
         Glib::RefPtr< Gdk::Pixmap > m_back_marker; // オートスクロールマーカの背景
+#endif
         RECTANGLE m_clip_marker;
         bool m_ready_back_marker;
         time_t m_wait_scroll;  // 処理落ちした時にスクロールにウエイトを入れる

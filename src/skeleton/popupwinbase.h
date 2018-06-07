@@ -62,7 +62,7 @@ namespace SKELETON
 
             // 枠の描画
             if( m_draw_frame ){
-#if GTKMM_CHECK_VERSION(2, 10, 0)
+#if GTKMM_CHECK_VERSION(2,10,0)
                 Cairo::RefPtr< Cairo::Context > cr =
                     get_window()->create_cairo_context();
                 Gdk::Cairo::set_source_color( cr, Gdk::Color( "black" ) );
