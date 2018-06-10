@@ -2234,21 +2234,8 @@ bool DrawAreaBase::draw_one_node( LAYOUT* layout, const CLIPINFO& ci )
                     const int height = s_bottom - s_top;
 
                     if( height > 0 ) {
-#if GTKMM_CHECK_VERSION(2,22,0)
-                        Cairo::RefPtr< Cairo::Context > cr =
-                            Cairo::Context::create( m_backscreen );
-                        cr->rectangle( 1.0, y - ci.pos_y + s_top,
-                                       m_pixbuf_bkmk->get_width(), height );
-                        cr->clip();
-                        Gdk::Cairo::set_source_pixbuf( cr, m_pixbuf_bkmk, 1.0,
-                                                       y - ci.pos_y + s_top );
-                        cr->paint();
-#else
-                        m_backscreen->draw_pixbuf(
-                            m_gc, m_pixbuf_bkmk, 0, s_top, 1,
-                            y - ci.pos_y + s_top, m_pixbuf_bkmk->get_width(),
-                            height, Gdk::RGB_DITHER_NONE, 0, 0 );
-#endif
+                        paint_backscreen( m_pixbuf_bkmk, 0, s_top, 1, y - ci.pos_y + s_top,
+                                          m_pixbuf_bkmk->get_width(), height );
                     }
                     y += height_bkmk;
                 }
@@ -2268,22 +2255,8 @@ bool DrawAreaBase::draw_one_node( LAYOUT* layout, const CLIPINFO& ci )
                         const int height = s_bottom - s_top;
 
                         if( height > 0 ) {
-#if GTKMM_CHECK_VERSION(2,22,0)
-                            Cairo::RefPtr< Cairo::Context > cr =
-                                Cairo::Context::create( m_backscreen );
-                            cr->rectangle( 1.0, y - ci.pos_y + s_top,
-                                           m_pixbuf_post->get_width(), height );
-                            cr->clip();
-                            Gdk::Cairo::set_source_pixbuf(
-                                cr, m_pixbuf_post, 1.0, y - ci.pos_y + s_top );
-                            cr->paint();
-#else
-                            m_backscreen->draw_pixbuf(
-                                m_gc, m_pixbuf_post, 0, s_top, 1,
-                                y - ci.pos_y + s_top,
-                                m_pixbuf_post->get_width(), height,
-                                Gdk::RGB_DITHER_NONE, 0, 0 );
-#endif
+                            paint_backscreen( m_pixbuf_post, 0, s_top, 1, y - ci.pos_y + s_top,
+                                              m_pixbuf_post->get_width(), height );
                         }
                         y += height_post;
                     }
@@ -2301,24 +2274,8 @@ bool DrawAreaBase::draw_one_node( LAYOUT* layout, const CLIPINFO& ci )
                         const int height = s_bottom - s_top;
 
                         if( height > 0 ) {
-#if GTKMM_CHECK_VERSION(2,22,0)
-                            Cairo::RefPtr< Cairo::Context > cr =
-                                Cairo::Context::create( m_backscreen );
-                            cr->rectangle( 1.0, y - ci.pos_y + s_top,
-                                           m_pixbuf_refer_post->get_width(),
-                                           height );
-                            cr->clip();
-                            Gdk::Cairo::set_source_pixbuf(
-                                cr, m_pixbuf_refer_post, 1.0,
-                                y - ci.pos_y + s_top );
-                            cr->paint();
-#else
-                            m_backscreen->draw_pixbuf(
-                                m_gc, m_pixbuf_refer_post, 0, s_top, 1,
-                                y - ci.pos_y + s_top,
-                                m_pixbuf_refer_post->get_width(), height,
-                                Gdk::RGB_DITHER_NONE, 0, 0 );
-#endif
+                            paint_backscreen( m_pixbuf_refer_post, 0, s_top, 1, y - ci.pos_y + s_top,
+                                              m_pixbuf_refer_post->get_width(), height );
                         }
                         y += height_refer_post;
                     }
@@ -2601,6 +2558,29 @@ void DrawAreaBase::fill_backscreen( const Gdk::Color& color, int x, int y, int w
 
 
 //
+// Pixbufの内容をバックスクリーンに貼り付ける補助メソッド
+//
+void DrawAreaBase::paint_backscreen( const Glib::RefPtr< Gdk::Pixbuf >& pixbuf,
+                                     int src_x, int src_y, int dest_x, int dest_y, int width, int height )
+{
+#if GTKMM_CHECK_VERSION(2,22,0)
+    // Cairoバージョンではsrc_x, src_yを使わない
+    // 呼び出しをGdkバージョンと揃えるために引数の数合わせをしている
+    static_cast< void >( src_x );
+    static_cast< void >( src_y );
+    Cairo::RefPtr< Cairo::Context > cr = Cairo::Context::create( m_backscreen );
+    cr->rectangle( dest_x, dest_y, width, height );
+    cr->clip();
+    Gdk::Cairo::set_source_pixbuf( cr, pixbuf, dest_x, dest_y );
+    cr->paint();
+#else
+    m_backscreen->draw_pixbuf( m_gc, pixbuf, src_x, src_y, dest_x, dest_y,
+                               width, height, Gdk::RGB_DITHER_NONE, 0, 0 );
+#endif
+}
+
+
+//
 // 範囲選択の描画をする必要があるかどうかの判定( draw_one_text_node()で使用 )
 //
 // 戻り値: 描画が必要かとどうか
@@ -2853,55 +2833,17 @@ bool DrawAreaBase::draw_one_img_node( LAYOUT* layout, const CLIPINFO& ci )
 
                         Glib::RefPtr< Gdk::Pixbuf > pixbuf2;
                         pixbuf2 = pixbuf->scale_simple( moswidth, mosheight, Gdk::INTERP_NEAREST );
-#if GTKMM_CHECK_VERSION(2,22,0)
-                        Cairo::RefPtr< Cairo::Context > cr =
-                            Cairo::Context::create( m_backscreen );
-                        cr->rectangle( rect->x + 1.0,
-                                       ( rect->y + 1.0 ) - ci.pos_y + s_top,
-                                       pixbuf->get_width(), height );
-                        cr->clip();
-                        Gdk::Cairo::set_source_pixbuf(
-                            cr,
-                            pixbuf2->scale_simple( pixbuf->get_width(),
-                                                   pixbuf->get_height(),
-                                                   Gdk::INTERP_NEAREST ),
-                            rect->x + 1.0,
-                            ( rect->y + 1.0 ) - ci.pos_y + s_top );
-                        cr->paint();
-#else
-
-                        m_backscreen->draw_pixbuf(
-                            m_gc,
-                            pixbuf2->scale_simple( pixbuf->get_width(),
-                                                   pixbuf->get_height(),
-                                                   Gdk::INTERP_NEAREST ),
-                            0, s_top, rect->x + 1,
-                            ( rect->y + 1 ) - ci.pos_y + s_top,
-                            pixbuf->get_width(), height, Gdk::RGB_DITHER_NONE,
-                            0, 0 );
-#endif
+                        paint_backscreen( pixbuf2->scale_simple( pixbuf->get_width(), pixbuf->get_height(),
+                                                                 Gdk::INTERP_NEAREST ),
+                                          0, s_top, rect->x + 1, ( rect->y + 1 ) - ci.pos_y + s_top,
+                                          pixbuf->get_width(), height );
                     }
                 }
 
                 // 通常
                 else{
-#if GTKMM_CHECK_VERSION(2,22,0)
-                    Cairo::RefPtr< Cairo::Context > cr =
-                        Cairo::Context::create( m_backscreen );
-                    cr->rectangle( rect->x + 1.0,
-                                   ( rect->y + 1.0 ) - ci.pos_y + s_top,
-                                   pixbuf->get_width(), height );
-                    cr->clip();
-                    Gdk::Cairo::set_source_pixbuf( cr, pixbuf, rect->x + 1.0,
-                                                   ( rect->y + 1.0 ) - ci.pos_y
-                                                       + s_top );
-                    cr->paint();
-#else
-                    m_backscreen->draw_pixbuf(
-                        m_gc, pixbuf, 0, s_top, rect->x + 1,
-                        ( rect->y + 1 ) - ci.pos_y + s_top, pixbuf->get_width(),
-                        height, Gdk::RGB_DITHER_NONE, 0, 0 );
-#endif
+                    paint_backscreen( pixbuf, 0, s_top, rect->x + 1, ( rect->y + 1 ) - ci.pos_y + s_top,
+                                      pixbuf->get_width(), height );
                 }
             }
             else color = COLOR_IMG_ERR;
