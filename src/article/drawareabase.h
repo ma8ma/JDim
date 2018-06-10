@@ -463,6 +463,11 @@ namespace ARTICLE
         void fill_backscreen( const Gdk::Color& color, int x, int y, int width,
                               int height );
 
+        // Pixbufの内容をバックスクリーンに貼り付ける補助メソッド
+        void paint_backscreen( const Glib::RefPtr< Gdk::Pixbuf >& pixbuf,
+                               int src_x, int src_y, int dest_x, int dest_y,
+                               int width, int height );
+
         // スロット
         void slot_change_adjust();
         bool slot_expose_event( GdkEventExpose* event );
