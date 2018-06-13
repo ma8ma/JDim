@@ -3099,6 +3099,36 @@ void DrawAreaBase::draw_string( LAYOUT* node, const CLIPINFO& ci,
 
 #ifdef USE_PANGOLAYOUT  // Pango::Layout を使って文字を描画
 
+#if GTKMM_CHECK_VERSION(2,22,0)
+            const Gdk::Color& fore = m_color[ color ];
+            const Gdk::Color& back = m_color[ color_back ];
+            auto foreground = Pango::Attribute::create_attr_foreground(
+                fore.get_red(), fore.get_green(), fore.get_blue() );
+            auto background = Pango::Attribute::create_attr_background(
+                back.get_red(), back.get_green(), back.get_blue() );
+
+            m_pango_layout->set_text(
+                Glib::ustring( node->text + pos_start, n_ustr ) );
+
+            cairo_t* text_cr = cairo_create( m_backscreen.get() );
+
+            Pango::AttrList attr;
+            attr.insert( foreground );
+            attr.insert( background );
+            m_pango_layout->set_attributes( attr );
+            cairo_move_to( text_cr, x, y );
+            pango_cairo_show_layout( text_cr, m_pango_layout->gobj() );
+
+            // Pango::Weight属性を使うと文字幅が変わりレイアウトが乱れる
+            // そこで文字を重ねて描画することで太字を表示する
+            if( node->bold ) {
+                Pango::AttrList overlapping;
+                overlapping.insert( foreground );
+                m_pango_layout->set_attributes( overlapping );
+                cairo_move_to( text_cr, x + 1.0, y );
+                pango_cairo_show_layout( text_cr, m_pango_layout->gobj() );
+            }
+#else
             m_pango_layout->set_text( Glib::ustring( node->text + pos_start, n_ustr ) );
             m_backscreen->draw_layout( m_gc,x, y, m_pango_layout, m_color[ color ], m_color[ color_back ] );
 
@@ -3106,6 +3136,7 @@ void DrawAreaBase::draw_string( LAYOUT* node, const CLIPINFO& ci,
                 m_gc->set_foreground( m_color[ color ] );
                 m_backscreen->draw_layout( m_gc, x+1, y, m_pango_layout );
             }
+#endif // GTKMM_CHECK_VERSION(2,22,0)
 
 #else // Pango::GlyphString を使って文字を描画
 
@@ -3165,7 +3196,7 @@ void DrawAreaBase::draw_string( LAYOUT* node, const CLIPINFO& ci,
             // 実際のラインの長さ(x - rect->x)とlayout_one_text_node()で計算した
             // 近似値(rect->width)を一致させる ( 応急処置 )
             if( ! byte_to && abs( ( x - rect->x ) - rect->width ) > 2 ) rect->width = x - rect->x;
-#endif
+#endif // USE_PANGOLAYOUT
 
             // リンクの時は下線を引く
             if( node->link && CONFIG::get_draw_underline() ){
