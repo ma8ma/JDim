@@ -1,12 +1,16 @@
 
 # 導入方法
 
+> 引用は開発版(alpha)の注意書き
+
 ## 事前準備
 
 　一度だけやればいい。
 
 ### Redhat系
 `  dnf install gtkmm24-devel gnutls-devel libSM-devel libtool automake git `
+
+> gtk3版をビルドする場合は `gtkmm24-devel` の代わりに `gtkmm30-devel` をインストールする。
 
 ### Debin系
 `   sudo apt-get build-dep jd`
@@ -24,6 +28,8 @@
 
 `    sudo apt-get install libgtkmm-2.4-dev libmigemo1 libasound2-data libltdl-dev libasound2-dev libgnutls28-dev libgcrypt20-dev`
 
+> gtk3版をビルドする場合は `libgtkmm-2.4-dev` の代わりに `libgtkmm-3.0-dev` をインストールする。
+
 ## インストール
 
 ```
@@ -36,6 +42,15 @@
 
 　実行するには直接 src/jd を起動するか手動で /usr/bin あたりに src/jd を cp する。
 
+> **デフォルトではgtk2版になる。** gtk3版をビルドするには ./configure にオプション `--with-gtkmm3` を追加する。
+> ビルド/インストールの方法は [INSTALL](./INSTALL) にも書いてある。
+> ```sh
+> git clone -b gtk3-idea-r2 --depth 1 https://github.com/ma8ma/JD.git jd
+> cd jd
+> autoreconf -i
+> ./configure --with-gtkmm3
+> make
+> ```
 
 # 参考
 　詳しいインストールの方法は [本家のwiki](https://ja.osdn.net/projects/jd4linux/wiki/OS%2f%E3%83%87%E3%82%A3%E3%82%B9%E3%83%88%E3%83%AA%E3%83%93%E3%83%A5%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3%E5%88%A5%E3%82%A4%E3%83%B3%E3%82%B9%E3%83%88%E3%83%BC%E3%83%AB%E6%96%B9%E6%B3%95) を参照。
@@ -62,3 +77,13 @@ automakeのマクロはubuntuでは autoconf-archive というパッケージ名
 　もしこれで駄目な場合はgccのversionが古すぎるので、
 gccのバージョンアップをするか、ディストリをバージョンアップしてください。
 
+
+# GTK2とGTK3の違い
+
+> * 一部のルック・アンド・フィールが変更されている。
+>   (タブの並べ替えとドラッグ・アンド・ドロップ)
+>
+> * GTK3ではタブの上でマウスホイールするとページが切り替わる機能は削除された。
+>
+> * 板一覧やスレ一覧でマウスホイールによるスクロールが動作しないことがある。
+>   環境変数 `GDK_CORE_DEVICE_EVENTS=1` を設定してjdを起動するとマウスホイール機能が使える。
