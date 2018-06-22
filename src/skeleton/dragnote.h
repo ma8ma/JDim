@@ -11,6 +11,8 @@
 #ifndef _DRAGNOTE_H
 #define _DRAGNOTE_H
 
+#include "gtkmmversion.h"
+
 #include "tabnote.h"
 #include "toolbarnote.h"
 #include "viewnote.h"
