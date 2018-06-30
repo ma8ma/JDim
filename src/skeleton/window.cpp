@@ -459,12 +459,26 @@ void JDWindow::set_status_color( const std::string& color )
         m_mginfo.modify_fg( Gtk::STATE_NORMAL, Gdk::Color( "white" ) );
 
         m_label_stat_ebox.set_visible_window( true );
+#if GTKMM_CHECK_VERSION(3,0,0)
+        m_label_stat_ebox.override_background_color( Gdk::RGBA( color ),
+                                                     Gtk::STATE_FLAG_NORMAL );
+        m_label_stat_ebox.override_background_color( Gdk::RGBA( color ),
+                                                     Gtk::STATE_FLAG_ACTIVE );
+#else
         m_label_stat_ebox.modify_bg( Gtk::STATE_NORMAL, Gdk::Color( color ) );
         m_label_stat_ebox.modify_bg( Gtk::STATE_ACTIVE, Gdk::Color( color ) );
+#endif
 
         m_mginfo_ebox.set_visible_window( true );
+#if GTKMM_CHECK_VERSION(3,0,0)
+        m_mginfo_ebox.override_background_color( Gdk::RGBA( color ),
+                                                 Gtk::STATE_FLAG_NORMAL );
+        m_mginfo_ebox.override_background_color( Gdk::RGBA( color ),
+                                                 Gtk::STATE_FLAG_ACTIVE );
+#else
         m_mginfo_ebox.modify_bg( Gtk::STATE_NORMAL, Gdk::Color( color ) );
         m_mginfo_ebox.modify_bg( Gtk::STATE_ACTIVE, Gdk::Color( color ) );
+#endif
     }
 #endif
 }

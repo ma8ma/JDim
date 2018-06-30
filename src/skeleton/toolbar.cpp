@@ -339,8 +339,15 @@ void ToolBar::set_color( const std::string& color )
 
         m_ebox_label->set_visible_window( true );
         m_label->modify_fg( Gtk::STATE_NORMAL, Gdk::Color( "white" ) );
+#if GTKMM_CHECK_VERSION(3,0,0)
+        m_ebox_label->override_background_color( Gdk::RGBA( color ),
+                                                 Gtk::STATE_FLAG_NORMAL );
+        m_ebox_label->override_background_color( Gdk::RGBA( color ),
+                                                 Gtk::STATE_FLAG_ACTIVE );
+#else
         m_ebox_label->modify_bg( Gtk::STATE_NORMAL, Gdk::Color( color ) );
         m_ebox_label->modify_bg( Gtk::STATE_ACTIVE, Gdk::Color( color ) );
+#endif
     }
 }
 
