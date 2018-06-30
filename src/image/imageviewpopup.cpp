@@ -56,12 +56,22 @@ ImageViewPopup::ImageViewPopup( const std::string& url )
     get_event().set_border_width( margin );
 
     // 枠色
+#if GTKMM_CHECK_VERSION(3,0,0)
+    m_event_frame.override_background_color( Gdk::RGBA( border_color ), Gtk::STATE_FLAG_NORMAL );
+#else
     m_event_frame.modify_bg( Gtk::STATE_NORMAL, Gdk::Color( border_color ) );
+#endif
 
     // 背景色
+#if GTKMM_CHECK_VERSION(3,0,0)
+    const Gdk::RGBA color_bg( bg_color );
+    m_event_margin.override_background_color( color_bg, Gtk::STATE_FLAG_NORMAL );
+    get_event().override_background_color( color_bg, Gtk::STATE_FLAG_NORMAL );
+#else
     const Gdk::Color color_bg( bg_color );
     m_event_margin.modify_bg( Gtk::STATE_NORMAL, color_bg );
     get_event().modify_bg( Gtk::STATE_NORMAL, color_bg );
+#endif
 
     // 全ての領域を表示できないならカーソルの上に表示
     set_popup_upside( true );
