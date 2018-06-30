@@ -127,7 +127,11 @@ void DragTreeView::init_color( const int colorid_text, const int colorid_bg, con
 
     // 背景色
     m_color_bg.set( CONFIG::get_color( colorid_bg ) );
+#if GTKMM_CHECK_VERSION(3,0,0)
+    override_background_color( m_color_bg, get_state_flags() );
+#else
     modify_base( get_state(), m_color_bg );
+#endif
 
     m_use_bg_even = ! ( CONFIG::get_color( colorid_bg ) == CONFIG::get_color( colorid_bg_even ) );
     m_color_bg_even.set( CONFIG::get_color( colorid_bg_even ) );

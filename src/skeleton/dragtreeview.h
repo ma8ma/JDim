@@ -44,10 +44,11 @@ namespace SKELETON
         bool m_use_bg_even;
 #if GTKMM_CHECK_VERSION(3,0,0)
         Gdk::RGBA m_color_text;
+        Gdk::RGBA m_color_bg;
 #else
         Gdk::Color m_color_text;
-#endif
         Gdk::Color m_color_bg;
+#endif
         Gdk::Color m_color_bg_even;
 
         // ポップアップウィンドウ用
