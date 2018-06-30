@@ -215,10 +215,21 @@ void MessageViewBase::init_font( const std::string& fontname )
     Pango::FontDescription pfd( fontname );
     pfd.set_weight( Pango::WEIGHT_NORMAL );
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+    m_entry_name.override_font( pfd );
+    m_entry_mail.override_font( pfd );
+#else
     m_entry_name.modify_font( pfd );
     m_entry_mail.modify_font( pfd );
+#endif
 
-    if( m_text_message ) m_text_message->modify_font( pfd );
+    if( m_text_message ) {
+#if GTKMM_CHECK_VERSION(3,0,0)
+        m_text_message->override_font( pfd );
+#else
+        m_text_message->modify_font( pfd );
+#endif
+    }
 }
 
 
