@@ -152,7 +152,14 @@ namespace SKELETON
 
         void set_wrap_mode( Gtk::WrapMode wrap_mode ){ m_textview.set_wrap_mode( wrap_mode ); }
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+        void override_color( const Gdk::RGBA& color, Gtk::StateFlags state )
+        {
+            m_textview.override_color( color, state );
+        }
+#else
         void modify_text( Gtk::StateType state, const Gdk::Color& color ){ m_textview.modify_text( state, color ); }
+#endif
         void modify_base( Gtk::StateType state, const Gdk::Color& color ){ m_textview.modify_base( state, color ); }
 
         void insert_str( const std::string& str, bool use_br ){ m_textview.insert_str( str, use_br ); }

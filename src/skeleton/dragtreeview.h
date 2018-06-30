@@ -42,7 +42,11 @@ namespace SKELETON
 
         // 色
         bool m_use_bg_even;
+#if GTKMM_CHECK_VERSION(3,0,0)
+        Gdk::RGBA m_color_text;
+#else
         Gdk::Color m_color_text;
+#endif
         Gdk::Color m_color_bg;
         Gdk::Color m_color_bg_even;
 
