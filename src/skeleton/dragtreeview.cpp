@@ -125,7 +125,11 @@ void DragTreeView::init_color( const int colorid_text, const int colorid_bg, con
 
     // 文字色
     m_color_text.set( CONFIG::get_color( colorid_text ) );
+#if GTKMM_CHECK_VERSION(3,0,0)
+    override_color( m_color_text, get_state_flags() );
+#else
     modify_text( get_state(), m_color_text );
+#endif
 
     // 背景色
     m_color_bg.set( CONFIG::get_color( colorid_bg ) );
