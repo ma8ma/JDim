@@ -139,8 +139,13 @@ void ImageViewPopup::set_label( const std::string& status )
             CORE::CSS_PROPERTY css = CORE::get_css_manager()->get_property( classid );
             if( css.color >= 0 ) text_color = CORE::get_css_manager()->get_color( css.color );
         }
+#if GTKMM_CHECK_VERSION(3,0,0)
+        const Gdk::RGBA color_text( text_color );
+        m_label->override_color( color_text, Gtk::STATE_FLAG_NORMAL );
+#else
         const Gdk::Color color_text( text_color );
         m_label->modify_fg( Gtk::STATE_NORMAL, color_text );
+#endif
 
         m_label->show();
     }
