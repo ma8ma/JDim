@@ -336,7 +336,11 @@ void ToolBar::set_color( const std::string& color )
 
         if( m_ebox_label->get_visible_window() ){
             m_ebox_label->set_visible_window( false );
+#if GTKMM_CHECK_VERSION(3,0,0)
+            m_label->unset_color( Gtk::STATE_FLAG_NORMAL );
+#else
             m_label->unset_fg( Gtk::STATE_NORMAL );
+#endif
         }
     }
     else{
