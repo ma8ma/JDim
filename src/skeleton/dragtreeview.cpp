@@ -2,6 +2,7 @@
 
 //#define _DEBUG
 #include "jddebug.h"
+#include "gtkmmversion.h"
 
 #include "dragtreeview.h"
 #include "view.h"
@@ -17,6 +18,12 @@
 #include "colorid.h"
 #include "dndmanager.h"
 #include "session.h"
+
+#if GTKMM_CHECK_VERSION(3,0,0)
+using AdjustmentPtr = Glib::RefPtr< Gtk::Adjustment >;
+#else
+using AdjustmentPtr = Gtk::Adjustment*;
+#endif
 
 #ifndef MAX
 #define MAX( a, b ) ( a > b ? a : b )
@@ -499,7 +506,7 @@ bool DragTreeView::on_scroll_event( GdkEventScroll* event )
 //
 void DragTreeView::wheelscroll( GdkEventScroll* event )
 {
-    Gtk::Adjustment *adj = get_vadjustment();
+    AdjustmentPtr adj = get_vadjustment();
     double val = adj->get_value();
 
     int scr_inc = get_row_height() * CONFIG::get_tree_scroll_size();

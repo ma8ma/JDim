@@ -44,6 +44,12 @@
 #include <pangomm/glyphstring.h>
 #endif
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+using AdjustmentPtr = Glib::RefPtr< Gtk::Adjustment >;
+#else
+using AdjustmentPtr = Gtk::Adjustment*;
+#endif
+
 using namespace ARTICLE;
 
 enum
@@ -1120,7 +1126,9 @@ const bool DrawAreaBase::exec_layout_impl( const bool is_popup, const int offset
     if( ! m_vscrbar && m_height_client > height_view ) create_scrbar();
 
     // adjustment 範囲変更
-    Gtk::Adjustment* adjust = m_vscrbar ? m_vscrbar->get_adjustment(): NULL;
+    AdjustmentPtr adjust = m_vscrbar ? m_vscrbar->get_adjustment()
+                                     : AdjustmentPtr( /* nullptr */ );
+
     if( adjust ){
 
         const double current = adjust->get_value();
@@ -3300,7 +3308,7 @@ void DrawAreaBase::wheelscroll( GdkEventScroll* event )
 
         if( m_vscrbar && ( m_scrollinfo.mode == SCROLL_NOT || m_scrollinfo.mode == SCROLL_NORMAL ) ){
 
-            Gtk::Adjustment* adjust = m_vscrbar->get_adjustment();
+            AdjustmentPtr adjust = m_vscrbar->get_adjustment();
 
             const int current_y = ( int ) adjust->get_value();
             if( event->direction == GDK_SCROLL_UP && current_y == 0 ) return;
@@ -3381,7 +3389,7 @@ void DrawAreaBase::exec_scroll()
 
     // 移動後のスクロール位置を計算
     int y = 0;
-    Gtk::Adjustment* adjust = m_vscrbar->get_adjustment();
+    AdjustmentPtr adjust = m_vscrbar->get_adjustment();
     const int current_y = ( int ) adjust->get_value();
 
     switch( m_scrollinfo.mode ){
@@ -3983,7 +3991,7 @@ const int DrawAreaBase::search_move( const bool reverse )
             std::cout << "move to y = " << y << std::endl;
 #endif
 
-            Gtk::Adjustment* adjust = m_vscrbar->get_adjustment();
+            AdjustmentPtr adjust = m_vscrbar->get_adjustment();
             if( ( int ) adjust->get_value() > y || ( int ) adjust->get_value() + ( int ) adjust->get_page_size() - m_font->br_size < y ){
 
                 m_cancel_change_adjust = true;
