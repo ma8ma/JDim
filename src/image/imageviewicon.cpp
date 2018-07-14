@@ -176,9 +176,14 @@ Gtk::Menu* ImageViewIcon::get_popupmenu( const std::string& url )
     if( menu ){
 
         // 一番上のitemのラベルを書き換える
+#if GTKMM_CHECK_VERSION(3,0,0)
+        auto item = dynamic_cast< Gtk::MenuItem* >( menu->get_children().front() );
+        auto label = dynamic_cast< Gtk::Label* >( item->get_child() );
+#else
         Gtk::Menu_Helpers::MenuList::iterator it_item =  menu->items().begin();
 
         Gtk::Label* label = dynamic_cast< Gtk::Label* >( (*it_item).get_child() );
+#endif
         if( label ) label->set_text_with_mnemonic( ITEM_NAME_GO + std::string( " [ タブ数 " )
                                                    + MISC::itostr( IMAGE::get_admin()->get_tab_nums() ) + " ](_M)" );
     }
