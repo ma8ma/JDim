@@ -142,13 +142,23 @@ void CONTROL::set_menu_motion( Gtk::Menu* menu )
 {
     if( !menu ) return;
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+    std::vector< Gtk::Widget* > items = menu->get_children();
+    auto it_item = items.begin();
+#else
     Gtk::Menu_Helpers::MenuList& items = menu->items();
     Gtk::Menu_Helpers::MenuList::iterator it_item = items.begin();
+#endif
     for( ; it_item != items.end(); ++it_item ){
 
         // menuitemの中の名前を読み込んで ID を取得し、CONTROL::Noneでなかったら
         // ラベルを置き換える
+#if GTKMM_CHECK_VERSION(3,0,0)
+        auto item = dynamic_cast< Gtk::MenuItem* >( *it_item );
+        auto label = dynamic_cast< Gtk::Label* >( item->get_child() );
+#else
         Gtk::Label* label = dynamic_cast< Gtk::Label* >( (*it_item).get_child() );
+#endif
         if( label ){
 #ifdef _DEBUG
             std::cout << label->get_text() << std::endl;
@@ -159,6 +169,11 @@ void CONTROL::set_menu_motion( Gtk::Menu* menu )
                 std::string str_label = CONTROL::get_label_with_mnemonic( id );
                 std::string str_motions = CONTROL::get_str_motions( id );
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+                // XXX: Gtk::MenuにGtk::HBoxを追加する方法は動作しなくなった
+                item->set_label( str_label + ( str_motions.empty() ? "" : "\t" )
+                                 + str_motions );
+#else
                 ( *it_item ).remove();
                 Gtk::Label *label = Gtk::manage( new Gtk::Label( str_label + ( str_motions.empty() ? "" : "  " ), true ) );
                 Gtk::Label *label_motion = Gtk::manage( new Gtk::Label( str_motions ) );
@@ -168,10 +183,17 @@ void CONTROL::set_menu_motion( Gtk::Menu* menu )
                 box->pack_end( *label_motion, Gtk::PACK_SHRINK );
                 (*it_item).add( *box );
                 box->show_all();
+#endif // GTKMM_CHECK_VERSION(3,0,0)
             }
         }
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+        if( item->has_submenu() ) {
+            CONTROL::set_menu_motion( item->get_submenu() );
+        }
+#else
         if( (*it_item).has_submenu() ) CONTROL::set_menu_motion( (*it_item).get_submenu() );
+#endif
     }
 }
 
