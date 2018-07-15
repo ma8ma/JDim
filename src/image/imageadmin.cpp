@@ -174,7 +174,11 @@ bool ImageAdmin::empty()
 //
 int ImageAdmin::get_tab_nums()
 {
+#if GTKMM_CHECK_VERSION(3,0,0)
+    return static_cast< int >( m_iconbox.get_children().size() );
+#else
     return m_iconbox.children().size();
+#endif
 }
 
 
@@ -185,11 +189,20 @@ int ImageAdmin::get_tab_nums()
 const std::list< std::string > ImageAdmin::get_URLs()
 {
     std::list< std::string > urls;
+#if GTKMM_CHECK_VERSION(3,0,0)
+    for( auto&& widget : m_iconbox.get_children() ) {
+        auto view = dynamic_cast< SKELETON::View* >( widget );
+        if( view ) {
+            urls.push_back( view->get_url() );
+        }
+    }
+#else
     Gtk::Box_Helpers::BoxList::iterator it = m_iconbox.children().begin();
     for(; it !=  m_iconbox.children().end(); ++it ){
         SKELETON::View* view = dynamic_cast< SKELETON::View* >( it->get_widget() );
         if( view ) urls.push_back( view->get_url() );
     }
+#endif // GTKMM_CHECK_VERSION(3,0,0)
 
     return urls;
 }
@@ -204,11 +217,20 @@ const std::list< std::string > ImageAdmin::get_URLs()
 void ImageAdmin::clock_in()
 {
     // アイコンにクロックを送る
+#if GTKMM_CHECK_VERSION(3,0,0)
+    for( auto&& widget : m_iconbox.get_children() ) {
+        auto view = dynamic_cast< SKELETON::View* >( widget );
+        if( view ) {
+            view->clock_in();
+        }
+    }
+#else
     Gtk::Box_Helpers::BoxList::iterator it = m_iconbox.children().begin();
     for(; it !=  m_iconbox.children().end(); ++it ){
         SKELETON::View* view = dynamic_cast< SKELETON::View* >( it->get_widget() );
         if( view ) view->clock_in();
     }
+#endif // GTKMM_CHECK_VERSION(3,0,0)
 
     // 画像が表示されている場合viewにクロックを回す
     if( SESSION::is_shown_win_img() ){
@@ -362,8 +384,23 @@ void ImageAdmin::open_view( const COMMAND_ARGS& command )
 //
 void ImageAdmin::tab_left( const bool updated )
 {
+#if GTKMM_CHECK_VERSION(3,0,0)
+    if( m_iconbox.get_children().size() == 1 ) return;
+#else
     if( m_iconbox.children().size() == 1 ) return;
+#endif
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+    std::string url_to;
+    SKELETON::View* const icon = get_current_icon();
+    for( auto&& widget : m_iconbox.get_children() ) {
+        auto view = dynamic_cast< SKELETON::View* >( widget );
+        if( view ) {
+            if( view == icon ) break;
+            url_to = view->get_url();
+        }
+    }
+#else
     SKELETON::View* view;
     std::string url_to;
     SKELETON::View* icon = get_current_icon();
@@ -375,11 +412,17 @@ void ImageAdmin::tab_left( const bool updated )
             url_to = view->get_url();
         }
     }
+#endif // GTKMM_CHECK_VERSION(3,0,0)
 
     // 一番最後へ戻る
     if( url_to.empty() ){
+#if GTKMM_CHECK_VERSION(3,0,0)
+        auto last = m_iconbox.get_children().back();
+        auto view = dynamic_cast< SKELETON::View* >( last );
+#else
         it = m_iconbox.children().end();
         view = dynamic_cast< SKELETON::View* >( (--it)->get_widget() );
+#endif
         if( view ) url_to = view->get_url();
     }
 
@@ -390,10 +433,31 @@ void ImageAdmin::tab_left( const bool updated )
 
 void ImageAdmin::tab_right( const bool updated )
 {
+#if GTKMM_CHECK_VERSION(3,0,0)
+    if( m_iconbox.get_children().size() == 1 ) return;
+#else
     if( m_iconbox.children().size() == 1 ) return;
+#endif
 
     std::string url_to;
     SKELETON::View* icon = get_current_icon();
+#if GTKMM_CHECK_VERSION(3,0,0)
+    std::vector< Gtk::Widget* > widgets = m_iconbox.get_children();
+    for( auto it = widgets.begin(); it != widgets.end(); ++it ) {
+        auto view = dynamic_cast< SKELETON::View* >( *it );
+        if( view == icon ) {
+            ++it;
+            if( it == widgets.end() ) {
+                it = widgets.begin();
+            }
+            view = dynamic_cast< SKELETON::View* >( *it );
+            if( view ) {
+                url_to = view->get_url();
+            }
+            break;
+        }
+    }
+#else
     Gtk::Box_Helpers::BoxList::iterator it = m_iconbox.children().begin();
     for(; it != m_iconbox.children().end(); ++it ){
         SKELETON::View* view = dynamic_cast< SKELETON::View* >( it->get_widget() );
@@ -408,6 +472,7 @@ void ImageAdmin::tab_right( const bool updated )
             break;
         }
     }
+#endif // GTKMM_CHECK_VERSION(3,0,0)
 
     if( !url_to.empty() ) switch_img( url_to );
     focus_current_view();
@@ -420,12 +485,21 @@ void ImageAdmin::tab_right( const bool updated )
 //
 void ImageAdmin::tab_head()
 {
+#if GTKMM_CHECK_VERSION(3,0,0)
+    if( m_iconbox.get_children().size() == 1 ) return;
+#else
     if( m_iconbox.children().size() == 1 ) return;
+#endif
 
     std::string url_to;
+#if GTKMM_CHECK_VERSION(3,0,0)
+    auto view =
+        dynamic_cast< SKELETON::View* >( m_iconbox.get_children().front() );
+#else
     Gtk::Box_Helpers::BoxList::iterator it = m_iconbox.children().begin();
 
     SKELETON::View* view = dynamic_cast< SKELETON::View* >( it->get_widget() );
+#endif
     if( view ) url_to = view->get_url();
 
     if( !url_to.empty() ) switch_img( url_to );
@@ -439,13 +513,22 @@ void ImageAdmin::tab_head()
 //
 void ImageAdmin::tab_tail()
 {
+#if GTKMM_CHECK_VERSION(3,0,0)
+    if( m_iconbox.get_children().size() == 1 ) return;
+#else
     if( m_iconbox.children().size() == 1 ) return;
+#endif
 
     std::string url_to;
+#if GTKMM_CHECK_VERSION(3,0,0)
+    auto view =
+        dynamic_cast< SKELETON::View* >( m_iconbox.get_children().back() );
+#else
     Gtk::Box_Helpers::BoxList::iterator it = m_iconbox.children().end();
     it--;
     
     SKELETON::View* view = dynamic_cast< SKELETON::View* >( it->get_widget() );
+#endif
     if( view ) url_to = view->get_url();
 
     if( !url_to.empty() ) switch_img( url_to );
@@ -559,6 +642,19 @@ void ImageAdmin::close_view( const std::string& url )
 
         SKELETON::View* view_prev = NULL;
         SKELETON::View* view_next = NULL;        
+#if GTKMM_CHECK_VERSION(3,0,0)
+        std::vector< Gtk::Widget* > widgets = m_iconbox.get_children();
+        for( auto it = widgets.begin(); it != widgets.end(); ++it ) {
+            auto view_tmp = dynamic_cast< SKELETON::View* >( *it );
+            if( view_tmp->get_url() == url ) {
+                if( ++it != widgets.end() ) {
+                    view_next = dynamic_cast< SKELETON::View* >( *it );
+                }
+                break;
+            }
+            view_prev = view_tmp;
+        }
+#else
         Gtk::Box_Helpers::BoxList::iterator it = m_iconbox.children().begin();
         for(; it !=  m_iconbox.children().end(); ++it ){
             SKELETON::View* view_tmp = dynamic_cast< SKELETON::View* >( it->get_widget() );
@@ -568,6 +664,7 @@ void ImageAdmin::close_view( const std::string& url )
             }
             view_prev = view_tmp;
         }
+#endif // GTKMM_CHECK_VERSION(3,0,0)
 
         if( view_next ) url_next = view_next->get_url();
         else if( view_prev ) url_next = view_prev->get_url();
@@ -638,11 +735,20 @@ void ImageAdmin::close_other_views( const std::string& url )
 {
     set_command( "set_imgtab_operating", "", "true" );
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+    for( auto&& widget : m_iconbox.get_children() ) {
+        auto view = dynamic_cast< SKELETON::View* >( widget );
+        if( view && view->get_url() != url ) {
+            set_command( "close_view", view->get_url() );
+        }
+    }
+#else
     Gtk::Box_Helpers::BoxList::iterator it = m_iconbox.children().begin();
     for(; it !=  m_iconbox.children().end(); ++it ){
         SKELETON::View* view = dynamic_cast< SKELETON::View* >( it->get_widget() );
         if( view && view->get_url() != url ) set_command( "close_view", view->get_url() );
     }
+#endif // GTKMM_CHECK_VERSION(3,0,0)
 
     set_command( "set_imgtab_operating", "", "false" );
 }
@@ -655,12 +761,22 @@ void ImageAdmin::close_left_views( const std::string& url )
 {
     set_command( "set_imgtab_operating", "", "true" );
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+    for( auto&& widget : m_iconbox.get_children() ) {
+        auto view = dynamic_cast< SKELETON::View* >( widget );
+        if( view->get_url() == url ) break;
+        if( view ) {
+            set_command( "close_view", view->get_url() );
+        }
+    }
+#else
     Gtk::Box_Helpers::BoxList::iterator it = m_iconbox.children().begin();
     for(; it !=  m_iconbox.children().end(); ++it ){
         SKELETON::View* view = dynamic_cast< SKELETON::View* >( it->get_widget() );
         if( view->get_url() == url ) break;
         if( view ) set_command( "close_view", view->get_url() );
     }
+#endif // GTKMM_CHECK_VERSION(3,0,0)
 
     set_command( "set_imgtab_operating", "", "false" );
 }
@@ -673,6 +789,21 @@ void ImageAdmin::close_right_views( const std::string& url )
 {
     set_command( "set_imgtab_operating", "", "true" );
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+    std::vector< Gtk::Widget* > widgets = m_iconbox.get_children();
+    auto it = widgets.begin();
+    for( ; it != widgets.end(); ++it ) {
+        auto view = dynamic_cast< SKELETON::View* >( *it );
+        if( view->get_url() == url ) break;
+    }
+    ++it;
+    for( ; it != widgets.end(); ++it ) {
+        auto view = dynamic_cast< SKELETON::View* >( *it );
+        if( view ) {
+            set_command( "close_view", view->get_url() );
+        }
+    }
+#else
     Gtk::Box_Helpers::BoxList::iterator it = m_iconbox.children().begin();
     for(; it !=  m_iconbox.children().end(); ++it ){
         SKELETON::View* view = dynamic_cast< SKELETON::View* >( it->get_widget() );
@@ -683,6 +814,7 @@ void ImageAdmin::close_right_views( const std::string& url )
         SKELETON::View* view = dynamic_cast< SKELETON::View* >( it->get_widget() );
         if( view ) set_command( "close_view", view->get_url() );
     }
+#endif // GTKMM_CHECK_VERSION(3,0,0)
 
     set_command( "set_imgtab_operating", "", "false" );
 }
@@ -699,10 +831,20 @@ void ImageAdmin::close_error_views( const std::string mode )
 
     set_command( "set_imgtab_operating", "", "true" );
 
-    Gtk::Box_Helpers::BoxList::iterator it = m_iconbox.children().begin();
-    for(; it !=  m_iconbox.children().end(); ++it ){
+#if GTKMM_CHECK_VERSION(3,0,0)
+    std::vector< Gtk::Widget* > widgets = m_iconbox.get_children();
+    auto it = widgets.begin();
+#else
+    Gtk::Box_Helpers::BoxList& widgets = m_iconbox.children();
+    Gtk::Box_Helpers::BoxList::iterator it = widgets.begin();
+#endif
 
+    for( ; it != widgets.end(); ++it ) {
+#if GTKMM_CHECK_VERSION(3,0,0)
+        auto view = dynamic_cast< SKELETON::View* >( *it );
+#else
         SKELETON::View* view = dynamic_cast< SKELETON::View* >( it->get_widget() );
+#endif
         if( view ){
 
             const std::string url = view->get_url();
@@ -738,10 +880,20 @@ void ImageAdmin::close_noerror_views()
 
     set_command( "set_imgtab_operating", "", "true" );
 
-    Gtk::Box_Helpers::BoxList::iterator it = m_iconbox.children().begin();
-    for(; it !=  m_iconbox.children().end(); ++it ){
+#if GTKMM_CHECK_VERSION(3,0,0)
+    std::vector< Gtk::Widget* > widgets = m_iconbox.get_children();
+    auto it = widgets.begin();
+#else
+    Gtk::Box_Helpers::BoxList& widgets = m_iconbox.children();
+    Gtk::Box_Helpers::BoxList::iterator it = widgets.begin();
+#endif
 
+    for( ; it != widgets.end(); ++it ) {
+#if GTKMM_CHECK_VERSION(3,0,0)
+        auto view = dynamic_cast< SKELETON::View* >( *it );
+#else
         SKELETON::View* view = dynamic_cast< SKELETON::View* >( it->get_widget() );
+#endif
         if( view ){
 
             const std::string url = view->get_url();
@@ -799,11 +951,20 @@ void ImageAdmin::focus_current_view()
 //
 void ImageAdmin::focus_out_all()
 {
+#if GTKMM_CHECK_VERSION(3,0,0)
+    for( auto&& widget : m_iconbox.get_children() ) {
+        auto view = dynamic_cast< SKELETON::View* >( widget );
+        if( view ) {
+            view->focus_out();
+        }
+    }
+#else
     Gtk::Box_Helpers::BoxList::iterator it = m_iconbox.children().begin();
     for(; it !=  m_iconbox.children().end(); ++it ){
         SKELETON::View* view = dynamic_cast< SKELETON::View* >( it->get_widget() );
         if( view ) view->focus_out();
     }
+#endif // GTKMM_CHECK_VERSION(3,0,0)
 }
 
 
@@ -879,11 +1040,20 @@ void ImageAdmin::switch_img( const std::string& url )
 // 
 SKELETON::View* ImageAdmin::get_icon( const std::string& url, int& pos )
 {
+#if GTKMM_CHECK_VERSION(3,0,0)
+    pos = 0;
+    for( auto&& widget : m_iconbox.get_children() ) {
+        auto view = dynamic_cast< SKELETON::View* >( widget );
+        if( view && view->get_url() == url ) return view;
+        ++pos;
+    }
+#else
     Gtk::Box_Helpers::BoxList::iterator it = m_iconbox.children().begin();
     for( pos = 0; it !=  m_iconbox.children().end(); ++it, ++pos ){
         SKELETON::View* view = dynamic_cast< SKELETON::View* >( it->get_widget() );
         if( view && view->get_url() == url ) return view;
     }
+#endif // GTKMM_CHECK_VERSION(3,0,0)
 
     pos = -1;
     return NULL;
@@ -902,12 +1072,19 @@ SKELETON::View* ImageAdmin::get_icon( const std::string& url)
 //
 SKELETON::View* ImageAdmin::get_nth_icon( const unsigned int n )
 {
+#if GTKMM_CHECK_VERSION(3,0,0)
+    std::vector< Gtk::Widget* > widgets = m_iconbox.get_children();
+    if( n >= widgets.size() ) return nullptr;
+
+    return dynamic_cast< SKELETON::View* >( widgets[ n ] );
+#else
     if( n >= m_iconbox.children().size() ) return NULL;
 
     Gtk::Box_Helpers::BoxList::iterator it = m_iconbox.children().begin();
     for( unsigned int i = 0; i < n; ++i, ++it );
 
     return dynamic_cast< SKELETON::View* >( it->get_widget() );
+#endif // GTKMM_CHECK_VERSION(3,0,0)
 }
 
 
@@ -1193,11 +1370,20 @@ std::list< bool > ImageAdmin::get_locked()
 {
     std::list< bool > locked;
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+    for( auto&& widget : m_iconbox.get_children() ) {
+        auto view = dynamic_cast< SKELETON::View* >( widget );
+        if( view ) {
+            locked.push_back( view->is_locked() );
+        }
+    }
+#else
     Gtk::Box_Helpers::BoxList::iterator it = m_iconbox.children().begin();
     for(; it !=  m_iconbox.children().end(); ++it ){
         SKELETON::View* view = dynamic_cast< SKELETON::View* >( it->get_widget() );
         if( view ) locked.push_back( view->is_locked() );
     }
+#endif // GTKMM_CHECK_VERSION(3,0,0)
 
     return locked;
 }
