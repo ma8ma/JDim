@@ -1741,9 +1741,17 @@ const bool DrawAreaBase::draw_screen( const int y, const int height )
     }
 
     // キューに expose イベントが溜まっている時は全画面再描画
+#if GTKMM_CHECK_VERSION(3,0,0)
+    cairo_region_t* updated = gdk_window_get_update_area( m_window->gobj() );
+#else
     Gdk::Region rg = m_window->get_update_area();
-    if( rg.gobj() ){
+    const bool updated = bool( rg.gobj() );
+#endif
+    if( updated ) {
         redraw_view_force();
+#if GTKMM_CHECK_VERSION(3,0,0)
+        cairo_region_destroy( updated );
+#endif
         return true;
     }
 
