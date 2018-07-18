@@ -332,28 +332,49 @@ void DrawAreaBase::init_color()
     const int usrcolor = colors.size();
     m_color.resize( END_COLOR_FOR_THREAD + usrcolor );
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+    Glib::RefPtr< Gtk::StyleContext > context = get_style_context();
+#else
     Glib::RefPtr< Gdk::Colormap > colormap = get_default_colormap();
+#endif
 
     int i = COLOR_FOR_THREAD +1;
     for( ; i < END_COLOR_FOR_THREAD; ++i ){
 
         m_color[ i ] = Gdk::Color( CONFIG::get_color( i ) );
+#if !GTKMM_CHECK_VERSION(3,0,0)
         colormap->alloc_color( m_color[ i ] );
+#endif
     }
 
     // スレビューの選択色でgtkrcの設定を使用
     if( CONFIG::get_use_select_gtkrc() ){
+#if GTKMM_CHECK_VERSION(3,0,0)
+        Gdk::Color color;
+        auto rgba = context->get_color( Gtk::STATE_FLAG_SELECTED );
+        color.set_rgb( rgba.get_red_u(), rgba.get_green_u(),
+                       rgba.get_blue_u() );
+        m_color[ COLOR_CHAR_SELECTION ] = color;
+
+        rgba = context->get_background_color( Gtk::STATE_FLAG_SELECTED );
+        color.set_rgb( rgba.get_red_u(), rgba.get_green_u(),
+                       rgba.get_blue_u() );
+        m_color[ COLOR_BACK_SELECTION ] = color;
+#else
         m_color[ COLOR_CHAR_SELECTION ] = get_style()->get_text( Gtk::STATE_SELECTED );
         colormap->alloc_color( m_color[ COLOR_CHAR_SELECTION ] );
 
         m_color[ COLOR_BACK_SELECTION ] = get_style()->get_base( Gtk::STATE_SELECTED );
         colormap->alloc_color( m_color[ COLOR_BACK_SELECTION ] );
+#endif // GTKMM_CHECK_VERSION(3,0,0)
     }
 
     std::vector< std::string >::const_iterator it = colors.begin();
     for( ; it != colors.end(); ++it, ++i ){
         m_color[ i ] = Gdk::Color( ( *it ) );
+#if !GTKMM_CHECK_VERSION(3,0,0)
         colormap->alloc_color( m_color[ i ] );
+#endif
     }
 }
 
