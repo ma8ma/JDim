@@ -136,7 +136,11 @@ Core::Core( JDWinMain& win_main )
     CORE::get_search_manager();
 
     m_vbox_article.signal_realize().connect( sigc::mem_fun(*this, &Core::slot_realize ) );
+#if GTKMM_CHECK_VERSION(3,0,0)
+    m_vbox_article.signal_style_updated().connect( sigc::mem_fun( *this, &Core::slot_style_updated ) );
+#else
     m_vbox_article.signal_style_changed().connect( sigc::mem_fun(*this, &Core::slot_style_changed ) );
+#endif
 }
 
 
@@ -291,14 +295,28 @@ void Core::slot_realize()
     std::cout << "Core::slot_realize\n";
 #endif
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+    slot_style_updated();
+#else
     slot_style_changed( m_vbox_article.get_style() );
+#endif
 }
 
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+// XXX: Gtk::StyleContextにはスタイルを一括コピーする機能がない
+// そこでCore::slot_realize()のコメントを参考に背景色を上書きするロジックにした
+void Core::slot_style_updated()
+{
+    auto rgba = m_vbox_article.get_style_context()->get_background_color();
+    m_notebook_right.override_background_color( rgba, m_vbox_article.get_state_flags() );
+}
+#else
 void Core::slot_style_changed( Glib::RefPtr< Gtk::Style > )
 {
     m_notebook_right.set_style( m_vbox_article.get_style() );
 }
+#endif // GTKMM_CHECK_VERSION(3,0,0)
 
 
 Gtk::Widget* Core::get_toplevel()
