@@ -148,7 +148,11 @@ namespace CORE
         void set_maintitle();
 
         void slot_realize();
+#if GTKMM_CHECK_VERSION(3,0,0)
+        void slot_style_updated();
+#else
         void slot_style_changed( Glib::RefPtr< Gtk::Style > );
+#endif
 
         void slot_activate_menubar();
         void slot_activate_historymenu();
