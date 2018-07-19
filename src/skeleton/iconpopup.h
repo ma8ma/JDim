@@ -18,14 +18,24 @@ namespace SKELETON
 
       IconPopup( const int icon_id ) : Gtk::Window( Gtk::WINDOW_POPUP ){
 
-            Glib::RefPtr< Gdk::Pixmap > pixmap;
-            Glib::RefPtr< Gdk::Bitmap > bitmap;
-
             m_pixbuf = ICON::get_icon( icon_id );
             m_img.set( m_pixbuf );
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+            cairo_t* cr = gdk_cairo_create( m_img.get_window()->gobj() );
+            cairo_region_t* rg = gdk_cairo_region_create_from_surface( cairo_get_target( cr ) );
+
+            gtk_widget_shape_combine_region( GTK_WIDGET( gobj() ), rg );
+
+            cairo_region_destroy( rg );
+            cairo_destroy( cr );
+#else
+            Glib::RefPtr< Gdk::Pixmap > pixmap;
+            Glib::RefPtr< Gdk::Bitmap > bitmap;
+
             m_pixbuf->render_pixmap_and_mask( pixmap, bitmap, 255 );
             shape_combine_mask( bitmap, 0, 0 );
+#endif // GTKMM_CHECK_VERSION(3,0,0)
 
             add( m_img );
             show_all_children();
