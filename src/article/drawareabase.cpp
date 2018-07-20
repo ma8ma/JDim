@@ -206,7 +206,12 @@ void DrawAreaBase::setup( const bool show_abone, const bool show_scrbar, const b
     m_view.signal_leave_notify_event().connect(  sigc::mem_fun( *this, &DrawAreaBase::slot_leave_notify_event ) );
     m_view.signal_realize().connect( sigc::mem_fun( *this, &DrawAreaBase::slot_realize ));
     m_view.signal_configure_event().connect(  sigc::mem_fun( *this, &DrawAreaBase::slot_configure_event ));
+#if GTKMM_CHECK_VERSION(3,0,0)
+    m_view.signal_draw().connect(
+        sigc::mem_fun( *this, &DrawAreaBase::slot_draw ) );
+#else
     m_view.signal_expose_event().connect(  sigc::mem_fun( *this, &DrawAreaBase::slot_expose_event ));
+#endif
     m_view.signal_scroll_event().connect(  sigc::mem_fun( *this, &DrawAreaBase::slot_scroll_event ));
     m_view.signal_button_press_event().connect(  sigc::mem_fun( *this, &DrawAreaBase::slot_button_press_event ));
     m_view.signal_button_release_event().connect(  sigc::mem_fun( *this, &DrawAreaBase::slot_button_release_event ));
@@ -5001,6 +5006,82 @@ void DrawAreaBase::configure_impl()
 //
 // drawarea の再描画イベント
 //
+#if GTKMM_CHECK_VERSION(3,0,0)
+bool DrawAreaBase::slot_draw( const Cairo::RefPtr< Cairo::Context >& cr )
+{
+    double x1, y1, x2, y2;
+    cr->get_clip_extents( x1, y1, x2, y2 );
+    const double width = x2 - x1;
+    const double height = y2 - y1;
+
+    // タブ操作中は再描画しない
+    if( SESSION::is_tab_operating( URL_ARTICLEADMIN ) ) {
+        return true;
+    }
+#ifdef _DEBUG
+    std::cout << "DrawAreaBase::slot_draw"
+              << " y = " << y1 << " height = " << height
+              << " draw_screen = " << m_drawinfo.draw << " url = " << m_url
+              << std::endl;
+#endif
+    // drawイベントから抜ける前にm_cr.release()を呼び出して所有権を放棄する
+    // ローカル変数やスコープガードなどを使用して安全性を高めるべきか
+    m_cr.reset( cr->cobj() );
+
+    // draw_screen からの呼び出し
+    if( m_drawinfo.draw ) {
+#ifdef _DEBUG
+        std::cout << "draw\n";
+#endif
+        m_drawinfo.draw = false;
+        exec_draw_screen( m_drawinfo.y, m_drawinfo.height );
+    }
+    // バックスクリーンに描画済みならコピー
+    else if( y1 >= m_rect_backscreen.y
+             && y2 <= m_rect_backscreen.y + m_rect_backscreen.height ) {
+#ifdef _DEBUG
+        std::cout << "copy from backscreen\n";
+#endif
+        cairo_save( m_cr.get() );
+        cairo_rectangle( m_cr.get(), x1, y1, width, height );
+        cairo_clip( m_cr.get() );
+        cairo_set_source_surface( m_cr.get(), m_backscreen.get(), x1, y1 );
+        cairo_paint( m_cr.get() );
+        cairo_restore( m_cr.get() );
+
+        // オートスクロールマーカと枠の描画
+        draw_marker();
+        draw_frame();
+    }
+    // レイアウトがセットされていない or まだリサイズしていない
+    // ( m_backscreen == NULL )なら画面消去
+    else if( !m_layout_tree->top_header() || !m_backscreen ) {
+#ifdef _DEBUG
+        std::cout << "clear window\n";
+#endif
+        cairo_save( m_cr.get() );
+        gdk_cairo_set_source_color( m_cr.get(),
+                                    m_color[ get_colorid_back() ].gobj() );
+        cairo_fill( m_cr.get() );
+        cairo_restore( m_cr.get() );
+
+        // シグナルハンドラの引数から借りただけなので所有権を放棄しておく
+        m_cr.release();
+        return false;
+    }
+    // 必要な所だけ再描画
+    else {
+#ifdef _DEBUG
+        std::cout << "expose\n";
+#endif
+        exec_draw_screen( static_cast< int >( y1 ),
+                          static_cast< int >( height ) );
+    }
+    // シグナルハンドラの引数から借りただけなので所有権を放棄しておく
+    m_cr.release();
+    return true;
+}
+#else
 bool DrawAreaBase::slot_expose_event( GdkEventExpose* event )
 {
     const int x = event->area.x;
@@ -5097,6 +5178,7 @@ bool DrawAreaBase::slot_expose_event( GdkEventExpose* event )
 #endif
     return true;
 }
+#endif // GTKMM_CHECK_VERSION(3,0,0)
 
 
 
