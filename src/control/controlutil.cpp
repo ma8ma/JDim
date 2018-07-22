@@ -155,7 +155,7 @@ void CONTROL::set_menu_motion( Gtk::Menu* menu )
         // ラベルを置き換える
 #if GTKMM_CHECK_VERSION(3,0,0)
         auto item = dynamic_cast< Gtk::MenuItem* >( *it_item );
-        auto label = dynamic_cast< Gtk::Label* >( item->get_child() );
+        auto label = dynamic_cast< Gtk::AccelLabel* >( item->get_child() );
 #else
         Gtk::Label* label = dynamic_cast< Gtk::Label* >( (*it_item).get_child() );
 #endif
@@ -170,9 +170,42 @@ void CONTROL::set_menu_motion( Gtk::Menu* menu )
                 std::string str_motions = CONTROL::get_str_motions( id );
 
 #if GTKMM_CHECK_VERSION(3,0,0)
-                // XXX: Gtk::MenuにGtk::HBoxを追加する方法は動作しなくなった
-                item->set_label( str_label + ( str_motions.empty() ? "" : "\t" )
-                                 + str_motions );
+#if GTKMM_CHECK_VERSION(3,6,0)
+                // version >= 3.6.0
+                if( gtk_check_version( 3, 6, 0 ) == nullptr ) {
+                    // CONTROL::get_str_motions()を参考に別個対応のidを処理する
+                    if( id == CONTROL::PreferenceArticle
+                        || id == CONTROL::PreferenceBoard
+                        || id == CONTROL::PreferenceImage ) {
+                        label->set_accel( GDK_KEY_p,
+                                          Gdk::CONTROL_MASK | Gdk::SHIFT_MASK );
+                        str_motions = CONTROL::get_str_mousemotions(
+                            CONTROL::PreferenceView );
+                    }
+                    else if( id == CONTROL::SaveDat ) {
+                        label->set_accel( GDK_KEY_s, Gdk::CONTROL_MASK );
+                        str_motions =
+                            CONTROL::get_str_mousemotions( CONTROL::Save );
+                    }
+                    else {
+                        const auto key = CONTROL::get_accelkey( id );
+                        if( !key.is_null() ) {
+                            label->set_accel( key.get_key(), key.get_mod() );
+                        }
+                        str_motions = CONTROL::get_str_mousemotions( id );
+                    }
+                    label->set_text_with_mnemonic(
+                        str_label
+                        + ( str_motions.empty() ? "" : "  " + str_motions ) );
+                }
+                else
+#endif // GTKMM_CHECK_VERSION(3,6,0)
+                {
+                    // XXX: Gtk::MenuにGtk::HBoxを追加する方法は動作しなくなった
+                    item->set_label( str_label
+                                     + ( str_motions.empty() ? "" : "\t" )
+                                     + str_motions );
+                }
 #else
                 ( *it_item ).remove();
                 Gtk::Label *label = Gtk::manage( new Gtk::Label( str_label + ( str_motions.empty() ? "" : "  " ), true ) );
