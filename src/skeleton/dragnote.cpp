@@ -581,7 +581,12 @@ SKELETON::TabLabel* DragableNoteBook::create_tablabel( const std::string& url )
 {
     SKELETON::TabLabel *tablabel = new SKELETON::TabLabel( url );
 
-#if !GTKMM_CHECK_VERSION(2,10,0)
+#if GTKMM_CHECK_VERSION(2,10,0)
+    tablabel->sig_tab_button_press_event().connect(
+        sigc::mem_fun( m_notebook_tab, &TabNotebook::slot_tab_button_event ) );
+    tablabel->sig_tab_button_release_event().connect(
+        sigc::mem_fun( m_notebook_tab, &TabNotebook::slot_tab_button_event ) );
+#else
     // ドラッグ設定
     GdkEventButton event;
     m_control.get_eventbutton( CONTROL::DragStartButton, event );
@@ -593,7 +598,7 @@ SKELETON::TabLabel* DragableNoteBook::create_tablabel( const std::string& url )
     tablabel->sig_tab_drag_begin().connect( sigc::mem_fun(*this, &DragableNoteBook::slot_drag_begin ) );
     tablabel->sig_tab_drag_data_get().connect( sigc::mem_fun(*this, &DragableNoteBook::slot_drag_data_get ) );
     tablabel->sig_tab_drag_end().connect( sigc::mem_fun(*this, &DragableNoteBook::slot_drag_end ) );
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
+#endif // GTKMM_CHECK_VERSION(2,10,0)
     
     return tablabel;
 }

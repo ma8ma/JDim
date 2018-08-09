@@ -29,7 +29,10 @@ TabLabel::TabLabel( const std::string& url )
     // 背景透過
     set_visible_window( false );
 
-#if !GTKMM_CHECK_VERSION(2,10,0)
+#if GTKMM_CHECK_VERSION(2,10,0)
+    add_events( Gdk::BUTTON_PRESS_MASK );
+    add_events( Gdk::BUTTON_RELEASE_MASK );
+#else
     add_events( Gdk::POINTER_MOTION_MASK );
     add_events( Gdk::LEAVE_NOTIFY_MASK );
 #endif
@@ -239,3 +242,32 @@ void TabLabel::on_drag_end( const Glib::RefPtr< Gdk::DragContext >& context )
     m_sig_tab_drag_end.emit();
 }
 #endif // !GTKMM_CHECK_VERSION(2,10,0)
+
+
+#if GTKMM_CHECK_VERSION(2,10,0)
+bool TabLabel::on_button_press_event( GdkEventButton* event )
+{
+#ifdef _DEBUG
+    std::cout << "TabLabel::on_button_press_event " << m_fulltext << std::endl;
+#endif
+
+    Gtk::EventBox::on_button_press_event( event );
+
+    return m_sig_tab_button_press_event.emit( event, this );
+}
+#endif // GTKMM_CHECK_VERSION(2,10,0)
+
+
+#if GTKMM_CHECK_VERSION(2,10,0)
+bool TabLabel::on_button_release_event( GdkEventButton* event )
+{
+#ifdef _DEBUG
+    std::cout << "TabLabel::on_button_release_event " << m_fulltext
+              << std::endl;
+#endif
+
+    Gtk::EventBox::on_button_release_event( event );
+
+    return m_sig_tab_button_release_event.emit( event, this );
+}
+#endif // GTKMM_CHECK_VERSION(2,10,0)
