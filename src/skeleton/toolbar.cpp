@@ -28,7 +28,9 @@
 #include "prefdiagfactory.h"
 
 #include <gtk/gtk.h>  // gtk_separator_tool_item_set_draw
+#if !GTKMM_CHECK_VERSION(3,0,0)
 #include <gtk/gtkbutton.h>
+#endif
 #include <list>
 
 using namespace SKELETON;
@@ -729,6 +731,7 @@ void ToolBar::focus_button_write()
 // 書き込みボタンの廻りに枠を描く
 void ToolBar::drawframe_button_write( const bool draw )
 {
+#if !GTKMM_CHECK_VERSION(3,0,0)
     if( CONFIG::get_flat_button() ){
 
         // relief が Gtk:: RELIEF_NONE のときにボタンに枠を描画
@@ -742,6 +745,7 @@ void ToolBar::drawframe_button_write( const bool draw )
             else gtk_button_leave( gtkbutton );
         }
     }
+#endif // !GTKMM_CHECK_VERSION(3,0,0)
 }
 
 
