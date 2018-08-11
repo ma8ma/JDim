@@ -35,6 +35,7 @@ ToolBarNotebook::ToolBarNotebook( DragableNoteBook* parent )
 //
 // 自前でビュー領域の枠を描画する
 //
+#if !GTKMM_CHECK_VERSION(3,0,0)
 bool ToolBarNotebook::on_expose_event( GdkEventExpose* event )
 {
     // 枠描画
@@ -48,3 +49,4 @@ bool ToolBarNotebook::on_expose_event( GdkEventExpose* event )
 
     return ret;
 }
+#endif // !GTKMM_CHECK_VERSION(3,0,0)
