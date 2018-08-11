@@ -17,8 +17,11 @@ namespace SKELETON
     public:
         JDToolbar(){}
 
+        // GTK+3ではデフォルトの描画処理に任せる
+#if !GTKMM_CHECK_VERSION(3,0,0)
     protected:
         virtual bool on_expose_event( GdkEventExpose* event );
+#endif
     };
 }
 
