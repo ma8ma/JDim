@@ -425,11 +425,22 @@ TabNotebook::TabNotebook( DragableNoteBook* parent )
     drag_dest_set( targets, Gtk::DEST_DEFAULT_MOTION | Gtk::DEST_DEFAULT_DROP );
 #endif // !GTKMM_CHECK_VERSION(2,10,0)
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+#if GTKMM_CHECK_VERSION(3,12,0)
+    m_tab_mrg = get_margin_top();
+#else
+    m_tab_mrg = get_margin_left();
+#endif
+    if( m_tab_mrg <= 0 ) {
+        m_tab_mrg = get_style_context()->get_margin().get_left();
+    }
+#else
     Glib::RefPtr< Gtk::RcStyle > rcst = get_modifier_style();
     Glib::RefPtr< Gtk::Style > st = get_style();
 
     m_tab_mrg = rcst->get_xthickness() * 2;
     if( m_tab_mrg <= 0 ) m_tab_mrg = st->get_xthickness() * 2;
+#endif // GTKMM_CHECK_VERSION(3,0,0)
 
     m_pre_width = get_width();
 }
