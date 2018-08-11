@@ -64,6 +64,7 @@ void TabSwitchButton::hide_button()
 //
 // 自前でビュー領域の枠を描画する
 //
+#if !GTKMM_CHECK_VERSION(3,0,0)
 bool TabSwitchButton::on_expose_event( GdkEventExpose* event )
 {
     if( ! m_shown ) return Gtk::Notebook::on_expose_event( event );
@@ -76,3 +77,4 @@ bool TabSwitchButton::on_expose_event( GdkEventExpose* event )
 
     return true;
 }
+#endif // !GTKMM_CHECK_VERSION(3,0,0)
