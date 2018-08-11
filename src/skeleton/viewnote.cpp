@@ -29,6 +29,7 @@ ViewNotebook::ViewNotebook( DragableNoteBook* parent )
 //
 // 自前で枠を描画する
 //
+#if !GTKMM_CHECK_VERSION(3,0,0)
 bool ViewNotebook::on_expose_event( GdkEventExpose* event )
 {
     if( ! get_n_pages() ) return Notebook::on_expose_event( event );
@@ -44,6 +45,7 @@ bool ViewNotebook::on_expose_event( GdkEventExpose* event )
 
     return ret;
 }
+#endif // !GTKMM_CHECK_VERSION(3,0,0)
 
 
 //
