@@ -735,7 +735,10 @@ void ToolBar::drawframe_button_write( const bool draw )
         Gtk::Button* button = dynamic_cast< Gtk::Button* >( get_button_write()->get_child() );
         if( button ){
             GtkButton* gtkbutton = button->gobj();
+#if !GTKMM_CHECK_VERSION(3,0,0)
+            // TODO: ボタンの枠の描画を別の方法(e.g. CSS class)で制御する
             gtkbutton->in_button = draw;
+#endif
             if( draw ) gtk_button_enter( gtkbutton );
             else gtk_button_leave( gtkbutton );
         }
@@ -845,8 +848,13 @@ void ToolBar::slot_clicked_close()
     // gtkbutton->in_button = false にすると枠が消えることが分かった
     if( m_admin->get_tab_nums() == 1 ){
         Gtk::Button* button = dynamic_cast< Gtk::Button* >( m_button_close->get_child() );
+#if GTKMM_CHECK_VERSION(3,0,0)
+        // TODO: ボタンの枠の描画を別の方法(e.g. CSS class)で制御する
+        button->unmap();
+#else
         GtkButton* gtkbutton = button->gobj();
         gtkbutton->in_button = false;
+#endif
     }
 
     m_admin->set_command( "toolbar_close_view", m_url );
