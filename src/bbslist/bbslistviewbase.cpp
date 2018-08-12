@@ -2779,7 +2779,7 @@ void BBSListViewBase::exec_search()
             // 先頭にいるときは最後に戻る
             if( path == GET_PATH( *( m_treestore->children().begin() ) ) ){
 
-                path = GET_PATH( *( m_treestore->children().rbegin() ) );
+                path = GET_PATH( *( --( m_treestore->children().end() ) ) );
                 Gtk::TreePath path_tmp = path;
                 while( m_treeview.get_row( path_tmp ) ){
                     path = path_tmp;
@@ -2954,13 +2954,18 @@ void BBSListViewBase::append_history()
     m_treeview.append_one_row( ( *it_info ).url, ( *it_info ).name, ( *it_info ).type, ( *it_info ).dirid, ( *it_info ).data, path, before, subdir );
 
     // サイズが越えていたら最後を削除
-    while( ( int )m_treestore->children().size() > CONFIG::get_historyview_size() ){
-
-        Gtk::TreeModel::Row row = *( m_treestore->children().rbegin() );
-        m_treestore->erase( row );
+    const Gtk::TreeNodeChildren children = m_treestore->children();
+    const int history_size = CONFIG::get_historyview_size();
+    if( static_cast< int >( children.size() ) > history_size ) {
+        const Gtk::TreeNodeChildren::const_iterator end = children.end();
+        Gtk::TreeNodeChildren::const_iterator it = children.begin();
+        std::advance( it, history_size );
+        while( it != end ) {
+            it = m_treestore->erase( *it );
 #ifdef _DEBUG
-        std::cout << "erase bottom\n";
+            std::cout << "erase bottom\n";
 #endif
+        }
     }
 
     goto_top();
