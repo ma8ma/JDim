@@ -635,6 +635,13 @@ void TabNotebook::set_tab_fulltext( const std::string& str, int page )
         tablabel->set_fulltext( str );
         if( m_fixtab ) tablabel->resize_tab( str.length() );
         else adjust_tabwidth();
+#if GTKMM_CHECK_VERSION(3,0,0)
+        if( m_parent->get_timeout_drawn() ) {
+            // XXX: ArticleAdminのタブを描画するためタイマーを設定する
+            // DAT取得済のスレを開くと他のタブのラベルが消える不具合を回避する
+            m_parent->start_draw_timer( this, TIMEOUT_DRAWN_SET_TAB_FULLTEXT );
+        }
+#endif
     }
 }
 

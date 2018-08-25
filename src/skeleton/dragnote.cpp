@@ -12,6 +12,7 @@
 #include "icons/iconmanager.h"
 
 #include "control/controlid.h"
+#include "jdlib/timeout.h"
 
 #include "dndmanager.h"
 #include "session.h"
@@ -640,6 +641,15 @@ void DragableNoteBook::slot_switch_page_tab( GtkNotebookPage* bookpage, guint pa
     m_notebook_toolbar.queue_draw();
 
     m_sig_switch_page.emit( bookpage, page );
+
+#if GTKMM_CHECK_VERSION(3,0,0)
+    if( get_timeout_drawn() ) {
+        // XXX: ArticleAdminのタブやツールバーを描画するためタイマーを設定する
+        // 特定の板のスレにタブを切り替えるときにタブやツールバーの描画が
+        // 更新されない不具合を回避する
+        start_draw_timer( this, TIMEOUT_DRAWN_SWITCH_PAGE_TAB );
+    }
+#endif
 }
 
 
@@ -945,3 +955,19 @@ void DragableNoteBook::slot_drag_end()
     CORE::DND_End();
 }
 #endif // !GTKMM_CHECK_VERSION(2,10,0)
+
+
+#if GTKMM_CHECK_VERSION(3,0,0)
+void DragableNoteBook::start_draw_timer( Gtk::Widget* widget,
+                                         unsigned int timeout )
+{
+    assert( widget != nullptr );
+    // 描画処理が済むとタイマーは解除される
+    JDLIB::Timeout::connect(
+        [widget]() {
+            widget->queue_draw();
+            return false;
+        },
+        timeout );
+}
+#endif // GTKMM_CHECK_VERSION(3,0,0)
