@@ -1,14 +1,18 @@
 // ライセンス: GPL2
 
 //#define _DEBUG
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 #include "jddebug.h"
 
 #include "dispatchmanager.h"
 
+#include "jdlib/jdmutex.h"
 #include "skeleton/dispatchable.h"
 
 
-Glib::StaticMutex dispatch_mutex = GLIBMM_STATIC_MUTEX_INIT;
+static JDLIB::StaticMutex dispatch_mutex = JDLIB_STATIC_MUTEX_INIT;
 CORE::DispatchManager* instance_dispmanager = NULL;
 
 
@@ -51,7 +55,7 @@ DispatchManager::~DispatchManager()
 
 void DispatchManager::add( SKELETON::Dispatchable* child )
 {
-    Glib::Mutex::Lock lock( dispatch_mutex );
+    JDLIB::LockGuard lock( dispatch_mutex );
 
     // 既にlistに登録されていたらキャンセルする
     std::list< SKELETON::Dispatchable* >::iterator it = m_children.begin();
@@ -75,7 +79,7 @@ void DispatchManager::add( SKELETON::Dispatchable* child )
 
 void DispatchManager::remove( SKELETON::Dispatchable* child )
 {
-    Glib::Mutex::Lock lock( dispatch_mutex );
+    JDLIB::LockGuard lock( dispatch_mutex );
 
     size_t size = m_children.size();
     if( ! size  ) return;
@@ -91,7 +95,7 @@ void DispatchManager::remove( SKELETON::Dispatchable* child )
 
 void DispatchManager::slot_dispatch()
 {
-    Glib::Mutex::Lock lock( dispatch_mutex );
+    JDLIB::UniqueLock lock( dispatch_mutex );
 
     const size_t size = m_children.size();
     if( ! size  ) return;
@@ -101,7 +105,7 @@ void DispatchManager::slot_dispatch()
     // child->callback_dispatch()の中で再び Dispatchable::add()が呼び出されると
     // キャンセルされてしまうので callback_dispatch() を呼び出す前にremoveする
     m_children.remove( child );
-    lock.release();
+    JDLIB::unique_unlock( lock );
 
     if( child ) child->callback_dispatch();
 
