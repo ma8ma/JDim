@@ -12,14 +12,25 @@
 
 #include "config/globalconf.h"
 
+#ifdef WITH_STD_THREAD
+#include <mutex>
+typedef std::lock_guard< std::mutex > LockGuard;
+#else
+typedef Glib::Mutex::Lock LockGuard;
+#endif
+
 //
 // スレッドのランチャ
 //
+#ifdef WITH_STD_THREAD
+static std::mutex imgarea_launcher_mutex;
+#else
 Glib::StaticMutex imgarea_launcher_mutex = GLIBMM_STATIC_MUTEX_INIT;
+#endif
 
 void* imgarea_launcher( void* dat )
 {
-    Glib::Mutex::Lock lock( imgarea_launcher_mutex);
+    LockGuard lock( imgarea_launcher_mutex );
 
 #ifdef _DEBUG
     std::cout << "start imgarea_launcher" << std::endl;
