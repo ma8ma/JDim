@@ -43,13 +43,17 @@ namespace SKELETON
         // 色
         bool m_use_bg_even;
 #if GTKMM_CHECK_VERSION(3,0,0)
+        static constexpr const char* m_css_classname = "dragtreeview";
+        Glib::RefPtr< Gtk::CssProvider > m_provider = Gtk::CssProvider::create();
+
         Gdk::RGBA m_color_text;
         Gdk::RGBA m_color_bg;
+        Gdk::RGBA m_color_bg_even;
 #else
         Gdk::Color m_color_text;
         Gdk::Color m_color_bg;
-#endif
         Gdk::Color m_color_bg_even;
+#endif
 
         // ポップアップウィンドウ用
         PopupWin* m_popup_win;
