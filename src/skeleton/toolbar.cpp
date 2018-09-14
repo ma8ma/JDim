@@ -1057,3 +1057,109 @@ void ToolBar::slot_lock_clicked()
     if( ! m_enable_slot ) return;
     m_admin->set_command( "toolbar_lock_view", get_url() );
 }
+
+
+#if GTKMM_CHECK_VERSION(3,0,0)
+// 再設定用のコンテキストメニューCSS
+// 設定が必要なGTKテーマが増えるならファイルを分けるほうがいいかもしれない
+namespace TOOLBAR_CONTEXT_MENU_CSS
+{
+    // GTKテーマ Ambiance
+    constexpr const char* AMBIANCE = u8R"(
+    .toolbar .menuitem {
+        background-color: shade (@dark_bg_color, 1.08);
+        color: @dark_fg_color;
+
+        -GtkMenuItem-horizontal-padding: 0;
+        background-image: none;
+        border-radius: 0;
+        padding: 3px 5px 3px 5px;
+        text-shadow: none;
+    }
+
+    .toolbar .menuitem:hover {
+        border-radius: 0;
+        background-image: -gtk-gradient (linear, left top, left bottom,
+                                         from (shade (@selected_bg_color, 1.1)),
+                                         to (shade (@selected_bg_color, 0.9)));
+        border-image: -gtk-gradient (linear, left top, left bottom,
+                                     from (shade (@selected_bg_color, 0.7)),
+                                     to (shade (@selected_bg_color, 0.7))) 1;
+        border-image-width: 1px;
+        box-shadow: inset 1px 0 shade (@selected_bg_color, 1.02),
+                    inset -1px 0 shade (@selected_bg_color, 1.02),
+                    inset 0 1px shade (@selected_bg_color, 1.16),
+                    inset 0 -1px shade (@selected_bg_color, 0.96);
+
+        color: @selected_fg_color;
+        text-shadow: 0 -1px shade (@selected_bg_color, 0.7);
+    }
+
+    .toolbar .menuitem:insensitive,
+    .toolbar .menuitem *:insensitive {
+        color: mix (@dark_fg_color, @dark_bg_color, 0.5);
+        text-shadow: 0 -1px shade (@dark_bg_color, 0.6);
+    }
+
+    .toolbar .menuitem .accelerator {
+        color: alpha (@dark_fg_color, 0.5);
+    }
+
+    .toolbar .menuitem .accelerator:hover {
+        color: alpha (@selected_fg_color, 0.8);
+    }
+
+    .toolbar .menuitem .accelerator:insensitive {
+        color: alpha (mix (@dark_fg_color, @dark_bg_color, 0.5), 0.5);
+        text-shadow: 0 -1px shade (@dark_bg_color, 0.7);
+    }
+
+    .toolbar .menuitem.separator {
+        -GtkMenuItem-horizontal-padding: 0;
+        border-width: 1px;
+        color: @dark_bg_color;
+    }
+
+    .toolbar .menuitem.separator {
+        border-color: shade (@dark_bg_color, 0.99);
+        border-bottom-color: alpha (shade (@dark_bg_color, 1.26), 0.5);
+        border-right-color: alpha (shade (@dark_bg_color, 1.26), 0.5);
+    }
+    )";
+}
+
+//
+// ツールバーアイテムのコンテキストメニューの色を設定しなおす
+// XXX: GTKテーマごとに処理を分けているが妥当であるか不明
+//
+void ToolBar::override_context_menu_color()
+{
+    const auto settings = Gtk::Settings::get_default();
+    const Glib::ustring theme_name = settings->property_gtk_theme_name();
+#ifdef _DEBUG
+    std::cout << "GTK Theme: " << theme_name << std::endl;
+#endif
+
+    const char* css = nullptr;
+    if( theme_name == "Ambiance" ) {
+        css = TOOLBAR_CONTEXT_MENU_CSS::AMBIANCE;
+    }
+
+    if( css ) {
+        auto provider = Gtk::CssProvider::create();
+        try {
+            provider->load_from_data( css );
+        }
+        catch( Gtk::CssProviderError& err ) {
+#ifdef _DEBUG
+            std::cout << "ERROR:JDEntry css load from data failed: "
+                      << err.what() << std::endl;
+#endif
+            return;
+        }
+        Gtk::StyleContext::add_provider_for_screen(
+            Gdk::Screen::get_default(), provider,
+            GTK_STYLE_PROVIDER_PRIORITY_APPLICATION );
+    }
+}
+#endif // GTKMM_CHECK_VERSION(3,0,0)

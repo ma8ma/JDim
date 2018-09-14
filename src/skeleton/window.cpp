@@ -4,6 +4,9 @@
 #include "jddebug.h"
 
 #include "window.h"
+#if GTKMM_CHECK_VERSION(3,0,0)
+#include "toolbar.h"
+#endif
 
 #include "config/globalconf.h"
 
@@ -94,6 +97,12 @@ JDWindow::JDWindow( const bool fold_when_focusout, const bool need_mginfo )
     m_gtkwindow = GTK_WINDOW( gobj() );
     gpointer parent_class = g_type_class_peek_parent( G_OBJECT_GET_CLASS( gobj() ) );
     m_grand_parent_class = g_type_class_peek_parent( parent_class );
+
+#if GTKMM_CHECK_VERSION(3,0,0)
+    // ツールバーアイテムのコンテキストメニューの色がGTKテーマと違う場合がある
+    // XXX: コンテキストメニューの色をアプリケーションで設定しなおす
+    SKELETON::ToolBar::override_context_menu_color();
+#endif
 }
 
 
