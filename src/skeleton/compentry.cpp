@@ -202,7 +202,10 @@ void CompletionEntry::slot_entry_button_press( GdkEventButton* event )
 #endif
 
     if( m_show_popup ) hide_popup();
-    else if( m_focused ) show_popup( m_entry.get_text().empty() );
+    else if( m_focused && event->button != 3 ) {
+        // 右クリックならコンテキストメニューを優先して補完候補は表示しない
+        show_popup( m_entry.get_text().empty() );
+    }
 
     m_focused = true;
 }
