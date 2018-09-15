@@ -409,7 +409,7 @@ AC_MSG_CHECKING(for --with-gthread)
 AC_ARG_WITH(gthread,
   AS_HELP_STRING([--with-gthread],
                  [use gthread instead of pthread [default=no]]),
-  [with_gthread=yes],
+  [with_gthread="$withval"],
   [with_gthread=no])
 AC_MSG_RESULT($with_gthread)
 
@@ -421,7 +421,7 @@ AC_MSG_CHECKING(for --with-stdthread)
 AC_ARG_WITH(stdthread,
   AS_HELP_STRING([--with-stdthread],
                  [use std::thread instead of pthread [default=no]]),
-  [with_stdthread=yes],
+  [with_stdthread="$withval"],
   [with_stdthread=no])
 AC_MSG_RESULT($with_stdthread)
 
