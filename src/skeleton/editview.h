@@ -3,6 +3,8 @@
 #ifndef _EDITVIEW_H
 #define _EDITVIEW_H
 
+#include "gtkmmversion.h"
+
 #include <gtkmm.h>
 
 #include "control/control.h"
@@ -150,15 +152,34 @@ namespace SKELETON
 
         void set_wrap_mode( Gtk::WrapMode wrap_mode ){ m_textview.set_wrap_mode( wrap_mode ); }
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+        void override_color( const Gdk::RGBA& color, Gtk::StateFlags state )
+        {
+            m_textview.override_color( color, state );
+        }
+        void override_background_color( const Gdk::RGBA& color,
+                                        Gtk::StateFlags state )
+        {
+            m_textview.override_background_color( color, state );
+        }
+#else
         void modify_text( Gtk::StateType state, const Gdk::Color& color ){ m_textview.modify_text( state, color ); }
         void modify_base( Gtk::StateType state, const Gdk::Color& color ){ m_textview.modify_base( state, color ); }
+#endif
 
         void insert_str( const std::string& str, bool use_br ){ m_textview.insert_str( str, use_br ); }
 
         void set_editable( bool editable ){ m_textview.set_editable( editable ); }
         void set_accepts_tab( bool accept ){ m_textview.set_accepts_tab( accept ); }
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+        void override_font( const Pango::FontDescription& font_desc )
+        {
+            m_textview.override_font( font_desc );
+        }
+#else
         void modify_font( const Pango::FontDescription& font_desc ){ m_textview.modify_font( font_desc ); }
+#endif
 
         void focus_view(){ m_textview.grab_focus(); }
 

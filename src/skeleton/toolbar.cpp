@@ -28,7 +28,9 @@
 #include "prefdiagfactory.h"
 
 #include <gtk/gtk.h>  // gtk_separator_tool_item_set_draw
+#if !GTKMM_CHECK_VERSION(3,0,0)
 #include <gtk/gtkbutton.h>
+#endif
 #include <list>
 
 using namespace SKELETON;
@@ -336,15 +338,27 @@ void ToolBar::set_color( const std::string& color )
 
         if( m_ebox_label->get_visible_window() ){
             m_ebox_label->set_visible_window( false );
+#if GTKMM_CHECK_VERSION(3,0,0)
+            m_label->unset_color( Gtk::STATE_FLAG_NORMAL );
+#else
             m_label->unset_fg( Gtk::STATE_NORMAL );
+#endif
         }
     }
     else{
 
         m_ebox_label->set_visible_window( true );
+#if GTKMM_CHECK_VERSION(3,0,0)
+        m_label->override_color( Gdk::RGBA( "white" ), Gtk::STATE_FLAG_NORMAL );
+        m_ebox_label->override_background_color( Gdk::RGBA( color ),
+                                                 Gtk::STATE_FLAG_NORMAL );
+        m_ebox_label->override_background_color( Gdk::RGBA( color ),
+                                                 Gtk::STATE_FLAG_ACTIVE );
+#else
         m_label->modify_fg( Gtk::STATE_NORMAL, Gdk::Color( "white" ) );
         m_ebox_label->modify_bg( Gtk::STATE_NORMAL, Gdk::Color( color ) );
         m_ebox_label->modify_bg( Gtk::STATE_ACTIVE, Gdk::Color( color ) );
+#endif
     }
 }
 
@@ -719,6 +733,7 @@ void ToolBar::focus_button_write()
 // 書き込みボタンの廻りに枠を描く
 void ToolBar::drawframe_button_write( const bool draw )
 {
+#if !GTKMM_CHECK_VERSION(3,0,0)
     if( CONFIG::get_flat_button() ){
 
         // relief が Gtk:: RELIEF_NONE のときにボタンに枠を描画
@@ -732,6 +747,7 @@ void ToolBar::drawframe_button_write( const bool draw )
             else gtk_button_leave( gtkbutton );
         }
     }
+#endif // !GTKMM_CHECK_VERSION(3,0,0)
 }
 
 
@@ -833,12 +849,10 @@ void ToolBar::slot_clicked_close()
     // ボタンに leave_notify イベントが送られないため、次にビューを開いたときに
     // 枠が残ったままになる
     //
-    // gtk+-2.12.9/gtk/gtkbutton.c の gtk_button_leave_notify() をハックして
-    // gtkbutton->in_button = false にすると枠が消えることが分かった
+    // 閉じるボタンに見えなくなることを通知して枠の描画をとめる
     if( m_admin->get_tab_nums() == 1 ){
         Gtk::Button* button = dynamic_cast< Gtk::Button* >( m_button_close->get_child() );
-        GtkButton* gtkbutton = button->gobj();
-        gtkbutton->in_button = false;
+        button->unmap();
     }
 
     m_admin->set_command( "toolbar_close_view", m_url );
@@ -1041,3 +1055,110 @@ void ToolBar::slot_lock_clicked()
     if( ! m_enable_slot ) return;
     m_admin->set_command( "toolbar_lock_view", get_url() );
 }
+
+
+#if GTKMM_CHECK_VERSION(3,0,0)
+// 再設定用のコンテキストメニューCSS
+// 設定が必要なGTKテーマが増えるならファイルを分けるほうがいいかもしれない
+namespace TOOLBAR_CONTEXT_MENU_CSS
+{
+    // GTKテーマ Ambiance
+    constexpr const char* AMBIANCE = u8R"(
+    .toolbar .menuitem {
+        background-color: shade (@dark_bg_color, 1.08);
+        color: @dark_fg_color;
+
+        -GtkMenuItem-horizontal-padding: 0;
+        background-image: none;
+        border-radius: 0;
+        padding: 3px 5px 3px 5px;
+        text-shadow: none;
+    }
+
+    .toolbar .menuitem:hover {
+        border-radius: 0;
+        background-image: -gtk-gradient (linear, left top, left bottom,
+                                         from (shade (@selected_bg_color, 1.1)),
+                                         to (shade (@selected_bg_color, 0.9)));
+        border-image: -gtk-gradient (linear, left top, left bottom,
+                                     from (shade (@selected_bg_color, 0.7)),
+                                     to (shade (@selected_bg_color, 0.7))) 1;
+        border-image-width: 1px;
+        box-shadow: inset 1px 0 shade (@selected_bg_color, 1.02),
+                    inset -1px 0 shade (@selected_bg_color, 1.02),
+                    inset 0 1px shade (@selected_bg_color, 1.16),
+                    inset 0 -1px shade (@selected_bg_color, 0.96);
+
+        color: @selected_fg_color;
+        text-shadow: 0 -1px shade (@selected_bg_color, 0.7);
+    }
+
+    .toolbar .menuitem:insensitive,
+    .toolbar .menuitem *:insensitive {
+        color: mix (@dark_fg_color, @dark_bg_color, 0.5);
+        text-shadow: 0 -1px shade (@dark_bg_color, 0.6);
+    }
+
+    .toolbar .menuitem .accelerator {
+        color: alpha (@dark_fg_color, 0.5);
+    }
+
+    .toolbar .menuitem .accelerator:hover {
+        color: alpha (@selected_fg_color, 0.8);
+    }
+
+    .toolbar .menuitem .accelerator:insensitive {
+        color: alpha (mix (@dark_fg_color, @dark_bg_color, 0.5), 0.5);
+        text-shadow: 0 -1px shade (@dark_bg_color, 0.7);
+    }
+
+    .toolbar .menuitem.separator {
+        -GtkMenuItem-horizontal-padding: 0;
+        border-width: 1px;
+        color: @dark_bg_color;
+    }
+
+    .toolbar .menuitem.separator {
+        border-color: shade (@dark_bg_color, 0.99);
+        border-bottom-color: alpha (shade (@dark_bg_color, 1.26), 0.5);
+        border-right-color: alpha (shade (@dark_bg_color, 1.26), 0.5);
+    }
+    )";
+}
+
+//
+// ツールバーアイテムのコンテキストメニューの色を設定しなおす
+// XXX: GTKテーマごとに処理を分けているが妥当であるか不明
+//
+void ToolBar::override_context_menu_color()
+{
+    const auto settings = Gtk::Settings::get_default();
+    if( !settings ) return;
+    const Glib::ustring theme_name = settings->property_gtk_theme_name();
+#ifdef _DEBUG
+    std::cout << "GTK Theme: " << theme_name << std::endl;
+#endif
+
+    const char* css = nullptr;
+    if( theme_name == "Ambiance" ) {
+        css = TOOLBAR_CONTEXT_MENU_CSS::AMBIANCE;
+    }
+
+    if( css ) {
+        auto provider = Gtk::CssProvider::create();
+        try {
+            provider->load_from_data( css );
+        }
+        catch( Gtk::CssProviderError& err ) {
+#ifdef _DEBUG
+            std::cout << "ERROR:JDEntry css load from data failed: "
+                      << err.what() << std::endl;
+#endif
+            return;
+        }
+        Gtk::StyleContext::add_provider_for_screen(
+            Gdk::Screen::get_default(), provider,
+            GTK_STYLE_PROVIDER_PRIORITY_APPLICATION );
+    }
+}
+#endif // GTKMM_CHECK_VERSION(3,0,0)

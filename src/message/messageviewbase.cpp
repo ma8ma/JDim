@@ -215,10 +215,21 @@ void MessageViewBase::init_font( const std::string& fontname )
     Pango::FontDescription pfd( fontname );
     pfd.set_weight( Pango::WEIGHT_NORMAL );
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+    m_entry_name.override_font( pfd );
+    m_entry_mail.override_font( pfd );
+#else
     m_entry_name.modify_font( pfd );
     m_entry_mail.modify_font( pfd );
+#endif
 
-    if( m_text_message ) m_text_message->modify_font( pfd );
+    if( m_text_message ) {
+#if GTKMM_CHECK_VERSION(3,0,0)
+        m_text_message->override_font( pfd );
+#else
+        m_text_message->modify_font(pfd);
+#endif
+    }
 }
 
 
@@ -229,10 +240,25 @@ void MessageViewBase::init_color()
 {
     if( m_text_message ){
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+        m_text_message->override_color(
+            Gdk::RGBA( CONFIG::get_color( COLOR_CHAR_MESSAGE ) ),
+            Gtk::STATE_FLAG_NORMAL );
+        m_text_message->override_color(
+            Gdk::RGBA( CONFIG::get_color( COLOR_CHAR_MESSAGE_SELECTION ) ),
+            Gtk::STATE_FLAG_SELECTED );
+        m_text_message->override_background_color(
+            Gdk::RGBA( CONFIG::get_color( COLOR_BACK_MESSAGE ) ),
+            Gtk::STATE_FLAG_NORMAL );
+        m_text_message->override_background_color(
+            Gdk::RGBA( CONFIG::get_color( COLOR_BACK_MESSAGE_SELECTION ) ),
+            Gtk::STATE_FLAG_SELECTED );
+#else
         m_text_message->modify_text( Gtk::STATE_NORMAL, Gdk::Color( CONFIG::get_color( COLOR_CHAR_MESSAGE ) ) );
         m_text_message->modify_text( Gtk::STATE_SELECTED, Gdk::Color( CONFIG::get_color( COLOR_CHAR_MESSAGE_SELECTION ) ) );
         m_text_message->modify_base( Gtk::STATE_NORMAL, Gdk::Color( CONFIG::get_color( COLOR_BACK_MESSAGE ) ) );
         m_text_message->modify_base( Gtk::STATE_SELECTED, Gdk::Color( CONFIG::get_color( COLOR_BACK_MESSAGE_SELECTION ) ) );
+#endif
     }
 }
 

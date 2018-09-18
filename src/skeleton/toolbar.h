@@ -108,6 +108,10 @@ namespace SKELETON
         // ボタン表示更新
         void update_button();
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+        static void override_context_menu_color();
+#endif
+
       protected:
 
         SKELETON::Admin* get_admin(){ return m_admin; }

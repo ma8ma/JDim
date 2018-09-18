@@ -6,7 +6,13 @@
 #ifndef _TABNOTE_H
 #define _TABNOTE_H
 
+#include "gtkmmversion.h"
+
 #include <gtkmm.h>
+
+#if GTKMM_CHECK_VERSION(3,0,0)
+using GtkNotebookPage = Gtk::Widget;
+#endif
 
 namespace SKELETON
 {
@@ -19,6 +25,7 @@ namespace SKELETON
     typedef sigc::signal< bool, GdkEventButton* > SIG_BUTTON_PRESS;
     typedef sigc::signal< bool, GdkEventButton* > SIG_BUTTON_RELEASE;
 
+#if !GTKMM_CHECK_VERSION(2,10,0)
     // マウス移動
     typedef sigc::signal< void > SIG_TAB_MOTION_EVENT;
     typedef sigc::signal< void > SIG_TAB_LEAVE_EVENT;
@@ -28,6 +35,7 @@ namespace SKELETON
 
     // D&D
     typedef sigc::signal< void, const int, const int, const int, const int > SIG_TAB_DRAG_MOTION;
+#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
     // タブ用の Notebook
     class TabNotebook : public Gtk::Notebook
@@ -35,12 +43,14 @@ namespace SKELETON
         SIG_BUTTON_PRESS m_sig_button_press;
         SIG_BUTTON_RELEASE m_sig_button_release;
 
+#if !GTKMM_CHECK_VERSION(2,10,0)
         SIG_TAB_MOTION_EVENT m_sig_tab_motion_event;
         SIG_TAB_LEAVE_EVENT m_sig_tab_leave_event;
 
         SIG_TAB_DRAG_MOTION m_sig_tab_drag_motion;
 
         SIG_SCROLL_EVENT m_sig_scroll_event;
+#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
         DragableNoteBook* m_parent;
 
@@ -53,17 +63,23 @@ namespace SKELETON
 
         const std::string m_str_empty;
 
+#if GTKMM_CHECK_VERSION(2,10,0)
+        int m_button_event_tab = -1;
+#endif
+
     public:
 
         SIG_BUTTON_PRESS sig_button_press(){ return m_sig_button_press; }
         SIG_BUTTON_RELEASE sig_button_release(){ return m_sig_button_release; }
 
+#if !GTKMM_CHECK_VERSION(2,10,0)
         SIG_TAB_MOTION_EVENT sig_tab_motion_event(){ return  m_sig_tab_motion_event; }
         SIG_TAB_LEAVE_EVENT sig_tab_leave_event(){ return m_sig_tab_leave_event; }
 
         SIG_TAB_DRAG_MOTION sig_tab_drag_motion(){ return m_sig_tab_drag_motion; }
 
         SIG_SCROLL_EVENT sig_scroll_event(){ return m_sig_scroll_event; }
+#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
         TabNotebook( DragableNoteBook* parent );
 
@@ -92,11 +108,18 @@ namespace SKELETON
         // マウスがタブの右側にある場合はページ数の値を返す
         const int get_page_under_mouse();
 
+#if !GTKMM_CHECK_VERSION(3,0,0)
         // タブの高さ、幅、位置を取得 ( 描画用 )
         void get_alloc_tab( Alloc_NoteBook& alloc );
+#endif
+
+#if GTKMM_CHECK_VERSION(2,10,0)
+        bool slot_tab_button_event( GdkEventButton*, Gtk::Widget* widget );
+#endif
 
       private:
 
+#if !GTKMM_CHECK_VERSION(2,10,0)
         // gtknotebook.c ( Revision 19311, 2008-01-06 ) を参考にして作成した描画関係の関数
         const bool paint( GdkEventExpose* event );
 
@@ -115,14 +138,19 @@ namespace SKELETON
 
         void get_arrow_rect( GtkWidget *widget, const GtkNotebook *notebook, GdkRectangle *rectangle, const gboolean before );
         const gboolean get_event_window_position( const GtkWidget *widget, const GtkNotebook *notebook, GdkRectangle *rectangle );
+#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
 
+#if !GTKMM_CHECK_VERSION(2,10,0)
         // 各タブのサイズと座標を取得
         void calc_tabsize();
+#endif
 
       protected:
 
+#if !GTKMM_CHECK_VERSION(2,10,0)
         virtual bool on_expose_event( GdkEventExpose* event );
+#endif
         virtual void on_size_allocate( Gtk::Allocation& allocation );
 
         // signal_button_press_event と signal_button_release_event は emit されない
@@ -130,11 +158,13 @@ namespace SKELETON
         virtual bool on_button_press_event( GdkEventButton* event );
         virtual bool on_button_release_event( GdkEventButton* event );
 
+#if !GTKMM_CHECK_VERSION(2,10,0)
         virtual bool on_motion_notify_event( GdkEventMotion* event );
         virtual bool on_leave_notify_event( GdkEventCrossing* event );
         virtual bool on_scroll_event( GdkEventScroll* event );
 
         virtual bool on_drag_motion( const Glib::RefPtr<Gdk::DragContext>& context, int x, int y, guint time);
+#endif // !GTKMM_CHECK_VERSION(2,10,0)
     };
 }
 

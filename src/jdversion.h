@@ -14,10 +14,10 @@
 //#define JDVERSION_SVN
 
 #define MAJORVERSION 2
-#define MINORVERSION 8
-#define MICROVERSION 9
-#define JDDATE    "180424"
-#define JDTAG     ""
+#define MINORVERSION 90
+#define MICROVERSION 0
+#define JDDATE    "20180918"
+#define JDTAG     "alpha"
 
 //---------------------------------
 

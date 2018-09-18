@@ -1006,25 +1006,45 @@ void CACHE::add_filter_to_diag( Gtk::FileChooserDialog& diag, const int type )
 {
     if( type == FILE_TYPE_ALL ) return;
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+    Glib::RefPtr< Gtk::FileFilter > filter = Gtk::FileFilter::create();
+#else
     Gtk::FileFilter filter;
+#endif
     switch( type ) 
     {
         case FILE_TYPE_TEXT:
+#if GTKMM_CHECK_VERSION(3,0,0)
+            filter->set_name( "全てのテキストファイル" );
+            filter->add_mime_type( "text/plain" );
+#else
             filter.set_name( "全てのテキストファイル" );
             filter.add_mime_type( "text/plain" );
+#endif
             diag.add_filter( filter );
             break;
 
         case FILE_TYPE_DAT:
+#if GTKMM_CHECK_VERSION(3,0,0)
+            filter->set_name( "全てのDATファイル" );
+            filter->add_pattern( "*.dat" );
+#else
             filter.set_name( "全てのDATファイル" );
             filter.add_pattern( "*.dat" );
+#endif
             diag.add_filter( filter );
             break;
     }
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+    Glib::RefPtr< Gtk::FileFilter > all = Gtk::FileFilter::create();
+    all->set_name( "全てのファイル" );
+    all->add_pattern( "*" );
+#else
     Gtk::FileFilter all;
     all.set_name( "全てのファイル" );
     all.add_pattern( "*" );
+#endif
     diag.add_filter( all );
 }
 
@@ -1052,7 +1072,17 @@ const std::list< std::string > CACHE::open_load_diag( Gtk::Window* parent, const
     {
         diag.hide();
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+        // Gtk::FileChooserDialog::get_filenames()の戻り値の
+        // コンテナがstd::vectorに変わったのでとりあえず型変換している
+        // HACK: 周辺の関数をstd::vectorに修正するほうが良いかもしれない
+        std::vector< std::string > filenames = diag.get_filenames();
+        return MISC::recover_path( std::list< std::string >(
+            std::make_move_iterator( filenames.begin() ),
+            std::make_move_iterator( filenames.end() ) ) );
+#else
         return MISC::recover_path( diag.get_filenames() );
+#endif
     }
 
     return std::list< std::string >();
