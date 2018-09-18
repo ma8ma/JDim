@@ -2649,7 +2649,7 @@ void BoardViewBase::exec_search()
     if( path.empty() ){
         if( m_search_invert ) path = GET_PATH( *( m_liststore->children().begin() ) );
         else {
-            GET_PATH( *( --( m_liststore->children().end() ) ) );
+            GET_PATH( *( std::prev( m_liststore->children().end() ) ) );
         }
     }
 
@@ -2677,7 +2677,8 @@ void BoardViewBase::exec_search()
             // 前へ
             if( ! path.prev() ){
                 // 一番後へ
-                path = GET_PATH( *( --( m_liststore->children().end() ) ) );
+                path =
+                    GET_PATH( *( std::prev( m_liststore->children().end() ) ) );
             }
         }
 

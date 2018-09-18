@@ -2779,7 +2779,8 @@ void BBSListViewBase::exec_search()
             // 先頭にいるときは最後に戻る
             if( path == GET_PATH( *( m_treestore->children().begin() ) ) ){
 
-                path = GET_PATH( *( --( m_treestore->children().end() ) ) );
+                path =
+                    GET_PATH( *( std::prev( m_treestore->children().end() ) ) );
                 Gtk::TreePath path_tmp = path;
                 while( m_treeview.get_row( path_tmp ) ){
                     path = path_tmp;
