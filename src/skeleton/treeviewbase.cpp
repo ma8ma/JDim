@@ -2,15 +2,8 @@
 
 //#define _DEBUG
 #include "jddebug.h"
-#include "gtkmmversion.h"
 
 #include "treeviewbase.h"
-
-#if GTKMM_CHECK_VERSION(3,0,0)
-using AdjustmentPtr = Glib::RefPtr< Gtk::Adjustment >;
-#else
-using AdjustmentPtr = Gtk::Adjustment*;
-#endif
 
 using namespace SKELETON;
 
@@ -247,7 +240,7 @@ void JDTreeViewBase::page_up()
     bool set_top = false;
 
     // スクロール
-    AdjustmentPtr adj = get_vadjustment();
+    auto adj = get_vadjustment();
     double val = adj->get_value();
     if( val > adj->get_page_size()/2 ) set_top = true;
     val = MAX( 0, val - adj->get_page_size() );
@@ -269,7 +262,7 @@ void JDTreeViewBase::page_down()
     bool set_bottom = false;
 
     // スクロール
-    AdjustmentPtr adj = get_vadjustment();
+    auto adj = get_vadjustment();
     double val = adj->get_value();
     if( val < adj->get_upper() - adj->get_page_size() - adj->get_page_size()/2 ) set_bottom = true;
     val = MIN( adj->get_upper() - adj->get_page_size(), val + adj->get_page_size() );

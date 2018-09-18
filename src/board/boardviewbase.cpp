@@ -39,12 +39,6 @@
 
 #include <sstream>
 
-#if GTKMM_CHECK_VERSION(3,0,0)
-using AdjustmentPtr = Glib::RefPtr< Gtk::Adjustment >;
-#else
-using AdjustmentPtr = Gtk::Adjustment*;
-#endif
-
 using namespace BOARD;
 
 
@@ -1630,7 +1624,7 @@ void BoardViewBase::goto_num( const int num, const int )
 //
 void BoardViewBase::scroll_left()
 {
-    AdjustmentPtr hadjust = m_scrwin.get_hadjustment();
+    auto hadjust = m_scrwin.get_hadjustment();
     if( !hadjust ) return;
     hadjust->set_value( MAX( 0,  hadjust->get_value() - hadjust->get_step_increment() ) );
 }
@@ -1641,7 +1635,7 @@ void BoardViewBase::scroll_left()
 //
 void BoardViewBase::scroll_right()
 {
-    AdjustmentPtr hadjust = m_scrwin.get_hadjustment();
+    auto hadjust = m_scrwin.get_hadjustment();
     if( !hadjust ) return;
     hadjust->set_value(  MIN( hadjust->get_upper() - hadjust->get_page_size(),
                               hadjust->get_value() + hadjust->get_step_increment() ) );

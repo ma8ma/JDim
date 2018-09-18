@@ -2,7 +2,6 @@
 
 //#define _DEBUG
 #include "jddebug.h"
-#include "gtkmmversion.h"
 
 #include "imageadmin.h"
 #include "imageview.h"
@@ -26,12 +25,6 @@
 #include "global.h"
 
 #include <sstream>
-
-#if GTKMM_CHECK_VERSION(3,0,0)
-using AdjustmentPtr = Glib::RefPtr< Gtk::Adjustment >;
-#else
-using AdjustmentPtr = Gtk::Adjustment*;
-#endif
 
 #ifndef MAX
 #define MAX( a, b ) ( a > b ? a : b )
@@ -471,8 +464,8 @@ bool ImageViewMain::slot_motion_notify( GdkEventMotion* event )
             || ( ( event->state & GDK_BUTTON3_MASK ) && event_button.button == 3 )
             ){
 
-            AdjustmentPtr hadj = m_scrwin->get_hadjustment();
-            AdjustmentPtr vadj = m_scrwin->get_vadjustment();
+            auto hadj = m_scrwin->get_hadjustment();
+            auto vadj = m_scrwin->get_vadjustment();
 
             gdouble dx = event->x_root - m_x_motion;
             gdouble dy = event->y_root - m_y_motion;
@@ -507,7 +500,7 @@ void ImageViewMain::scroll_up()
     std::cout << "ImageViewMain::scroll_up\n";
 #endif
 
-    AdjustmentPtr vadjust = m_scrwin->get_vadjustment();
+    auto vadjust = m_scrwin->get_vadjustment();
     if( !vadjust ) return;
     vadjust->set_value( MAX( 0,  vadjust->get_value() - vadjust->get_step_increment() ) );
 }
@@ -522,7 +515,7 @@ void ImageViewMain::scroll_down()
     std::cout << "ImageViewMain::scroll_down\n";
 #endif
 
-    AdjustmentPtr vadjust = m_scrwin->get_vadjustment();
+    auto vadjust = m_scrwin->get_vadjustment();
     if( !vadjust ) return;
     vadjust->set_value(  MIN( vadjust->get_upper() - vadjust->get_page_size(),
                               vadjust->get_value() + vadjust->get_step_increment() ) );
@@ -538,7 +531,7 @@ void ImageViewMain::scroll_left()
     std::cout << "ImageViewMain::scroll_left\n";
 #endif
 
-    AdjustmentPtr hadjust = m_scrwin->get_hadjustment();
+    auto hadjust = m_scrwin->get_hadjustment();
     if( !hadjust ) return;
     hadjust->set_value( MAX( 0,  hadjust->get_value() - hadjust->get_step_increment() ) );
 }
@@ -553,7 +546,7 @@ void ImageViewMain::scroll_right()
     std::cout << "ImageViewMain::scroll_right\n";
 #endif
 
-    AdjustmentPtr hadjust = m_scrwin->get_hadjustment();
+    auto hadjust = m_scrwin->get_hadjustment();
     if( !hadjust ) return;
     hadjust->set_value(  MIN( hadjust->get_upper() - hadjust->get_page_size(),
                               hadjust->get_value() + hadjust->get_step_increment() ) );

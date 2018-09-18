@@ -18,12 +18,6 @@
 #include "sharedbuffer.h"
 #include "global.h"
 
-#if GTKMM_CHECK_VERSION(3,0,0)
-using AdjustmentPtr = Glib::RefPtr< Gtk::Adjustment >;
-#else
-using AdjustmentPtr = Gtk::Adjustment*;
-#endif
-
 
 #ifndef MAX
 #define MAX( a, b ) ( a > b ? a : b )
@@ -260,7 +254,7 @@ void EditTreeView::clock_in()
             m_dnd_counter = 0;
 
             Gtk::TreePath path = get_path_under_mouse();
-            AdjustmentPtr adjust = get_vadjustment();
+            auto adjust = get_vadjustment();
 
             if( get_row( path ) && adjust ){
 

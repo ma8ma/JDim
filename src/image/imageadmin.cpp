@@ -25,12 +25,6 @@
 #include "jdlib/miscutil.h"
 #include "jdlib/miscmsg.h"
 
-#if GTKMM_CHECK_VERSION(3,0,0)
-using AdjustmentPtr = Glib::RefPtr< Gtk::Adjustment >;
-#else
-using AdjustmentPtr = Gtk::Adjustment*;
-#endif
-
 IMAGE::ImageAdmin *instance_imageadmin = NULL;
 
 IMAGE::ImageAdmin* IMAGE::get_admin()
@@ -1017,7 +1011,7 @@ void ImageAdmin::switch_img( const std::string& url )
     if( view_icon ) view_icon->set_command( "switch_icon" );
 
     // タブをスクロール
-    AdjustmentPtr adjust = m_scrwin.get_hadjustment();
+    auto adjust = m_scrwin.get_hadjustment();
     if( page != -1 && adjust ){
         double pos = adjust->get_value();
         double upper =  m_list_view.size() * ICON_SIZE;
@@ -1152,7 +1146,7 @@ void ImageAdmin::scroll_tab( int scroll )
     std::cout << "ImageAdmin::scroll_tab " << scroll << std::endl;
 #endif
 
-    AdjustmentPtr adjust = m_scrwin.get_hadjustment();
+    auto adjust = m_scrwin.get_hadjustment();
     if( adjust ){
         double pos = adjust->get_value();
         double upper = adjust->get_upper();
