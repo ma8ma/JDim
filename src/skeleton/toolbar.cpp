@@ -829,12 +829,10 @@ void ToolBar::slot_clicked_close()
     // ボタンに leave_notify イベントが送られないため、次にビューを開いたときに
     // 枠が残ったままになる
     //
-    // gtk+-2.12.9/gtk/gtkbutton.c の gtk_button_leave_notify() をハックして
-    // gtkbutton->in_button = false にすると枠が消えることが分かった
+    // 閉じるボタンに見えなくなることを通知して枠の描画をとめる
     if( m_admin->get_tab_nums() == 1 ){
         Gtk::Button* button = dynamic_cast< Gtk::Button* >( m_button_close->get_child() );
-        GtkButton* gtkbutton = button->gobj();
-        gtkbutton->in_button = false;
+        button->unmap();
     }
 
     m_admin->set_command( "toolbar_close_view", m_url );
