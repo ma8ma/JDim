@@ -1142,6 +1142,7 @@ namespace TOOLBAR_CONTEXT_MENU_CSS
 void ToolBar::override_context_menu_color()
 {
     const auto settings = Gtk::Settings::get_default();
+    if( !settings ) return;
     const Glib::ustring theme_name = settings->property_gtk_theme_name();
 #ifdef _DEBUG
     std::cout << "GTK Theme: " << theme_name << std::endl;
