@@ -23,9 +23,14 @@ TabSwitchButton::TabSwitchButton( DragableNoteBook* parent )
     m_button.set_focus_on_click( false );
 
     // フォーカス時にボタンの枠がはみ出さないようにする
+#if GTKMM_CHECK_VERSION(3,0,0)
+    m_button.set_margin_top( 0 );
+    m_button.set_margin_bottom( 0 );
+#else
     Glib::RefPtr< Gtk::RcStyle > rcst = m_button.get_modifier_style();
     rcst->set_ythickness( 0 );
     m_button.modify_style( rcst );
+#endif // GTKMM_CHECK_VERSION(3,0,0)
 
     m_vbox.pack_start( m_button, Gtk::PACK_SHRINK );
 
@@ -59,6 +64,7 @@ void TabSwitchButton::hide_button()
 //
 // 自前でビュー領域の枠を描画する
 //
+#if !GTKMM_CHECK_VERSION(3,0,0)
 bool TabSwitchButton::on_expose_event( GdkEventExpose* event )
 {
     if( ! m_shown ) return Gtk::Notebook::on_expose_event( event );
@@ -71,3 +77,4 @@ bool TabSwitchButton::on_expose_event( GdkEventExpose* event )
 
     return true;
 }
+#endif // !GTKMM_CHECK_VERSION(3,0,0)

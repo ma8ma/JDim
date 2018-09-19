@@ -16,10 +16,21 @@
 
 #include "message/messageadmin.h"
 
+#ifdef WITH_STD_THREAD
+#include <mutex>
+typedef std::lock_guard< std::mutex > LockGuard;
+#else
+typedef Glib::Mutex::Lock LockGuard;
+#endif
+
 //
 // スレッドのランチャ
 //
+#ifdef WITH_STD_THREAD
+static std::mutex eimg_launcher_mutex;
+#else
 Glib::StaticMutex eimg_launcher_mutex = GLIBMM_STATIC_MUTEX_INIT;
+#endif
 int redraw_counter = 0; // 0 になったとき再描画する
 
 void* eimg_launcher( void* dat )
@@ -28,7 +39,7 @@ void* eimg_launcher( void* dat )
 
     // 遅いCPUの場合は同時に画像をリサイズしようとすると固まった様になるので
     // mutexをかけて同時にリサイズしないようにする
-    Glib::Mutex::Lock lock( eimg_launcher_mutex );
+    LockGuard lock( eimg_launcher_mutex );
 
 #ifdef _DEBUG
     std::cout << "start eimg_launcher" << std::endl;
@@ -144,7 +155,7 @@ void EmbeddedImage::resize_thread()
 
         m_pixbuf = pixbuf->scale_simple( width, height, interptype );
     }
-    m_imgloader.clear();
+    m_imgloader.reset();
 
     // メインスレッドにリサイズが終わったことを知らせて
     // メインスレッドがpthread_join()を呼び出す

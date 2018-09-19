@@ -25,7 +25,14 @@ PopupWin::PopupWin( Gtk::Widget* parent, SKELETON::View* view, const int mrg_x, 
     m_view->show_view();
 
     Gtk::Widget* toplevel = m_parent->get_toplevel();
-    if( toplevel->is_toplevel() ) set_transient_for( *( ( Gtk::Window* )toplevel ) );
+#if GTKMM_CHECK_VERSION(2,18,0)
+    const bool is_toplevel = toplevel->get_is_toplevel();
+#else
+    const bool is_toplevel = toplevel->is_toplevel();
+#endif
+    if( is_toplevel ) {
+        set_transient_for( *reinterpret_cast< Gtk::Window* >( toplevel ) );
+    }
     slot_resize_popup();
 }
 
@@ -45,8 +52,15 @@ void PopupWin::slot_resize_popup()
     
     // マウス座標
     int x_mouse, y_mouse;
+#if GTKMM_CHECK_VERSION(3,0,0)
+    Gdk::Display::get_default()
+        ->get_device_manager()
+        ->get_client_pointer()
+        ->get_position( x_mouse, y_mouse );
+#else
     Gdk::ModifierType mod;
     Gdk::Display::get_default()->get_pointer( x_mouse, y_mouse,  mod );
+#endif
 
     // クライアントのサイズを取得
     const int width_client = m_view->width_client();

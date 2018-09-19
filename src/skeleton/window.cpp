@@ -4,6 +4,9 @@
 #include "jddebug.h"
 
 #include "window.h"
+#if GTKMM_CHECK_VERSION(3,0,0)
+#include "toolbar.h"
+#endif
 
 #include "config/globalconf.h"
 
@@ -66,7 +69,7 @@ JDWindow::JDWindow( const bool fold_when_focusout, const bool need_mginfo )
     // ステータスバー
 #if GTKMM_CHECK_VERSION(2,5,0)
     m_label_stat.set_size_request( 0, -1 );
-    m_label_stat.set_alignment( Gtk::ALIGN_LEFT );
+    m_label_stat.set_alignment( Gtk::ALIGN_START );
     m_label_stat.set_selectable( true );
     m_label_stat.set_single_line_mode( true );
 
@@ -81,7 +84,7 @@ JDWindow::JDWindow( const bool fold_when_focusout, const bool need_mginfo )
     }
 
     m_mginfo.set_width_chars( MGINFO_CHARS );
-    m_mginfo.set_alignment( Gtk::ALIGN_LEFT );
+    m_mginfo.set_alignment( Gtk::ALIGN_START );
 #else
     if( need_mginfo ) m_statbar.pack_start( m_mginfo );
 #endif
@@ -94,6 +97,12 @@ JDWindow::JDWindow( const bool fold_when_focusout, const bool need_mginfo )
     m_gtkwindow = GTK_WINDOW( gobj() );
     gpointer parent_class = g_type_class_peek_parent( G_OBJECT_GET_CLASS( gobj() ) );
     m_grand_parent_class = g_type_class_peek_parent( parent_class );
+
+#if GTKMM_CHECK_VERSION(3,0,0)
+    // ツールバーアイテムのコンテキストメニューの色がGTKテーマと違う場合がある
+    // XXX: コンテキストメニューの色をアプリケーションで設定しなおす
+    SKELETON::ToolBar::override_context_menu_color();
+#endif
 }
 
 
@@ -383,7 +392,11 @@ void JDWindow::set_status( const std::string& stat )
 
 #if GTKMM_CHECK_VERSION(2,5,0)
     m_label_stat.set_text( stat );
+#if GTKMM_CHECK_VERSION(2,12,0)
+    m_label_stat_ebox.set_tooltip_text( stat );
+#else
     m_tooltip.set_tip( m_label_stat_ebox, stat );
+#endif
 #else
     m_statbar.push( stat );
 #endif
@@ -419,7 +432,14 @@ void JDWindow::restore_status()
 // マウスジェスチャ表示
 void JDWindow::set_mginfo( const std::string& mginfo )
 {
-    if( m_mginfo.is_realized() ) m_mginfo.set_text( mginfo );
+#if GTKMM_CHECK_VERSION(2,20,0)
+    const bool realized = m_mginfo.get_realized();
+#else
+    const bool realized = m_mginfo.is_realized();
+#endif
+    if( realized ) {
+        m_mginfo.set_text( mginfo );
+    }
 }
 
 
@@ -435,8 +455,13 @@ void JDWindow::set_status_color( const std::string& color )
     if( color.empty() ){
 
         if( m_label_stat_ebox.get_visible_window() ){
+#if GTKMM_CHECK_VERSION(3,0,0)
+            m_label_stat.unset_color( Gtk::STATE_FLAG_NORMAL );
+            m_mginfo.unset_color( Gtk::STATE_FLAG_NORMAL );
+#else
             m_label_stat.unset_fg( Gtk::STATE_NORMAL );
             m_mginfo.unset_fg( Gtk::STATE_NORMAL );
+#endif
 
             m_label_stat_ebox.set_visible_window( false );
             m_mginfo_ebox.set_visible_window( false );
@@ -444,16 +469,36 @@ void JDWindow::set_status_color( const std::string& color )
     }
     else{
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+        m_label_stat.override_color( Gdk::RGBA( "white" ),
+                                     Gtk::STATE_FLAG_NORMAL );
+        m_mginfo.override_color( Gdk::RGBA( "white" ), Gtk::STATE_FLAG_NORMAL );
+#else
         m_label_stat.modify_fg( Gtk::STATE_NORMAL, Gdk::Color( "white" ) );
         m_mginfo.modify_fg( Gtk::STATE_NORMAL, Gdk::Color( "white" ) );
+#endif
 
         m_label_stat_ebox.set_visible_window( true );
+#if GTKMM_CHECK_VERSION(3,0,0)
+        m_label_stat_ebox.override_background_color( Gdk::RGBA( color ),
+                                                     Gtk::STATE_FLAG_NORMAL );
+        m_label_stat_ebox.override_background_color( Gdk::RGBA( color ),
+                                                     Gtk::STATE_FLAG_ACTIVE );
+#else
         m_label_stat_ebox.modify_bg( Gtk::STATE_NORMAL, Gdk::Color( color ) );
         m_label_stat_ebox.modify_bg( Gtk::STATE_ACTIVE, Gdk::Color( color ) );
+#endif
 
         m_mginfo_ebox.set_visible_window( true );
+#if GTKMM_CHECK_VERSION(3,0,0)
+        m_mginfo_ebox.override_background_color( Gdk::RGBA( color ),
+                                                 Gtk::STATE_FLAG_NORMAL );
+        m_mginfo_ebox.override_background_color( Gdk::RGBA( color ),
+                                                 Gtk::STATE_FLAG_ACTIVE );
+#else
         m_mginfo_ebox.modify_bg( Gtk::STATE_NORMAL, Gdk::Color( color ) );
         m_mginfo_ebox.modify_bg( Gtk::STATE_ACTIVE, Gdk::Color( color ) );
+#endif
     }
 #endif
 }

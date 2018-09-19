@@ -20,9 +20,11 @@ namespace SKELETON
 
         ToolBarNotebook( DragableNoteBook* parent );
 
+#if !GTKMM_CHECK_VERSION(3,0,0)
       protected:
 
         virtual bool on_expose_event( GdkEventExpose* event );
+#endif
     };
 }
 

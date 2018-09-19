@@ -7,7 +7,15 @@
 #ifndef _IMGLOADER_H
 #define _IMGLOADER_H
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <gtkmm.h>
+
+#ifdef WITH_STD_THREAD
+#include <mutex>
+#endif
 
 namespace JDLIB
 {
@@ -24,7 +32,11 @@ namespace JDLIB
     class ImgLoader : public Glib::Object
     {
         Glib::RefPtr< Gdk::PixbufLoader > m_loader;
+#ifdef WITH_STD_THREAD
+        std::mutex m_loader_lock;
+#else
         Glib::Mutex m_loader_lock;
+#endif
         
         std::string m_file;
         std::string m_errmsg;
@@ -64,7 +76,11 @@ namespace JDLIB
         std::list< Glib::RefPtr< ImgLoader > > m_cache;
         
     public:
+#ifdef WITH_STD_THREAD
+        std::mutex m_provider_lock;
+#else
         Glib::Mutex m_provider_lock; // ImgProvider操作時の必須ロック
+#endif
         
     public:
         virtual ~ImgProvider(){}

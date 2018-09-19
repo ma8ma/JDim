@@ -215,10 +215,21 @@ void MessageViewBase::init_font( const std::string& fontname )
     Pango::FontDescription pfd( fontname );
     pfd.set_weight( Pango::WEIGHT_NORMAL );
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+    m_entry_name.override_font( pfd );
+    m_entry_mail.override_font( pfd );
+#else
     m_entry_name.modify_font( pfd );
     m_entry_mail.modify_font( pfd );
+#endif
 
-    if( m_text_message ) m_text_message->modify_font( pfd );
+    if( m_text_message ) {
+#if GTKMM_CHECK_VERSION(3,0,0)
+        m_text_message->override_font( pfd );
+#else
+        m_text_message->modify_font(pfd);
+#endif
+    }
 }
 
 
@@ -229,10 +240,25 @@ void MessageViewBase::init_color()
 {
     if( m_text_message ){
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+        m_text_message->override_color(
+            Gdk::RGBA( CONFIG::get_color( COLOR_CHAR_MESSAGE ) ),
+            Gtk::STATE_FLAG_NORMAL );
+        m_text_message->override_color(
+            Gdk::RGBA( CONFIG::get_color( COLOR_CHAR_MESSAGE_SELECTION ) ),
+            Gtk::STATE_FLAG_SELECTED );
+        m_text_message->override_background_color(
+            Gdk::RGBA( CONFIG::get_color( COLOR_BACK_MESSAGE ) ),
+            Gtk::STATE_FLAG_NORMAL );
+        m_text_message->override_background_color(
+            Gdk::RGBA( CONFIG::get_color( COLOR_BACK_MESSAGE_SELECTION ) ),
+            Gtk::STATE_FLAG_SELECTED );
+#else
         m_text_message->modify_text( Gtk::STATE_NORMAL, Gdk::Color( CONFIG::get_color( COLOR_CHAR_MESSAGE ) ) );
         m_text_message->modify_text( Gtk::STATE_SELECTED, Gdk::Color( CONFIG::get_color( COLOR_CHAR_MESSAGE_SELECTION ) ) );
         m_text_message->modify_base( Gtk::STATE_NORMAL, Gdk::Color( CONFIG::get_color( COLOR_BACK_MESSAGE ) ) );
         m_text_message->modify_base( Gtk::STATE_SELECTED, Gdk::Color( CONFIG::get_color( COLOR_BACK_MESSAGE_SELECTION ) ) );
+#endif
     }
 }
 
@@ -407,16 +433,25 @@ void MessageViewBase::set_mail()
 void MessageViewBase::pack_widget()
 {
     // 書き込みビュー
-    m_label_name.set_alignment( Gtk::ALIGN_LEFT, Gtk::ALIGN_CENTER );
-    m_label_mail.set_alignment( Gtk::ALIGN_LEFT, Gtk::ALIGN_CENTER );
+    m_label_name.set_alignment( Gtk::ALIGN_START, Gtk::ALIGN_CENTER );
+    m_label_mail.set_alignment( Gtk::ALIGN_START, Gtk::ALIGN_CENTER );
     m_label_name.set_text( " 名前 " );
     m_label_mail.set_text( " メール " );
 
     m_check_fixname.set_label( "固定" );
     m_check_fixmail.set_label( "固定" );
 
-    m_tooltip.set_tip( m_check_fixname, "チェックすると名前欄を保存して固定にする" );
-    m_tooltip.set_tip( m_check_fixmail, "チェックするとメール欄を保存して固定にする" );
+    constexpr const char* name_tip =
+        "チェックすると名前欄を保存して固定にする";
+    constexpr const char* mail_tip =
+        "チェックするとメール欄を保存して固定にする";
+#if GTKMM_CHECK_VERSION(2,12,0)
+    m_check_fixname.set_tooltip_text( name_tip );
+    m_check_fixmail.set_tooltip_text( mail_tip );
+#else
+    m_tooltip.set_tip( m_check_fixname, name_tip );
+    m_tooltip.set_tip( m_check_fixmail, mail_tip );
+#endif
 
     set_name();
     set_mail();

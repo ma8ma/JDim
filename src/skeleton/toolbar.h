@@ -29,7 +29,7 @@ namespace SKELETON
 
         bool m_enable_slot;
 
-#if !GTKMM_CHECK_VERSION(2,13,0)
+#if !GTKMM_CHECK_VERSION(2,12,0)
         Gtk::Tooltips m_tooltip;
 #endif
 
@@ -107,6 +107,10 @@ namespace SKELETON
 
         // ボタン表示更新
         void update_button();
+
+#if GTKMM_CHECK_VERSION(3,0,0)
+        static void override_context_menu_color();
+#endif
 
       protected:
 

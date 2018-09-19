@@ -419,7 +419,8 @@ void MouseKeyDiag::slot_row_activated( const Gtk::TreeModel::Path& path, Gtk::Tr
 // 行削除
 void MouseKeyDiag::slot_delete()
 {
-    std::list< Gtk::TreeModel::Path > rows = m_treeview.get_selection()->get_selected_rows();
+    std::vector< Gtk::TreeModel::Path > rows =
+        m_treeview.get_selection()->get_selected_rows();
     if( ! rows.size() ) return;
 
     Gtk::TreeModel::Path path = *rows.begin();
@@ -529,7 +530,7 @@ MouseKeyPref::MouseKeyPref( Gtk::Window* parent, const std::string& url, const s
     column = Gtk::manage( new Gtk::TreeViewColumn( target, m_columns.m_col_motions ) );
     column->set_resizable( true );
     m_treeview.append_column( *column );
-    Gtk::CellRenderer *cell = column->get_first_cell_renderer();
+    Gtk::CellRenderer *cell = column->get_first_cell();
     if( cell ) column->set_cell_data_func( *cell, sigc::mem_fun( *this, &MouseKeyPref::slot_cell_data ) );
 
     m_scrollwin.add( m_treeview );
@@ -543,6 +544,9 @@ MouseKeyPref::MouseKeyPref( Gtk::Window* parent, const std::string& url, const s
     get_vbox()->pack_start( m_scrollwin );
     get_vbox()->pack_start( m_hbox, Gtk::PACK_SHRINK );
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+    set_default_size_raito( 0.666 );
+#endif
     show_all_children();
     set_title( target + "設定" );
 }

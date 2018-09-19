@@ -1,6 +1,7 @@
 // ライセンス: GPL2
 
 //#define _DEBUG
+#include "gtkmmversion.h"
 #include "jddebug.h"
 
 #include "selectitempref.h"
@@ -10,6 +11,10 @@
 
 #include "global.h"
 #include "session.h"
+
+#if GTKMM_CHECK_VERSION(3,0,0)
+#include <gdk/gdkkeysyms-compat.h>
+#endif
 
 using namespace SKELETON;
 
@@ -108,7 +113,7 @@ void SelectItemPref::pack_widgets()
     m_vbuttonbox_v.set_spacing( 4 );
     m_vbox.pack_start( m_vbuttonbox_v, Gtk::PACK_EXPAND_WIDGET );
 
-    m_vbuttonbox_h.set_layout( Gtk::BUTTONBOX_DEFAULT_STYLE );
+    m_vbuttonbox_h.set_layout( Gtk::BUTTONBOX_EDGE );
     m_vbuttonbox_h.set_spacing( 4 );
     m_vbox.pack_start( m_vbuttonbox_h, Gtk::PACK_SHRINK );
 
@@ -391,8 +396,9 @@ void SelectItemPref::slot_top()
     // 移動先のイテレータ
     Gtk::TreeIter upper_it = children.begin();
 
-    std::list< Gtk::TreePath > selection_path = m_tree_shown.get_selection()->get_selected_rows();
-    std::list< Gtk::TreePath >::iterator it = selection_path.begin();
+    std::vector< Gtk::TreePath > selection_path =
+        m_tree_shown.get_selection()->get_selected_rows();
+    std::vector< Gtk::TreePath >::iterator it = selection_path.begin();
     while( it != selection_path.end() )
     {
         Gtk::TreeIter src_it = m_store_shown->get_iter( *it );
@@ -428,8 +434,9 @@ void SelectItemPref::slot_up()
     // 上限のイテレータ
     Gtk::TreeIter upper_it = children.begin();
 
-    std::list< Gtk::TreePath > selection_path = m_tree_shown.get_selection()->get_selected_rows();
-    std::list< Gtk::TreePath >::iterator it = selection_path.begin();
+    std::vector< Gtk::TreePath > selection_path =
+        m_tree_shown.get_selection()->get_selected_rows();
+    std::vector< Gtk::TreePath >::iterator it = selection_path.begin();
     while( it != selection_path.end() )
     {
         Gtk::TreePath src = *it;
@@ -469,8 +476,9 @@ void SelectItemPref::slot_down()
     // 下限のイテレータ
     Gtk::TreeIter bottom_it = --children.end();
 
-    std::list< Gtk::TreePath > selection_path = m_tree_shown.get_selection()->get_selected_rows();
-    std::list< Gtk::TreePath >::reverse_iterator it = selection_path.rbegin();
+    std::vector< Gtk::TreePath > selection_path =
+        m_tree_shown.get_selection()->get_selected_rows();
+    std::vector< Gtk::TreePath >::reverse_iterator it = selection_path.rbegin();
     while( it != selection_path.rend() )
     {
         Gtk::TreePath src = *it;
@@ -512,8 +520,9 @@ void SelectItemPref::slot_bottom()
     // 移動先のイテレータ
     Gtk::TreeIter bottom_it = children.end();
 
-    std::list< Gtk::TreePath > selection_path = m_tree_shown.get_selection()->get_selected_rows();
-    std::list< Gtk::TreePath >::reverse_iterator it = selection_path.rbegin();
+    std::vector< Gtk::TreePath > selection_path =
+        m_tree_shown.get_selection()->get_selected_rows();
+    std::vector< Gtk::TreePath >::reverse_iterator it = selection_path.rbegin();
     while( it != selection_path.rend() )
     {
         Gtk::TreeIter src_it = m_store_shown->get_iter( *it );
@@ -543,7 +552,8 @@ void SelectItemPref::slot_bottom()
 //
 void SelectItemPref::slot_delete()
 {
-    std::list< Gtk::TreePath > selection_path = m_tree_shown.get_selection()->get_selected_rows();
+    std::vector< Gtk::TreePath > selection_path =
+        m_tree_shown.get_selection()->get_selected_rows();
 
     // 選択したアイテムが無い場合はフォーカスだけ移して出る
     if( selection_path.empty() )
@@ -555,7 +565,7 @@ void SelectItemPref::slot_delete()
     std::list< Gtk::TreeRow > erase_rows;
     bool set_cursor = true;  // 一番上の選択項目にカーソルをセット
 
-    std::list< Gtk::TreePath >::iterator it = selection_path.begin();
+    std::vector< Gtk::TreePath >::iterator it = selection_path.begin();
     while( it != selection_path.end() )
     {
         Gtk::TreePath path = *it;
@@ -598,7 +608,8 @@ void SelectItemPref::slot_delete()
 //
 void SelectItemPref::slot_add()
 {
-    std::list< Gtk::TreePath > selection_path = m_tree_hidden.get_selection()->get_selected_rows();
+    std::vector< Gtk::TreePath > selection_path =
+        m_tree_hidden.get_selection()->get_selected_rows();
 
     // 選択したアイテムが無い場合はフォーカスだけ移して出る
     if( selection_path.empty() )
@@ -611,7 +622,7 @@ void SelectItemPref::slot_add()
     bool set_cursor = true; // 一番上の選択項目にカーソルをセット
 
     // 選択したアイテムを追加
-    std::list< Gtk::TreePath >::iterator it = selection_path.begin();
+    std::vector< Gtk::TreePath >::iterator it = selection_path.begin();
     while( it != selection_path.end() )
     {
         Gtk::TreeRow row = *m_store_hidden->get_iter( *it );

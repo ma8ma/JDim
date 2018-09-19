@@ -30,6 +30,11 @@ CompletionEntry::CompletionEntry( const int mode )
     m_entry.signal_activate().connect( sigc::mem_fun( *this, &CompletionEntry::slot_entry_acivate ) );
     m_entry.signal_changed().connect( sigc::mem_fun( *this, &CompletionEntry::slot_entry_changed ) );
     m_entry.signal_focus_out_event().connect( sigc::mem_fun(*this, &CompletionEntry::slot_entry_focus_out ) );
+#if GTKMM_CHECK_VERSION(3,0,0)
+    m_entry.set_max_width_chars( 1 );
+    m_entry.set_width_chars( 1 );
+    m_entry.set_hexpand( true );
+#endif
     pack_start( m_entry );
 
     // ポップアップ
@@ -151,7 +156,19 @@ void CompletionEntry::show_popup( const bool show_all )
 
     m_treeview.unset_cursor();
     m_treeview.scroll_to_point( -1, 0 );
+#if GTKMM_CHECK_VERSION(3,0,0)
+    Gdk::RGBA rgba;
+    if( !get_style_context()->lookup_color( "theme_bg_color", rgba ) ) {
+#ifdef _DEBUG
+        std::cout << "ERROR:CompletionEntry::show_popup() "
+                  << "lookup theme_bg_color faild." << std::endl;
+#endif
+    }
+    m_treeview.get_column_cell_renderer( 0 )->property_cell_background_rgba() =
+        rgba;
+#else
     m_treeview.get_column_cell_renderer( 0 )->property_cell_background_gdk() = get_style()->get_bg( Gtk::STATE_NORMAL );
+#endif // GTKMM_CHECK_VERSION(3,0,0)
 }
 
 
@@ -185,7 +202,10 @@ void CompletionEntry::slot_entry_button_press( GdkEventButton* event )
 #endif
 
     if( m_show_popup ) hide_popup();
-    else if( m_focused ) show_popup( m_entry.get_text().empty() );
+    else if( m_focused && event->button != 3 ) {
+        // 右クリックならコンテキストメニューを優先して補完候補は表示しない
+        show_popup( m_entry.get_text().empty() );
+    }
 
     m_focused = true;
 }
@@ -262,7 +282,7 @@ bool CompletionEntry::slot_entry_focus_out( GdkEventFocus* )
 bool CompletionEntry::slot_treeview_motion( GdkEventMotion* )
 {
     Gtk::TreeModel::Path path = m_treeview.get_path_under_mouse();
-    if( path.get_depth() > 0 ) m_treeview.set_cursor( path );
+    if( path.size() > 0 ) m_treeview.set_cursor( path );
 
     return true;
 }

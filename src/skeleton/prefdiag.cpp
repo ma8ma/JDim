@@ -53,7 +53,11 @@ void PrefDiag::grab_ok()
 {
     if( ! m_bt_ok ) return;
 
+#if GTKMM_CHECK_VERSION(2,18,0)
+    m_bt_ok->set_can_default( true );
+#else
     m_bt_ok->set_flags( Gtk::CAN_DEFAULT );
+#endif
     m_bt_ok->grab_default();
     m_bt_ok->grab_focus();
 }
@@ -100,6 +104,18 @@ int PrefDiag::run(){
 
     return ret;
 }
+
+
+// ダイアログのサイズをデフォルトのスクリーンに対する比率で設定する
+#if GTKMM_CHECK_VERSION(3,0,0)
+void PrefDiag::set_default_size_raito( double raito )
+{
+    const auto screen = Gdk::Screen::get_default();
+    const int width = static_cast< int >( screen->get_width() * raito );
+    const int height = static_cast< int >( screen->get_height() * raito );
+    Gtk::Dialog::set_default_size( width, height );
+}
+#endif
 
 
 // タイマーのslot関数

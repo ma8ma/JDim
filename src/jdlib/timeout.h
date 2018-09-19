@@ -9,6 +9,10 @@
 #undef DELETE // conflict with Gtk::Stock::DELETE
 #endif
 
+#if defined( _WIN32 ) && defined( WITH_STD_THREAD )
+#include <mutex>
+#endif
+
 namespace JDLIB
 {
     class Timeout
@@ -18,7 +22,11 @@ namespace JDLIB
         Glib::RefPtr<Glib::MainContext> m_context;
         UINT_PTR m_identifer;
         
+#ifdef WITH_STD_THREAD
+        static std::mutex s_lock;
+#else
         static Glib::StaticMutex s_lock;
+#endif
         static std::map< UINT_PTR, Timeout* > s_timeouts;
 #else
         sigc::connection m_connection;

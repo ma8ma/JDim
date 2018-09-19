@@ -225,9 +225,15 @@ void EditTreeView::set_editable_view( const bool editable )
     if( m_editable ){
 
         // D&D のドロップを可能にする
-        std::list< Gtk::TargetEntry > targets;
+        std::vector< Gtk::TargetEntry > targets;
         targets.push_back( Gtk::TargetEntry( get_dndtarget(), Gtk::TARGET_SAME_APP, 0 ) );
+#if GTKMM_CHECK_VERSION(2,10,0)
+        targets.emplace_back( "GTK_NOTEBOOK_TAB", Gtk::TARGET_SAME_APP, 0 );
+        drag_dest_set( targets, Gtk::DEST_DEFAULT_ALL,
+                       Gdk::ACTION_MOVE | Gdk::ACTION_COPY );
+#else
         drag_dest_set( targets );
+#endif
     }
 }
 
@@ -248,7 +254,7 @@ void EditTreeView::clock_in()
             m_dnd_counter = 0;
 
             Gtk::TreePath path = get_path_under_mouse();
-            Gtk::Adjustment* adjust = get_vadjustment();
+            auto adjust = get_vadjustment();
 
             if( get_row( path ) && adjust ){
 
@@ -499,7 +505,7 @@ Gtk::TreeViewColumn* EditTreeView::create_column( const int ypad )
     col->set_sizing( Gtk::TREE_VIEW_COLUMN_FIXED );
 
     // 実際の描画時に偶数行に色を塗る
-    col->set_cell_data_func( *col->get_first_cell_renderer(), sigc::mem_fun( *this, &DragTreeView::slot_cell_data ) );
+    col->set_cell_data_func( *col->get_first_cell(), sigc::mem_fun( *this, &DragTreeView::slot_cell_data ) );
     col->set_cell_data_func( *m_ren_text, sigc::mem_fun( *this, &DragTreeView::slot_cell_data ) );
 
     append_column( *col );
@@ -745,7 +751,13 @@ void EditTreeView::on_drag_data_received( const Glib::RefPtr<Gdk::DragContext>& 
     m_dropped_from_other = false;
 
     // 挿入先のrowを保存
-    if( m_editable && selection_data.get_target() == get_dndtarget() ){
+    const std::string target = selection_data.get_target();
+    if( m_editable
+        && ( target == get_dndtarget()
+#if GTKMM_CHECK_VERSION(2,10,0)
+             || target == "GTK_NOTEBOOK_TAB"
+#endif
+             ) ) {
 
         CORE::DATA_INFO_LIST list_info = CORE::SBUF_list_info();
         if( ! list_info.size() ) return;
@@ -948,7 +960,7 @@ const bool EditTreeView::is_dir( Gtk::TreeModel::iterator& it )
 
 const bool EditTreeView::is_dir( const Gtk::TreePath& path )
 {
-    if( path.get_depth() <= 0 ) return false;
+    if( path.size() <= 0 ) return false;
     Gtk::TreeModel::iterator it = get_model()->get_iter( path );
     return is_dir( it );
 }
@@ -977,7 +989,7 @@ void EditTreeView::next_dir()
     Gtk::TreePath path = get_current_path();
     for(;;){
         path = next_path( path );
-        if( ! path.get_depth() || ! get_row( path ) ){
+        if( ! path.size() || ! get_row( path ) ){
             goto_bottom();
             return;
         }
@@ -1369,7 +1381,7 @@ void EditTreeView::replace_infopath( CORE::DATA_INFO_LIST& list_info,
 
         if( children.empty() ) path = Gtk::TreePath( "0" );
         else{
-            path = get_model()->get_path( *( children.rbegin() ) );
+            path = get_model()->get_path( *( std::prev( children.end() ) ) );
             path.next();
         }
     }
@@ -1801,7 +1813,7 @@ void EditTreeView::sort( const Gtk::TreePath& path, const int mode )
     if( ! get_row( path_head ) ) return;
 
     Gtk::TreePath path_parent = path_head;
-    if( path_parent.get_depth() >= 2 ) path_parent.up();
+    if( path_parent.size() >= 2 ) path_parent.up();
     else path_parent = Gtk::TreePath();
 
 #ifdef _DEBUG
@@ -1895,7 +1907,7 @@ EditTreeViewIterator::EditTreeViewIterator( EditTreeView& treeview, EditColumns&
     if( ! row ) m_end = true;
     else{
 
-        m_depth = m_path.get_depth();
+        m_depth = m_path.size();
         if( ! root ) ++m_depth;
     }
 }
@@ -1931,7 +1943,7 @@ void EditTreeViewIterator::operator ++ ()
 
         else{
 
-            if( m_path.get_depth() > m_depth ){
+            if( m_path.size() > m_depth ){
                 m_path.up();
                 m_path.next();
             }
