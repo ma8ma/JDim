@@ -26,16 +26,6 @@
 
 namespace SKELETON
 {
-#if GTKMM_CHECK_VERSION(3,0,0)
-    // 描画タイマーのタイムアウト値 (単位はミリ秒)
-    // XXX: マシンごとに適切なタイムアウト値があるはず
-    enum
-    {
-        TIMEOUT_DRAWN_SWITCH_PAGE_TAB = 200U,
-        TIMEOUT_DRAWN_SET_TAB_FULLTEXT = 400U,
-    };
-#endif
-
     class View;
     class ToolBar;
     class TabLabel;
@@ -112,10 +102,6 @@ namespace SKELETON
 
         bool m_dragable;
 
-#if GTKMM_CHECK_VERSION(3,0,0)
-        bool m_timeout_drawn = false;
-#endif
-
 #if !GTKMM_CHECK_VERSION(2,10,0)
         SKELETON::IconPopup* m_down_arrow;
 #endif
@@ -187,14 +173,6 @@ namespace SKELETON
 
         // タブ切り替えボタン
         Gtk::Button& get_tabswitch_button(){ return m_bt_tabswitch.get_button(); }
-
-#if GTKMM_CHECK_VERSION(3,0,0)
-        const bool get_timeout_drawn() const { return m_timeout_drawn; }
-        void set_timeout_drawn( bool timeout_drawn ) { m_timeout_drawn = timeout_drawn; }
-
-        // 描画タイマーをスタートする (タイムアウト値の単位はミリ秒)
-        void start_draw_timer( Gtk::Widget* widget, unsigned int timeout );
-#endif
 
       private:
 

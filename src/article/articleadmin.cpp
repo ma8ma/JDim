@@ -62,10 +62,6 @@ ArticleAdmin::ArticleAdmin( const std::string& url )
 
     get_notebook()->set_dragable( true );
     get_notebook()->set_fixtab( false );
-#if GTKMM_CHECK_VERSION(3,0,0)
-    // XXX: ArticleAdminで起こる描画崩れを直すためのタイマーを有効にする
-    get_notebook()->set_timeout_drawn( true );
-#endif
     if( ! SESSION::get_show_article_tab() ) get_notebook()->set_show_tabs( false );
 
     setup_menu();
