@@ -96,15 +96,11 @@ namespace SKELETON
         // 入力コントローラ
         CONTROL::Control m_control;
 
-#if !GTKMM_CHECK_VERSION(2,10,0)
         Tooltip m_tooltip;
-#endif
 
         bool m_dragable;
 
-#if !GTKMM_CHECK_VERSION(2,10,0)
         SKELETON::IconPopup* m_down_arrow;
-#endif
 
         Alloc_NoteBook m_alloc_old;
 
@@ -199,22 +195,14 @@ namespace SKELETON
         bool slot_button_press_event( GdkEventButton* event );
         bool slot_button_release_event( GdkEventButton* event );
 
-#if !GTKMM_CHECK_VERSION(2,10,0)
         // notebook_tab の上でホイールを回した
         bool slot_scroll_event( GdkEventScroll* event );
-#endif
 
       protected:
 
         // コントローラ
         CONTROL::Control& get_control(){ return m_control; }
 
-#if GTKMM_CHECK_VERSION(2,10,0)
-        void slot_page_reordered( Gtk::Widget*, guint page_num );
-
-        void slot_drag_data_get( const Glib::RefPtr< Gdk::DragContext >& context,
-                                 Gtk::SelectionData& selection_data, guint info, guint time );
-#else
         // タブからくるシグナルにコネクトする
         void slot_motion_event();
         void slot_leave_event();
@@ -223,7 +211,6 @@ namespace SKELETON
         void slot_drag_motion( const int page, const int tab_x, const int tab_y, const int tab_width );
         void slot_drag_data_get( Gtk::SelectionData& selection_data );
         void slot_drag_end();
-#endif // GTKMM_CHECK_VERSION(2,10,0)
     };
 }
 

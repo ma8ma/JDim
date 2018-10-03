@@ -3,14 +3,11 @@
 #ifndef _TABLABEL_H
 #define _TABLABEL_H
 
-#include "gtkmmversion.h"
-
 #include <gtkmm.h>
 #include <string>
 
 namespace SKELETON
 {
-#if !GTKMM_CHECK_VERSION(2,10,0)
     // マウス
     typedef sigc::signal< void > SIG_TAB_MOTION_EVENT;
     typedef sigc::signal< void > SIG_TAB_LEAVE_EVENT;
@@ -19,18 +16,15 @@ namespace SKELETON
     typedef sigc::signal< void > SIG_TAB_DRAG_BEGIN;
     typedef sigc::signal< void, Gtk::SelectionData& > SIG_TAB_DRAG_DATA_GET;
     typedef sigc::signal< void > SIG_TAB_DRAG_END;
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
     class TabLabel : public Gtk::EventBox
     {
-#if !GTKMM_CHECK_VERSION(2,10,0)
         SIG_TAB_MOTION_EVENT m_sig_tab_motion_event;
         SIG_TAB_LEAVE_EVENT m_sig_tab_leave_event;
 
         SIG_TAB_DRAG_BEGIN m_sig_tab_drag_begin;
         SIG_TAB_DRAG_DATA_GET m_sig_tab_drag_data_get;
         SIG_TAB_DRAG_END m_sig_tab_drag_end;
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
         int m_x;
         int m_y;
@@ -54,14 +48,12 @@ namespace SKELETON
         TabLabel( const std::string& url );
         virtual ~TabLabel();
 
-#if !GTKMM_CHECK_VERSION(2,10,0)
         SIG_TAB_MOTION_EVENT sig_tab_motion_event(){ return  m_sig_tab_motion_event; }
         SIG_TAB_LEAVE_EVENT sig_tab_leave_event(){ return m_sig_tab_leave_event; }
 
         SIG_TAB_DRAG_BEGIN sig_tab_drag_begin() { return m_sig_tab_drag_begin; }
         SIG_TAB_DRAG_DATA_GET sig_tab_drag_data_get() { return m_sig_tab_drag_data_get; }
         SIG_TAB_DRAG_END sig_tab_drag_end() { return m_sig_tab_drag_end; }
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
         const int get_tab_x() const { return m_x; }
         const int get_tab_y() const { return m_y; }
@@ -78,20 +70,14 @@ namespace SKELETON
 
         const std::string& get_url(){ return m_url; }
 
-#if !GTKMM_CHECK_VERSION(2,10,0)
         void set_dragable( bool dragable, int button );
-#endif
 
         // 本体の横幅 - ラベルの横幅
         const int get_label_margin();
 
         // カットしていない全体の文字列
         const std::string& get_fulltext() const { return m_fulltext; }
-#if GTKMM_CHECK_VERSION(2,10,0)
-        void set_fulltext( const std::string& label );
-#else
         void set_fulltext( const std::string& label ){ m_fulltext = label; }
-#endif
 
         // アイコンセット
         void set_id_icon( const int id );
@@ -100,7 +86,6 @@ namespace SKELETON
         // タブの文字列の文字数をlngにセット
         void resize_tab( const unsigned int lng );
 
-#if !GTKMM_CHECK_VERSION(2,10,0)
       private:
 
         virtual bool on_motion_notify_event( GdkEventMotion* event );
@@ -110,7 +95,6 @@ namespace SKELETON
         virtual void on_drag_data_get( const Glib::RefPtr<Gdk::DragContext>& context,
                                        Gtk::SelectionData& selection_data, guint info, guint time );
         virtual void on_drag_end( const Glib::RefPtr< Gdk::DragContext>& context );
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
     }; 
 }
 

@@ -109,7 +109,6 @@ struct _GtkNotebookPage
 
 
 // 描画本体
-#if !GTKMM_CHECK_VERSION(2,10,0)
 const bool TabNotebook::paint( GdkEventExpose* event )
 {
     GtkNotebook *notebook = gobj();
@@ -207,11 +206,9 @@ const bool TabNotebook::paint( GdkEventExpose* event )
 
     return true;
 }
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
 
 // タブ描画
-#if !GTKMM_CHECK_VERSION(2,10,0)
 void TabNotebook::draw_tab( const GtkNotebook *notebook,
                             const GtkNotebookPage *page,
                             GdkRectangle *area,
@@ -256,11 +253,9 @@ void TabNotebook::draw_tab( const GtkNotebook *notebook,
             );
     }
 }
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
 
 // 矢印(スクロール)マークの描画
-#if !GTKMM_CHECK_VERSION(2,10,0)
 void TabNotebook::draw_arrow( GtkWidget *widget,
                               const GtkNotebook *notebook,
                               const Gdk::Rectangle& rect,
@@ -311,12 +306,10 @@ void TabNotebook::draw_arrow( GtkWidget *widget,
                               arrow_rect.height
         );
 }
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
 
 // 矢印マークの位置、幅、高さを取得
 // before : true ならタブの左側に表示される矢印
-#if !GTKMM_CHECK_VERSION(2,10,0)
 void TabNotebook::get_arrow_rect( GtkWidget *widget, const GtkNotebook *notebook, GdkRectangle *rectangle, const gboolean before )
 {
     GdkRectangle event_window_pos;
@@ -338,11 +331,9 @@ void TabNotebook::get_arrow_rect( GtkWidget *widget, const GtkNotebook *notebook
         rectangle->y = event_window_pos.y + ( event_window_pos.height - rectangle->height ) / 2;
     }
 }
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
 
 // タブ描画領域の位置、幅、高さを取得
-#if !GTKMM_CHECK_VERSION(2,10,0)
 const gboolean TabNotebook::get_event_window_position( const GtkWidget *widget, const GtkNotebook *notebook, GdkRectangle *rectangle )
 {
     GtkNotebookPage* visible_page = NULL;
@@ -376,7 +367,6 @@ const gboolean TabNotebook::get_event_window_position( const GtkWidget *widget, 
 
     return FALSE;
 }
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
 
 
@@ -414,12 +404,9 @@ TabNotebook::TabNotebook( DragableNoteBook* parent )
     set_border_width( 0 );
     set_size_request( 1, -1 ); // これが無いと最大化を解除したときにウィンドウが勝手にリサイズする
 
-#if !GTKMM_CHECK_VERSION(2,10,0)
     add_events( Gdk::POINTER_MOTION_MASK );
     add_events( Gdk::LEAVE_NOTIFY_MASK );
-#endif
 
-#if !GTKMM_CHECK_VERSION(2,10,0)
     // DnD設定
     // ドロップ側に設定する
     drag_source_unset();
@@ -427,7 +414,6 @@ TabNotebook::TabNotebook( DragableNoteBook* parent )
     std::list< Gtk::TargetEntry > targets;
     targets.push_back( Gtk::TargetEntry( DNDTARGET_TAB, Gtk::TARGET_SAME_APP, 0 ) );
     drag_dest_set( targets, Gtk::DEST_DEFAULT_MOTION | Gtk::DEST_DEFAULT_DROP );
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
 #if GTKMM_CHECK_VERSION(3,0,0)
 #if GTKMM_CHECK_VERSION(3,12,0)
@@ -845,12 +831,10 @@ void TabNotebook::get_alloc_tab( Alloc_NoteBook& alloc )
 //
 // 描画イベント
 //
-#if !GTKMM_CHECK_VERSION(2,10,0)
 bool TabNotebook::on_expose_event( GdkEventExpose* event )
 {
     return paint( event );
 }
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
 
 
@@ -891,7 +875,6 @@ bool TabNotebook::on_button_release_event( GdkEventButton* event )
 //
 // マウスが動いた
 //
-#if !GTKMM_CHECK_VERSION(2,10,0)
 bool TabNotebook::on_motion_notify_event( GdkEventMotion* event )
 {
 #ifdef _DEBUG
@@ -902,13 +885,11 @@ bool TabNotebook::on_motion_notify_event( GdkEventMotion* event )
 
     return Gtk::Notebook::on_motion_notify_event( event );
 }
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
 
 //
 // マウスが出た
 //
-#if !GTKMM_CHECK_VERSION(2,10,0)
 bool TabNotebook::on_leave_notify_event( GdkEventCrossing* event )
 {
 #ifdef _DEBUG
@@ -919,13 +900,11 @@ bool TabNotebook::on_leave_notify_event( GdkEventCrossing* event )
 
     return Gtk::Notebook::on_leave_notify_event( event );
 }
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
 
 //
 // マウスホイールを回した
 //
-#if !GTKMM_CHECK_VERSION(2,10,0)
 bool TabNotebook::on_scroll_event( GdkEventScroll* event )
 {
     if( ! CONFIG::get_switchtab_wheel() ) return true;
@@ -938,13 +917,11 @@ bool TabNotebook::on_scroll_event( GdkEventScroll* event )
 
     return Gtk::Notebook::on_scroll_event( event );
 }
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
 
 //
 // ドラッグ中にマウスを動かした
 //
-#if !GTKMM_CHECK_VERSION(2,10,0)
 bool TabNotebook::on_drag_motion( const Glib::RefPtr<Gdk::DragContext>& context, int x, int y, guint time)
 {
 #ifdef _DEBUG
@@ -979,4 +956,3 @@ bool TabNotebook::on_drag_motion( const Glib::RefPtr<Gdk::DragContext>& context,
     // on_drag_motion をキャンセルしないとDnD中にタブが勝手に切り替わる( gtknotebook.c をハック )
     return true;
 }
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
