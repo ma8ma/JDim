@@ -463,9 +463,7 @@ void TabNotebook::clock_in()
         && ! SESSION::is_quitting()
         ){
 
-#if !GTKMM_CHECK_VERSION(2,10,0)
         calc_tabsize();
-#endif
         adjust_tabwidth();
     }
 }
@@ -547,17 +545,6 @@ SKELETON::TabLabel* TabNotebook::get_tablabel( int page )
 //
 const int TabNotebook::get_page_under_mouse()
 {
-#if GTKMM_CHECK_VERSION(2,10,0)
-    // TabLabelの領域外をクリックしたときm_button_event_tabは更新されない
-    // 誤動作を防ぐためフィールドを無効な値にリセットする
-    const int tab = m_button_event_tab;
-    m_button_event_tab = -1;
-#ifdef _DEBUG
-    std::cout << "TabNotebook::get_page_under_mouse tab = " << tab << std::endl;
-#endif
-    return tab;
-#else
-
     int x, y;
     Gdk::Rectangle rect = get_allocation();
     get_pointer( x, y );
@@ -604,7 +591,6 @@ const int TabNotebook::get_page_under_mouse()
 #endif
 
     return ret;
-#endif // GTKMM_CHECK_VERSION(2,10,0)
 }
 
 
@@ -642,7 +628,6 @@ void TabNotebook::set_tab_fulltext( const std::string& str, int page )
 //
 // 各タブのサイズと座標を取得
 //
-#if !GTKMM_CHECK_VERSION(2,10,0)
 void TabNotebook::calc_tabsize()
 {
 #ifdef _DEBUG
@@ -689,7 +674,6 @@ void TabNotebook::calc_tabsize()
         }
     }
 }
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
 
 //
@@ -996,24 +980,3 @@ bool TabNotebook::on_drag_motion( const Glib::RefPtr<Gdk::DragContext>& context,
     return true;
 }
 #endif // !GTKMM_CHECK_VERSION(2,10,0)
-
-
-#if GTKMM_CHECK_VERSION(2,10,0)
-bool TabNotebook::slot_tab_button_event( GdkEventButton*, Gtk::Widget* widget )
-{
-    const int n_pages = get_n_pages();
-    m_button_event_tab = -1;
-    for( int n = 0; n < n_pages; ++n ) {
-        Gtk::Widget* tab = get_tab_label( *get_nth_page( n ) );
-        if( tab == widget ) {
-            m_button_event_tab = n;
-            break;
-        }
-    }
-#ifdef _DEBUG
-    std::cout << "TabNotebook::slot_tab_button_event "
-              << "m_button_event_tab = " << m_button_event_tab << std::endl;
-#endif
-    return false;
-}
-#endif // GTKMM_CHECK_VERSION(2,10,0)

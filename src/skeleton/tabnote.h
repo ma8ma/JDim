@@ -63,10 +63,6 @@ namespace SKELETON
 
         const std::string m_str_empty;
 
-#if GTKMM_CHECK_VERSION(2,10,0)
-        int m_button_event_tab = -1;
-#endif
-
     public:
 
         SIG_BUTTON_PRESS sig_button_press(){ return m_sig_button_press; }
@@ -113,10 +109,6 @@ namespace SKELETON
         void get_alloc_tab( Alloc_NoteBook& alloc );
 #endif
 
-#if GTKMM_CHECK_VERSION(2,10,0)
-        bool slot_tab_button_event( GdkEventButton*, Gtk::Widget* widget );
-#endif
-
       private:
 
 #if !GTKMM_CHECK_VERSION(2,10,0)
@@ -141,10 +133,8 @@ namespace SKELETON
 #endif // !GTKMM_CHECK_VERSION(2,10,0)
 
 
-#if !GTKMM_CHECK_VERSION(2,10,0)
         // 各タブのサイズと座標を取得
         void calc_tabsize();
-#endif
 
       protected:
 
