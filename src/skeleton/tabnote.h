@@ -105,6 +105,7 @@ namespace SKELETON
 
       private:
 
+#if !GTKMM_CHECK_VERSION(3,0,0)
         // gtknotebook.c ( Revision 19311, 2008-01-06 ) を参考にして作成した描画関係の関数
         const bool paint( GdkEventExpose* event );
 
@@ -123,6 +124,7 @@ namespace SKELETON
 
         void get_arrow_rect( GtkWidget *widget, const GtkNotebook *notebook, GdkRectangle *rectangle, const gboolean before );
         const gboolean get_event_window_position( const GtkWidget *widget, const GtkNotebook *notebook, GdkRectangle *rectangle );
+#endif // !GTKMM_CHECK_VERSION(3,0,0)
 
 
         // 各タブのサイズと座標を取得
@@ -130,7 +132,9 @@ namespace SKELETON
 
       protected:
 
+#if !GTKMM_CHECK_VERSION(3,0,0)
         virtual bool on_expose_event( GdkEventExpose* event );
+#endif
         virtual void on_size_allocate( Gtk::Allocation& allocation );
 
         // signal_button_press_event と signal_button_release_event は emit されない
