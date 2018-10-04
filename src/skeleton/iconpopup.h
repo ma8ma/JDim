@@ -22,13 +22,10 @@ namespace SKELETON
             m_img.set( m_pixbuf );
 
 #if GTKMM_CHECK_VERSION(3,0,0)
-            cairo_t* cr = gdk_cairo_create( m_img.get_window()->gobj() );
-            cairo_region_t* rg = gdk_cairo_region_create_from_surface( cairo_get_target( cr ) );
-
-            gtk_widget_shape_combine_region( GTK_WIDGET( gobj() ), rg );
-
-            cairo_region_destroy( rg );
-            cairo_destroy( cr );
+            set_decorated( false );
+            set_app_paintable( true );
+            auto visual = get_screen()->get_rgba_visual();
+            gtk_widget_set_visual( GTK_WIDGET( gobj() ), visual->gobj() );
 #else
             Glib::RefPtr< Gdk::Pixmap > pixmap;
             Glib::RefPtr< Gdk::Bitmap > bitmap;
