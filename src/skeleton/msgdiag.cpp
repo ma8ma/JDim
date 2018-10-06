@@ -40,8 +40,8 @@ MsgDiag::MsgDiag( Gtk::Window* parent,
     else set_transient_for( *CORE::get_mainwindow() );
 
 #if GTKMM_CHECK_VERSION(2,22,0)
-    std::vector< Gtk::Widget* > area = get_message_area()->get_children();
-    Gtk::Label* primary_label = dynamic_cast< Gtk::Label* >( area.front() );
+    const std::vector< Gtk::Widget* > area = get_message_area()->get_children();
+    Gtk::Label* const primary_label = dynamic_cast< Gtk::Label* >( area.front() );
     if( primary_label ) {
         primary_label->set_can_focus( false );
     }
