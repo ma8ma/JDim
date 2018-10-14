@@ -5,11 +5,14 @@
 #ifndef JDMUTEX_H
 #define JDMUTEX_H
 
-// jdmutex.hをインクルードする側でconfig.hを取り込んでおく必要がある
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #ifdef WITH_STD_THREAD
 #include <mutex>
 #else
-// jdmutex.hをインクルードする側でGlibのヘッダーを取り組んでおく必要がある
+#include <glibmm/thread.h>
 #endif
 
 
