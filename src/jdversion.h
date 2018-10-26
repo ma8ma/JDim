@@ -15,8 +15,8 @@
 
 #define MAJORVERSION 2
 #define MINORVERSION 90
-#define MICROVERSION 0
-#define JDDATE    "20180918"
+#define MICROVERSION 1
+#define JDDATE    "20181026"
 #define JDTAG     "alpha"
 
 //---------------------------------

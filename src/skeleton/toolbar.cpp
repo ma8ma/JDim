@@ -205,6 +205,14 @@ void ToolBar::update_button()
 }
 
 
+// 閉じるボタンがキャンセルされたときに呼び出す
+void ToolBar::cancel_button_close()
+{
+    Gtk::Button* const button = dynamic_cast< Gtk::Button* >( m_button_close->get_child() );
+    button->map();
+}
+
+
 // ボタンのアンパック
 void ToolBar::unpack_buttons()
 {
@@ -350,10 +358,8 @@ void ToolBar::set_color( const std::string& color )
         m_ebox_label->set_visible_window( true );
 #if GTKMM_CHECK_VERSION(3,0,0)
         m_label->override_color( Gdk::RGBA( "white" ), Gtk::STATE_FLAG_NORMAL );
-        m_ebox_label->override_background_color( Gdk::RGBA( color ),
-                                                 Gtk::STATE_FLAG_NORMAL );
-        m_ebox_label->override_background_color( Gdk::RGBA( color ),
-                                                 Gtk::STATE_FLAG_ACTIVE );
+        m_ebox_label->override_background_color( Gdk::RGBA( color ), Gtk::STATE_FLAG_NORMAL );
+        m_ebox_label->override_background_color( Gdk::RGBA( color ), Gtk::STATE_FLAG_ACTIVE );
 #else
         m_label->modify_fg( Gtk::STATE_NORMAL, Gdk::Color( "white" ) );
         m_ebox_label->modify_bg( Gtk::STATE_NORMAL, Gdk::Color( color ) );

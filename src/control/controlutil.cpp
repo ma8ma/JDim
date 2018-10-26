@@ -137,28 +137,71 @@ const bool CONTROL::is_ascii( const guint keysym )
 }
 
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+static void slot_set_menu_motion( Gtk::Widget& widget )
+{
+    auto item = dynamic_cast< Gtk::MenuItem* >( &widget );
+
+    auto label = dynamic_cast< Gtk::AccelLabel* >( item->get_child() );
+    if( label ) {
+#ifdef _DEBUG
+        std::cout << label->get_text() << std::endl;
+#endif
+        const int id = CONTROL::get_id( label->get_text() );
+        if( id != CONTROL::None ) {
+            const std::string str_label = CONTROL::get_label_with_mnemonic( id );
+            std::string str_motions;
+
+#if GTKMM_CHECK_VERSION(3,6,0)
+            // CONTROL::get_str_motions()を参考に別個対応のidを処理する
+            if( id == CONTROL::PreferenceArticle
+                || id == CONTROL::PreferenceBoard
+                || id == CONTROL::PreferenceImage ) {
+                label->set_accel( GDK_KEY_p, Gdk::CONTROL_MASK | Gdk::SHIFT_MASK );
+                str_motions = CONTROL::get_str_mousemotions( CONTROL::PreferenceView );
+            }
+            else if( id == CONTROL::SaveDat ) {
+                label->set_accel( GDK_KEY_s, Gdk::CONTROL_MASK );
+                str_motions = CONTROL::get_str_mousemotions( CONTROL::Save );
+            }
+            else {
+                const auto key = CONTROL::get_accelkey( id );
+                if( !key.is_null() ) {
+                    label->set_accel( key.get_key(), key.get_mod() );
+                }
+                str_motions = CONTROL::get_str_mousemotions( id );
+            }
+#else
+            // XXX: Gtk::MenuItemにGtk::HBoxを追加する方法は動作しなくなった
+            str_motions = CONTROL::get_str_motions( id );
+#endif // GTKMM_CHECK_VERSION(3,6,0)
+
+            label->set_text_with_mnemonic( str_label + ( str_motions.empty() ? "" : "\t" + str_motions ) );
+        }
+    }
+
+    if( item->has_submenu() ) {
+        CONTROL::set_menu_motion( item->get_submenu() );
+    }
+}
+#endif // GTKMM_CHECK_VERSION(3,0,0)
+
+
 // メニューにショートカットキーやマウスジェスチャを表示
 void CONTROL::set_menu_motion( Gtk::Menu* menu )
 {
     if( !menu ) return;
 
 #if GTKMM_CHECK_VERSION(3,0,0)
-    std::vector< Gtk::Widget* > items = menu->get_children();
-    auto it_item = items.begin();
+    menu->foreach( &slot_set_menu_motion );
 #else
     Gtk::Menu_Helpers::MenuList& items = menu->items();
     Gtk::Menu_Helpers::MenuList::iterator it_item = items.begin();
-#endif
     for( ; it_item != items.end(); ++it_item ){
 
         // menuitemの中の名前を読み込んで ID を取得し、CONTROL::Noneでなかったら
         // ラベルを置き換える
-#if GTKMM_CHECK_VERSION(3,0,0)
-        auto item = dynamic_cast< Gtk::MenuItem* >( *it_item );
-        auto label = dynamic_cast< Gtk::AccelLabel* >( item->get_child() );
-#else
         Gtk::Label* label = dynamic_cast< Gtk::Label* >( (*it_item).get_child() );
-#endif
         if( label ){
 #ifdef _DEBUG
             std::cout << label->get_text() << std::endl;
@@ -169,44 +212,6 @@ void CONTROL::set_menu_motion( Gtk::Menu* menu )
                 std::string str_label = CONTROL::get_label_with_mnemonic( id );
                 std::string str_motions = CONTROL::get_str_motions( id );
 
-#if GTKMM_CHECK_VERSION(3,0,0)
-#if GTKMM_CHECK_VERSION(3,6,0)
-                // version >= 3.6.0
-                if( gtk_check_version( 3, 6, 0 ) == nullptr ) {
-                    // CONTROL::get_str_motions()を参考に別個対応のidを処理する
-                    if( id == CONTROL::PreferenceArticle
-                        || id == CONTROL::PreferenceBoard
-                        || id == CONTROL::PreferenceImage ) {
-                        label->set_accel( GDK_KEY_p,
-                                          Gdk::CONTROL_MASK | Gdk::SHIFT_MASK );
-                        str_motions = CONTROL::get_str_mousemotions(
-                            CONTROL::PreferenceView );
-                    }
-                    else if( id == CONTROL::SaveDat ) {
-                        label->set_accel( GDK_KEY_s, Gdk::CONTROL_MASK );
-                        str_motions =
-                            CONTROL::get_str_mousemotions( CONTROL::Save );
-                    }
-                    else {
-                        const auto key = CONTROL::get_accelkey( id );
-                        if( !key.is_null() ) {
-                            label->set_accel( key.get_key(), key.get_mod() );
-                        }
-                        str_motions = CONTROL::get_str_mousemotions( id );
-                    }
-                    label->set_text_with_mnemonic(
-                        str_label
-                        + ( str_motions.empty() ? "" : "  " + str_motions ) );
-                }
-                else
-#endif // GTKMM_CHECK_VERSION(3,6,0)
-                {
-                    // XXX: Gtk::MenuにGtk::HBoxを追加する方法は動作しなくなった
-                    item->set_label( str_label
-                                     + ( str_motions.empty() ? "" : "\t" )
-                                     + str_motions );
-                }
-#else
                 ( *it_item ).remove();
                 Gtk::Label *label = Gtk::manage( new Gtk::Label( str_label + ( str_motions.empty() ? "" : "  " ), true ) );
                 Gtk::Label *label_motion = Gtk::manage( new Gtk::Label( str_motions ) );
@@ -216,18 +221,12 @@ void CONTROL::set_menu_motion( Gtk::Menu* menu )
                 box->pack_end( *label_motion, Gtk::PACK_SHRINK );
                 (*it_item).add( *box );
                 box->show_all();
-#endif // GTKMM_CHECK_VERSION(3,0,0)
             }
         }
 
-#if GTKMM_CHECK_VERSION(3,0,0)
-        if( item->has_submenu() ) {
-            CONTROL::set_menu_motion( item->get_submenu() );
-        }
-#else
         if( (*it_item).has_submenu() ) CONTROL::set_menu_motion( (*it_item).get_submenu() );
-#endif
     }
+#endif // GTKMM_CHECK_VERSION(3,0,0)
 }
 
 

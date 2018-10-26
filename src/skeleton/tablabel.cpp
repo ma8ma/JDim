@@ -262,8 +262,7 @@ bool TabLabel::on_button_press_event( GdkEventButton* event )
 bool TabLabel::on_button_release_event( GdkEventButton* event )
 {
 #ifdef _DEBUG
-    std::cout << "TabLabel::on_button_release_event " << m_fulltext
-              << std::endl;
+    std::cout << "TabLabel::on_button_release_event " << m_fulltext << std::endl;
 #endif
 
     Gtk::EventBox::on_button_release_event( event );

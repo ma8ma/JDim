@@ -36,8 +36,7 @@ namespace DBIMG
       protected:
 
 #if GTKMM_CHECK_VERSION(3,0,0)
-        virtual bool
-        on_draw( const Cairo::RefPtr< Cairo::Context >& cr ) override;
+        virtual bool on_draw( const Cairo::RefPtr< Cairo::Context >& cr ) override;
 #else
         virtual bool on_expose_event( GdkEventExpose* event );
 #endif

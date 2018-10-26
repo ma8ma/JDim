@@ -137,8 +137,7 @@ Core::Core( JDWinMain& win_main )
 
     m_vbox_article.signal_realize().connect( sigc::mem_fun(*this, &Core::slot_realize ) );
 #if GTKMM_CHECK_VERSION(3,0,0)
-    m_vbox_article.signal_style_updated().connect(
-        sigc::mem_fun( *this, &Core::slot_style_updated ) );
+    m_vbox_article.signal_style_updated().connect( sigc::mem_fun( *this, &Core::slot_style_updated ) );
 #else
     m_vbox_article.signal_style_changed().connect( sigc::mem_fun(*this, &Core::slot_style_changed ) );
 #endif
@@ -310,8 +309,7 @@ void Core::slot_realize()
 void Core::slot_style_updated()
 {
     auto rgba = m_vbox_article.get_style_context()->get_background_color();
-    m_notebook_right.override_background_color(
-        rgba, m_vbox_article.get_state_flags() );
+    m_notebook_right.override_background_color( rgba, m_vbox_article.get_state_flags() );
 }
 #else
 void Core::slot_style_changed( Glib::RefPtr< Gtk::Style > )
@@ -1108,13 +1106,9 @@ void Core::run( const bool init, const bool skip_setupdiag )
 
     // 履歴メニュー追加
 #if GTKMM_CHECK_VERSION(3,0,0)
-    std::vector< Gtk::Widget* > items = m_menubar->get_children();
-    auto it_item = items.begin();
-    std::advance( it_item, 2 );
-
-    auto item = dynamic_cast< Gtk::MenuItem* >( *it_item );
-    item->signal_activate().connect(
-        sigc::mem_fun( *this, &Core::slot_activate_historymenu ) );
+    const auto items = m_menubar->get_children();
+    auto item = dynamic_cast< Gtk::MenuItem* >( *std::next( items.begin(), 2 ) );
+    item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_activate_historymenu ) );
 
     Gtk::Menu* submenu = item->get_submenu();
 #else
@@ -1147,12 +1141,11 @@ void Core::run( const bool init, const bool skip_setupdiag )
 
     // メニューにショートカットキーやマウスジェスチャを表示
 #if GTKMM_CHECK_VERSION(3,0,0)
-    for( auto&& widget : m_menubar->get_children() ) {
-        auto item = dynamic_cast< Gtk::MenuItem* >( widget );
+    m_menubar->foreach( [this]( Gtk::Widget& w ) {
+        auto item = dynamic_cast< Gtk::MenuItem* >( &w );
         CONTROL::set_menu_motion( item->get_submenu() );
-        item->signal_activate().connect(
-            sigc::mem_fun( *this, &Core::slot_activate_menubar ) );
-    }
+        item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_activate_menubar ) );
+    } );
 #else
     items = m_menubar->items();
     it_item = items.begin();

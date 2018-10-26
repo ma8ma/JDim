@@ -229,8 +229,7 @@ void EditTreeView::set_editable_view( const bool editable )
         targets.push_back( Gtk::TargetEntry( get_dndtarget(), Gtk::TARGET_SAME_APP, 0 ) );
 #if GTKMM_CHECK_VERSION(2,10,0)
         targets.emplace_back( "GTK_NOTEBOOK_TAB", Gtk::TARGET_SAME_APP, 0 );
-        drag_dest_set( targets, Gtk::DEST_DEFAULT_ALL,
-                       Gdk::ACTION_MOVE | Gdk::ACTION_COPY );
+        drag_dest_set( targets, Gtk::DEST_DEFAULT_ALL, Gdk::ACTION_MOVE | Gdk::ACTION_COPY );
 #else
         drag_dest_set( targets );
 #endif
@@ -752,12 +751,11 @@ void EditTreeView::on_drag_data_received( const Glib::RefPtr<Gdk::DragContext>& 
 
     // 挿入先のrowを保存
     const std::string target = selection_data.get_target();
-    if( m_editable
-        && ( target == get_dndtarget()
+    if( m_editable && ( target == get_dndtarget()
 #if GTKMM_CHECK_VERSION(2,10,0)
-             || target == "GTK_NOTEBOOK_TAB"
+                        || target == "GTK_NOTEBOOK_TAB"
 #endif
-             ) ) {
+                        ) ) {
 
         CORE::DATA_INFO_LIST list_info = CORE::SBUF_list_info();
         if( ! list_info.size() ) return;

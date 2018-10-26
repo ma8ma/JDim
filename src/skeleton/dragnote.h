@@ -190,10 +190,7 @@ namespace SKELETON
 
 #if GTKMM_CHECK_VERSION(3,0,0)
         const bool get_timeout_drawn() const { return m_timeout_drawn; }
-        void set_timeout_drawn( bool timeout_drawn )
-        {
-            m_timeout_drawn = timeout_drawn;
-        }
+        void set_timeout_drawn( bool timeout_drawn ) { m_timeout_drawn = timeout_drawn; }
 
         // 描画タイマーをスタートする (タイムアウト値の単位はミリ秒)
         void start_draw_timer( Gtk::Widget* widget, unsigned int timeout );
@@ -237,10 +234,8 @@ namespace SKELETON
 #if GTKMM_CHECK_VERSION(2,10,0)
         void slot_page_reordered( Gtk::Widget*, guint page_num );
 
-        void
-        slot_drag_data_get( const Glib::RefPtr< Gdk::DragContext >& context,
-                            Gtk::SelectionData& selection_data, guint info,
-                            guint time );
+        void slot_drag_data_get( const Glib::RefPtr< Gdk::DragContext >& context,
+                                 Gtk::SelectionData& selection_data, guint info, guint time );
 #else
         // タブからくるシグナルにコネクトする
         void slot_motion_event();

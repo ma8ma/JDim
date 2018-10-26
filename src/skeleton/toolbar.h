@@ -112,6 +112,9 @@ namespace SKELETON
         static void override_context_menu_color();
 #endif
 
+        // 閉じるボタンがキャンセルされたときに呼び出す
+        void cancel_button_close();
+
       protected:
 
         SKELETON::Admin* get_admin(){ return m_admin; }

@@ -41,10 +41,8 @@ DragableNoteBook::DragableNoteBook()
     m_notebook_tab.sig_button_release().connect( sigc::mem_fun( *this, &DragableNoteBook::slot_button_release_event ) );
 
 #if GTKMM_CHECK_VERSION(2,10,0)
-    m_notebook_tab.signal_page_reordered().connect(
-        sigc::mem_fun( *this, &DragableNoteBook::slot_page_reordered ) );
-    m_notebook_tab.signal_drag_data_get().connect(
-        sigc::mem_fun( *this, &DragableNoteBook::slot_drag_data_get ) );
+    m_notebook_tab.signal_page_reordered().connect( sigc::mem_fun( *this, &DragableNoteBook::slot_page_reordered ) );
+    m_notebook_tab.signal_drag_data_get().connect( sigc::mem_fun( *this, &DragableNoteBook::slot_drag_data_get ) );
 
     m_notebook_tab.set_can_focus( false );
 #else
@@ -759,11 +757,10 @@ bool DragableNoteBook::slot_button_release_event( GdkEventButton* event )
 void DragableNoteBook::slot_page_reordered( Gtk::Widget*, guint page_num )
 {
 #ifdef _DEBUG
-    std::cout << "DragableNoteBook::slot_page_reordered m_page = " << m_page
-              << ", page = " << page_num << std::endl;
+    std::cout << "DragableNoteBook::slot_page_reordered "
+              << "m_page = " << m_page << ", page = " << page_num << std::endl;
 #endif
-    m_notebook_view.reorder_child( *m_notebook_view.get_nth_page( m_page ),
-                                   page_num );
+    m_notebook_view.reorder_child( *m_notebook_view.get_nth_page( m_page ), page_num );
     m_page = -1;
 }
 #endif // GTKMM_CHECK_VERSION(2,10,0)
@@ -890,13 +887,12 @@ void DragableNoteBook::slot_drag_motion( const int page, const int tab_x, const 
 // D&Dで受信側がデータ送信を要求してきた
 //
 #if GTKMM_CHECK_VERSION(2,10,0)
-void DragableNoteBook::slot_drag_data_get(
-    const Glib::RefPtr< Gdk::DragContext >& context,
-    Gtk::SelectionData& selection_data, guint info, guint time )
+void DragableNoteBook::slot_drag_data_get( const Glib::RefPtr< Gdk::DragContext >& context,
+                                           Gtk::SelectionData& selection_data, guint info, guint time )
 {
 #ifdef _DEBUG
-    std::cout << "DragableNoteBook::slot_drag_data_get target = "
-              << selection_data.get_target() << " page = " << get_current_page()
+    std::cout << "DragableNoteBook::slot_drag_data_get "
+              << "target = " << selection_data.get_target() << " page = " << get_current_page()
               << std::endl;
 #endif
     if( selection_data.get_target() == "GTK_NOTEBOOK_TAB" ) {
@@ -958,8 +954,7 @@ void DragableNoteBook::slot_drag_end()
 
 
 #if GTKMM_CHECK_VERSION(3,0,0)
-void DragableNoteBook::start_draw_timer( Gtk::Widget* widget,
-                                         unsigned int timeout )
+void DragableNoteBook::start_draw_timer( Gtk::Widget* widget, unsigned int timeout )
 {
     assert( widget != nullptr );
     // 描画処理が済むとタイマーは解除される

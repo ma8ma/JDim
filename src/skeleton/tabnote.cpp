@@ -1018,8 +1018,8 @@ bool TabNotebook::slot_tab_button_event( GdkEventButton*, Gtk::Widget* widget )
         }
     }
 #ifdef _DEBUG
-    std::cout << "TabNotebook::slot_tab_button_event m_button_event_tab = "
-              << m_button_event_tab << std::endl;
+    std::cout << "TabNotebook::slot_tab_button_event "
+              << "m_button_event_tab = " << m_button_event_tab << std::endl;
 #endif
     return false;
 }

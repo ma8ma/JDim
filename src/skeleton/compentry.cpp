@@ -164,8 +164,7 @@ void CompletionEntry::show_popup( const bool show_all )
                   << "lookup theme_bg_color faild." << std::endl;
 #endif
     }
-    m_treeview.get_column_cell_renderer( 0 )->property_cell_background_rgba() =
-        rgba;
+    m_treeview.get_column_cell_renderer( 0 )->property_cell_background_rgba() = rgba;
 #else
     m_treeview.get_column_cell_renderer( 0 )->property_cell_background_gdk() = get_style()->get_bg( Gtk::STATE_NORMAL );
 #endif // GTKMM_CHECK_VERSION(3,0,0)

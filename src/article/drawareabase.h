@@ -126,8 +126,7 @@ namespace ARTICLE
         // cairomm 1.12.0 がメモリリークを起こしたので
         // C API を使うことで問題を回避する
         std::unique_ptr< cairo_t, void ( * )( cairo_t* ) > m_cr;
-        std::unique_ptr< cairo_surface_t, void ( * )( cairo_surface_t* ) >
-            m_backscreen;
+        std::unique_ptr< cairo_surface_t, void ( * )( cairo_surface_t* ) > m_backscreen;
 #else
         Glib::RefPtr< Gdk::GC > m_gc;
         Glib::RefPtr< Gdk::Pixmap > m_backscreen;
@@ -157,10 +156,8 @@ namespace ARTICLE
         bool m_draw_frame;  // 枠を描画する
 #if GTKMM_CHECK_VERSION(2,22,0)
         // 枠線に隠れる部分のバックアップを分ける
-        std::unique_ptr< cairo_surface_t, void ( * )( cairo_surface_t* ) >
-            m_back_frame_top;
-        std::unique_ptr< cairo_surface_t, void ( * )( cairo_surface_t* ) >
-            m_back_frame_bottom;
+        std::unique_ptr< cairo_surface_t, void ( * )( cairo_surface_t* ) > m_back_frame_top;
+        std::unique_ptr< cairo_surface_t, void ( * )( cairo_surface_t* ) > m_back_frame_bottom;
 #else
         Glib::RefPtr< Gdk::Pixmap > m_back_frame; // 枠の背景
 #endif
@@ -198,8 +195,7 @@ namespace ARTICLE
         std::vector< int > m_jump_history;  // ジャンプ履歴
         bool m_cancel_change_adjust; // adjust の値変更イベントをキャンセル
 #if GTKMM_CHECK_VERSION(2,22,0)
-        std::unique_ptr< cairo_surface_t, void ( * )( cairo_surface_t* ) >
-            m_back_marker;
+        std::unique_ptr< cairo_surface_t, void ( * )( cairo_surface_t* ) > m_back_marker;
 #else
         Glib::RefPtr< Gdk::Pixmap > m_back_marker; // オートスクロールマーカの背景
 #endif
@@ -460,13 +456,11 @@ namespace ARTICLE
         void draw_frame();
 
         // バックスクリーンを矩形で塗りつぶす補助メソッド
-        void fill_backscreen( const Gdk::Color& color, int x, int y, int width,
-                              int height );
+        void fill_backscreen( const Gdk::Color& color, int x, int y, int width, int height );
 
         // Pixbufの内容をバックスクリーンに貼り付ける補助メソッド
         void paint_backscreen( const Glib::RefPtr< Gdk::Pixbuf >& pixbuf,
-                               int src_x, int src_y, int dest_x, int dest_y,
-                               int width, int height );
+                               int src_x, int src_y, int dest_x, int dest_y, int width, int height );
 
         // スロット
         void slot_change_adjust();

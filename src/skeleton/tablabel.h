@@ -11,10 +11,8 @@
 namespace SKELETON
 {
 #if GTKMM_CHECK_VERSION(2,10,0)
-    typedef sigc::signal< bool, GdkEventButton*, Gtk::Widget* >
-        SIG_TAB_BUTTON_PRESS_EVENT;
-    typedef sigc::signal< bool, GdkEventButton*, Gtk::Widget* >
-        SIG_TAB_BUTTON_RELEASE_EVENT;
+    typedef sigc::signal< bool, GdkEventButton*, Gtk::Widget* > SIG_TAB_BUTTON_PRESS_EVENT;
+    typedef sigc::signal< bool, GdkEventButton*, Gtk::Widget* > SIG_TAB_BUTTON_RELEASE_EVENT;
 #else
     // マウス
     typedef sigc::signal< void > SIG_TAB_MOTION_EVENT;

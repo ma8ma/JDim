@@ -162,8 +162,7 @@ void AboutDiag::set_version( const Glib::ustring& version )
     m_label_version.set_label( version );
 
 #if GTKMM_CHECK_VERSION(3,0,0)
-    Pango::FontDescription font_discription_version =
-        m_label_version.get_style_context()->get_font();
+    Pango::FontDescription font_discription_version = m_label_version.get_style_context()->get_font();
 #else
     Pango::FontDescription font_discription_version = m_label_version.get_style()->get_font();
 #endif

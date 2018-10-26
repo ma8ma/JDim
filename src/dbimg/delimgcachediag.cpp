@@ -79,8 +79,7 @@ void DelImgCacheDiag::launch_thread()
         if( !m_thread.create( static_cast< STARTFUNC >( launcher ),
                               static_cast< void* >( this ),
                               JDLIB::NODETACH ) ) {
-            MISC::ERRMSG(
-                "DelImgCacheDiag::on_expose_event : could not start thread" );
+            MISC::ERRMSG( "DelImgCacheDiag::launch_thread : could not start thread" );
         }
     }
 }

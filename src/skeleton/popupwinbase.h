@@ -57,8 +57,7 @@ namespace SKELETON
         }
 
 #if GTKMM_CHECK_VERSION(3,0,0)
-        virtual bool
-        on_draw( const Cairo::RefPtr< Cairo::Context >& cr ) override
+        virtual bool on_draw( const Cairo::RefPtr< Cairo::Context >& cr ) override
         {
             const bool ret = Gtk::Window::on_draw( cr );
             if( m_draw_frame ) {

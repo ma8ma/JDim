@@ -53,10 +53,7 @@ void PopupWin::slot_resize_popup()
     // マウス座標
     int x_mouse, y_mouse;
 #if GTKMM_CHECK_VERSION(3,0,0)
-    Gdk::Display::get_default()
-        ->get_device_manager()
-        ->get_client_pointer()
-        ->get_position( x_mouse, y_mouse );
+    Gdk::Display::get_default()->get_device_manager()->get_client_pointer()->get_position( x_mouse, y_mouse );
 #else
     Gdk::ModifierType mod;
     Gdk::Display::get_default()->get_pointer( x_mouse, y_mouse,  mod );

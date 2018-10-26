@@ -157,8 +157,7 @@ namespace SKELETON
         {
             m_textview.override_color( color, state );
         }
-        void override_background_color( const Gdk::RGBA& color,
-                                        Gtk::StateFlags state )
+        void override_background_color( const Gdk::RGBA& color, Gtk::StateFlags state )
         {
             m_textview.override_background_color( color, state );
         }

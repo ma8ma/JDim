@@ -32,12 +32,10 @@ AAMenu::AAMenu( Gtk::Window& parent )
     pfd.set_weight( Pango::WEIGHT_NORMAL );
 #if GTKMM_CHECK_VERSION(3,0,0)
     m_textview.override_font( pfd );
-    m_textview.override_color(
-        Gdk::RGBA( CONFIG::get_color( COLOR_CHAR_SELECTION ) ),
-        Gtk::STATE_FLAG_NORMAL );
-    m_textview.override_background_color(
-        Gdk::RGBA( CONFIG::get_color( COLOR_BACK_SELECTION ) ),
-        Gtk::STATE_FLAG_NORMAL );
+    m_textview.override_color( Gdk::RGBA( CONFIG::get_color( COLOR_CHAR_SELECTION ) ),
+                               Gtk::STATE_FLAG_NORMAL );
+    m_textview.override_background_color( Gdk::RGBA( CONFIG::get_color( COLOR_BACK_SELECTION ) ),
+                                          Gtk::STATE_FLAG_NORMAL );
 #else
     m_textview.modify_font( pfd );
     m_textview.modify_text( Gtk::STATE_NORMAL, Gdk::Color( CONFIG::get_color( COLOR_CHAR_SELECTION ) ) );
@@ -169,24 +167,17 @@ bool AAMenu::move_down()
 #endif
 
 #if GTKMM_CHECK_VERSION(3,0,0)
-    std::vector< Gtk::Widget* > items = get_children();
-    auto it = items.begin();
-    auto item = dynamic_cast< Gtk::MenuItem* >( *it );
-    while( it != items.end() && item != m_activeitem ) {
-        ++it;
-        item = dynamic_cast< Gtk::MenuItem* >( *it );
-    }
+    const auto items = get_children();
+    auto it = std::find( items.begin(), items.end(), static_cast< Gtk::Widget* >( m_activeitem ) );
 
     ++it;
-    item = dynamic_cast< Gtk::MenuItem* >( *it );
-    if( m_map_items[ item ] == -1 ) {
+    if( m_map_items[ dynamic_cast< Gtk::MenuItem* >( *it ) ] == -1 ) {
         ++it; // セパレータをスキップする
     }
     if( it == items.end() ) {
         it = items.begin(); // 一番下まで行ったら上に戻る
     }
-    item = dynamic_cast< Gtk::MenuItem* >( *it );
-    select_item( *item );
+    select_item( *dynamic_cast< Gtk::MenuItem* >( *it ) );
 #else
     Gtk::Menu_Helpers::MenuList::iterator it = items().begin();
     for( ; it != items().end() && &(*it) != m_activeitem; ++it );
@@ -209,26 +200,19 @@ bool AAMenu::move_up()
 #endif
 
 #if GTKMM_CHECK_VERSION(3,0,0)
-    std::vector< Gtk::Widget* > items = get_children();
-    auto it = items.begin();
-    auto item = dynamic_cast< Gtk::MenuItem* >( *it );
-    while( it != items.end() && item != m_activeitem ) {
-        ++it;
-        item = dynamic_cast< Gtk::MenuItem* >( *it );
-    }
+    const auto items = get_children();
+    auto it = std::find( items.begin(), items.end(), static_cast< Gtk::Widget* >( m_activeitem ) );
 
     if( it != items.begin() ) {
         --it;
-        item = dynamic_cast< Gtk::MenuItem* >( *it );
-        if( m_map_items[ item ] == -1 && it != items.begin() ) {
+        if( m_map_items[ dynamic_cast< Gtk::MenuItem* >( *it ) ] == -1 && it != items.begin() ) {
             --it; // セパレータをスキップする
         }
-        item = dynamic_cast< Gtk::MenuItem* >( *it );
-        select_item( *item );
+        select_item( *dynamic_cast< Gtk::MenuItem* >( *it ) );
     }
     else {
-        item = dynamic_cast< Gtk::MenuItem* >( items.back() );
-        select_item( *item ); // 一番上に行ったら下に戻る
+        // 一番上に行ったら下に戻る
+        select_item( *dynamic_cast< Gtk::MenuItem* >( items.back() ) );
     }
 #else
     Gtk::Menu_Helpers::MenuList::iterator it = items().begin();

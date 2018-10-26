@@ -23,12 +23,9 @@
 
 // 枠を描く
 #if GTKMM_CHECK_VERSION(3,0,0)
-#define DRAW_FRAME( color ) \
-    m_event_frame->override_background_color( Gdk::RGBA( color ), \
-                                              Gtk::STATE_FLAG_NORMAL )
+#define DRAW_FRAME( color ) m_event_frame->override_background_color( Gdk::RGBA( color ), Gtk::STATE_FLAG_NORMAL )
 #else
-#define DRAW_FRAME( color ) \
-    m_event_frame->modify_bg( Gtk::STATE_NORMAL, Gdk::Color( color ) )
+#define DRAW_FRAME( color ) m_event_frame->modify_bg( Gtk::STATE_NORMAL, Gdk::Color( color ) )
 #endif
 
 using namespace IMAGE;
@@ -184,8 +181,7 @@ Gtk::Menu* ImageViewIcon::get_popupmenu( const std::string& url )
 
         // 一番上のitemのラベルを書き換える
 #if GTKMM_CHECK_VERSION(3,0,0)
-        auto item =
-            dynamic_cast< Gtk::MenuItem* >( menu->get_children().front() );
+        auto item = dynamic_cast< Gtk::MenuItem* >( menu->get_children().front() );
         auto label = dynamic_cast< Gtk::Label* >( item->get_child() );
 #else
         Gtk::Menu_Helpers::MenuList::iterator it_item =  menu->items().begin();

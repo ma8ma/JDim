@@ -57,8 +57,7 @@ ImageViewPopup::ImageViewPopup( const std::string& url )
 
     // 枠色
 #if GTKMM_CHECK_VERSION(3,0,0)
-    m_event_frame.override_background_color( Gdk::RGBA( border_color ),
-                                             Gtk::STATE_FLAG_NORMAL );
+    m_event_frame.override_background_color( Gdk::RGBA( border_color ), Gtk::STATE_FLAG_NORMAL );
 #else
     m_event_frame.modify_bg( Gtk::STATE_NORMAL, Gdk::Color( border_color ) );
 #endif
@@ -66,8 +65,7 @@ ImageViewPopup::ImageViewPopup( const std::string& url )
     // 背景色
 #if GTKMM_CHECK_VERSION(3,0,0)
     const Gdk::RGBA color_bg( bg_color );
-    m_event_margin.override_background_color( color_bg,
-                                              Gtk::STATE_FLAG_NORMAL );
+    m_event_margin.override_background_color( color_bg, Gtk::STATE_FLAG_NORMAL );
     get_event().override_background_color( color_bg, Gtk::STATE_FLAG_NORMAL );
 #else
     const Gdk::Color color_bg( bg_color );

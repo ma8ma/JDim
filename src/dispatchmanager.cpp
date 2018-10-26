@@ -1,6 +1,9 @@
 // ライセンス: GPL2
 
 //#define _DEBUG
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 #include "jddebug.h"
 
 #include "dispatchmanager.h"
