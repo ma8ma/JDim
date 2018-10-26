@@ -205,6 +205,14 @@ void ToolBar::update_button()
 }
 
 
+// 閉じるボタンがキャンセルされたときに呼び出す
+void ToolBar::cancel_button_close()
+{
+    Gtk::Button* const button = dynamic_cast< Gtk::Button* >( m_button_close->get_child() );
+    button->map();
+}
+
+
 // ボタンのアンパック
 void ToolBar::unpack_buttons()
 {
