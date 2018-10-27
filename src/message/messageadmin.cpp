@@ -400,6 +400,11 @@ const bool MessageAdmin::delete_message( SKELETON::View * view )
             if( ! view->set_command( "save_message" ) ) return delete_message( view );
             result = true;
             break;
+
+        default:
+            // 確認をキャンセルするなら閉じるボタンを見えるようにする
+            m_toolbar->cancel_button_close();
+            break;
     }
 
     return result;
