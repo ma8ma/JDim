@@ -124,7 +124,7 @@ namespace SKELETON
     {
         EditTextView m_textview;
 #if GTKMM_CHECK_VERSION(3,0,0)
-        static constexpr const char* m_css_classname = "editview";
+        static constexpr const char* m_css_classname = u8"jd-editview";
         Glib::RefPtr< Gtk::CssProvider > m_provider = Gtk::CssProvider::create();
 #endif
 
