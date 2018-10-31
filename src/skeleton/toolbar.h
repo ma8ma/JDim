@@ -182,6 +182,7 @@ namespace SKELETON
 
 #if GTKMM_CHECK_VERSION(3,0,0)
         // 閉じるボタン関係
+        static constexpr const char* m_css_leave = u8"jd-leave";
         void setup_manual_styling( Gtk::ToolButton& toolbutton );
 #endif
 

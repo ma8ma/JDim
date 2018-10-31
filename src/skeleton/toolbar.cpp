@@ -862,7 +862,7 @@ void ToolBar::slot_clicked_close()
 #if GTKMM_CHECK_VERSION(3,0,0)
         // cssクラスセレクタ leave を追加して枠を消す
         // Gtk::RELIEF_NORMAL のときは影響を受けない
-        button->get_style_context()->add_class( u8"leave" );
+        button->get_style_context()->add_class( m_css_leave );
 #else
         // gtk+-2.12.9/gtk/gtkbutton.c の gtk_button_leave_notify() をハックして
         // gtkbutton->in_button = false にすると枠が消えることが分かった
@@ -1087,15 +1087,15 @@ void ToolBar::setup_manual_styling( Gtk::ToolButton& toolbutton )
         // XXX: フラット表示は装飾がないという前提でcssを設定している
         provider->load_from_data( Glib::ustring::compose(
             u8R"(
-            .flat.leave {
+            .flat.%1 {
                 background-color: %2;
                 background-image: none;
-                border-color: %1;
+                border-color: %3;
                 border-image-source: none;
                 box-shadow: none;
             }
             )",
-            border_color.to_string(), bg_color.to_string() ) );
+            m_css_leave, bg_color.to_string(), border_color.to_string() ) );
     }
     catch( Gtk::CssProviderError& err ) {
 #ifdef _DEBUG
@@ -1106,11 +1106,11 @@ void ToolBar::setup_manual_styling( Gtk::ToolButton& toolbutton )
     // enter/leave-notify-eventでcssクラスセレクタを切り替える
     // フラット表示が設定されているときはシグナルの伝播を止める
     button->signal_enter_notify_event().connect( [button]( GdkEventCrossing* e ) {
-        button->get_style_context()->remove_class( u8"leave" );
+        button->get_style_context()->remove_class( m_css_leave );
         return CONFIG::get_flat_button();
     } );
     button->signal_leave_notify_event().connect( [button]( GdkEventCrossing* e ) {
-        button->get_style_context()->add_class( u8"leave" );
+        button->get_style_context()->add_class( m_css_leave );
         return CONFIG::get_flat_button();
     } );
 }
