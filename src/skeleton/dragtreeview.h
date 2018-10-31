@@ -40,20 +40,20 @@ namespace SKELETON
 
         Tooltip m_tooltip;
 
-        // 色
-        bool m_use_bg_even;
 #if GTKMM_CHECK_VERSION(3,0,0)
-        static constexpr const char* m_css_classname = "dragtreeview";
+        static constexpr const char* m_css_classname = u8"jd-dragtreeview";
         Glib::RefPtr< Gtk::CssProvider > m_provider = Gtk::CssProvider::create();
 
-        Gdk::RGBA m_color_text;
-        Gdk::RGBA m_color_bg;
-        Gdk::RGBA m_color_bg_even;
+        using Color = Gdk::RGBA;
 #else
-        Gdk::Color m_color_text;
-        Gdk::Color m_color_bg;
-        Gdk::Color m_color_bg_even;
+        using Color = Gdk::Color;
 #endif
+
+        // 色
+        bool m_use_bg_even;
+        Color m_color_text;
+        Color m_color_bg;
+        Color m_color_bg_even;
 
         // ポップアップウィンドウ用
         PopupWin* m_popup_win;
