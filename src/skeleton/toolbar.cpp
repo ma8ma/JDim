@@ -31,7 +31,6 @@
 #if !GTKMM_CHECK_VERSION(3,0,0)
 #include <gtk/gtkbutton.h>
 #endif
-#include <list>
 
 using namespace SKELETON;
 
