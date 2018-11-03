@@ -122,7 +122,7 @@ namespace ARTICLE
 
         // 描画用
         Glib::RefPtr< Gdk::Window > m_window;
-#if GTKMM_CHECK_VERSION(2,22,0)
+#if GTKMM_CHECK_VERSION(3,0,0)
         // cairomm 1.12.0 がメモリリークを起こしたので
         // C API を使うことで問題を回避する
         std::unique_ptr< cairo_t, void ( * )( cairo_t* ) > m_cr;
@@ -150,11 +150,15 @@ namespace ARTICLE
         // 色
         int m_colorid_text;     // デフォルトの文字色
         int m_colorid_back;     // デフォルトの背景色
+#if GTKMM_CHECK_VERSION(3,0,0)
+        std::vector< Gdk::RGBA > m_color;
+#else
         std::vector< Gdk::Color > m_color;
+#endif
 
         // 枠
         bool m_draw_frame;  // 枠を描画する
-#if GTKMM_CHECK_VERSION(2,22,0)
+#if GTKMM_CHECK_VERSION(3,0,0)
         // 枠線に隠れる部分のバックアップを分ける
         std::unique_ptr< cairo_surface_t, void ( * )( cairo_surface_t* ) > m_back_frame_top;
         std::unique_ptr< cairo_surface_t, void ( * )( cairo_surface_t* ) > m_back_frame_bottom;
@@ -194,7 +198,7 @@ namespace ARTICLE
         int m_pre_pos_y; // ひとつ前のスクロールバーの位置。スクロールした時の差分量計算に使用する
         std::vector< int > m_jump_history;  // ジャンプ履歴
         bool m_cancel_change_adjust; // adjust の値変更イベントをキャンセル
-#if GTKMM_CHECK_VERSION(2,22,0)
+#if GTKMM_CHECK_VERSION(3,0,0)
         std::unique_ptr< cairo_surface_t, void ( * )( cairo_surface_t* ) > m_back_marker;
 #else
         Glib::RefPtr< Gdk::Pixmap > m_back_marker; // オートスクロールマーカの背景
@@ -456,7 +460,7 @@ namespace ARTICLE
         void draw_frame();
 
         // バックスクリーンを矩形で塗りつぶす補助メソッド
-        void fill_backscreen( const Gdk::Color& color, int x, int y, int width, int height );
+        void fill_backscreen( const int colorid, int x, int y, int width, int height );
 
         // Pixbufの内容をバックスクリーンに貼り付ける補助メソッド
         void paint_backscreen( const Glib::RefPtr< Gdk::Pixbuf >& pixbuf,

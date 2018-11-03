@@ -28,7 +28,7 @@ namespace SKELETON
     class PopupWinBase : public Gtk::Window
     {
         SIG_CONFIGURED_POPUP m_sig_configured;
-#if !GTKMM_CHECK_VERSION(2,10,0)
+#if !GTKMM_CHECK_VERSION(3,0,0)
         Glib::RefPtr< Gdk::GC > m_gc;
 #endif
 
@@ -50,7 +50,7 @@ namespace SKELETON
         {
             Gtk::Window::on_realize();
 
-#if !GTKMM_CHECK_VERSION(2,10,0)
+#if !GTKMM_CHECK_VERSION(3,0,0)
             Glib::RefPtr< Gdk::Window > window = get_window();
             m_gc = Gdk::GC::create( window );    
 #endif
@@ -75,19 +75,8 @@ namespace SKELETON
 
             // 枠の描画
             if( m_draw_frame ){
-#if GTKMM_CHECK_VERSION(2,10,0)
-                // cairomm 1.12.0 がメモリリークを起こしたので
-                // C API を使うことで問題を回避する
-                cairo_t* cr = gdk_cairo_create( get_window()->gobj() );
-                gdk_cairo_set_source_color( cr, Gdk::Color( "black" ).gobj() );
-                cairo_set_line_width( cr, 1.0 );
-                cairo_rectangle( cr, 0.0, 0.0, get_width(), get_height() );
-                cairo_stroke( cr );
-                cairo_destroy( cr );
-#else
                 m_gc->set_foreground( Gdk::Color( "black" ) );
                 get_window()->draw_rectangle( m_gc, false, 0, 0, get_width()-1, get_height()-1 );
-#endif
             }
 
             return ret;

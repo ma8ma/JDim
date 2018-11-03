@@ -1057,7 +1057,7 @@ void CACHE::add_filter_to_diag( Gtk::FileChooserDialog& diag, const int type )
 // multi == true なら複数選択可能
 // 戻り値は選択されたファイルのpathのリスト
 //
-const std::list< std::string > CACHE::open_load_diag( Gtk::Window* parent, const std::string& open_path, const int type, const bool multi )
+const std::vector< std::string > CACHE::open_load_diag( Gtk::Window* parent, const std::string& open_path, const int type, const bool multi )
 {
     std::string dir = MISC::get_dir( open_path );
     if( dir.empty() ) dir = MISC::getenv_limited( ENV_HOME, MAX_SAFE_PATH );
@@ -1072,19 +1072,10 @@ const std::list< std::string > CACHE::open_load_diag( Gtk::Window* parent, const
     {
         diag.hide();
 
-#if GTKMM_CHECK_VERSION(3,0,0)
-        // Gtk::FileChooserDialog::get_filenames()の戻り値の
-        // コンテナがstd::vectorに変わったのでとりあえず型変換している
-        // HACK: 周辺の関数をstd::vectorに修正するほうが良いかもしれない
-        std::vector< std::string > filenames = diag.get_filenames();
-        return MISC::recover_path( std::list< std::string >( std::make_move_iterator( filenames.begin() ),
-                                                             std::make_move_iterator( filenames.end() ) ) );
-#else
         return MISC::recover_path( diag.get_filenames() );
-#endif
     }
 
-    return std::list< std::string >();
+    return {};
 }
 
 

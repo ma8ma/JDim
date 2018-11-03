@@ -6,7 +6,7 @@
   必須環境
 
   ・gtkmm-2.4.8 以上
-  ・gtkmm-3.0.0 以上 (gtk3版)
+  ・gtkmm-3.0.0 以上 (GTK3版)
   ・zlib-1.2 以上
   ・gnutls-1.2 以上
 

@@ -2,7 +2,6 @@
 
 //#define _DEBUG
 #include "jddebug.h"
-#include "gtkmmversion.h"
 
 #include "imageadmin.h"
 #include "imagewin.h"

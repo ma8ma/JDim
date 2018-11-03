@@ -135,10 +135,8 @@ Core::Core( JDWinMain& win_main )
     // ログ検索マネージャ作成
     CORE::get_search_manager();
 
+#if !GTKMM_CHECK_VERSION(3,0,0)
     m_vbox_article.signal_realize().connect( sigc::mem_fun(*this, &Core::slot_realize ) );
-#if GTKMM_CHECK_VERSION(3,0,0)
-    m_vbox_article.signal_style_updated().connect( sigc::mem_fun( *this, &Core::slot_style_updated ) );
-#else
     m_vbox_article.signal_style_changed().connect( sigc::mem_fun(*this, &Core::slot_style_changed ) );
 #endif
 }
@@ -289,34 +287,24 @@ void Core::save_session()
 // 右ペーンのnotebookのparentであるvboxがrealizeしたらnotebookのstyleを変更する
 // テーマによっては notebook の中に notebook を配置すると背景色が正しく
 // 出ない問題があるため。開発スレ 493 参照
+#if !GTKMM_CHECK_VERSION(3,0,0)
 void Core::slot_realize()
 {
 #ifdef _DEBUG
     std::cout << "Core::slot_realize\n";
 #endif
 
-#if GTKMM_CHECK_VERSION(3,0,0)
-    slot_style_updated();
-#else
     slot_style_changed( m_vbox_article.get_style() );
-#endif
 }
+#endif // !GTKMM_CHECK_VERSION(3,0,0)
 
 
-#if GTKMM_CHECK_VERSION(3,0,0)
-// XXX: Gtk::StyleContextにはスタイルを一括コピーする機能がない
-// そこでCore::slot_realize()のコメントを参考に背景色を上書きするロジックにした
-void Core::slot_style_updated()
-{
-    auto rgba = m_vbox_article.get_style_context()->get_background_color();
-    m_notebook_right.override_background_color( rgba, m_vbox_article.get_state_flags() );
-}
-#else
+#if !GTKMM_CHECK_VERSION(3,0,0)
 void Core::slot_style_changed( Glib::RefPtr< Gtk::Style > )
 {
     m_notebook_right.set_style( m_vbox_article.get_style() );
 }
-#endif // GTKMM_CHECK_VERSION(3,0,0)
+#endif // !GTKMM_CHECK_VERSION(3,0,0)
 
 
 Gtk::Widget* Core::get_toplevel()
@@ -2611,7 +2599,7 @@ void Core::set_command( const COMMAND_ARGS& command )
             if( mdiag.run() != Gtk::RESPONSE_YES ) return;
         }
 
-        std::list< std::string > list_files;
+        std::vector< std::string > list_files;
 
         // ダイアログを開いてファイルのリストを取得
         if( command.arg2.empty() ){
@@ -4313,7 +4301,7 @@ void Core::hide_imagetab()
 //
 // 板にdatファイルをインポートする
 //
-void Core::import_dat( const std::string& url_board, const std::list< std::string > list_files )
+void Core::import_dat( const std::string& url_board, const std::vector< std::string >& list_files )
 {
     if( ! list_files.size() ) return;
 
@@ -4327,10 +4315,7 @@ void Core::import_dat( const std::string& url_board, const std::list< std::strin
     CORE::DATA_INFO info;
     info.type = TYPE_THREAD;
 
-    std::list< std::string >::const_iterator it = list_files.begin();
-    for(; it != list_files.end(); ++it ){
-
-        const std::string& filename = ( *it );
+    for( const auto& filename : list_files ) {
 
 #ifdef _DEBUG
         std::cout << filename << std::endl;

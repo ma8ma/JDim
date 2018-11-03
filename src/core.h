@@ -147,10 +147,8 @@ namespace CORE
 
         void set_maintitle();
 
+#if !GTKMM_CHECK_VERSION(3,0,0)
         void slot_realize();
-#if GTKMM_CHECK_VERSION(3,0,0)
-        void slot_style_updated();
-#else
         void slot_style_changed( Glib::RefPtr< Gtk::Style > );
 #endif
 
@@ -231,7 +229,7 @@ namespace CORE
         void hide_imagetab();
 
         // 板にdatファイルをインポートする
-        void import_dat( const std::string& url_board, const std::list< std::string > list_files );
+        void import_dat( const std::string& url_board, const std::vector< std::string >& list_files );
 
         // サイドバー更新チェック
         // open : 更新があったらタブで開く

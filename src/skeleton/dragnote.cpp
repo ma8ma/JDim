@@ -12,7 +12,6 @@
 #include "icons/iconmanager.h"
 
 #include "control/controlid.h"
-#include "jdlib/timeout.h"
 
 #include "dndmanager.h"
 #include "session.h"
@@ -30,9 +29,7 @@ DragableNoteBook::DragableNoteBook()
     , m_page( -1 )
     , m_dragging_tab( false )
     , m_dragable( false )
-#if !GTKMM_CHECK_VERSION(2,10,0)
     , m_down_arrow( NULL )
-#endif
 {
     set_spacing( 0 );
 
@@ -40,19 +37,12 @@ DragableNoteBook::DragableNoteBook()
     m_notebook_tab.sig_button_press().connect( sigc::mem_fun( *this, &DragableNoteBook::slot_button_press_event ) );
     m_notebook_tab.sig_button_release().connect( sigc::mem_fun( *this, &DragableNoteBook::slot_button_release_event ) );
 
-#if GTKMM_CHECK_VERSION(2,10,0)
-    m_notebook_tab.signal_page_reordered().connect( sigc::mem_fun( *this, &DragableNoteBook::slot_page_reordered ) );
-    m_notebook_tab.signal_drag_data_get().connect( sigc::mem_fun( *this, &DragableNoteBook::slot_drag_data_get ) );
-
-    m_notebook_tab.set_can_focus( false );
-#else
     m_notebook_tab.sig_tab_motion_event().connect( sigc::mem_fun(*this, &DragableNoteBook::slot_motion_event ) );
     m_notebook_tab.sig_tab_leave_event().connect( sigc::mem_fun(*this, &DragableNoteBook::slot_leave_event ) );
 
     m_notebook_tab.sig_tab_drag_motion().connect( sigc::mem_fun(*this, &DragableNoteBook::slot_drag_motion ) );
 
     m_notebook_tab.sig_scroll_event().connect( sigc::mem_fun(*this, &DragableNoteBook::slot_scroll_event ) );
-#endif // GTKMM_CHECK_VERSION(2,10,0)
 
     m_hbox_tab.pack_start( m_notebook_tab );
     m_hbox_tab.pack_start( m_bt_tabswitch, Gtk::PACK_SHRINK );
@@ -78,9 +68,7 @@ DragableNoteBook::DragableNoteBook()
 
 DragableNoteBook::~DragableNoteBook()
 {
-#if !GTKMM_CHECK_VERSION(2,10,0)
     if( m_down_arrow ) delete m_down_arrow;
-#endif
 }
 
 
@@ -91,9 +79,7 @@ DragableNoteBook::~DragableNoteBook()
 void DragableNoteBook::clock_in()
 {
     m_notebook_tab.clock_in();
-#if !GTKMM_CHECK_VERSION(2,10,0)
     m_tooltip.clock_in();
-#endif
 }
 
 
@@ -102,9 +88,7 @@ void DragableNoteBook::clock_in()
 //
 void DragableNoteBook::focus_out()
 {
-#if !GTKMM_CHECK_VERSION(2,10,0)
     m_tooltip.hide_tooltip();
-#endif
 }
 
 
@@ -348,17 +332,7 @@ int DragableNoteBook::append_page( const std::string& url, Gtk::Widget& child )
     m_bt_tabswitch.show_button();
 
     SKELETON::TabLabel* tablabel = create_tablabel( url );
-#if GTKMM_CHECK_VERSION(2,10,0)
-    int page_num = m_notebook_tab.append_tab( *tablabel );
-    if( page_num >= 0 ) {
-        Gtk::Widget* page = m_notebook_tab.get_nth_page( page_num );
-        m_notebook_tab.set_tab_reorderable( *page, m_dragable );
-        m_notebook_tab.set_tab_detachable( *page, true );
-    }
-    return page_num;
-#else
     return m_notebook_tab.append_tab( *tablabel );
-#endif
 }
 
 
@@ -369,17 +343,7 @@ int DragableNoteBook::insert_page( const std::string& url, Gtk::Widget& child, i
     m_bt_tabswitch.show_button();
 
     SKELETON::TabLabel* tablabel = create_tablabel( url );
-#if GTKMM_CHECK_VERSION(2,10,0)
-    int page_num = m_notebook_tab.insert_tab( *tablabel, page );
-    if( page_num >= 0 ) {
-        Gtk::Widget* page = m_notebook_tab.get_nth_page( page_num );
-        m_notebook_tab.set_tab_reorderable( *page, m_dragable );
-        m_notebook_tab.set_tab_detachable( *page, true );
-    }
-    return page_num;
-#else
     return m_notebook_tab.insert_tab( *tablabel, page );
-#endif
 }
 
 
@@ -415,9 +379,7 @@ void DragableNoteBook::remove_page( const int page, const bool adjust_tab )
 
     if( tablabel ) delete tablabel;
 
-#if !GTKMM_CHECK_VERSION(2,10,0)
     m_tooltip.hide_tooltip();
-#endif
 
     if( ! get_n_pages() ) m_bt_tabswitch.hide_button();
 }
@@ -586,12 +548,6 @@ SKELETON::TabLabel* DragableNoteBook::create_tablabel( const std::string& url )
 {
     SKELETON::TabLabel *tablabel = new SKELETON::TabLabel( url );
 
-#if GTKMM_CHECK_VERSION(2,10,0)
-    tablabel->sig_tab_button_press_event().connect(
-        sigc::mem_fun( m_notebook_tab, &TabNotebook::slot_tab_button_event ) );
-    tablabel->sig_tab_button_release_event().connect(
-        sigc::mem_fun( m_notebook_tab, &TabNotebook::slot_tab_button_event ) );
-#else
     // ドラッグ設定
     GdkEventButton event;
     m_control.get_eventbutton( CONTROL::DragStartButton, event );
@@ -603,7 +559,6 @@ SKELETON::TabLabel* DragableNoteBook::create_tablabel( const std::string& url )
     tablabel->sig_tab_drag_begin().connect( sigc::mem_fun(*this, &DragableNoteBook::slot_drag_begin ) );
     tablabel->sig_tab_drag_data_get().connect( sigc::mem_fun(*this, &DragableNoteBook::slot_drag_data_get ) );
     tablabel->sig_tab_drag_end().connect( sigc::mem_fun(*this, &DragableNoteBook::slot_drag_end ) );
-#endif // GTKMM_CHECK_VERSION(2,10,0)
     
     return tablabel;
 }
@@ -639,15 +594,6 @@ void DragableNoteBook::slot_switch_page_tab( GtkNotebookPage* bookpage, guint pa
     m_notebook_toolbar.queue_draw();
 
     m_sig_switch_page.emit( bookpage, page );
-
-#if GTKMM_CHECK_VERSION(3,0,0)
-    if( get_timeout_drawn() ) {
-        // XXX: ArticleAdminのタブやツールバーを描画するためタイマーを設定する
-        // 特定の板のスレにタブを切り替えるときにタブやツールバーの描画が
-        // 更新されない不具合を回避する
-        start_draw_timer( this, TIMEOUT_DRAWN_SWITCH_PAGE_TAB );
-    }
-#endif
 }
 
 
@@ -680,10 +626,7 @@ bool DragableNoteBook::slot_button_press_event( GdkEventButton* event )
             m_sig_tab_clicked.emit( m_page );
         }
 
-#if !GTKMM_CHECK_VERSION(2,10,0)
-        // タブの並べ替えにイベントを伝達させるため2.10以上ではfalseを返す
         return true;
-#endif
     }
     else m_page = -1;
 
@@ -723,10 +666,7 @@ bool DragableNoteBook::slot_button_release_event( GdkEventButton* event )
             // if( get_n_pages() == 0 )
             // という条件では m_notebook_tab.get_n_pages() = 0 でも get_n_pages() != 0 になって落ちることがある
             if( m_notebook_tab.get_n_pages() == 0 ){
-#if !GTKMM_CHECK_VERSION(2,10,0)
-                // 後で呼び出されるpage-reorderedで使うのでリセットしない
                 m_page = -1;
-#endif
                 return true;
             }
         }
@@ -737,10 +677,7 @@ bool DragableNoteBook::slot_button_release_event( GdkEventButton* event )
         // ポップアップメニュー
         else if( m_control.button_alloted( event, CONTROL::PopupmenuButton ) ) m_sig_tab_menu.emit( m_page, x, y );
 
-#if !GTKMM_CHECK_VERSION(2,10,0)
-        // 後で呼び出されるpage-reorderedで使うのでリセットしない
         m_page = -1;
-#endif
         event->type = type_copy;
     }
 
@@ -750,26 +687,8 @@ bool DragableNoteBook::slot_button_release_event( GdkEventButton* event )
 
 
 //
-// タブの並び替えが終わった (並び替えの途中では発生しない)
-// DragableNoteBookのbutton-release-eventが処理された後に呼び出される
-//
-#if GTKMM_CHECK_VERSION(2,10,0)
-void DragableNoteBook::slot_page_reordered( Gtk::Widget*, guint page_num )
-{
-#ifdef _DEBUG
-    std::cout << "DragableNoteBook::slot_page_reordered "
-              << "m_page = " << m_page << ", page = " << page_num << std::endl;
-#endif
-    m_notebook_view.reorder_child( *m_notebook_view.get_nth_page( m_page ), page_num );
-    m_page = -1;
-}
-#endif // GTKMM_CHECK_VERSION(2,10,0)
-
-
-//
 // タブの中でマウスを動かした
 //
-#if !GTKMM_CHECK_VERSION(2,10,0)
 void DragableNoteBook::slot_motion_event()
 {
     const int page = m_notebook_tab.get_page_under_mouse();
@@ -785,13 +704,11 @@ void DragableNoteBook::slot_motion_event()
     }
     else m_tooltip.hide_tooltip();
 }
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
 
 //
 // タブからマウスが出た
 //
-#if !GTKMM_CHECK_VERSION(2,10,0)
 void DragableNoteBook::slot_leave_event()
 {
 #ifdef _DEBUG
@@ -800,11 +717,9 @@ void DragableNoteBook::slot_leave_event()
 
     m_tooltip.hide_tooltip();
 }
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
 
 // notebook_tab の上でホイールを回した
-#if !GTKMM_CHECK_VERSION(2,10,0)
 bool DragableNoteBook::slot_scroll_event( GdkEventScroll* event )
 {
 #ifdef _DEBUG
@@ -813,28 +728,45 @@ bool DragableNoteBook::slot_scroll_event( GdkEventScroll* event )
 
     bool ret = false;
 
-    // タブの循環
-    if( event->direction == GDK_SCROLL_UP && get_current_page() == 0 ){
-        set_current_page( get_n_pages() -1 );
-        ret = true;
+    // gtk3ではタブの循環に加え隣のタブへ切り替える処理も実装する必要がある
+    // XXX: GTK3版ではホイールによるタブの切り替えが動作しない環境がある
+    if( event->direction == GDK_SCROLL_UP ) {
+        const int current_page = get_current_page();
+        if( current_page == 0 ) {
+            set_current_page( get_n_pages() - 1 );
+            ret = true;
+        }
+#if GTKMM_CHECK_VERSION(3,0,0)
+        else {
+            set_current_page( current_page - 1 );
+            ret = true;
+        }
+#endif
     }
-    else if( event->direction == GDK_SCROLL_DOWN && get_current_page() == get_n_pages() -1 ){
-        set_current_page( 0 );
-        ret = true;
+    else if( event->direction == GDK_SCROLL_DOWN ) {
+        const int current_page = get_current_page();
+        if( current_page == get_n_pages() - 1 ) {
+            set_current_page( 0 );
+            ret = true;
+        }
+#if GTKMM_CHECK_VERSION(3,0,0)
+        else {
+            set_current_page( current_page + 1 );
+            ret = true;
+        }
+#endif
     }
 
     m_sig_tab_scrolled.emit( event );
 
     return ret;
 }
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
 
 
 //
 // タブのドラッグを開始
 //
-#if !GTKMM_CHECK_VERSION(2,10,0)
 void DragableNoteBook::slot_drag_begin()
 {
 #ifdef _DEBUG
@@ -845,7 +777,6 @@ void DragableNoteBook::slot_drag_begin()
 
     m_dragging_tab = true;
 }
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
 
 //
@@ -853,7 +784,6 @@ void DragableNoteBook::slot_drag_begin()
 //
 // 矢印アイコンをタブの上に表示する
 //
-#if !GTKMM_CHECK_VERSION(2,10,0)
 void DragableNoteBook::slot_drag_motion( const int page, const int tab_x, const int tab_y, const int tab_width )
 {
 #ifdef _DEBUG
@@ -880,26 +810,11 @@ void DragableNoteBook::slot_drag_motion( const int page, const int tab_x, const 
         m_down_arrow->move( x , y );
     }
 }
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
 
 //
 // D&Dで受信側がデータ送信を要求してきた
 //
-#if GTKMM_CHECK_VERSION(2,10,0)
-void DragableNoteBook::slot_drag_data_get( const Glib::RefPtr< Gdk::DragContext >& context,
-                                           Gtk::SelectionData& selection_data, guint info, guint time )
-{
-#ifdef _DEBUG
-    std::cout << "DragableNoteBook::slot_drag_data_get "
-              << "target = " << selection_data.get_target() << " page = " << get_current_page()
-              << std::endl;
-#endif
-    if( selection_data.get_target() == "GTK_NOTEBOOK_TAB" ) {
-        m_sig_drag_data_get.emit( selection_data, get_current_page() );
-    }
-}
-#else
 void DragableNoteBook::slot_drag_data_get( Gtk::SelectionData& selection_data )
 {
 #ifdef _DEBUG
@@ -931,13 +846,11 @@ void DragableNoteBook::slot_drag_data_get( Gtk::SelectionData& selection_data )
         if( m_down_arrow ) m_down_arrow->hide();
     }
 }
-#endif // GTKMM_CHECK_VERSION(2,10,0)
 
 
 //
 // タブのドラッグを終了
 //
-#if !GTKMM_CHECK_VERSION(2,10,0)
 void DragableNoteBook::slot_drag_end()
 {
 #ifdef _DEBUG
@@ -950,19 +863,3 @@ void DragableNoteBook::slot_drag_end()
 
     CORE::DND_End();
 }
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
-
-
-#if GTKMM_CHECK_VERSION(3,0,0)
-void DragableNoteBook::start_draw_timer( Gtk::Widget* widget, unsigned int timeout )
-{
-    assert( widget != nullptr );
-    // 描画処理が済むとタイマーは解除される
-    JDLIB::Timeout::connect(
-        [widget]() {
-            widget->queue_draw();
-            return false;
-        },
-        timeout );
-}
-#endif // GTKMM_CHECK_VERSION(3,0,0)

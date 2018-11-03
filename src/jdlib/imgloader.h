@@ -7,10 +7,6 @@
 #ifndef _IMGLOADER_H
 #define _IMGLOADER_H
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include <gtkmm.h>
 
 #include "jdmutex.h"

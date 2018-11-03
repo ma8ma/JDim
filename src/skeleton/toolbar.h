@@ -108,13 +108,6 @@ namespace SKELETON
         // ボタン表示更新
         void update_button();
 
-#if GTKMM_CHECK_VERSION(3,0,0)
-        static void override_context_menu_color();
-#endif
-
-        // 閉じるボタンがキャンセルされたときに呼び出す
-        void cancel_button_close();
-
       protected:
 
         SKELETON::Admin* get_admin(){ return m_admin; }
@@ -186,6 +179,12 @@ namespace SKELETON
         // 書き込みボタン関係
         void drawframe_button_write( const bool draw );
         bool slot_focusout_write_button( GdkEventFocus* event );
+
+#if GTKMM_CHECK_VERSION(3,0,0)
+        // 閉じるボタン関係
+        static constexpr const char* m_css_leave = u8"jd-leave";
+        void setup_manual_styling( Gtk::ToolButton& toolbutton );
+#endif
 
 
         // 検索関係

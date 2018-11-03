@@ -10,7 +10,7 @@
 ### Redhat系
 `  dnf install gtkmm24-devel gnutls-devel libSM-devel libtool automake git `
 
-> gtk3版をビルドする場合は `gtkmm24-devel` の代わりに `gtkmm30-devel` をインストールする。
+> GTK3版をビルドする場合は `gtkmm24-devel` の代わりに `gtkmm30-devel` をインストールする。
 
 ### Debin系
 `   sudo apt-get build-dep jd`
@@ -28,7 +28,7 @@
 
 `    sudo apt-get install libgtkmm-2.4-dev libmigemo1 libasound2-data libltdl-dev libasound2-dev libgnutls28-dev libgcrypt20-dev`
 
-> gtk3版をビルドする場合は `libgtkmm-2.4-dev` の代わりに `libgtkmm-3.0-dev` をインストールする。
+> GTK3版をビルドする場合は `libgtkmm-2.4-dev` の代わりに `libgtkmm-3.0-dev` をインストールする。
 
 ## インストール
 
@@ -42,10 +42,10 @@
 
 　実行するには直接 src/jd を起動するか手動で /usr/bin あたりに src/jd を cp する。
 
-> **デフォルトではgtk2版になる。** gtk3版をビルドするには ./configure にオプション `--with-gtkmm3` を追加する。
+> **デフォルトではGTK2版になる。** GTK3版をビルドするには ./configure にオプション `--with-gtkmm3` を追加する。
 > ビルド/インストールの方法は [INSTALL](./INSTALL) にも書いてある。
 > ```sh
-> git clone -b gtk3-idea-r2 --depth 1 https://github.com/ma8ma/JD.git jd
+> git clone -b gtk3-preview --depth 1 https://github.com/ma8ma/JD.git jd
 > cd jd
 > autoreconf -i
 > ./configure --with-gtkmm3
@@ -53,7 +53,7 @@
 > ```
 
 ### Arch Linux
-> gtk3版のビルドファイルはAURで公開されている。(Thanks to @naniwaKun.)  
+> GTK3版のビルドファイルはAURで公開されている。(Thanks to @naniwaKun.)  
 > https://aur.archlinux.org/packages/jd-gtk3/
 >
 > AUR Helper [yay](https://github.com/Jguer/yay) でインストール
@@ -95,12 +95,13 @@ ubuntuでは `autoconf-archive` をインストールして `autoreconf -i` か�
 3. `make CXXFLAGS+="-std=c++11"` でビルドする。
 
 
-# GTK2とGTK3の違い
+# GTK2版とGTK3版の違い
 
-> * 一部のルック・アンド・フィールが変更されている。
->   (タブの並べ替えとドラッグ・アンド・ドロップ)
+> * GTK3版ではマウスホイールでタブを切り替える機能が動作しない環境がある。
 >
-> * GTK3ではタブの上でマウスホイールするとページが切り替わる機能は削除された。
->
-> * 板一覧やスレ一覧でマウスホイールによるスクロールが動作しないことがある。
+> * GTK3版は板一覧やスレ一覧でマウスホイールによるスクロールが動作しないことがある。
 >   環境変数 `GDK_CORE_DEVICE_EVENTS=1` を設定してjdを起動するとマウスホイール機能が使える。
+>
+> * GTK3版は書き込みビューの配色にGTKテーマを使う設定が追加された。
+>   1. メニューバーの`設定(C) > フォントと色(F) > 詳細設定(R)...`からフォントと色の詳細設定を開く
+>   2. `色の設定`タブにある`書き込みビューの配色設定に GTKテーマ を用いる(W)`をチェックして適用する

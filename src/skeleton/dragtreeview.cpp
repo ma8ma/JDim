@@ -29,46 +29,6 @@
 #endif
 
 
-#if GTKMM_CHECK_VERSION(3,0,0)
-namespace
-{
-    Glib::ustring get_treeview_css( const Gdk::RGBA& fg, const Gdk::RGBA& bg )
-    {
-        // テーマの設定(@theme_xxx_color)があると決め打ちしている
-        // focusが外れているときのスタイルを明示的に設定する
-        // 枠線は表示/非表示を選択できるようにCSSクラスを分ける
-        // border-rightのほうがleftよりヘッダーの枠線とのずれが目立たなかった
-        return u8R"(
-        GtkTreeView row {
-            color: )"
-               + fg.to_string() + u8R"(;
-            background: )"
-               + bg.to_string() + u8R"(;
-        }
-        GtkTreeView.show-grid row {
-            border-right: 1px solid shade(@backdrop_selected_bg_color, 0.85);
-        }
-        GtkTreeView row:selected {
-            color: @backdrop_selected_fg_color;
-            background: @backdrop_selected_bg_color;
-            border-top: 1px solid shade(@backdrop_selected_bg_color, 0.9);
-            border-bottom: 1px solid shade(@backdrop_selected_bg_color, 0.9);
-        }
-        GtkTreeView:focus row:selected {
-            color: @theme_selected_fg_color;
-            background: @theme_selected_bg_color;
-            border-top: 1px dotted shade(@theme_selected_bg_color, 0.9);
-            border-bottom: 1px dotted shade(@theme_selected_bg_color, 0.9);
-        }
-        GtkTreeView:focus.show-grid row:selected {
-            border-right: 1px solid shade(@theme_selected_bg_color, 0.85);
-        }
-        )";
-    }
-}
-#endif // GTKMM_CHECK_VERSION(3,0,0)
-
-
 using namespace SKELETON;
 
 
@@ -89,6 +49,12 @@ DragTreeView::DragTreeView( const std::string& url, const std::string& dndtarget
     set_enable_search( false );
     set_rules_hint( CONFIG::get_use_tree_gtkrc() );
     add_events( Gdk::LEAVE_NOTIFY_MASK );
+
+#if GTKMM_CHECK_VERSION(3,0,0)
+    auto context = get_style_context();
+    context->add_class( m_css_classname );
+    context->add_provider( m_provider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION );
+#endif
 
     if( use_usr_fontcolor ){
         init_color( colorid_text, colorid_bg, colorid_bg_even );
@@ -155,22 +121,30 @@ void DragTreeView::redraw_view()
 //
 void DragTreeView::init_color( const int colorid_text, const int colorid_bg, const int colorid_bg_even )
 {
-    if( CONFIG::get_use_tree_gtkrc() ) return;
-
+    if( CONFIG::get_use_tree_gtkrc() ) {
 #if GTKMM_CHECK_VERSION(3,0,0)
-    // TreeViewの偶数/奇数行を指定するCSSセレクタは動作しないバージョンが
-    // 存在するため偶数行の背景色設定は既存のコードをそのまま使う
-    // https://gitlab.gnome.org/GNOME/gtk/issues/581
+        m_use_bg_even = false;
+        m_provider->load_from_data( u8"" );
+#endif
+        return;
+    }
 
     // 文字色
     m_color_text.set( CONFIG::get_color( colorid_text ) );
     // 背景色
     m_color_bg.set( CONFIG::get_color( colorid_bg ) );
 
-    auto provider = Gtk::CssProvider::create();
-    const auto css = get_treeview_css( m_color_text, m_color_bg );
+    m_use_bg_even = ! ( CONFIG::get_color( colorid_bg ) == CONFIG::get_color( colorid_bg_even ) );
+    m_color_bg_even.set( CONFIG::get_color( colorid_bg_even ) );
+
+#if GTKMM_CHECK_VERSION(3,0,0)
+    // TreeViewの偶数/奇数行を指定するCSSセレクタは動作しないバージョンが
+    // 存在するため偶数行の背景色設定は既存のコードをそのまま使う
+    // https://gitlab.gnome.org/GNOME/gtk/issues/581
     try {
-        provider->load_from_data( css );
+        m_provider->load_from_data( Glib::ustring::compose(
+            u8".%1.view:not(:selected) { color: %2; background-color: %3; }",
+            m_css_classname, m_color_text.to_string(), m_color_bg.to_string() ) );
     }
     catch( Gtk::CssProviderError& err ) {
 #ifdef _DEBUG
@@ -178,31 +152,10 @@ void DragTreeView::init_color( const int colorid_text, const int colorid_bg, con
                   << err.what() << std::endl;
 #endif
     }
-    auto context = get_style_context();
-    context->add_provider( provider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION );
-    // 枠線を表示する場合はcontext->add_class( "show-grid" )を追加する
-    // ただし偶数/奇数行で異なる背景色を設定すると枠線の表示に問題がでる
-    // 代わりにTreeView::set_grid_lines()で非CSSの枠線を表示する方法がある
-#else
-    // 文字色
-    m_color_text.set( CONFIG::get_color( colorid_text ) );
-#if GTKMM_CHECK_VERSION(3,0,0)
-    override_color( m_color_text, get_state_flags() );
-#else
+#else // !GTKMM_CHECK_VERSION(3,0,0)
     modify_text( get_state(), m_color_text );
-#endif
-
-    // 背景色
-    m_color_bg.set( CONFIG::get_color( colorid_bg ) );
-#if GTKMM_CHECK_VERSION(3,0,0)
-    override_background_color( m_color_bg, get_state_flags() );
-#else
     modify_base( get_state(), m_color_bg );
 #endif
-#endif // GTKMM_CHECK_VERSION(3,0,0)
-
-    m_use_bg_even = ! ( CONFIG::get_color( colorid_bg ) == CONFIG::get_color( colorid_bg_even ) );
-    m_color_bg_even.set( CONFIG::get_color( colorid_bg_even ) );
 }
 
 
@@ -664,7 +617,11 @@ void DragTreeView::slot_cell_data( Gtk::CellRenderer* cell, const Gtk::TreeModel
 
     // 偶数行に色を塗る
     if( even ){
+#if GTKMM_CHECK_VERSION(3,0,0)
+        cell->property_cell_background_rgba() = m_color_bg_even;
+#else
         cell->property_cell_background_gdk() = m_color_bg_even;
+#endif
         cell->property_cell_background_set() = true;
     }
 

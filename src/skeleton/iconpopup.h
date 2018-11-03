@@ -24,8 +24,11 @@ namespace SKELETON
 #if GTKMM_CHECK_VERSION(3,0,0)
             set_decorated( false );
             set_app_paintable( true );
-            auto visual = get_screen()->get_rgba_visual();
-            gtk_widget_set_visual( GTK_WIDGET( gobj() ), visual->gobj() );
+            auto screen = get_screen();
+            auto visual = screen->get_rgba_visual();
+            if( visual && screen->is_composited() ) {
+                gtk_widget_set_visual( GTK_WIDGET( gobj() ), visual->gobj() );
+            }
 #else
             Glib::RefPtr< Gdk::Pixmap > pixmap;
             Glib::RefPtr< Gdk::Bitmap > bitmap;

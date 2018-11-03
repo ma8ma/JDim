@@ -29,13 +29,8 @@ TabLabel::TabLabel( const std::string& url )
     // 背景透過
     set_visible_window( false );
 
-#if GTKMM_CHECK_VERSION(2,10,0)
-    add_events( Gdk::BUTTON_PRESS_MASK );
-    add_events( Gdk::BUTTON_RELEASE_MASK );
-#else
     add_events( Gdk::POINTER_MOTION_MASK );
     add_events( Gdk::LEAVE_NOTIFY_MASK );
-#endif
 
     add( m_hbox );
     m_hbox.pack_start( m_label, Gtk::PACK_SHRINK );
@@ -80,15 +75,6 @@ void TabLabel::set_id_icon( const int id )
 }
 
 
-#if GTKMM_CHECK_VERSION(2,10,0)
-void TabLabel::set_fulltext( const std::string& label )
-{
-    m_fulltext = label;
-    set_tooltip_text( m_fulltext );
-}
-#endif // GTKMM_CHECK_VERSION(2,10,0)
-
-
 // タブの文字列の文字数がlngになるようにリサイズする
 void TabLabel::resize_tab( const unsigned int lng )
 {
@@ -103,7 +89,6 @@ void TabLabel::resize_tab( const unsigned int lng )
 //
 // D&D設定
 //
-#if !GTKMM_CHECK_VERSION(2,10,0)
 void TabLabel::set_dragable( bool dragable, int button )
 {
     if( dragable ){
@@ -127,7 +112,6 @@ void TabLabel::set_dragable( bool dragable, int button )
         drag_dest_unset();
     }
 }
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
 
 //
@@ -160,7 +144,6 @@ const int TabLabel::get_label_margin()
 //
 // マウスが動いた
 //
-#if !GTKMM_CHECK_VERSION(2,10,0)
 bool TabLabel::on_motion_notify_event( GdkEventMotion* event )
 {
     const bool ret = Gtk::EventBox::on_motion_notify_event( event );
@@ -169,13 +152,11 @@ bool TabLabel::on_motion_notify_event( GdkEventMotion* event )
 
     return ret;
 }
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
 
 //
 // マウスが出た
 //
-#if !GTKMM_CHECK_VERSION(2,10,0)
 bool TabLabel::on_leave_notify_event( GdkEventCrossing* event )
 {
 #ifdef _DEBUG
@@ -188,13 +169,11 @@ bool TabLabel::on_leave_notify_event( GdkEventCrossing* event )
 
     return ret;
 }
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
 
 //
 // ドラッグ開始
 //
-#if !GTKMM_CHECK_VERSION(2,10,0)
 void TabLabel::on_drag_begin( const Glib::RefPtr< Gdk::DragContext >& context )
 {
 #ifdef _DEBUG
@@ -205,13 +184,11 @@ void TabLabel::on_drag_begin( const Glib::RefPtr< Gdk::DragContext >& context )
 
     Gtk::EventBox::on_drag_begin( context );
 }
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
 
 //
 // D&Dで受信側がデータ送信を要求してきた
 //
-#if !GTKMM_CHECK_VERSION(2,10,0)
 void TabLabel::on_drag_data_get( const Glib::RefPtr<Gdk::DragContext>& context,
                                  Gtk::SelectionData& selection_data, guint info, guint time )
 {
@@ -224,13 +201,11 @@ void TabLabel::on_drag_data_get( const Glib::RefPtr<Gdk::DragContext>& context,
 
     m_sig_tab_drag_data_get( selection_data );
 }
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
 
 
 //
 // ドラッグ終了
 //
-#if !GTKMM_CHECK_VERSION(2,10,0)
 void TabLabel::on_drag_end( const Glib::RefPtr< Gdk::DragContext >& context )
 {
 #ifdef _DEBUG
@@ -241,32 +216,3 @@ void TabLabel::on_drag_end( const Glib::RefPtr< Gdk::DragContext >& context )
 
     m_sig_tab_drag_end.emit();
 }
-#endif // !GTKMM_CHECK_VERSION(2,10,0)
-
-
-#if GTKMM_CHECK_VERSION(2,10,0)
-bool TabLabel::on_button_press_event( GdkEventButton* event )
-{
-#ifdef _DEBUG
-    std::cout << "TabLabel::on_button_press_event " << m_fulltext << std::endl;
-#endif
-
-    Gtk::EventBox::on_button_press_event( event );
-
-    return m_sig_tab_button_press_event.emit( event, this );
-}
-#endif // GTKMM_CHECK_VERSION(2,10,0)
-
-
-#if GTKMM_CHECK_VERSION(2,10,0)
-bool TabLabel::on_button_release_event( GdkEventButton* event )
-{
-#ifdef _DEBUG
-    std::cout << "TabLabel::on_button_release_event " << m_fulltext << std::endl;
-#endif
-
-    Gtk::EventBox::on_button_release_event( event );
-
-    return m_sig_tab_button_release_event.emit( event, this );
-}
-#endif // GTKMM_CHECK_VERSION(2,10,0)
