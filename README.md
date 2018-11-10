@@ -45,7 +45,7 @@
 > **デフォルトではGTK2版になる。** GTK3版をビルドするには ./configure にオプション `--with-gtkmm3` を追加する。
 > ビルド/インストールの方法は [INSTALL](./INSTALL) にも書いてある。
 > ```sh
-> git clone -b minefield --depth 1 https://github.com/ma8ma/JD.git jd
+> git clone -b gtk3-preview --depth 1 https://github.com/ma8ma/JD.git jd
 > cd jd
 > autoreconf -i
 > ./configure --with-gtkmm3
