@@ -60,11 +60,7 @@ AAMenu::~AAMenu()
 
 const int AAMenu::get_size()
 {
-#if GTKMM_CHECK_VERSION(3,0,0)
     return static_cast< int >( get_children().size() );
-#else
-    return items().size();
-#endif
 }
 
 
@@ -139,11 +135,7 @@ void AAMenu::on_map()
 #endif
 
     Gtk::Menu::on_map();
-#if GTKMM_CHECK_VERSION(3,0,0)
-    select_item( *dynamic_cast< Gtk::MenuItem* >( get_children().front() ) );
-#else
-    select_item( items()[ 0 ] );
-#endif
+    select_item( *dynamic_cast< Gtk::MenuItem* >( *get_children().begin() ) );
 }
 
 
@@ -166,7 +158,6 @@ bool AAMenu::move_down()
     std::cout << "AAMenu::move_down\n";
 #endif
 
-#if GTKMM_CHECK_VERSION(3,0,0)
     const auto items = get_children();
     auto it = std::find( items.begin(), items.end(), static_cast< Gtk::Widget* >( m_activeitem ) );
 
@@ -178,15 +169,6 @@ bool AAMenu::move_down()
         it = items.begin(); // 一番下まで行ったら上に戻る
     }
     select_item( *dynamic_cast< Gtk::MenuItem* >( *it ) );
-#else
-    Gtk::Menu_Helpers::MenuList::iterator it = items().begin();
-    for( ; it != items().end() && &(*it) != m_activeitem; ++it );
-
-    ++it;
-    if( m_map_items[ &(*it) ] == -1 ) ++it; // セパレータ
-    if( it == items().end() ) it = items().begin(); // 一番下まで行ったら上に戻る
-    select_item( *it );
-#endif // GTKMM_CHECK_VERSION(3,0,0)
 
     return true;
 }
@@ -199,8 +181,8 @@ bool AAMenu::move_up()
     std::cout << "AAMenu::move_up\n";
 #endif
 
-#if GTKMM_CHECK_VERSION(3,0,0)
-    const auto items = get_children();
+    // gtk2のGlib::ListHandleのイテレーターはデクリメント不可なので型変換する
+    const std::vector< Gtk::Widget* > items = get_children();
     auto it = std::find( items.begin(), items.end(), static_cast< Gtk::Widget* >( m_activeitem ) );
 
     if( it != items.begin() ) {
@@ -214,17 +196,6 @@ bool AAMenu::move_up()
         // 一番上に行ったら下に戻る
         select_item( *dynamic_cast< Gtk::MenuItem* >( items.back() ) );
     }
-#else
-    Gtk::Menu_Helpers::MenuList::iterator it = items().begin();
-    for( ; it != items().end() && &(*it) != m_activeitem; ++it );
-
-    if( it != items().begin() ){ 
-        --it;
-        if( m_map_items[ &(*it) ] == -1 && it != items().begin() ) --it;  // セパレータ
-        select_item( *it );
-    }
-    else select_item( items().back() ); // 一番上に行ったら下に戻る
-#endif // GTKMM_CHECK_VERSION(3,0,0)
 
     return true;
 }

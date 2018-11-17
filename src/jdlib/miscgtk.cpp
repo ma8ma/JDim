@@ -158,7 +158,7 @@ std::string MISC::get_entry_color_base()
 {
     Gtk::Entry entry;
 #if GTKMM_CHECK_VERSION(3,0,0)
-    // XXX: get_background_color()が期待通りに背景色を返さない環境があった
+    // REVIEW: get_background_color()が期待通りに背景色を返さない環境があった
     auto context = entry.get_style_context();
     Gdk::RGBA rgba;
     if( !context->lookup_color( "theme_base_color", rgba ) ) {

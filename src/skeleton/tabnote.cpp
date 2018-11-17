@@ -113,15 +113,7 @@ struct _GtkNotebookPage
 const bool TabNotebook::paint( GdkEventExpose* event )
 {
     GtkNotebook *notebook = gobj();
-    if( !notebook || !notebook->cur_page ||
-#if GTKMM_CHECK_VERSION(2,18,0)
-        !gtk_widget_get_visible( notebook->cur_page->child )
-#else
-        !GTK_WIDGET_VISIBLE( notebook->cur_page->child )
-#endif
-    ) {
-        return true;
-    }
+    if( ! notebook || ! notebook->cur_page || ! GTK_WIDGET_VISIBLE( notebook->cur_page->child ) ) return true;
 
     GtkWidget *widget = GTK_WIDGET( notebook );
     GdkRectangle *area = &event->area;
@@ -131,14 +123,7 @@ const bool TabNotebook::paint( GdkEventExpose* event )
     if( ! notebook->first_tab ) notebook->first_tab = notebook->children;
 
     GtkNotebookPage* page = NULL;
-#if GTKMM_CHECK_VERSION(2,20,0)
-    const bool mapped = gtk_widget_get_mapped( notebook->cur_page->tab_label );
-#else
-    const bool mapped = GTK_WIDGET_MAPPED( notebook->cur_page->tab_label );
-#endif
-    if( !mapped ) {
-        page = GTK_NOTEBOOK_PAGE( notebook->first_tab );
-    }
+    if( ! GTK_WIDGET_MAPPED( notebook->cur_page->tab_label ) ) page = GTK_NOTEBOOK_PAGE( notebook->first_tab );
     else page = notebook->cur_page;
 
     // ビュー領域の枠の描画
@@ -153,21 +138,9 @@ const bool TabNotebook::paint( GdkEventExpose* event )
         page = ( GtkNotebookPage* ) children->data;
         children = children->next;
 
-#if GTKMM_CHECK_VERSION(2,18,0)
-        const bool visible = gtk_widget_get_visible( page->child );
-#else
-        const bool visible = GTK_WIDGET_VISIBLE( page->child );
-#endif
-        if( !visible ) continue;
+        if( ! GTK_WIDGET_VISIBLE( page->child ) ) continue;
 
-#if GTKMM_CHECK_VERSION(2,20,0)
-        const bool mapped = gtk_widget_get_mapped( page->tab_label );
-#else
-        const bool mapped = GTK_WIDGET_MAPPED( page->tab_label );
-#endif
-        if( !mapped ) {
-            show_arrow = TRUE;
-        }
+        if( ! GTK_WIDGET_MAPPED( page->tab_label ) ) show_arrow = TRUE;
 
         else if( page != notebook->cur_page ) draw_tab( notebook, page, area, rect, win );
     }
@@ -194,15 +167,9 @@ const bool TabNotebook::paint( GdkEventExpose* event )
         children = children->next;
 
         if( page->tab_label->window == event->window &&
-#if GTKMM_CHECK_VERSION(2,18,0)
-            gtk_widget_is_drawable( page->tab_label )
-#else
-            GTK_WIDGET_DRAWABLE( page->tab_label )
-#endif
-        ) {
+            GTK_WIDGET_DRAWABLE (page->tab_label))
             gtk_container_propagate_expose( GTK_CONTAINER( notebook ),
                                             page->tab_label, event );
-        }
     }
 
     return true;
@@ -223,13 +190,8 @@ void TabNotebook::draw_tab( const GtkNotebook *notebook,
     GdkRectangle child_area;
     GdkRectangle page_area;
 
-#if GTKMM_CHECK_VERSION(2,20,0)
-    const bool mapped = gtk_widget_get_mapped( page->tab_label );
-#else
-    const bool mapped = GTK_WIDGET_MAPPED( page->tab_label );
-#endif
-    if( !mapped || page->allocation.width == 0 || page->allocation.height == 0 )
-        return;
+    if( ! GTK_WIDGET_MAPPED( page->tab_label )
+        || page->allocation.width == 0 || page->allocation.height == 0 ) return;
 
     page_area.x = page->allocation.x;
     page_area.y = page->allocation.y;
@@ -259,8 +221,8 @@ void TabNotebook::draw_tab( const GtkNotebook *notebook,
 #endif // !GTKMM_CHECK_VERSION(3,0,0)
 
 
-#if !GTKMM_CHECK_VERSION(3,0,0)
 // 矢印(スクロール)マークの描画
+#if !GTKMM_CHECK_VERSION(3,0,0)
 void TabNotebook::draw_arrow( GtkWidget *widget,
                               const GtkNotebook *notebook,
                               const Gdk::Rectangle& rect,
@@ -351,15 +313,11 @@ const gboolean TabNotebook::get_event_window_position( const GtkWidget *widget, 
 
         GtkNotebookPage* page = ( GtkNotebookPage* ) children->data;
         children = children->next;
-#if GTKMM_CHECK_VERSION(2,18,0)
-        const bool visible = gtk_widget_get_visible( page->child );
-#else
-        const bool visible = GTK_WIDGET_VISIBLE( page->child );
-#endif
-        if( visible ) {
+        if( GTK_WIDGET_VISIBLE( page->child ) ){
+
             visible_page = page;
             break;
-        }
+	}
     }
 
     if( visible_page ){

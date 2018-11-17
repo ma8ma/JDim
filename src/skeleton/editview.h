@@ -165,15 +165,6 @@ namespace SKELETON
         const char* get_css_classname() { return m_css_classname; }
         // EditTextViewのスタイルを更新する
         void update_style( const Glib::ustring& custom_css );
-
-        void override_color( const Gdk::RGBA& color, Gtk::StateFlags state )
-        {
-            m_textview.override_color( color, state );
-        }
-        void override_background_color( const Gdk::RGBA& color, Gtk::StateFlags state )
-        {
-            m_textview.override_background_color( color, state );
-        }
 #else
         void modify_text( Gtk::StateType state, const Gdk::Color& color ){ m_textview.modify_text( state, color ); }
         void modify_base( Gtk::StateType state, const Gdk::Color& color ){ m_textview.modify_base( state, color ); }
@@ -185,7 +176,10 @@ namespace SKELETON
         void set_accepts_tab( bool accept ){ m_textview.set_accepts_tab( accept ); }
 
 #if GTKMM_CHECK_VERSION(3,0,0)
-        void modify_font( const Pango::FontDescription& font_desc ) { m_textview.override_font( font_desc ); }
+        void modify_font( const Pango::FontDescription& font_desc )
+        {
+            m_textview.override_font( font_desc );
+        }
 #else
         void modify_font( const Pango::FontDescription& font_desc ){ m_textview.modify_font( font_desc ); }
 #endif

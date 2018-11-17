@@ -145,19 +145,11 @@ customized_gtk_toolbar_expose (GtkWidget      *widget,
 /*
     gint border_width;
     border_width = GTK_CONTAINER (widget)->border_width;
-#if GTKMM_CHECK_VERSION(2,18,0)
-    if (gtk_widget_is_drawable(widget))
-#else
     if (GTK_WIDGET_DRAWABLE (widget))
-#endif
     {
         gtk_paint_box (widget->style,
                        widget->window,
-#if GTKMM_CHECK_VERSION(2,18,0)
-                       gtk_widget_get_state(widget),
-#else
                        (GtkStateType)GTK_WIDGET_STATE (widget),
-#endif
                        get_shadow_type(toolbar),
                        &event->area, widget, "toolbar",
                        border_width + widget->allocation.x,

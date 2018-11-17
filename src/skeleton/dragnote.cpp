@@ -729,7 +729,7 @@ bool DragableNoteBook::slot_scroll_event( GdkEventScroll* event )
     bool ret = false;
 
     // gtk3ではタブの循環に加え隣のタブへ切り替える処理も実装する必要がある
-    // XXX: GTK3版ではホイールによるタブの切り替えが動作しない環境がある
+    // REVIEW: GTK3版ではホイールによるタブの切り替えが動作しない環境がある
     if( event->direction == GDK_SCROLL_UP ) {
         const int current_page = get_current_page();
         if( current_page == 0 ) {

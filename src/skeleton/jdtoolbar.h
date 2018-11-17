@@ -15,7 +15,14 @@ namespace SKELETON
     class JDToolbar : public Gtk::Toolbar
     {
     public:
-        JDToolbar(){}
+        JDToolbar()
+        {
+#if GTKMM_CHECK_VERSION(3,0,0)
+            // 子ウィジェットの配色がGTKテーマと違うことがある。
+            // ツールバーのcssクラスを削除し配色を修正する。
+            get_style_context()->remove_class( GTK_STYLE_CLASS_TOOLBAR );
+#endif
+        }
 
         // GTK+3ではデフォルトの描画処理に任せる
 #if !GTKMM_CHECK_VERSION(3,0,0)

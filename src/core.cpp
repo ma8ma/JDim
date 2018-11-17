@@ -1093,20 +1093,11 @@ void Core::run( const bool init, const bool skip_setupdiag )
     m_menubar->set_size_request( 0 );
 
     // 履歴メニュー追加
-#if GTKMM_CHECK_VERSION(3,0,0)
     const auto items = m_menubar->get_children();
     auto item = dynamic_cast< Gtk::MenuItem* >( *std::next( items.begin(), 2 ) );
     item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_activate_historymenu ) );
 
     Gtk::Menu* submenu = item->get_submenu();
-#else
-    Gtk::Menu_Helpers::MenuList& items = m_menubar->items();
-    Gtk::Menu_Helpers::MenuList::iterator it_item = items.begin();
-    ++it_item; ++it_item;
-    (*it_item).signal_activate().connect( sigc::mem_fun( *this, &Core::slot_activate_historymenu ) );
-
-    Gtk::Menu* submenu = dynamic_cast< Gtk::Menu* >( (*it_item).get_submenu() );
-#endif // GTKMM_CHECK_VERSION(3,0,0)
 
     submenu->append( *Gtk::manage( new Gtk::SeparatorMenuItem() ) );
 
@@ -1128,22 +1119,11 @@ void Core::run( const bool init, const bool skip_setupdiag )
     submenu->show_all_children();
 
     // メニューにショートカットキーやマウスジェスチャを表示
-#if GTKMM_CHECK_VERSION(3,0,0)
-    m_menubar->foreach( [this]( Gtk::Widget& w ) {
-        auto item = dynamic_cast< Gtk::MenuItem* >( &w );
+    for( auto&& widget : items ) {
+        auto item = dynamic_cast< Gtk::MenuItem* >( widget );
         CONTROL::set_menu_motion( item->get_submenu() );
         item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_activate_menubar ) );
-    } );
-#else
-    items = m_menubar->items();
-    it_item = items.begin();
-    for( ; it_item != items.end(); ++it_item ){
-        submenu = dynamic_cast< Gtk::Menu* >( (*it_item).get_submenu() );
-        CONTROL::set_menu_motion( submenu );
-
-        ( *it_item ).signal_activate().connect( sigc::mem_fun( *this, &Core::slot_activate_menubar ) );
     }
-#endif // GTKMM_CHECK_VERSION(3,0,0)
 
     // ツールバー作成
     create_toolbar();

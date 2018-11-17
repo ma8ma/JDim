@@ -62,7 +62,10 @@ namespace SKELETON
         void grab_focus();
 
 #if GTKMM_CHECK_VERSION(3,0,0)
-        void modify_font( Pango::FontDescription& pfd ) { m_entry.override_font( pfd ); }
+        void modify_font( const Pango::FontDescription& pfd )
+        {
+            m_entry.override_font( pfd );
+        }
 #else
         void modify_font( Pango::FontDescription& pfd ){ m_entry.modify_font( pfd ); }
 #endif

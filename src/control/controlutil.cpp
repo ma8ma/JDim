@@ -172,7 +172,7 @@ static void slot_set_menu_motion( Gtk::Widget& widget )
                 str_motions = CONTROL::get_str_mousemotions( id );
             }
 #else
-            // XXX: Gtk::MenuItemにGtk::HBoxを追加する方法は動作しなくなった
+            // Gtk::MenuItemにGtk::HBoxを追加する方法は動作しなくなった
             str_motions = CONTROL::get_str_motions( id );
 #endif // GTKMM_CHECK_VERSION(3,6,0)
 

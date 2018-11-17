@@ -22,6 +22,7 @@ namespace SKELETON
             m_img.set( m_pixbuf );
 
 #if GTKMM_CHECK_VERSION(3,0,0)
+            // NOTE: アルファチャンネルが利用できない環境では背景を透過できない
             set_decorated( false );
             set_app_paintable( true );
             auto screen = get_screen();
