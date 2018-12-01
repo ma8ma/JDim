@@ -3,23 +3,28 @@
 //#define _DEBUG
 #include "jddebug.h"
 
-#include "dragnote.h"
 #include "toolbarnote.h"
 
+#if !GTKMM_CHECK_VERSION(3,0,0)
+#include "dragnote.h"
 #include <gtk/gtk.h>
+#endif
 
 using namespace SKELETON;
 
 
 ToolBarNotebook::ToolBarNotebook( DragableNoteBook* parent )
-    : Gtk::Notebook(),
-      m_parent( parent )
+    : Gtk::Notebook()
+#if !GTKMM_CHECK_VERSION(3,0,0)
+    , m_parent( parent )
+#endif
 {
     set_show_border( true );
     set_show_tabs( false );
     set_border_width( 0 );
 
 #if GTKMM_CHECK_VERSION(3,0,0)
+    static_cast< void >( parent );
     set_margin_top( 1 );
     set_margin_bottom( 1 );
 #else

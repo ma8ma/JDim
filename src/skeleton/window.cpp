@@ -46,6 +46,10 @@ enum
 
 using namespace SKELETON;
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+constexpr const char* JDWindow::m_css_stat_label;
+#endif
+
 // メッセージウィンドウでは m_mginfo が不要なので need_mginfo = false になる
 JDWindow::JDWindow( const bool fold_when_focusout, const bool need_mginfo )
     : Gtk::Window( Gtk::WINDOW_TOPLEVEL ),

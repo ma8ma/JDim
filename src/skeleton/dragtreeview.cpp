@@ -32,6 +32,10 @@
 using namespace SKELETON;
 
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+constexpr const char* DragTreeView::m_css_classname;
+#endif
+
 DragTreeView::DragTreeView( const std::string& url, const std::string& dndtarget,
     const bool use_usr_fontcolor, const std::string& fontname, const int colorid_text, const int colorid_bg, const int colorid_bg_even )
     : JDTreeViewBase(),

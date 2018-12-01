@@ -162,7 +162,7 @@ namespace SKELETON
         void set_wrap_mode( Gtk::WrapMode wrap_mode ){ m_textview.set_wrap_mode( wrap_mode ); }
 
 #if GTKMM_CHECK_VERSION(3,0,0)
-        const char* get_css_classname() { return m_css_classname; }
+        const char* get_css_classname() const noexcept { return m_css_classname; }
         // EditTextViewのスタイルを更新する
         void update_style( const Glib::ustring& custom_css );
 #else

@@ -12,7 +12,7 @@
 
 > GTK3版をビルドする場合は `gtkmm24-devel` の代わりに `gtkmm30-devel` をインストールする。
 
-### Debin系
+### Debian系
 `   sudo apt-get build-dep jd`
 
 　開発環境が入っていない場合は、

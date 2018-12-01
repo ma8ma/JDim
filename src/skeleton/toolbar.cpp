@@ -35,6 +35,11 @@
 using namespace SKELETON;
 
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+constexpr const char* ToolBar::m_css_label;
+constexpr const char* ToolBar::m_css_leave;
+#endif
+
 ToolBar::ToolBar( Admin* admin )
     : m_admin( admin ),
       m_enable_slot( true ),

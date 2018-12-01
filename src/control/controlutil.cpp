@@ -137,12 +137,12 @@ const bool CONTROL::is_ascii( const guint keysym )
 }
 
 
-#if GTKMM_CHECK_VERSION(3,0,0)
+#if GTKMM_CHECK_VERSION(3,6,0)
 static void slot_set_menu_motion( Gtk::Widget& widget )
 {
-    auto item = dynamic_cast< Gtk::MenuItem* >( &widget );
+    const auto item = dynamic_cast< Gtk::MenuItem* >( &widget );
 
-    auto label = dynamic_cast< Gtk::AccelLabel* >( item->get_child() );
+    auto* const label = dynamic_cast< Gtk::AccelLabel* >( item->get_child() );
     if( label ) {
 #ifdef _DEBUG
         std::cout << label->get_text() << std::endl;
@@ -152,7 +152,6 @@ static void slot_set_menu_motion( Gtk::Widget& widget )
             const std::string str_label = CONTROL::get_label_with_mnemonic( id );
             std::string str_motions;
 
-#if GTKMM_CHECK_VERSION(3,6,0)
             // CONTROL::get_str_motions()を参考に別個対応のidを処理する
             if( id == CONTROL::PreferenceArticle
                 || id == CONTROL::PreferenceBoard
@@ -171,10 +170,6 @@ static void slot_set_menu_motion( Gtk::Widget& widget )
                 }
                 str_motions = CONTROL::get_str_mousemotions( id );
             }
-#else
-            // Gtk::MenuItemにGtk::HBoxを追加する方法は動作しなくなった
-            str_motions = CONTROL::get_str_motions( id );
-#endif // GTKMM_CHECK_VERSION(3,6,0)
 
             label->set_text_with_mnemonic( str_label + ( str_motions.empty() ? "" : "\t" + str_motions ) );
         }
@@ -184,7 +179,7 @@ static void slot_set_menu_motion( Gtk::Widget& widget )
         CONTROL::set_menu_motion( item->get_submenu() );
     }
 }
-#endif // GTKMM_CHECK_VERSION(3,0,0)
+#endif // GTKMM_CHECK_VERSION(3,6,0)
 
 
 // メニューにショートカットキーやマウスジェスチャを表示
@@ -192,16 +187,15 @@ void CONTROL::set_menu_motion( Gtk::Menu* menu )
 {
     if( !menu ) return;
 
-#if GTKMM_CHECK_VERSION(3,0,0)
+#if GTKMM_CHECK_VERSION(3,6,0)
     menu->foreach( &slot_set_menu_motion );
 #else
-    Gtk::Menu_Helpers::MenuList& items = menu->items();
-    Gtk::Menu_Helpers::MenuList::iterator it_item = items.begin();
-    for( ; it_item != items.end(); ++it_item ){
+    menu->foreach( []( Gtk::Widget& w ) {
+        auto* const item = dynamic_cast< Gtk::MenuItem* >( &w );
 
         // menuitemの中の名前を読み込んで ID を取得し、CONTROL::Noneでなかったら
         // ラベルを置き換える
-        Gtk::Label* label = dynamic_cast< Gtk::Label* >( (*it_item).get_child() );
+        auto* const label = dynamic_cast< Gtk::Label* >( item->get_child() );
         if( label ){
 #ifdef _DEBUG
             std::cout << label->get_text() << std::endl;
@@ -212,21 +206,28 @@ void CONTROL::set_menu_motion( Gtk::Menu* menu )
                 std::string str_label = CONTROL::get_label_with_mnemonic( id );
                 std::string str_motions = CONTROL::get_str_motions( id );
 
-                ( *it_item ).remove();
+#if GTKMM_CHECK_VERSION(3,0,0)
+                // Gtk::MenuItemにGtk::HBoxを追加する方法は動作しなくなった
+                label->set_text_with_mnemonic( str_label + ( str_motions.empty() ? "" : "\t" + str_motions ) );
+#else
+                item->remove();
                 Gtk::Label *label = Gtk::manage( new Gtk::Label( str_label + ( str_motions.empty() ? "" : "  " ), true ) );
                 Gtk::Label *label_motion = Gtk::manage( new Gtk::Label( str_motions ) );
                 Gtk::HBox *box = Gtk::manage( new Gtk::HBox() );
 
                 box->pack_start( *label, Gtk::PACK_SHRINK );
                 box->pack_end( *label_motion, Gtk::PACK_SHRINK );
-                (*it_item).add( *box );
+                item->add( *box );
                 box->show_all();
+#endif
             }
         }
 
-        if( (*it_item).has_submenu() ) CONTROL::set_menu_motion( (*it_item).get_submenu() );
-    }
-#endif // GTKMM_CHECK_VERSION(3,0,0)
+        if( item->has_submenu() ) {
+            CONTROL::set_menu_motion( item->get_submenu() );
+        }
+    } );
+#endif // GTKMM_CHECK_VERSION(3,6,0)
 }
 
 

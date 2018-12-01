@@ -366,7 +366,7 @@ void ImageAdmin::tab_left( const bool updated )
 
     // gtk2のGlib::ListHandleのイテレーターはデクリメント不可なので型変換する
     const std::vector< Gtk::Widget* > widgets = m_iconbox.get_children();
-    if( widgets.size() == 1 ) return;
+    if( widgets.size() <= 1 ) return;
 
     const SKELETON::View* const icon = get_current_icon();
     for( auto&& widget : widgets ) {
@@ -394,7 +394,7 @@ void ImageAdmin::tab_right( const bool updated )
     std::string url_to;
 
     const auto widgets = m_iconbox.get_children();
-    if( widgets.size() == 1 ) return;
+    if( widgets.size() <= 1 ) return;
 
     auto it = std::find( widgets.begin(), widgets.end(), static_cast< Gtk::Widget* >( get_current_icon() ) );
     if( ++it == widgets.end() ) {
@@ -417,7 +417,7 @@ void ImageAdmin::tab_right( const bool updated )
 void ImageAdmin::tab_head()
 {
     const auto widgets = m_iconbox.get_children();
-    if( widgets.size() == 1 ) return;
+    if( widgets.size() <= 1 ) return;
 
     auto view = dynamic_cast< SKELETON::View* >( *widgets.begin() );
     std::string url_to;
@@ -436,7 +436,7 @@ void ImageAdmin::tab_head()
 void ImageAdmin::tab_tail()
 {
     const std::vector< Gtk::Widget* > widgets = m_iconbox.get_children();
-    if( widgets.size() == 1 ) return;
+    if( widgets.size() <= 1 ) return;
 
     auto view = dynamic_cast< SKELETON::View* >( widgets.back() );
     std::string url_to;
@@ -1191,7 +1191,7 @@ std::list< bool > ImageAdmin::get_locked()
     std::list< bool > locked;
 
     m_iconbox.foreach( [&locked]( Gtk::Widget& w ) {
-        auto view = dynamic_cast< SKELETON::View* >( &w );
+        const auto view = dynamic_cast< SKELETON::View* >( &w );
         if( view ) {
             locked.push_back( view->is_locked() );
         }

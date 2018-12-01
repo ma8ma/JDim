@@ -15,14 +15,14 @@ namespace Gtk
 {
     class Menu;
     class MenuItem;
-};
+}
 
 
 namespace HISTORY
 {
     class HistoryMenu;
     class ViewHistory;
-    class ViewHistoryItem;
+    struct ViewHistoryItem;
 
     class History_Manager
     {

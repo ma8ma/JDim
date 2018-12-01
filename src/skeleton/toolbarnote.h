@@ -14,7 +14,9 @@ namespace SKELETON
 
     class ToolBarNotebook : public Gtk::Notebook
     {
+#if !GTKMM_CHECK_VERSION(3,0,0)
         DragableNoteBook* m_parent;
+#endif
 
       public:
 

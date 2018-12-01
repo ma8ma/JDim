@@ -3,21 +3,30 @@
 //#define _DEBUG
 #include "jddebug.h"
 
+#if !GTKMM_CHECK_VERSION(3,0,0)
 #include "dragnote.h"
+#endif
 #include "viewnote.h"
 #include "view.h"
 
 #include "config/globalconf.h"
 
+#if !GTKMM_CHECK_VERSION(3,0,0)
 #include <gtk/gtk.h>
+#endif
 
 using namespace SKELETON;
 
 
 ViewNotebook::ViewNotebook( DragableNoteBook* parent )
-    : Gtk::Notebook(),
-      m_parent( parent )
+    : Gtk::Notebook()
+#if !GTKMM_CHECK_VERSION(3,0,0)
+    , m_parent( parent )
+#endif
 {
+#if GTKMM_CHECK_VERSION(3,0,0)
+    static_cast< void >( parent );
+#endif
     set_show_border( true );
     set_show_tabs( false );
     set_border_width( CONFIG::get_view_margin() );

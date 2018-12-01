@@ -719,6 +719,10 @@ void EditTextView::slot_hide_aamenu()
 
 
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+constexpr const char* EditView::m_css_classname;
+#endif
+
 //
 // EditTextViewのスタイルを更新する
 //
