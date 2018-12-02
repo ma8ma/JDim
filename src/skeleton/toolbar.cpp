@@ -1121,7 +1121,7 @@ void ToolBar::setup_manual_styling( Gtk::ToolButton& toolbutton )
     }
     catch( Gtk::CssProviderError& err ) {
 #ifdef _DEBUG
-        std::cout << "ToolBar::set_custom_flat_relief load css failed." < < < < err.what() << std::endl;
+        std::cout << "ToolBar::set_custom_flat_relief load css failed." << err.what() << std::endl;
 #endif
     }
 
