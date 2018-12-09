@@ -223,9 +223,7 @@ void CONTROL::set_menu_motion( Gtk::Menu* menu )
             }
         }
 
-        if( item->has_submenu() ) {
-            CONTROL::set_menu_motion( item->get_submenu() );
-        }
+        if( item->has_submenu() ) CONTROL::set_menu_motion( item->get_submenu() );
     } );
 #endif // GTKMM_CHECK_VERSION(3,6,0)
 }
