@@ -531,10 +531,10 @@ namespace CONFIG
 
 
         ConfigItems();
-        virtual ~ConfigItems();
+        virtual ~ConfigItems() noexcept;
 
         // 設定読み込み
-        const bool load( const bool restore = false );
+        bool load( const bool restore = false );
 
         // 保存
         void save();

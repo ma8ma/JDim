@@ -31,7 +31,7 @@ namespace SKELETON
       public:
 
         TabSwitchButton( DragableNoteBook* parent );
-        virtual ~TabSwitchButton();
+        ~TabSwitchButton() noexcept;
 
         Gtk::Button& get_button(){ return m_button; }
         void show_button();
@@ -40,7 +40,7 @@ namespace SKELETON
 #if !GTKMM_CHECK_VERSION(3,0,0)
       protected:
 
-        virtual bool on_expose_event( GdkEventExpose* event );
+        bool on_expose_event( GdkEventExpose* event ) override;
 #endif
     };
 }

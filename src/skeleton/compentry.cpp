@@ -56,7 +56,7 @@ CompletionEntry::CompletionEntry( const int mode )
 }
 
 
-CompletionEntry::~CompletionEntry()
+CompletionEntry::~CompletionEntry() noexcept
 {}
 
 

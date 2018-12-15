@@ -66,11 +66,11 @@ ConfigItems::ConfigItems()
     fontname.resize( FONT_NUM );
 }
 
-ConfigItems::~ConfigItems()
+ConfigItems::~ConfigItems() noexcept
 {}
 
 // 設定読み込み
-const bool ConfigItems::load( const bool restore )
+bool ConfigItems::load( const bool restore )
 {
     std::string path_conf;
 

@@ -353,7 +353,7 @@ bool EditTextView::on_key_press_event( GdkEventKey* event )
         case CONTROL::UndoEdit:
         case CONTROL::InputAA:
         {
-#if GTKMM_CHECK_VERSION(2,22,0)
+#if GTKMM_CHECK_VERSION(3,0,0)
             if( im_context_filter_keypress( event ) ) {
 #ifdef _DEBUG
                 std::cout << "gtk_im_context_filter_keypress\n";
@@ -371,7 +371,7 @@ bool EditTextView::on_key_press_event( GdkEventKey* event )
                 textview->need_im_reset = TRUE;
                 return true;
             }
-#endif // GTKMM_CHECK_VERSION(2,22,0)
+#endif // GTKMM_CHECK_VERSION(3,0,0)
         }
     }
 
@@ -720,7 +720,7 @@ void EditTextView::slot_hide_aamenu()
 
 
 #if GTKMM_CHECK_VERSION(3,0,0)
-constexpr const char* EditView::m_css_classname;
+constexpr const char* EditView::s_css_classname;
 #endif
 
 //

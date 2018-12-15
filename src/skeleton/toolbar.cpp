@@ -36,8 +36,8 @@ using namespace SKELETON;
 
 
 #if GTKMM_CHECK_VERSION(3,0,0)
-constexpr const char* ToolBar::m_css_label;
-constexpr const char* ToolBar::m_css_leave;
+constexpr const char* ToolBar::s_css_label;
+constexpr const char* ToolBar::s_css_leave;
 #endif
 
 ToolBar::ToolBar( Admin* admin )
@@ -101,7 +101,7 @@ void ToolBar::set_url( const std::string& url )
 }
 
 
-const bool ToolBar::is_empty()
+bool ToolBar::is_empty()
 {
     return ( ! m_buttonbar.get_children().size() );
 }
@@ -327,7 +327,7 @@ Gtk::ToolItem* ToolBar::get_label()
 
 #if GTKMM_CHECK_VERSION(3,0,0)
         auto context = m_label->get_style_context();
-        context->add_class( m_css_label );
+        context->add_class( s_css_label );
         context->add_provider( m_label_provider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION );
 #endif
     }
@@ -353,12 +353,12 @@ void ToolBar::set_color( const std::string& color )
 #if GTKMM_CHECK_VERSION(3,0,0)
     Glib::ustring css;
     if( color.empty() ) {
-        css = Glib::ustring::compose( u8".%1:not(:selected) { color: unset; }", m_css_label );
+        css = Glib::ustring::compose( u8".%1:not(:selected) { color: unset; }", s_css_label );
     }
     else {
         css = Glib::ustring::compose(
             u8".%1:not(:selected), .%1:active:not(:selected) { color: white; background-color: %2; }",
-            m_css_label, Gdk::RGBA( color ).to_string() );
+            s_css_label, Gdk::RGBA( color ).to_string() );
     }
 
     try {
@@ -884,7 +884,7 @@ void ToolBar::slot_clicked_close()
 #if GTKMM_CHECK_VERSION(3,0,0)
         // cssクラスセレクタ leave を追加して枠を消す
         // Gtk::RELIEF_NORMAL のときは影響を受けない
-        button->get_style_context()->add_class( m_css_leave );
+        button->get_style_context()->add_class( s_css_leave );
 #else
         // gtk+-2.12.9/gtk/gtkbutton.c の gtk_button_leave_notify() をハックして
         // gtkbutton->in_button = false にすると枠が消えることが分かった
@@ -1117,7 +1117,7 @@ void ToolBar::setup_manual_styling( Gtk::ToolButton& toolbutton )
                 box-shadow: none;
             }
             )",
-            m_css_leave, bg_color.to_string(), border_color.to_string() ) );
+            s_css_leave, bg_color.to_string(), border_color.to_string() ) );
     }
     catch( Gtk::CssProviderError& err ) {
 #ifdef _DEBUG
@@ -1128,11 +1128,11 @@ void ToolBar::setup_manual_styling( Gtk::ToolButton& toolbutton )
     // enter/leave-notify-eventでcssクラスセレクタを切り替える
     // フラット表示が設定されているときはシグナルの伝播を止める
     button->signal_enter_notify_event().connect( [button]( GdkEventCrossing* e ) {
-        button->get_style_context()->remove_class( m_css_leave );
+        button->get_style_context()->remove_class( s_css_leave );
         return CONFIG::get_flat_button();
     } );
     button->signal_leave_notify_event().connect( [button]( GdkEventCrossing* e ) {
-        button->get_style_context()->add_class( m_css_leave );
+        button->get_style_context()->add_class( s_css_leave );
         return CONFIG::get_flat_button();
     } );
 }

@@ -36,14 +36,14 @@ namespace DBIMG
       protected:
 
 #if GTKMM_CHECK_VERSION(3,0,0)
-        virtual bool on_draw( const Cairo::RefPtr< Cairo::Context >& cr ) override;
+        bool on_draw( const Cairo::RefPtr< Cairo::Context >& cr ) override;
 #else
-        virtual bool on_expose_event( GdkEventExpose* event );
+        bool on_expose_event( GdkEventExpose* event ) override;
 #endif
 
       private:
 
-        virtual void callback_dispatch();
+        void callback_dispatch() override;
         void wait();
         void slot_cancel_clicked();
         time_t get_days( const std::string& path );

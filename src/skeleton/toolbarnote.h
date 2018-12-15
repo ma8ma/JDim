@@ -25,7 +25,7 @@ namespace SKELETON
 #if !GTKMM_CHECK_VERSION(3,0,0)
       protected:
 
-        virtual bool on_expose_event( GdkEventExpose* event );
+        bool on_expose_event( GdkEventExpose* event ) override;
 #endif
     };
 }

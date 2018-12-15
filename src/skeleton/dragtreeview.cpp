@@ -33,7 +33,7 @@ using namespace SKELETON;
 
 
 #if GTKMM_CHECK_VERSION(3,0,0)
-constexpr const char* DragTreeView::m_css_classname;
+constexpr const char* DragTreeView::s_css_classname;
 #endif
 
 DragTreeView::DragTreeView( const std::string& url, const std::string& dndtarget,
@@ -56,7 +56,7 @@ DragTreeView::DragTreeView( const std::string& url, const std::string& dndtarget
 
 #if GTKMM_CHECK_VERSION(3,0,0)
     auto context = get_style_context();
-    context->add_class( m_css_classname );
+    context->add_class( s_css_classname );
     context->add_provider( m_provider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION );
 #endif
 
@@ -148,7 +148,7 @@ void DragTreeView::init_color( const int colorid_text, const int colorid_bg, con
     try {
         m_provider->load_from_data( Glib::ustring::compose(
             u8".%1.view:not(:selected) { color: %2; background-color: %3; }",
-            m_css_classname, m_color_text.to_string(), m_color_bg.to_string() ) );
+            s_css_classname, m_color_text.to_string(), m_color_bg.to_string() ) );
     }
     catch( Gtk::CssProviderError& err ) {
 #ifdef _DEBUG
@@ -234,7 +234,7 @@ void DragTreeView::hide_tooltip()
 //
 // ポップアップが表示されていてかつマウスがその上にあるか
 //
-const bool DragTreeView::is_mouse_on_popup()
+bool DragTreeView::is_mouse_on_popup()
 {
     if( ! is_popup_shown() ) return false;
     if( ! m_popup_win->view() ) return false;
@@ -269,7 +269,7 @@ void DragTreeView::show_popup( const std::string& url, View* view )
 //
 // popup windowの外にポインタが出た
 //
-const bool DragTreeView::slot_popup_leave_notify_event( GdkEventCrossing* event )
+bool DragTreeView::slot_popup_leave_notify_event( GdkEventCrossing* event )
 {
 #ifdef _DEBUG
     std::cout << "DragTreeView::slot_popup_leave_notify_event\n";

@@ -30,7 +30,7 @@ namespace SKELETON
                     const std::string& message, const std::string& tab_message,
                     const std::string& detail_html, const std::string& tab_detail
             );
-        virtual ~DetailDiag();
+        ~DetailDiag();
 
       protected:
 
@@ -40,7 +40,7 @@ namespace SKELETON
       private:
 
         virtual void slot_switch_page( GtkNotebookPage*, guint page );
-        virtual void timeout();
+        void timeout() override;
     };
 }
 
