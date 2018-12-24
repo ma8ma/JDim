@@ -18,10 +18,10 @@
 // SEE ALSO: ENVIRONMENT::get_jdversion()
 
 #define MAJORVERSION 2
-#define MINORVERSION 8
-#define MICROVERSION 9
-#define JDDATE_FALLBACK    "180424"
-#define JDTAG     ""
+#define MINORVERSION 92
+#define MICROVERSION 2
+#define JDDATE_FALLBACK    "20181215"
+#define JDTAG     "beta"
 
 //---------------------------------
 
@@ -30,7 +30,7 @@
 
 //---------------------------------
 
-#define JDCOMMENT "JD は gtkmm/GTK+2 を用いた2chブラウザです。"
+#define JDCOMMENT "JD は gtkmm/GTK+ を用いた2chブラウザです。"
 #define JDCOPYRIGHT "(c) 2006-2015 JD project"
 #define JDBBS CONFIG::get_url_jdhp()+"cgi-bin/bbs/support/"
 #define JD2CHLOG CONFIG::get_url_jdhp()+"old2ch/"

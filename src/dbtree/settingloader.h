@@ -39,21 +39,21 @@ namespace DBTREE
         ~SettingLoader();
 
         const std::string& default_noname() const { return m_default_noname; }
-        const int line_number() { return m_line_number; }
-        const int message_count() { return m_message_count; }
+        int line_number() { return m_line_number; }
+        int message_count() { return m_message_count; }
         const std::string& get_unicode() const { return m_unicode; }
 
       protected:
 
-        virtual const std::string get_url();
-        virtual const std::string get_path();
-        virtual const std::string get_charset();
+        const std::string get_url() override;
+        const std::string get_path() override;
+        const std::string get_charset() override;
 
         // ロード用データ作成
-        virtual void create_loaderdata( JDLIB::LOADERDATA& data );
+        void create_loaderdata( JDLIB::LOADERDATA& data ) override;
 
         // ロード後に呼び出される
-        virtual void parse_data();
+        void parse_data() override;
     };
 }
 

@@ -229,10 +229,36 @@ void MessageViewBase::init_color()
 {
     if( m_text_message ){
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+        if( CONFIG::get_use_message_gtktheme() ) {
+            m_text_message->update_style( u8"" );
+        }
+        else {
+            const char* const classname = m_text_message->get_css_classname();
+            const auto fg = Gdk::RGBA( CONFIG::get_color( COLOR_CHAR_MESSAGE ) ).to_string();
+            const auto bg = Gdk::RGBA( CONFIG::get_color( COLOR_BACK_MESSAGE ) ).to_string();
+            const auto sel_fg = Gdk::RGBA( CONFIG::get_color( COLOR_CHAR_MESSAGE_SELECTION ) ).to_string();
+            const auto sel_bg = Gdk::RGBA( CONFIG::get_color( COLOR_BACK_MESSAGE_SELECTION ) ).to_string();
+#if GTKMM_CHECK_VERSION(3,20,0)
+            constexpr const char* const caret_prop = u8"caret-color";
+#else
+            constexpr const char* const caret_prop = u8"-GtkWidget-cursor-color";
+#endif
+            m_text_message->update_style( Glib::ustring::compose(
+                u8R"(
+                    .%1, .%1 text { color: %2; background-color: %3; %4: %2; }
+                    .%1:selected, .%1:selected:focus,
+                    .%1 text:selected, .%1 text:selected:focus,
+                    .%1 text selection, .%1 text selection:focus { color: %5; background-color: %6; }
+                )",
+                classname, fg, bg, caret_prop, sel_fg, sel_bg ) );
+        }
+#else
         m_text_message->modify_text( Gtk::STATE_NORMAL, Gdk::Color( CONFIG::get_color( COLOR_CHAR_MESSAGE ) ) );
         m_text_message->modify_text( Gtk::STATE_SELECTED, Gdk::Color( CONFIG::get_color( COLOR_CHAR_MESSAGE_SELECTION ) ) );
         m_text_message->modify_base( Gtk::STATE_NORMAL, Gdk::Color( CONFIG::get_color( COLOR_BACK_MESSAGE ) ) );
         m_text_message->modify_base( Gtk::STATE_SELECTED, Gdk::Color( CONFIG::get_color( COLOR_BACK_MESSAGE_SELECTION ) ) );
+#endif // GTKMM_CHECK_VERSION(3,0,0)
     }
 }
 
@@ -255,7 +281,7 @@ const Glib::ustring MessageViewBase::get_message()
 // ロード中
 //
 // virtual
-const bool MessageViewBase::is_loading() const
+bool MessageViewBase::is_loading() const
 {
     if( ! m_post ) return false;
 
@@ -266,7 +292,7 @@ const bool MessageViewBase::is_loading() const
 //
 // コマンド
 //
-const bool MessageViewBase::set_command( const std::string& command, const std::string& arg1, const std::string& arg2 )
+bool MessageViewBase::set_command( const std::string& command, const std::string& arg1, const std::string& arg2 )
 {
     if( command == "empty" ) return get_message().empty();
 
@@ -532,7 +558,7 @@ void MessageViewBase::focus_view()
 //
 // viewの操作
 //
-const bool MessageViewBase::operate_view( const int control )
+bool MessageViewBase::operate_view( const int control )
 {
     if( control == CONTROL::None ) return false;
 
@@ -697,7 +723,7 @@ void MessageViewBase::toggle_preview()
 //
 // テキストビューでキーを押した
 //
-const bool MessageViewBase::slot_key_press( GdkEventKey* event )
+bool MessageViewBase::slot_key_press( GdkEventKey* event )
 {
 #ifdef _DEBUG_KEY
     guint key = event->keyval;

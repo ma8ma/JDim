@@ -7,6 +7,8 @@
 #ifndef _CORE_H
 #define _CORE_H
 
+#include "gtkmmversion.h"
+
 #include <gtkmm.h>
 #include <list>
 #include <string>
@@ -21,6 +23,10 @@
 #include "command_args.h"
 
 class JDWinMain;
+
+#if GTKMM_CHECK_VERSION(3,0,0)
+using GtkNotebookPage = Gtk::Widget;
+#endif
 
 
 namespace BOARD
@@ -112,7 +118,7 @@ namespace CORE
     public:
 
         Core( JDWinMain& win_main );
-        virtual ~Core();
+        ~Core();
 
         Gtk::Widget* get_toplevel();
 
@@ -141,8 +147,10 @@ namespace CORE
 
         void set_maintitle();
 
+#if !GTKMM_CHECK_VERSION(3,0,0)
         void slot_realize();
         void slot_style_changed( Glib::RefPtr< Gtk::Style > );
+#endif
 
         void slot_activate_menubar();
         void slot_activate_historymenu();
@@ -169,7 +177,7 @@ namespace CORE
         void toggle_sidebar();
         void slot_show_hide_leftpane( int mode );
 
-        virtual void callback_dispatch();
+        void callback_dispatch() override;
 
         // coreが自前でするコマンド処理
         void exec_command();

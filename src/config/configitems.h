@@ -215,6 +215,9 @@ namespace CONFIG
         // 色
         std::vector< std::string > str_color;
 
+        // 書き込みビューでGTKテーマの設定を使用するか (GTK3版のみ)
+        bool use_message_gtktheme;
+
         // ツリービューでgtkrcの設定を使用するか
         bool use_tree_gtkrc;
 
@@ -528,10 +531,10 @@ namespace CONFIG
 
 
         ConfigItems();
-        virtual ~ConfigItems();
+        virtual ~ConfigItems() noexcept;
 
         // 設定読み込み
-        const bool load( const bool restore = false );
+        bool load( const bool restore = false );
 
         // 保存
         void save();

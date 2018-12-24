@@ -9,10 +9,7 @@
 #include <string>
 #include <vector>
 
-enum
-{
-    MAX_MENU_SIZE = 20
-};
+constexpr size_t MAX_MENU_SIZE = 20;
 
 namespace SKELETON
 {
@@ -42,7 +39,7 @@ namespace SKELETON
 
         MenuButton( const bool show_arrow , const int id );
 
-      virtual ~MenuButton();
+      ~MenuButton();
 
       Gtk::Widget* get_label_widget(){ return m_label; }
 

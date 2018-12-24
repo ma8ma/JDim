@@ -70,6 +70,9 @@ namespace CORE
         Gtk::Label m_label_warning_color;
         Gtk::VBox m_vbox_color;
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+        Gtk::CheckButton m_chk_use_gtktheme_message;
+#endif
         Gtk::CheckButton m_chk_use_gtkrc_tree;
         Gtk::CheckButton m_chk_use_gtkrc_selection;
 
@@ -85,7 +88,7 @@ namespace CORE
       public:
 
         FontColorPref( Gtk::Window* parent, const std::string& url );
-        ~FontColorPref();
+        ~FontColorPref() noexcept;
 
       private:
 
@@ -110,9 +113,9 @@ namespace CORE
         void slot_reset_all_colors();
 
         // OK,cancel,apply が押された
-        virtual void slot_ok_clicked();
-        virtual void slot_apply_clicked();
-        virtual void slot_cancel_clicked();
+        void slot_ok_clicked() override;
+        void slot_apply_clicked() override;
+        void slot_cancel_clicked() override;
     };
 }
 

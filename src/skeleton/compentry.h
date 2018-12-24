@@ -44,7 +44,7 @@ namespace SKELETON
 
         // mode は補完モード ( compmanager.h 参照 )
         CompletionEntry( const int mode );
-        virtual ~CompletionEntry();
+        ~CompletionEntry() noexcept;
 
         SIG_OPERATE signal_operate(){ return m_sig_operate; }
         SIG_ACTIVATE signal_activate(){ return m_sig_activate; }
@@ -61,7 +61,14 @@ namespace SKELETON
         void set_text( const Glib::ustring& text );
         void grab_focus();
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+        void modify_font( const Pango::FontDescription& pfd )
+        {
+            m_entry.override_font( pfd );
+        }
+#else
         void modify_font( Pango::FontDescription& pfd ){ m_entry.modify_font( pfd ); }
+#endif
 
       private:
 

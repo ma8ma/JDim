@@ -5,6 +5,8 @@
 #ifndef _PREFDIAG_H
 #define _PREFDIAG_H
 
+#include "gtkmmversion.h"
+
 #include <gtkmm.h>
 
 #include "jdlib/timeout.h"
@@ -27,7 +29,7 @@ namespace SKELETON
         // parent == NULL のときはメインウィンドウをparentにする
         PrefDiag( Gtk::Window* parent, const std::string& url, const bool add_cancel = true, const bool add_apply = false, const bool add_open = false );
 
-        virtual ~PrefDiag();
+        ~PrefDiag();
 
         const std::string& get_url() const { return m_url; }
 
@@ -45,6 +47,10 @@ namespace SKELETON
         virtual void slot_ok_clicked(){}
         virtual void slot_cancel_clicked(){}
         virtual void slot_apply_clicked(){}
+
+#if GTKMM_CHECK_VERSION(3,0,0)
+        void set_default_size_raito( double raito );
+#endif
 
       private:
 

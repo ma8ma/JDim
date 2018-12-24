@@ -40,6 +40,10 @@
 #include <sstream>
 #include <cstring>
 
+#if GTKMM_CHECK_VERSION(3,0,0) && !defined( USE_PANGOLAYOUT )
+#include <pangomm/glyphstring.h>
+#endif
+
 using namespace ARTICLE;
 
 enum
@@ -96,18 +100,32 @@ DrawAreaBase::DrawAreaBase( const std::string& url )
     , m_layout_tree( 0 )
     , m_seen_current( 0 )
     , m_window( 0 )
+#if GTKMM_CHECK_VERSION(3,0,0)
+    , m_cr( nullptr, cairo_destroy )
+    , m_backscreen( nullptr, cairo_surface_destroy )
+#else
     , m_gc( 0 )
     , m_backscreen( NULL )
+#endif
     , m_pango_layout( 0 )
     , m_draw_frame( false )
+#if GTKMM_CHECK_VERSION(3,0,0)
+    , m_back_frame_top( nullptr, cairo_surface_destroy )
+    , m_back_frame_bottom( nullptr, cairo_surface_destroy )
+#else
     , m_back_frame( NULL )
+#endif
     , m_ready_back_frame( false )
     , m_aafont_initialized( false )
     , m_strict_of_char( false )
     , m_configure_reserve( false )
     , m_configure_width( 0 )
     , m_configure_height( 0 )
+#if GTKMM_CHECK_VERSION(3,0,0)
+    , m_back_marker( nullptr, cairo_surface_destroy )
+#else
     , m_back_marker( NULL )
+#endif
     , m_ready_back_marker( false )
     , m_wait_scroll( 0 )
     , m_cursor_type( Gdk::ARROW )
@@ -159,7 +177,12 @@ void DrawAreaBase::setup( const bool show_abone, const bool show_scrbar, const b
     m_article = DBTREE::get_article( m_url );
     m_layout_tree = new LayoutTree( m_url, show_abone, show_multispace );
 
+#if !GTKMM_CHECK_VERSION(3,9,2)
+    // GTK+ 3.9.2からGTK/GDKのダブルバッファ処理が再構成された
+    // この影響でスレビューのスクロール時に画面のちらつきが発生するようになった
+    // ちらつきを抑えるため3.9.2以降の環境ではデフォルトのダブルバッファを使う
     m_view.set_double_buffered( false );
+#endif
 
     // デフォルトではoffになってるイベントを追加
     m_view.add_events( Gdk::BUTTON_PRESS_MASK );
@@ -182,7 +205,11 @@ void DrawAreaBase::setup( const bool show_abone, const bool show_scrbar, const b
     m_view.signal_leave_notify_event().connect(  sigc::mem_fun( *this, &DrawAreaBase::slot_leave_notify_event ) );
     m_view.signal_realize().connect( sigc::mem_fun( *this, &DrawAreaBase::slot_realize ));
     m_view.signal_configure_event().connect(  sigc::mem_fun( *this, &DrawAreaBase::slot_configure_event ));
+#if GTKMM_CHECK_VERSION(3,0,0)
+    m_view.signal_draw().connect( sigc::mem_fun( *this, &DrawAreaBase::slot_draw ) );
+#else
     m_view.signal_expose_event().connect(  sigc::mem_fun( *this, &DrawAreaBase::slot_expose_event ));
+#endif
     m_view.signal_scroll_event().connect(  sigc::mem_fun( *this, &DrawAreaBase::slot_scroll_event ));
     m_view.signal_button_press_event().connect(  sigc::mem_fun( *this, &DrawAreaBase::slot_button_press_event ));
     m_view.signal_button_release_event().connect(  sigc::mem_fun( *this, &DrawAreaBase::slot_button_release_event ));
@@ -211,7 +238,7 @@ void DrawAreaBase::setup( const bool show_abone, const bool show_scrbar, const b
 //
 // 背景色のID( colorid.h にある ID を指定)
 //
-const int DrawAreaBase::get_colorid_back()
+int DrawAreaBase::get_colorid_back()
 {
     if( m_css_body.bg_color >= 0 ) return m_css_body.bg_color;
 
@@ -308,28 +335,48 @@ void DrawAreaBase::init_color()
     const int usrcolor = colors.size();
     m_color.resize( END_COLOR_FOR_THREAD + usrcolor );
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+    using Color = Gdk::RGBA;
+    Glib::RefPtr< Gtk::StyleContext > context = get_style_context();
+#else
+    using Color = Gdk::Color;
     Glib::RefPtr< Gdk::Colormap > colormap = get_default_colormap();
+#endif
 
     int i = COLOR_FOR_THREAD +1;
     for( ; i < END_COLOR_FOR_THREAD; ++i ){
 
-        m_color[ i ] = Gdk::Color( CONFIG::get_color( i ) );
+        m_color[ i ] = Color( CONFIG::get_color( i ) );
+#if !GTKMM_CHECK_VERSION(3,0,0)
         colormap->alloc_color( m_color[ i ] );
+#endif
     }
 
     // スレビューの選択色でgtkrcの設定を使用
     if( CONFIG::get_use_select_gtkrc() ){
+#if GTKMM_CHECK_VERSION(3,0,0)
+        const bool fg_ok = context->lookup_color( u8"theme_selected_fg_color", m_color[ COLOR_CHAR_SELECTION ] );
+        const bool bg_ok = context->lookup_color( u8"theme_selected_bg_color", m_color[ COLOR_BACK_SELECTION ] );
+        if( !fg_ok || !bg_ok ) {
+#ifdef _DEBUG
+            std::cout << "ERROR:DrawAreaBase::init_color lookup theme color failed." << std::endl;
+#endif
+        }
+#else
         m_color[ COLOR_CHAR_SELECTION ] = get_style()->get_text( Gtk::STATE_SELECTED );
         colormap->alloc_color( m_color[ COLOR_CHAR_SELECTION ] );
 
         m_color[ COLOR_BACK_SELECTION ] = get_style()->get_base( Gtk::STATE_SELECTED );
         colormap->alloc_color( m_color[ COLOR_BACK_SELECTION ] );
+#endif
     }
 
-    std::vector< std::string >::const_iterator it = colors.begin();
-    for( ; it != colors.end(); ++it, ++i ){
-        m_color[ i ] = Gdk::Color( ( *it ) );
+    for( const auto& color : colors ) {
+        m_color[ i ] = Color( color );
+#if !GTKMM_CHECK_VERSION(3,0,0)
         colormap->alloc_color( m_color[ i ] );
+#endif
+        ++i;
     }
 }
 
@@ -365,7 +412,11 @@ void DrawAreaBase::init_font()
     // layoutにフォントをセット
     m_font = &m_defaultfont;
     m_pango_layout->set_font_description( m_font->pfd );
+#if GTKMM_CHECK_VERSION(3,0,0)
+    override_font( m_font->pfd );
+#else
     modify_font( m_font->pfd );
+#endif
 }
 
 
@@ -459,7 +510,11 @@ void DrawAreaBase::focus_view()
 void DrawAreaBase::focus_out()
 {
     // realize していない
+#if GTKMM_CHECK_VERSION(3,0,0)
+    if( !m_window ) return;
+#else
     if( !m_gc ) return;
+#endif
 
 #ifdef _DEBUG
     std::cout << "DrawAreaBase::focus_out\n";
@@ -477,7 +532,7 @@ void DrawAreaBase::focus_out()
 
 
 // 新着セパレータのあるレス番号の取得とセット
-const int DrawAreaBase::get_separator_new()
+int DrawAreaBase::get_separator_new()
 {
     return m_layout_tree->get_separator_new();
 }
@@ -498,7 +553,7 @@ void DrawAreaBase::hide_separator_new()
 
 
 // セパレータが画面に表示されているか
-const bool DrawAreaBase::is_separator_on_screen()
+bool DrawAreaBase::is_separator_on_screen()
 {
     if( ! m_layout_tree ) return false;
 
@@ -517,7 +572,7 @@ const bool DrawAreaBase::is_separator_on_screen()
 
 
 // 現在のポインタの下にあるレス番号取得
-const int DrawAreaBase::get_current_res_num()
+int DrawAreaBase::get_current_res_num()
 {
     const int y = m_y_pointer + get_vscr_val();
 
@@ -546,7 +601,7 @@ const std::string DrawAreaBase::str_selection()
 
 
 // 範囲選択を開始したレス番号
-const int DrawAreaBase::get_selection_resnum_from()
+int DrawAreaBase::get_selection_resnum_from()
 {
     if( ! m_selection.select ) return 0;
     if( ! m_selection.caret_from.layout ) return 0;
@@ -556,7 +611,7 @@ const int DrawAreaBase::get_selection_resnum_from()
 
 
 // 範囲選択を終了したレス番号
-const int DrawAreaBase::get_selection_resnum_to()
+int DrawAreaBase::get_selection_resnum_to()
 {
     if( ! m_selection.select ) return 0;
     if( ! m_selection.caret_to.layout ) return 0;
@@ -800,7 +855,7 @@ bool DrawAreaBase::exec_layout()
 // is_popup = true ならポップアップウィンドウの幅を親ビューの幅とする
 // offset_y は y 座標の上オフセット行数
 //
-const bool DrawAreaBase::exec_layout_impl( const bool is_popup, const int offset_y )
+bool DrawAreaBase::exec_layout_impl( const bool is_popup, const int offset_y )
 {
     // 起動中とシャットダウン中は処理しない
     if( SESSION::is_booting() ) return false;
@@ -951,6 +1006,7 @@ const bool DrawAreaBase::exec_layout_impl( const bool is_popup, const int offset
                 case DBTREE::NODE_IDNUM: // 発言数ノード
 
                     if( ! set_num_id( layout ) ) break;
+                    // fallthrough
 
                 case DBTREE::NODE_TEXT: // テキスト
                 case DBTREE::NODE_LINK: // リンク
@@ -995,7 +1051,7 @@ const bool DrawAreaBase::exec_layout_impl( const bool is_popup, const int offset
 
                     y += 2; // 水平線1px + 余白1px
 
-                    // フォールスルー
+                    // fallthrough
 
                     //////////////////////////////////////////
 
@@ -1123,14 +1179,26 @@ const bool DrawAreaBase::exec_layout_impl( const bool is_popup, const int offset
     std::cout << "create backscreen : width = " << m_view.get_width() << " height = " << m_view.get_height() << std::endl;
 #endif
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+    m_backscreen.reset( gdk_window_create_similar_surface(
+        m_window->gobj(), CAIRO_CONTENT_COLOR, m_view.get_width(), m_view.get_height() ) );
+#else
     m_backscreen.reset();
     m_backscreen = Gdk::Pixmap::create( m_window, m_view.get_width(), m_view.get_height() );
+#endif
 
     m_rect_backscreen.y = 0;
     m_rect_backscreen.height = 0;
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+    m_back_frame_top.reset( gdk_window_create_similar_surface(
+        m_window->gobj(), CAIRO_CONTENT_COLOR, m_view.get_width(), WIDTH_FRAME ) );
+    m_back_frame_bottom.reset( gdk_window_create_similar_surface(
+        m_window->gobj(), CAIRO_CONTENT_COLOR, m_view.get_width(), WIDTH_FRAME ) );
+#else
     m_back_frame.reset();
     m_back_frame = Gdk::Pixmap::create( m_window, m_view.get_width(), WIDTH_FRAME * 2 );
+#endif
 
     m_ready_back_frame = false;
 
@@ -1546,7 +1614,7 @@ bool DrawAreaBase::set_init_wide_mode( const char* str, const int pos_start, con
 // wide_mode :  全角半角モード( アルファベット以外の文字ではモードにしたがって幅を変える )
 // mode : fontid.h で定義されているフォントのID
 //
-const int DrawAreaBase::get_width_of_one_char( const char* utfstr, int& byte, char& pre_char, bool& wide_mode, const int mode )
+int DrawAreaBase::get_width_of_one_char( const char* utfstr, int& byte, char& pre_char, bool& wide_mode, const int mode )
 {
     int width = 0;
     int width_wide = 0;
@@ -1676,10 +1744,12 @@ const int DrawAreaBase::get_width_of_one_char( const char* utfstr, int& byte, ch
 // y から height の高さ分だけ描画する
 // height == 0 ならスクロールした分だけ描画( y は無視 )
 //
-const bool DrawAreaBase::draw_screen( const int y, const int height )
+bool DrawAreaBase::draw_screen( const int y, const int height )
 {
     if( ! m_enable_draw ) return false;
+#if !GTKMM_CHECK_VERSION(3,0,0)
     if( ! m_gc ) return false;
+#endif
     if( ! m_backscreen ) return false;
     if( ! m_layout_tree ) return false;
     if( ! m_layout_tree->top_header() ) return false;
@@ -1695,8 +1765,13 @@ const bool DrawAreaBase::draw_screen( const int y, const int height )
     }
 
     // キューに expose イベントが溜まっている時は全画面再描画
-    Gdk::Region rg = m_window->get_update_area();
-    if( rg.gobj() ){
+    auto* const updated = gdk_window_get_update_area( m_window->gobj() );
+    if( updated ) {
+#if GTKMM_CHECK_VERSION(3,0,0)
+        cairo_region_destroy( updated );
+#else
+        gdk_region_destroy( updated );
+#endif
         redraw_view_force();
         return true;
     }
@@ -1736,6 +1811,16 @@ void DrawAreaBase::exec_draw_screen( const int y_redraw, const int height_redraw
     int upper = pos_y + y_screen;
     int lower = upper + height_screen;
 
+#if GTKMM_CHECK_VERSION(3,9,2)
+    {
+        // 全画面再描画
+        dy = 0;
+        y_screen = 0;
+        height_screen = height_view;
+        upper = pos_y;
+        lower = pos_y + height_screen;
+    }
+#else // !GTKMM_CHECK_VERSION(3,9,2)
     if( m_pre_pos_y == -1 // 初回呼び出し時
 
         // 高速スクロールモードでなく、バックスクリーンが全て描画されていない場合
@@ -1783,6 +1868,7 @@ void DrawAreaBase::exec_draw_screen( const int y_redraw, const int height_redraw
             return;
         }
     }
+#endif // GTKMM_CHECK_VERSION(3,9,2)
 
 #ifdef _DEBUG
     std::cout << "DrawAreaBase::exec_draw_screen "
@@ -1805,23 +1891,52 @@ void DrawAreaBase::exec_draw_screen( const int y_redraw, const int height_redraw
     m_rect_backscreen.width = width_view;
     m_rect_backscreen.height = height_screen;
 
+#if !GTKMM_CHECK_VERSION(3,0,0)
     Gdk::Rectangle rect_clip( 0, y_screen, width_view, height_screen );
     m_gc->set_clip_rectangle( rect_clip );
+#endif
 
     // バックスクリーンをスクロール処理する
     if( ! m_scroll_window ){
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+        cairo_t* const scroll_cr = cairo_create( m_backscreen.get() );
+        cairo_rectangle( scroll_cr, 0.0, 0.0, width_view, height_view );
+        cairo_clip( scroll_cr );
+#else
         rect_clip.set_y( 0 );
         rect_clip.set_height( height_view );
         m_gc->set_clip_rectangle( rect_clip );
+#endif
 
         // 上にスクロールした
-        if( dy > 0 && dy < height_view )
+        if( dy > 0 && dy < height_view ) {
+#if GTKMM_CHECK_VERSION(3,0,0)
+            cairo_push_group( scroll_cr );
+            cairo_set_source_surface( scroll_cr, m_backscreen.get(), 0.0, dy );
+            cairo_paint( scroll_cr );
+            cairo_pop_group_to_source( scroll_cr );
+            cairo_paint( scroll_cr );
+#else
             m_backscreen->draw_drawable( m_gc, m_backscreen, 0, dy, 0, 0, width_view , height_view - dy );
+#endif
+        }
 
         // 下にスクロールした
-        else if( dy < 0 && -dy < height_view )
+        else if( dy < 0 && -dy < height_view ) {
+#if GTKMM_CHECK_VERSION(3,0,0)
+            cairo_push_group( scroll_cr );
+            cairo_set_source_surface( scroll_cr, m_backscreen.get(), 0.0, dy );
+            cairo_paint( scroll_cr );
+            cairo_pop_group_to_source( scroll_cr );
+            cairo_paint( scroll_cr );
+#else
             m_backscreen->draw_drawable( m_gc, m_backscreen, 0, 0, 0, -dy, width_view , height_view + dy );
+#endif
+        }
+#if GTKMM_CHECK_VERSION(3,0,0)
+        cairo_destroy( scroll_cr );
+#endif
 
         m_rect_backscreen.y = 0;
         m_rect_backscreen.height = height_view;
@@ -1888,8 +2003,7 @@ void DrawAreaBase::exec_draw_screen( const int y_redraw, const int height_redraw
     }
 
     // バックスクリーンの背景クリア
-    m_gc->set_foreground( m_color[ get_colorid_back() ] );
-    m_backscreen->draw_rectangle( m_gc, true, 0, y_screen, width_view, height_screen );
+    fill_backscreen( get_colorid_back(), 0, y_screen, width_view, height_screen );
 
     // 描画ループ
     CLIPINFO ci = { width_view, pos_y, upper, lower }; // 描画領域
@@ -1985,6 +2099,14 @@ void DrawAreaBase::exec_draw_screen( const int y_redraw, const int height_redraw
 
             m_ready_back_marker = false;
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+            cairo_save( m_cr.get() );
+            cairo_rectangle( m_cr.get(), m_clip_marker.x, m_clip_marker.y, m_clip_marker.width, m_clip_marker.height );
+            cairo_clip( m_cr.get() );
+            cairo_set_source_surface( m_cr.get(), m_back_marker.get(), m_clip_marker.x, m_clip_marker.y );
+            cairo_paint( m_cr.get() );
+            cairo_restore( m_cr.get() );
+#else
             // [gtkmm <= 2.8] Gdk::GC::set_clip_rectangle( Gdk::Rectangle& rectangle )
             // Gdk::GC::set_clip_rectangle( const Gdk::Rectangle& rectangle )
             Gdk::Rectangle rect_window( m_clip_marker.x, m_clip_marker.y, m_clip_marker.width, m_clip_marker.height );
@@ -1993,6 +2115,7 @@ void DrawAreaBase::exec_draw_screen( const int y_redraw, const int height_redraw
                                      m_clip_marker.x, m_clip_marker.y, m_clip_marker.width, m_clip_marker.height );
 
             m_gc->set_clip_rectangle( rect_clip );
+#endif
         }
 
         // 前回描画したフレームを消す
@@ -2000,6 +2123,16 @@ void DrawAreaBase::exec_draw_screen( const int y_redraw, const int height_redraw
 
             m_ready_back_frame = false;
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+            cairo_save( m_cr.get() );
+            cairo_rectangle( m_cr.get(), 0.0, 0.0, width_view, height_view );
+            cairo_clip( m_cr.get() );
+            cairo_set_source_surface( m_cr.get(), m_back_frame_top.get(), 0.0, 0.0 );
+            cairo_paint( m_cr.get() );
+            cairo_set_source_surface( m_cr.get(), m_back_frame_bottom.get(), 0.0, height_view - WIDTH_FRAME );
+            cairo_paint( m_cr.get() );
+            cairo_restore( m_cr.get() );
+#else
             // [gtkmm <= 2.8] Gdk::GC::set_clip_rectangle( Gdk::Rectangle& rectangle )
             // Gdk::GC::set_clip_rectangle( const Gdk::Rectangle& rectangle )
             Gdk::Rectangle rect_frame( 0, 0, width_view, height_view );
@@ -2008,6 +2141,7 @@ void DrawAreaBase::exec_draw_screen( const int y_redraw, const int height_redraw
             m_window->draw_drawable( m_gc, m_back_frame, 0, WIDTH_FRAME, 0, height_view - WIDTH_FRAME, width_view, WIDTH_FRAME );
 
             m_gc->set_clip_rectangle( rect_clip );
+#endif
         }
 
 
@@ -2019,7 +2153,16 @@ void DrawAreaBase::exec_draw_screen( const int y_redraw, const int height_redraw
         }
 
         // 更新した所だけバックスクリーンをウィンドウにコピー
+#if GTKMM_CHECK_VERSION(3,0,0)
+        cairo_save( m_cr.get() );
+        cairo_rectangle( m_cr.get(), 0.0, y_screen, width_view, height_screen );
+        cairo_clip( m_cr.get() );
+        cairo_set_source_surface( m_cr.get(), m_backscreen.get(), 0.0, 0.0 );
+        cairo_paint( m_cr.get() );
+        cairo_restore( m_cr.get() );
+#else
         m_window->draw_drawable( m_gc, m_backscreen, 0, y_screen, 0, y_screen, width_view, height_screen );
+#endif
     }
 
     // バックスクリーンを全てウィンドウにコピー
@@ -2028,7 +2171,16 @@ void DrawAreaBase::exec_draw_screen( const int y_redraw, const int height_redraw
 #ifdef _DEBUG
         std::cout << "copy all\n";
 #endif
+#if GTKMM_CHECK_VERSION(3,0,0)
+        cairo_save( m_cr.get() );
+        cairo_rectangle( m_cr.get(), 0.0, 0.0, width_view, height_view );
+        cairo_clip( m_cr.get() );
+        cairo_set_source_surface( m_cr.get(), m_backscreen.get(), 0.0, 0.0 );
+        cairo_paint( m_cr.get() );
+        cairo_restore( m_cr.get() );
+#else
         m_window->draw_drawable( m_gc, m_backscreen, 0, 0, 0, 0, width_view, height_view );
+#endif
     }
 
     // オートスクロールマーカと枠の描画
@@ -2094,6 +2246,7 @@ bool DrawAreaBase::draw_one_node( LAYOUT* layout, const CLIPINFO& ci )
                     else node->color_text = COLOR_IMG_ERR;
                 }
             }
+            // fallthrough
 
 
             //////////////////////////////////////////
@@ -2141,9 +2294,10 @@ bool DrawAreaBase::draw_one_node( LAYOUT* layout, const CLIPINFO& ci )
                     const int s_bottom = MIN( height_bkmk, ci.lower - y );
                     const int height = s_bottom - s_top;
 
-                    if( height > 0 ) m_backscreen->draw_pixbuf( m_gc, m_pixbuf_bkmk,
-                                                                0, s_top, 1, y - ci.pos_y + s_top,
-                                                                m_pixbuf_bkmk->get_width(), height, Gdk::RGB_DITHER_NONE, 0, 0 );
+                    if( height > 0 ) {
+                        paint_backscreen( m_pixbuf_bkmk, 0, s_top, 1, y - ci.pos_y + s_top,
+                                          m_pixbuf_bkmk->get_width(), height );
+                    }
                     y += height_bkmk;
                 }
 
@@ -2161,9 +2315,10 @@ bool DrawAreaBase::draw_one_node( LAYOUT* layout, const CLIPINFO& ci )
                         const int s_bottom = MIN( height_post, ci.lower - y );
                         const int height = s_bottom - s_top;
 
-                        if( height > 0 ) m_backscreen->draw_pixbuf( m_gc, m_pixbuf_post,
-                                                                    0, s_top, 1, y - ci.pos_y + s_top,
-                                                                    m_pixbuf_post->get_width(), height, Gdk::RGB_DITHER_NONE, 0, 0 );
+                        if( height > 0 ) {
+                            paint_backscreen( m_pixbuf_post, 0, s_top, 1, y - ci.pos_y + s_top,
+                                              m_pixbuf_post->get_width(), height );
+                        }
                         y += height_post;
                     }
 
@@ -2179,9 +2334,10 @@ bool DrawAreaBase::draw_one_node( LAYOUT* layout, const CLIPINFO& ci )
                         const int s_bottom = MIN( height_refer_post, ci.lower - y );
                         const int height = s_bottom - s_top;
 
-                        if( height > 0 ) m_backscreen->draw_pixbuf( m_gc, m_pixbuf_refer_post,
-                                                                    0, s_top, 1, y - ci.pos_y + s_top,
-                                                                    m_pixbuf_refer_post->get_width(), height, Gdk::RGB_DITHER_NONE, 0, 0 );
+                        if( height > 0 ) {
+                            paint_backscreen( m_pixbuf_refer_post, 0, s_top, 1, y - ci.pos_y + s_top,
+                                              m_pixbuf_refer_post->get_width(), height );
+                        }
                         y += height_refer_post;
                     }
                 }
@@ -2208,8 +2364,18 @@ bool DrawAreaBase::draw_one_node( LAYOUT* layout, const CLIPINFO& ci )
                 const int x = layout->rect->x;
                 const int y = layout->rect->y - ci.pos_y;
                 const int color_text = get_colorid_text();
+#if GTKMM_CHECK_VERSION(3,0,0)
+                cairo_t* const cr = cairo_create( m_backscreen.get() );
+                gdk_cairo_set_source_rgba( cr, m_color[ color_text ].gobj() );
+                cairo_set_line_width( cr, 1.0 );
+                cairo_move_to( cr, x, y );
+                cairo_line_to( cr, x + layout->rect->width - 1.0, y );
+                cairo_stroke( cr );
+                cairo_destroy( cr );
+#else
                 m_gc->set_foreground( m_color[ color_text ] );
                 m_backscreen->draw_line( m_gc, x, y, x + layout->rect->width - 1, y );
+#endif
             }
             break;
 
@@ -2271,32 +2437,34 @@ void DrawAreaBase::draw_div( LAYOUT* layout_div, const CLIPINFO& ci )
 
     // 背景
     if( bg_color >= 0 ){
-        m_gc->set_foreground( m_color[ bg_color ] );
-        m_backscreen->draw_rectangle( m_gc, true, layout_div->rect->x, y_div - ci.pos_y, layout_div->rect->width, height_div );
+        fill_backscreen( bg_color, layout_div->rect->x, y_div - ci.pos_y,
+                         layout_div->rect->width, height_div );
     }
 
     // left
     if( border_style == CORE::BORDER_SOLID && border_left_color >= 0 && border_left ){
-        m_gc->set_foreground( m_color[ border_left_color ] );
-        m_backscreen->draw_rectangle( m_gc, true, layout_div->rect->x, y_div - ci.pos_y, border_left, height_div );
+        fill_backscreen( border_left_color, layout_div->rect->x, y_div - ci.pos_y,
+                         border_left, height_div );
     }
 
     // right
     if( border_style == CORE::BORDER_SOLID && border_right_color >= 0 && border_right ){
-        m_gc->set_foreground( m_color[ border_right_color ] );
-        m_backscreen->draw_rectangle( m_gc, true, layout_div->rect->x + layout_div->rect->width - border_right, y_div - ci.pos_y, border_right, height_div );
+        fill_backscreen( border_right_color,
+                         layout_div->rect->x + layout_div->rect->width - border_right, y_div - ci.pos_y,
+                         border_right, height_div );
     }
 
     // top
     if( border_style == CORE::BORDER_SOLID && border_top_color >= 0 && border_top ){
-        m_gc->set_foreground( m_color[ border_top_color ] );
-        m_backscreen->draw_rectangle( m_gc, true, layout_div->rect->x, y_div - ci.pos_y, layout_div->rect->width, border_top );
+        fill_backscreen( border_top_color, layout_div->rect->x, y_div - ci.pos_y,
+                         layout_div->rect->width, border_top );
     }
 
     // bottom
     if( border_style == CORE::BORDER_SOLID && border_bottom_color >= 0 && border_bottom ){
-        m_gc->set_foreground( m_color[ border_bottom_color ] );
-        m_backscreen->draw_rectangle( m_gc, true, layout_div->rect->x, y_div + height_div - border_bottom - ci.pos_y, layout_div->rect->width, border_bottom );
+        fill_backscreen( border_bottom_color,
+                         layout_div->rect->x, y_div + height_div - border_bottom - ci.pos_y,
+                         layout_div->rect->width, border_bottom );
     }
 }
 
@@ -2342,15 +2510,34 @@ void DrawAreaBase::draw_marker()
     // exec_draw_screen() 参照
     if( m_scroll_window ){
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+        cairo_t* const cr = cairo_create( m_back_marker.get() );
+        cairo_rectangle( cr, 0.0, 0.0, m_clip_marker.width, m_clip_marker.height );
+        cairo_clip( cr );
+        cairo_set_source_surface( cr, cairo_get_target( m_cr.get() ), -m_clip_marker.x, -m_clip_marker.y );
+        cairo_paint( cr );
+        cairo_destroy( cr );
+#else
         // [gtkmm <= 2.8] Gdk::GC::set_clip_rectangle( Gdk::Rectangle& rectangle )
         // Gdk::GC::set_clip_rectangle( const Gdk::Rectangle& rectangle )
         Gdk::Rectangle rect_marker( 0, 0, m_clip_marker.width, m_clip_marker.height );
         m_gc->set_clip_rectangle( rect_marker );
         m_back_marker->draw_drawable( m_gc, m_window, m_clip_marker.x, m_clip_marker.y,
                                       0, 0, m_clip_marker.width, m_clip_marker.height );
+#endif
         m_ready_back_marker = true;
     }
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+    constexpr const double r = AUTOSCR_CIRCLE / 2.0;
+    cairo_save( m_cr.get() );
+    cairo_rectangle( m_cr.get(), m_clip_marker.x, m_clip_marker.y, m_clip_marker.width, m_clip_marker.height );
+    cairo_clip( m_cr.get() );
+    gdk_cairo_set_source_rgba( m_cr.get(), m_color[ COLOR_MARKER ].gobj() );
+    cairo_arc( m_cr.get(), x_marker + r, y_marker + r, r - 1.0, 0.0, 2.0 * M_PI );
+    cairo_stroke( m_cr.get() );
+    cairo_restore( m_cr.get() );
+#else
     // [gtkmm <= 2.8] Gdk::GC::set_clip_rectangle( Gdk::Rectangle& rectangle )
     // Gdk::GC::set_clip_rectangle( const Gdk::Rectangle& rectangle )
     Gdk::Rectangle rect_window( m_clip_marker.x, m_clip_marker.y, m_clip_marker.width, m_clip_marker.height );
@@ -2359,6 +2546,7 @@ void DrawAreaBase::draw_marker()
     m_window->draw_arc( m_gc, false,
                         x_marker, y_marker, AUTOSCR_CIRCLE-1, AUTOSCR_CIRCLE-1,
                         0, 360 * 64 );
+#endif
 }
 
 
@@ -2374,20 +2562,88 @@ void DrawAreaBase::draw_frame()
 
     if( m_scroll_window ){
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+        cairo_surface_t* const borrowed_sf = cairo_get_target( m_cr.get() );
+        cairo_t* cr = cairo_create( m_back_frame_top.get() );
+        cairo_rectangle( cr, 0.0, 0.0, width_win, WIDTH_FRAME );
+        cairo_clip( cr );
+        cairo_set_source_surface( cr, borrowed_sf, 0.0, 0.0 );
+        cairo_paint( cr );
+        cairo_destroy( cr );
+
+        cr = cairo_create( m_back_frame_bottom.get() );
+        cairo_rectangle( cr, 0.0, 0.0, width_win, WIDTH_FRAME );
+        cairo_clip( cr );
+        cairo_set_source_surface( cr, borrowed_sf, 0.0, WIDTH_FRAME - height_win );
+        cairo_paint( cr );
+        cairo_destroy( cr );
+#else
         // [gtkmm <= 2.8] Gdk::GC::set_clip_rectangle( Gdk::Rectangle& rectangle )
         // Gdk::GC::set_clip_rectangle( const Gdk::Rectangle& rectangle )
         Gdk::Rectangle rect_frame( 0, 0, width_win, WIDTH_FRAME * 2 );
         m_gc->set_clip_rectangle( rect_frame );
         m_back_frame->draw_drawable( m_gc, m_window, 0, 0, 0, 0, width_win, WIDTH_FRAME );
         m_back_frame->draw_drawable( m_gc, m_window, 0, height_win - WIDTH_FRAME, 0, WIDTH_FRAME, width_win, WIDTH_FRAME );
+#endif
         m_ready_back_frame = true;
     }
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+    cairo_save( m_cr.get() );
+    gdk_cairo_set_source_rgba( m_cr.get(), m_color[ COLOR_FRAME ].gobj() );
+    cairo_set_line_width( m_cr.get(), 2.0 );
+    cairo_rectangle( m_cr.get(), 0.0, 0.0, width_win, height_win );
+    cairo_stroke( m_cr.get() );
+    cairo_restore( m_cr.get() );
+#else
     Gdk::Rectangle rect_clip( 0, 0, width_win, height_win );
     m_gc->set_clip_rectangle( rect_clip );
 
     m_gc->set_foreground( m_color[ COLOR_FRAME ] );
     m_window->draw_rectangle( m_gc, false, WIDTH_FRAME-1, WIDTH_FRAME-1, width_win-WIDTH_FRAME, height_win-WIDTH_FRAME );
+#endif
+}
+
+
+//
+// バックスクリーンを矩形で塗りつぶす補助メソッド
+//
+void DrawAreaBase::fill_backscreen( const int colorid, int x, int y, int width, int height )
+{
+#if GTKMM_CHECK_VERSION(3,0,0)
+    cairo_t* const cr = cairo_create( m_backscreen.get() );
+    gdk_cairo_set_source_rgba( cr, m_color[ colorid ].gobj() );
+    cairo_rectangle( cr, x, y, width, height );
+    cairo_fill( cr );
+    cairo_destroy( cr );
+#else
+    m_gc->set_foreground( m_color[ colorid ] );
+    m_backscreen->draw_rectangle( m_gc, true, x, y, width, height );
+#endif
+}
+
+
+//
+// Pixbufの内容をバックスクリーンに貼り付ける補助メソッド
+//
+void DrawAreaBase::paint_backscreen( const Glib::RefPtr< Gdk::Pixbuf >& pixbuf,
+                                     int src_x, int src_y, int dest_x, int dest_y, int width, int height )
+{
+#if GTKMM_CHECK_VERSION(3,0,0)
+    // Cairoバージョンではsrc_x, src_yを使わない
+    // 呼び出しをgdkバージョンと揃えるために引数の数合わせをしている
+    static_cast< void >( src_x );
+    static_cast< void >( src_y );
+    cairo_t* const cr = cairo_create( m_backscreen.get() );
+    cairo_rectangle( cr, dest_x, dest_y, width, height );
+    cairo_clip( cr );
+    gdk_cairo_set_source_pixbuf( cr, pixbuf->gobj(), dest_x, dest_y );
+    cairo_paint( cr );
+    cairo_destroy( cr );
+#else
+    m_backscreen->draw_pixbuf( m_gc, pixbuf, src_x, src_y, dest_x, dest_y,
+                               width, height, Gdk::RGB_DITHER_NONE, 0, 0 );
+#endif
 }
 
 
@@ -2398,7 +2654,7 @@ void DrawAreaBase::draw_frame()
 // byte_from : 描画開始位置
 // byte_to : 描画終了位置
 //
-const bool DrawAreaBase::get_selection_byte( const LAYOUT* layout, const SELECTION& selection, size_t& byte_from, size_t& byte_to )
+bool DrawAreaBase::get_selection_byte( const LAYOUT* layout, const SELECTION& selection, size_t& byte_from, size_t& byte_to )
 {
     if( ! layout ) return false;
     if( ! selection.caret_from.layout ) return false;
@@ -2489,7 +2745,11 @@ void DrawAreaBase::set_node_font( LAYOUT* layout )
 
         // layoutにフォントをセット
         m_pango_layout->set_font_description( m_font->pfd );
+#if GTKMM_CHECK_VERSION(3,0,0)
+        override_font( m_font->pfd );
+#else
         modify_font( m_font->pfd );
+#endif
     }
 }
 
@@ -2560,7 +2820,7 @@ void DrawAreaBase::draw_one_text_node( LAYOUT* layout, const CLIPINFO& ci )
 //
 // 戻り値 : true なら描画後に再レイアウトを実行する
 //
-const bool DrawAreaBase::draw_one_img_node( LAYOUT* layout, const CLIPINFO& ci )
+bool DrawAreaBase::draw_one_img_node( LAYOUT* layout, const CLIPINFO& ci )
 {
 #ifdef _DEBUG
     std::cout << "DrawAreaBase::draw_one_img_node link = " << layout->link << std::endl;
@@ -2644,18 +2904,17 @@ const bool DrawAreaBase::draw_one_img_node( LAYOUT* layout, const CLIPINFO& ci )
 
                         Glib::RefPtr< Gdk::Pixbuf > pixbuf2;
                         pixbuf2 = pixbuf->scale_simple( moswidth, mosheight, Gdk::INTERP_NEAREST );
-                        m_backscreen->draw_pixbuf( m_gc,
-                                                   pixbuf2->scale_simple( pixbuf->get_width(), pixbuf->get_height(), Gdk::INTERP_NEAREST ),
-                                                   0, s_top, rect->x + 1, ( rect->y + 1 ) - ci.pos_y + s_top,
-                                                   pixbuf->get_width(), height, Gdk::RGB_DITHER_NONE, 0, 0 );
+                        paint_backscreen( pixbuf2->scale_simple( pixbuf->get_width(), pixbuf->get_height(),
+                                                                 Gdk::INTERP_NEAREST ),
+                                          0, s_top, rect->x + 1, ( rect->y + 1 ) - ci.pos_y + s_top,
+                                          pixbuf->get_width(), height );
                     }
                 }
 
                 // 通常
                 else{
-                    m_backscreen->draw_pixbuf( m_gc, pixbuf,
-                                               0, s_top, rect->x + 1, ( rect->y + 1 ) - ci.pos_y + s_top,
-                                               pixbuf->get_width(), height, Gdk::RGB_DITHER_NONE, 0, 0 );
+                    paint_backscreen( pixbuf, 0, s_top, rect->x + 1, ( rect->y + 1 ) - ci.pos_y + s_top,
+                                      pixbuf->get_width(), height );
                 }
 
 
@@ -2666,9 +2925,19 @@ const bool DrawAreaBase::draw_one_img_node( LAYOUT* layout, const CLIPINFO& ci )
     }
 
     // 枠の描画
+#if GTKMM_CHECK_VERSION(3,0,0)
+    {
+        cairo_t* const cr = cairo_create( m_backscreen.get() );
+        gdk_cairo_set_source_rgba( cr, m_color[ color ].gobj() );
+        cairo_rectangle( cr, rect->x, rect->y - ci.pos_y, rect->width, rect->height );
+        cairo_stroke( cr );
+        cairo_destroy( cr );
+    }
+#else
     // !! draw_rectangle()の filled を false にすると、1 pixel 幅と高さが大きくなるのに注意 !!
     m_gc->set_foreground( m_color[ color ] );
     m_backscreen->draw_rectangle( m_gc, false, rect->x , rect->y  - ci.pos_y, rect->width -1, rect->height -1 );
+#endif
 
     // 右上のアイコン
     if( code != HTTP_OK || img->is_loading() ){
@@ -2676,7 +2945,7 @@ const bool DrawAreaBase::draw_one_img_node( LAYOUT* layout, const CLIPINFO& ci )
         const int y_tmp = rect->y + rect->height / 10 + 1;
         const int width_tmp = rect->width / 4;
         const int height_tmp = rect->width / 4;
-        m_backscreen->draw_rectangle( m_gc, true, x_tmp, y_tmp - ci.pos_y, width_tmp, height_tmp );
+        fill_backscreen( color, x_tmp, y_tmp - ci.pos_y, width_tmp, height_tmp );
     }
 
 #ifdef _DEBUG
@@ -2766,6 +3035,34 @@ void DrawAreaBase::draw_string( LAYOUT* node, const CLIPINFO& ci,
 
 #ifdef USE_PANGOLAYOUT  // Pango::Layout を使って文字を描画
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+            const Gdk::RGBA& fg = m_color[ color ];
+            const Gdk::RGBA& bg = m_color[ color_back ];
+            using PA = Pango::Attribute;
+            auto foreground = PA::create_attr_foreground( fg.get_red_u(), fg.get_green_u(), fg.get_blue_u() );
+            auto background = PA::create_attr_background( bg.get_red_u(), bg.get_green_u(), bg.get_blue_u() );
+
+            m_pango_layout->set_text( Glib::ustring( node->text + pos_start, n_ustr ) );
+
+            cairo_t* const text_cr = cairo_create( m_backscreen.get() );
+
+            Pango::AttrList attr;
+            attr.insert( foreground );
+            attr.insert( background );
+            m_pango_layout->set_attributes( attr );
+            cairo_move_to( text_cr, x, y );
+            pango_cairo_show_layout( text_cr, m_pango_layout->gobj() );
+
+            // Pango::Weight属性を使うと文字幅が変わりレイアウトが乱れる
+            // そこで文字を重ねて描画することで太字を表示する
+            if( node->bold ) {
+                Pango::AttrList overlapping;
+                overlapping.insert( foreground );
+                m_pango_layout->set_attributes( overlapping );
+                cairo_move_to( text_cr, x + 1.0, y );
+                pango_cairo_show_layout( text_cr, m_pango_layout->gobj() );
+            }
+#else
             m_pango_layout->set_text( Glib::ustring( node->text + pos_start, n_ustr ) );
             m_backscreen->draw_layout( m_gc,x, y, m_pango_layout, m_color[ color ], m_color[ color_back ] );
 
@@ -2773,21 +3070,30 @@ void DrawAreaBase::draw_string( LAYOUT* node, const CLIPINFO& ci,
                 m_gc->set_foreground( m_color[ color ] );
                 m_backscreen->draw_layout( m_gc, x+1, y, m_pango_layout );
             }
+#endif // GTKMM_CHECK_VERSION(3,0,0)
 
 #else // Pango::GlyphString を使って文字を描画
 
             assert( m_context );
 
-            m_gc->set_foreground( m_color[ color_back ] );
-            m_backscreen->draw_rectangle( m_gc, true, x, y, width_line, m_font->height );
+            fill_backscreen( color_back, x, y, width_line, m_font->height );
+#if GTKMM_CHECK_VERSION(3,0,0)
+            cairo_t* const text_cr = cairo_create( m_backscreen.get() );
 
+            gdk_cairo_set_source_rgba( text_cr, m_color[ color ].gobj() );
+#else
             m_gc->set_foreground( m_color[ color ] );
+#endif
 
             Pango::AttrList attr;
             std::string text = std::string( node->text + pos_start, n_byte );
             std::list< Pango::Item > list_item = m_context->itemize( text, attr );
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+            Glib::RefPtr< Pango::Font > font;
+#else
             Glib::RefPtr< const Pango::Font > font;
+#endif
             Pango::GlyphString grl;
             Pango::Rectangle pango_rect;
 
@@ -2800,22 +3106,41 @@ void DrawAreaBase::draw_string( LAYOUT* node, const CLIPINFO& ci,
                 pango_rect = grl.get_logical_extents( font );
                 int width = PANGO_PIXELS( pango_rect.get_width() );
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+                cairo_move_to( text_cr, x, y + m_font->ascent );
+                pango_cairo_show_glyph_string( text_cr, font->gobj(), grl.gobj() );
+                if( node->bold ) {
+                    cairo_move_to( text_cr, x + 1.0, y + m_font->ascent );
+                    pango_cairo_show_glyph_string( text_cr, font->gobj(), grl.gobj() );
+                }
+#else
                 m_backscreen->draw_glyphs( m_gc, font, x, y + m_font->ascent, grl );
                 if( node->bold ) m_backscreen->draw_glyphs( m_gc, font, x +1, y + m_font->ascent, grl );
+#endif
                 x += width;
             }
 
             // 実際のラインの長さ(x - rect->x)とlayout_one_text_node()で計算した
             // 近似値(rect->width)を一致させる ( 応急処置 )
             if( ! byte_to && abs( ( x - rect->x ) - rect->width ) > 2 ) rect->width = x - rect->x;
-#endif
+#endif // USE_PANGOLAYOUT
 
             // リンクの時は下線を引く
             if( node->link && CONFIG::get_draw_underline() ){
-
+#if GTKMM_CHECK_VERSION(3,0,0)
+                gdk_cairo_set_source_rgba( text_cr, m_color[ color ].gobj() );
+                cairo_set_line_width( text_cr, 1.0 );
+                cairo_move_to( text_cr, xx, y + m_font->underline_pos );
+                cairo_line_to( text_cr, xx + width_line, y + m_font->underline_pos );
+                cairo_stroke( text_cr );
+#else
                 m_gc->set_foreground( m_color[ color ] );
                 m_backscreen->draw_line( m_gc, xx, y + m_font->underline_pos, xx + width_line, y + m_font->underline_pos );
+#endif
             }
+#if GTKMM_CHECK_VERSION(3,0,0)
+            cairo_destroy( text_cr );
+#endif
         }
 
         if( rect->end ) break;
@@ -2864,7 +3189,7 @@ int DrawAreaBase::set_num_id( LAYOUT* layout )
 //
 // 実際にスクロールして描画を実行するのは exec_scroll()
 //
-const bool DrawAreaBase::set_scroll( const int control )
+bool DrawAreaBase::set_scroll( const int control )
 {
     // スクロール系の操作でないときは関数を抜ける
     switch( control ){
@@ -3450,7 +3775,7 @@ void DrawAreaBase::goto_back()
 //
 // 戻り値: ヒット数
 //
-const int DrawAreaBase::search( const std::list< std::string >& list_query, const bool reverse )
+int DrawAreaBase::search( const std::list< std::string >& list_query, const bool reverse )
 {
     assert( m_layout_tree );
 
@@ -3640,7 +3965,7 @@ const int DrawAreaBase::search( const std::list< std::string >& list_query, cons
 //
 // 戻り値: ヒット数
 //
-const int DrawAreaBase::search_move( const bool reverse )
+int DrawAreaBase::search_move( const bool reverse )
 {
 #ifdef _DEBUG
     std::cout << "ArticleViewBase::search_move " << m_multi_selection.size() << std::endl;
@@ -4049,8 +4374,8 @@ bool is_separate_char( const int ucs2 )
 //
 // ダブルクリック時にキャレット位置を決める
 //
-const bool DrawAreaBase::set_carets_dclick( CARET_POSITION& caret_left, CARET_POSITION& caret_right
-                                      ,const int x, const int y, const bool triple )
+bool DrawAreaBase::set_carets_dclick( CARET_POSITION& caret_left, CARET_POSITION& caret_right,
+                                      const int x, const int y, const bool triple )
 {
     if( ! m_layout_tree ) return false;
 
@@ -4206,7 +4531,7 @@ const bool DrawAreaBase::set_carets_dclick( CARET_POSITION& caret_left, CARET_PO
 // caret_left から caret_right まで範囲選択状態にする
 //
 
-const bool DrawAreaBase::set_selection( const CARET_POSITION& caret_left, const CARET_POSITION& caret_right )
+bool DrawAreaBase::set_selection( const CARET_POSITION& caret_left, const CARET_POSITION& caret_right )
 {
     m_caret_pos_pre = caret_left;
     m_caret_pos = caret_left;
@@ -4220,7 +4545,7 @@ const bool DrawAreaBase::set_selection( const CARET_POSITION& caret_left, const 
 //
 // caret_pos : 移動後のキャレット位置、m_caret_pos_pre から caret_pos まで範囲選択状態にする
 //
-const bool DrawAreaBase::set_selection( const CARET_POSITION& caret_pos )
+bool DrawAreaBase::set_selection( const CARET_POSITION& caret_pos )
 {
     return set_selection( caret_pos, NULL );
 }
@@ -4228,7 +4553,7 @@ const bool DrawAreaBase::set_selection( const CARET_POSITION& caret_pos )
 
 // rect に再描画範囲を計算して入れる( NULL なら入らない )
 // その後 draw_screen( rect.y, rect.height ) で選択範囲を描画する
-const bool DrawAreaBase::set_selection( const CARET_POSITION& caret_pos, RECTANGLE* rect )
+bool DrawAreaBase::set_selection( const CARET_POSITION& caret_pos, RECTANGLE* rect )
 {
     if( ! caret_pos.layout ) return false;
     if( ! m_caret_pos_dragstart.layout ) return false;
@@ -4323,7 +4648,7 @@ const bool DrawAreaBase::set_selection( const CARET_POSITION& caret_pos, RECTANG
 //
 // set_selection()の中で毎回やると重いので、ボタンのリリース時に一回だけ呼び出すこと
 //
-const bool DrawAreaBase::set_selection_str()
+bool DrawAreaBase::set_selection_str()
 {
     assert( m_layout_tree );
 
@@ -4430,7 +4755,7 @@ const bool DrawAreaBase::set_selection_str()
 // caret_pos が範囲選択の上にあるか
 //
 //
-const bool DrawAreaBase::is_caret_on_selection( const CARET_POSITION& caret_pos )
+bool DrawAreaBase::is_caret_on_selection( const CARET_POSITION& caret_pos )
 {
     LAYOUT* layout = caret_pos.layout;
 
@@ -4654,6 +4979,80 @@ void DrawAreaBase::configure_impl()
 //
 // drawarea の再描画イベント
 //
+#if GTKMM_CHECK_VERSION(3,0,0)
+bool DrawAreaBase::slot_draw( const Cairo::RefPtr< Cairo::Context >& cr )
+{
+    double x1, y1, x2, y2;
+    cr->get_clip_extents( x1, y1, x2, y2 );
+    const double width = x2 - x1;
+    const double height = y2 - y1;
+
+    // タブ操作中は再描画しない
+    if( SESSION::is_tab_operating( URL_ARTICLEADMIN ) ) {
+        return true;
+    }
+#ifdef _DEBUG
+    std::cout << "DrawAreaBase::slot_draw"
+              << " y = " << y1 << " height = " << height << " draw_screen = " << m_drawinfo.draw
+              << " url = " << m_url
+              << std::endl;
+#endif
+    // drawイベントから抜ける前にm_cr.release()を呼び出して所有権を放棄する
+    // ローカル変数やスコープガードなどを使用して安全性を高めるべきか
+    m_cr.reset( cr->cobj() );
+
+    // draw_screen からの呼び出し
+    if( m_drawinfo.draw ) {
+#ifdef _DEBUG
+        std::cout << "draw\n";
+#endif
+        m_drawinfo.draw = false;
+        exec_draw_screen( m_drawinfo.y, m_drawinfo.height );
+    }
+    // バックスクリーンに描画済みならコピー
+    else if( y1 >= m_rect_backscreen.y
+             && y2 <= m_rect_backscreen.y + m_rect_backscreen.height ) {
+#ifdef _DEBUG
+        std::cout << "copy from backscreen\n";
+#endif
+        cairo_save( m_cr.get() );
+        cairo_rectangle( m_cr.get(), x1, y1, width, height );
+        cairo_clip( m_cr.get() );
+        cairo_set_source_surface( m_cr.get(), m_backscreen.get(), x1, y1 );
+        cairo_paint( m_cr.get() );
+        cairo_restore( m_cr.get() );
+
+        // オートスクロールマーカと枠の描画
+        draw_marker();
+        draw_frame();
+    }
+    // レイアウトがセットされていない or まだリサイズしていない
+    // ( m_backscreen == NULL )なら画面消去
+    else if( !m_layout_tree->top_header() || !m_backscreen ) {
+#ifdef _DEBUG
+        std::cout << "clear window\n";
+#endif
+        cairo_save( m_cr.get() );
+        gdk_cairo_set_source_rgba( m_cr.get(), m_color[ get_colorid_back() ].gobj() );
+        cairo_fill( m_cr.get() );
+        cairo_restore( m_cr.get() );
+
+        // シグナルハンドラの引数から借りただけなので所有権を放棄しておく
+        m_cr.release();
+        return false;
+    }
+    // 必要な所だけ再描画
+    else {
+#ifdef _DEBUG
+        std::cout << "expose\n";
+#endif
+        exec_draw_screen( static_cast< int >( y1 ), static_cast< int >( height ) );
+    }
+    // シグナルハンドラの引数から借りただけなので所有権を放棄しておく
+    m_cr.release();
+    return true;
+}
+#else // !GTKMM_CHECK_VERSION(3,0,0)
 bool DrawAreaBase::slot_expose_event( GdkEventExpose* event )
 {
     const int x = event->area.x;
@@ -4722,6 +5121,7 @@ bool DrawAreaBase::slot_expose_event( GdkEventExpose* event )
 
     return true;
 }
+#endif // GTKMM_CHECK_VERSION(3,0,0)
 
 
 
@@ -4803,13 +5203,20 @@ void DrawAreaBase::slot_realize()
     m_window = m_view.get_window();
     assert( m_window );
 
+#if !GTKMM_CHECK_VERSION(3,0,0)
     m_gc = Gdk::GC::create( m_window );
     assert( m_gc );
+#endif
 
     // 色初期化
     init_color();
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+    m_back_marker.reset( gdk_window_create_similar_surface(
+        m_window->gobj(), CAIRO_CONTENT_COLOR, AUTOSCR_CIRCLE, AUTOSCR_CIRCLE ) );
+#else
     m_back_marker = Gdk::Pixmap::create( m_window, AUTOSCR_CIRCLE, AUTOSCR_CIRCLE );
+#endif
     assert( m_back_marker );
 
     exec_layout();
@@ -5146,7 +5553,7 @@ bool DrawAreaBase::motion_mouse()
 //
 // 現在のポインターの下のノードからカーソルのタイプを決定する
 //
-const Gdk::CursorType DrawAreaBase::get_cursor_type()
+Gdk::CursorType DrawAreaBase::get_cursor_type()
 {
     Gdk::CursorType cursor_type = Gdk::ARROW;
     if( m_layout_current ){
@@ -5173,7 +5580,13 @@ void DrawAreaBase::change_cursor( const Gdk::CursorType type )
     if( m_cursor_type != type ){
         m_cursor_type = type;
         if( m_cursor_type == Gdk::ARROW ) m_window->set_cursor();
-        else m_window->set_cursor( Gdk::Cursor( m_cursor_type ) );
+        else {
+#if GTKMM_CHECK_VERSION(3,0,0)
+            m_window->set_cursor( Gdk::Cursor::create( m_cursor_type ) );
+#else
+            m_window->set_cursor( Gdk::Cursor( m_cursor_type ) );
+#endif
+        }
     }
 }
 
@@ -5182,7 +5595,7 @@ void DrawAreaBase::change_cursor( const Gdk::CursorType type )
 //
 // キーを押した
 //
-const bool DrawAreaBase::slot_key_press_event( GdkEventKey* event )
+bool DrawAreaBase::slot_key_press_event( GdkEventKey* event )
 {
     //オートスクロール中なら無視
     if( m_scrollinfo.mode == SCROLL_AUTO ) return true;

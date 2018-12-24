@@ -129,7 +129,7 @@ void CONTROL::delete_conf()
 
 
 // keysymはアスキー文字か
-const bool CONTROL::is_ascii( const guint keysym )
+bool CONTROL::is_ascii( const guint keysym )
 {
     if( keysym > 32 && keysym < 127 ) return true;
 
@@ -137,11 +137,59 @@ const bool CONTROL::is_ascii( const guint keysym )
 }
 
 
+#if GTKMM_CHECK_VERSION(3,6,0)
+static void slot_set_menu_motion( Gtk::Widget& widget )
+{
+    const auto item = dynamic_cast< Gtk::MenuItem* >( &widget );
+
+    auto* const label = dynamic_cast< Gtk::AccelLabel* >( item->get_child() );
+    if( label ) {
+#ifdef _DEBUG
+        std::cout << label->get_text() << std::endl;
+#endif
+        const int id = CONTROL::get_id( label->get_text() );
+        if( id != CONTROL::None ) {
+            const std::string str_label = CONTROL::get_label_with_mnemonic( id );
+            std::string str_motions;
+
+            // CONTROL::get_str_motions()を参考に別個対応のidを処理する
+            if( id == CONTROL::PreferenceArticle
+                || id == CONTROL::PreferenceBoard
+                || id == CONTROL::PreferenceImage ) {
+                label->set_accel( GDK_KEY_p, Gdk::CONTROL_MASK | Gdk::SHIFT_MASK );
+                str_motions = CONTROL::get_str_mousemotions( CONTROL::PreferenceView );
+            }
+            else if( id == CONTROL::SaveDat ) {
+                label->set_accel( GDK_KEY_s, Gdk::CONTROL_MASK );
+                str_motions = CONTROL::get_str_mousemotions( CONTROL::Save );
+            }
+            else {
+                const auto key = CONTROL::get_accelkey( id );
+                if( !key.is_null() ) {
+                    label->set_accel( key.get_key(), key.get_mod() );
+                }
+                str_motions = CONTROL::get_str_mousemotions( id );
+            }
+
+            label->set_text_with_mnemonic( str_label + ( str_motions.empty() ? "" : "\t" + str_motions ) );
+        }
+    }
+
+    if( item->has_submenu() ) {
+        CONTROL::set_menu_motion( item->get_submenu() );
+    }
+}
+#endif // GTKMM_CHECK_VERSION(3,6,0)
+
+
 // メニューにショートカットキーやマウスジェスチャを表示
 void CONTROL::set_menu_motion( Gtk::Menu* menu )
 {
     if( !menu ) return;
 
+#if GTKMM_CHECK_VERSION(3,6,0)
+    menu->foreach( &slot_set_menu_motion );
+#else
     menu->foreach( []( Gtk::Widget& w ) {
         auto* const item = dynamic_cast< Gtk::MenuItem* >( &w );
 
@@ -158,6 +206,10 @@ void CONTROL::set_menu_motion( Gtk::Menu* menu )
                 std::string str_label = CONTROL::get_label_with_mnemonic( id );
                 std::string str_motions = CONTROL::get_str_motions( id );
 
+#if GTKMM_CHECK_VERSION(3,0,0)
+                // Gtk::MenuItemにGtk::HBoxを追加する方法は動作しなくなった
+                label->set_text_with_mnemonic( str_label + ( str_motions.empty() ? "" : "\t" + str_motions ) );
+#else
                 item->remove();
                 Gtk::Label *label = Gtk::manage( new Gtk::Label( str_label + ( str_motions.empty() ? "" : "  " ), true ) );
                 Gtk::Label *label_motion = Gtk::manage( new Gtk::Label( str_motions ) );
@@ -167,17 +219,19 @@ void CONTROL::set_menu_motion( Gtk::Menu* menu )
                 box->pack_end( *label_motion, Gtk::PACK_SHRINK );
                 item->add( *box );
                 box->show_all();
+#endif
             }
         }
 
         if( item->has_submenu() ) CONTROL::set_menu_motion( item->get_submenu() );
     } );
+#endif // GTKMM_CHECK_VERSION(3,6,0)
 }
 
 
 // IDからモードを取得
 // 例えば id == CONTROL::Up の時は CONTROL::COMMONMOTION を返す
-const int CONTROL::get_mode( const int id )
+int CONTROL::get_mode( const int id )
 {
     if( id < CONTROL::COMMONMOTION_END ) return CONTROL::MODE_COMMON;
     if( id < CONTROL::BBSLISTMOTION_END ) return CONTROL::MODE_BBSLIST;
@@ -205,7 +259,7 @@ const std::string CONTROL::get_mode_label( const int mode )
 
 // キー名からkeysymを取得
 // 例えば keyname == "Space" の時は GDK_space を返す
-const guint CONTROL::get_keysym( const std::string& keyname )
+guint CONTROL::get_keysym( const std::string& keyname )
 {
 #ifdef _DEBUG
     std::cout << "CONTROL::get_keysym name = " << keyname;
@@ -270,7 +324,7 @@ const std::string CONTROL::get_keyname( const guint keysym )
 
 // 操作名からID取得
 // 例えば name == "Up" の時は CONTROL::Up を返す
-const int CONTROL::get_id( const std::string& name )
+int CONTROL::get_id( const std::string& name )
 {
     for( int id = CONTROL::COMMONMOTION; id < CONTROL::CONTROL_END; ++id ){
         if( name == CONTROL::control_label[ id ][0] ) return id;
@@ -524,7 +578,7 @@ const std::string CONTROL::get_label_motions( const int id )
 
 
 // 共通操作
-const bool CONTROL::operate_common( const int control, const std::string& url, SKELETON::Admin* admin )
+bool CONTROL::operate_common( const int control, const std::string& url, SKELETON::Admin* admin )
 {
     if( control == CONTROL::None ) return false;;
 
@@ -707,7 +761,7 @@ void CONTROL::set_keymotions( const int id, const std::string& str_motions )
 
 
 // 指定したIDのキーボード操作を全て削除
-const bool CONTROL::remove_keymotions( const int id )
+bool CONTROL::remove_keymotions( const int id )
 {
     return CONTROL::get_keyconfig()->remove_motions( id );
 }
@@ -721,7 +775,7 @@ const std::vector< int > CONTROL::check_key_conflict( const int mode, const std:
 
 
 // editviewの操作をemacs風にする
-const bool CONTROL::is_emacs_mode()
+bool CONTROL::is_emacs_mode()
 {
     return CONTROL::get_keyconfig()->is_emacs_mode();
 }
@@ -734,7 +788,7 @@ void CONTROL::toggle_emacs_mode()
 
 
 // 「タブで開く」キーを入れ替える
-const bool CONTROL::is_toggled_tab_key()
+bool CONTROL::is_toggled_tab_key()
 {
     return CONTROL::get_keyconfig()->is_toggled_tab_key();
 }
@@ -816,7 +870,7 @@ void CONTROL::set_mousemotions( const int id, const std::string& str_motions )
 
 
 // 指定したIDのマウスジェスチャを全て削除
-const bool CONTROL::remove_mousemotions( const int id )
+bool CONTROL::remove_mousemotions( const int id )
 {
     return CONTROL::get_mouseconfig()->remove_motions( id );
 }
@@ -869,7 +923,7 @@ void CONTROL::set_buttonmotions( const int id, const std::string& str_motions )
 }
 
 // 指定したIDのボタン設定を全て削除
-const bool CONTROL::remove_buttonmotions( const int id )
+bool CONTROL::remove_buttonmotions( const int id )
 {
     return CONTROL::get_buttonconfig()->remove_motions( id );
 }
@@ -886,7 +940,7 @@ const std::vector< int > CONTROL::check_button_conflict( const int mode, const s
 
 
 // タブで開くボタンを入れ替える
-const bool CONTROL::is_toggled_tab_button()
+bool CONTROL::is_toggled_tab_button()
 {
     return CONTROL::get_buttonconfig()->is_toggled_tab_button();
 }
@@ -899,7 +953,7 @@ void CONTROL::toggle_tab_button( const bool toggle )
 
 
 // ポップアップ表示の時にクリックでワープ
-const bool CONTROL::is_popup_warpmode()
+bool CONTROL::is_popup_warpmode()
 {
     return CONTROL::get_buttonconfig()->is_popup_warpmode();
 }

@@ -48,7 +48,13 @@ ImageAdmin::ImageAdmin( const std::string& url )
     , m_scroll( SCROLL_NO )
 {
     m_scrwin.add( m_iconbox );
+#if GTKMM_CHECK_VERSION(3,16,0)
+    // Gtk::POLICY_NEVERだとスクロール機能自体がなくなり
+    // コンテンツに合わせてGtk::ScrolledWindowのサイズが拡大してしまう
+    m_scrwin.set_policy( Gtk::POLICY_EXTERNAL, Gtk::POLICY_NEVER );
+#else
     m_scrwin.set_policy( Gtk::POLICY_NEVER, Gtk::POLICY_NEVER );
+#endif
     m_scrwin.set_size_request( ICON_SIZE ,  ICON_SIZE + 4);
 
     m_left.set_label( "<" );
@@ -1196,7 +1202,7 @@ std::list< bool > ImageAdmin::get_locked()
 
 
 // タブのロック/アンロック
-const bool ImageAdmin::is_lockable( const int page )
+bool ImageAdmin::is_lockable( const int page )
 {
     SKELETON::View* view = get_nth_icon( page );
     if( view ) return view->is_lockable();
@@ -1204,7 +1210,7 @@ const bool ImageAdmin::is_lockable( const int page )
     return false;
 }
 
-const bool ImageAdmin::is_locked( const int page )
+bool ImageAdmin::is_locked( const int page )
 {
     SKELETON::View* view = get_nth_icon( page );
     if( view ) return view->is_locked();

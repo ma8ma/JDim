@@ -96,6 +96,7 @@ void DragableNoteBook::focus_out()
 // Auroraなどテーマによっては m_notebook_toolbar が m_notebook_view に上書きされて
 // 消えてしまうのでもう一度 m_notebook_toolbar を描画する
 //
+#if !GTKMM_CHECK_VERSION(3,0,0)
 bool DragableNoteBook::on_expose_event( GdkEventExpose* event )
 {
     const bool ret =  Gtk::VBox::on_expose_event( event );
@@ -144,12 +145,14 @@ bool DragableNoteBook::on_expose_event( GdkEventExpose* event )
     }
     return ret;
 }
+#endif // !GTKMM_CHECK_VERSION(3,0,0)
 
 
 //
 // DragableNoteBook を構成している各Notebookの高さ
 // 及びタブの高さと位置を取得 ( 枠の描画用 )
 //
+#if !GTKMM_CHECK_VERSION(3,0,0)
 const Alloc_NoteBook DragableNoteBook::get_alloc_notebook()
 {
     Alloc_NoteBook alloc;
@@ -186,6 +189,7 @@ const Alloc_NoteBook DragableNoteBook::get_alloc_notebook()
 
     return alloc;
 }
+#endif // !GTKMM_CHECK_VERSION(3,0,0)
 
 
 //
@@ -193,6 +197,7 @@ const Alloc_NoteBook DragableNoteBook::get_alloc_notebook()
 //
 // gtknotebook.c( Revision 19593, Sat Feb 16 04:09:15 2008 UTC ) からのハック。環境やバージョンによっては問題が出るかもしれないので注意
 //
+#if !GTKMM_CHECK_VERSION(3,0,0)
 void DragableNoteBook::draw_box( Gtk::Widget* widget, GdkEventExpose* event )
 {
     const Glib::RefPtr<Gdk::Window> win = widget->get_window();
@@ -245,6 +250,7 @@ void DragableNoteBook::draw_box( Gtk::Widget* widget, GdkEventExpose* event )
         }
     }
 }
+#endif // !GTKMM_CHECK_VERSION(3,0,0)
 
 
 void DragableNoteBook::set_show_tabs( bool show_tabs )
@@ -279,7 +285,7 @@ void DragableNoteBook::set_scrollable( bool scrollable )
 }
 
 
-const int DragableNoteBook::get_n_pages()
+int DragableNoteBook::get_n_pages()
 {
     return m_notebook_view.get_n_pages();
 }
@@ -291,13 +297,13 @@ Gtk::Widget* DragableNoteBook::get_nth_page( int page_num )
 }
 
 
-const int DragableNoteBook::page_num( const Gtk::Widget& child )
+int DragableNoteBook::page_num( const Gtk::Widget& child )
 {
     return m_notebook_view.page_num( child );
 }
 
 
-const int DragableNoteBook::get_current_page()
+int DragableNoteBook::get_current_page()
 {
     return m_notebook_view.get_current_page();
 }
@@ -473,7 +479,7 @@ void DragableNoteBook::set_current_toolbar( const int id_toolbar, SKELETON::View
 }
 
 
-const int DragableNoteBook::get_current_toolbar()
+int DragableNoteBook::get_current_toolbar()
 {
     return m_notebook_toolbar.get_current_page();
 }
@@ -516,7 +522,7 @@ void DragableNoteBook::update_toolbar_button()
 //
 // タブのアイコンを取得する
 //
-const int DragableNoteBook::get_tabicon( const int page )
+int DragableNoteBook::get_tabicon( const int page )
 {
     SKELETON::TabLabel* tablabel = m_notebook_tab.get_tablabel( page );
     if( tablabel ) return tablabel->get_id_icon();
@@ -722,14 +728,33 @@ bool DragableNoteBook::slot_scroll_event( GdkEventScroll* event )
 
     bool ret = false;
 
-    // タブの循環
-    if( event->direction == GDK_SCROLL_UP && get_current_page() == 0 ){
-        set_current_page( get_n_pages() -1 );
-        ret = true;
+    // gtk3ではタブの循環に加え隣のタブへ切り替える処理も実装する必要がある
+    // REVIEW: GTK3版ではホイールによるタブの切り替えが動作しない環境がある
+    if( event->direction == GDK_SCROLL_UP ) {
+        const int current_page = get_current_page();
+        if( current_page == 0 ) {
+            set_current_page( get_n_pages() - 1 );
+            ret = true;
+        }
+#if GTKMM_CHECK_VERSION(3,0,0)
+        else {
+            set_current_page( current_page - 1 );
+            ret = true;
+        }
+#endif
     }
-    else if( event->direction == GDK_SCROLL_DOWN && get_current_page() == get_n_pages() -1 ){
-        set_current_page( 0 );
-        ret = true;
+    else if( event->direction == GDK_SCROLL_DOWN ) {
+        const int current_page = get_current_page();
+        if( current_page == get_n_pages() - 1 ) {
+            set_current_page( 0 );
+            ret = true;
+        }
+#if GTKMM_CHECK_VERSION(3,0,0)
+        else {
+            set_current_page( current_page + 1 );
+            ret = true;
+        }
+#endif
     }
 
     m_sig_tab_scrolled.emit( event );

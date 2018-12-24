@@ -5,7 +5,13 @@
 #ifndef _DETAILDIAG_H
 #define _DETAILDIAG_H
 
+#include "gtkmmversion.h"
+
 #include "prefdiag.h"
+
+#if GTKMM_CHECK_VERSION(3,0,0)
+using GtkNotebookPage = Gtk::Widget;
+#endif
 
 namespace SKELETON
 {
@@ -24,7 +30,7 @@ namespace SKELETON
                     const std::string& message, const std::string& tab_message,
                     const std::string& detail_html, const std::string& tab_detail
             );
-        virtual ~DetailDiag();
+        ~DetailDiag();
 
       protected:
 
@@ -34,7 +40,7 @@ namespace SKELETON
       private:
 
         virtual void slot_switch_page( GtkNotebookPage*, guint page );
-        virtual void timeout();
+        void timeout() override;
     };
 }
 
