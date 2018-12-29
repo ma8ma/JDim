@@ -69,7 +69,7 @@ bool InputDiag::on_key_press_event( GdkEventKey* event )
         if( CONTROL::is_ascii( key ) ) shift = false;
 
 #ifdef _DEBUG
-        std::cout << "InputDiag::on_key_press_event key = " << std::hex << key;
+        std::cout << "InputDiag::on_key_press_event key = " << std::hex << key << std::dec;
         if( ctrl ) std::cout << " ctrl";
         if( shift ) std::cout << " shift";
         if( alt ) std::cout << " alt";
@@ -205,7 +205,7 @@ bool InputDiag::on_motion_notify_event( GdkEventMotion* event )
 }
 
 
-const std::string InputDiag::get_key_label()
+std::string InputDiag::get_key_label()
 {
     std::string label;
 
@@ -225,7 +225,7 @@ const std::string InputDiag::get_key_label()
 
 
 
-const std::string InputDiag::get_mouse_label()
+std::string InputDiag::get_mouse_label()
 {
     std::string label;
 
@@ -244,7 +244,7 @@ const std::string InputDiag::get_mouse_label()
 }
 
 
-const std::string InputDiag::get_button_label()
+std::string InputDiag::get_button_label()
 {
     std::string label;
 
@@ -335,7 +335,7 @@ Gtk::TreeModel::Row MouseKeyDiag::append_row( const std::string& motion )
 }
 
 
-const std::string MouseKeyDiag::get_str_motions()
+std::string MouseKeyDiag::get_str_motions()
 {
     std::string str_motions;
 
@@ -357,7 +357,7 @@ const std::string MouseKeyDiag::get_str_motions()
 //
 // 入力ダイアログを表示
 //
-const std::string MouseKeyDiag::show_inputdiag( bool is_append )
+std::string MouseKeyDiag::show_inputdiag( bool is_append )
 {
     std::string str_motion;
 
