@@ -37,7 +37,7 @@ namespace DBTREE
 
         // 新スレ作成用のbbscgi のURL
         std::string url_bbscgi_new() override;
-        
+
         // 新スレ作成用のsubbbscgi のURL
         std::string url_subbbscgi_new() override;
 

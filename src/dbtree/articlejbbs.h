@@ -26,12 +26,12 @@ namespace DBTREE
 
         // bbscgi のURL
         std::string url_bbscgi() override;
-        
+
         // subbbscgi のURL
         std::string url_subbbscgi() override;
 
       private:
-        
+
         // 更新チェック不可能
         bool enable_check_update() override { return false; }
 

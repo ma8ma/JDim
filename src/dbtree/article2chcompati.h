@@ -24,12 +24,12 @@ namespace DBTREE
 
         // bbscgi のURL
         std::string url_bbscgi() override;
-        
+
         // subbbscgi のURL
         std::string url_subbbscgi() override;
 
       private:
-        
+
         NodeTreeBase* create_nodetree() override;
     };
 }

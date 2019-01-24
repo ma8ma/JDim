@@ -24,7 +24,7 @@ namespace DBTREE
 
         // bbscgi のURL
         std::string url_bbscgi() override;
-        
+
         // subbbscgi のURL
         std::string url_subbbscgi() override;
 
@@ -34,7 +34,7 @@ namespace DBTREE
         bool is_load_olddat() override;
 
       private:
-        
+
         NodeTreeBase* create_nodetree() override;
     };
 }
