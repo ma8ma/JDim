@@ -99,11 +99,11 @@ make
 
 #### Arch Linux
 > GTK3版のビルドファイルはAURで公開されている。(Thanks to @naniwaKun.)  
-> https://aur.archlinux.org/packages/jd-gtk3/
+> https://aur.archlinux.org/packages/jdim-git/
 >
 > AUR Helper [yay](https://github.com/Jguer/yay) でインストール
 > ```sh
-> yay -S jd-gtk3
+> yay -S jdim-git
 > ```
 
 
@@ -156,10 +156,10 @@ make
 
 #### GTK3版の既知の問題
 > * 板一覧やスレ一覧でマウスホイールによるスクロールが動作しないことがある。
->   環境変数 `GDK_CORE_DEVICE_EVENTS=1` を設定してjdを起動するとマウスホイール機能が使える。
+>   環境変数 `GDK_CORE_DEVICE_EVENTS=1` を設定してjdimを起動するとマウスホイール機能が使える。
 >   ```sh
 >   # シェルからJDを起動する場合
->   GDK_CORE_DEVICE_EVENTS=1 ./src/jd
+>   GDK_CORE_DEVICE_EVENTS=1 ./src/jdim
 >   ```
 > * マウスホイールでタブを切り替える機能が動作しない環境がある。(gtk 3.20以上?)
 > * タブのドラッグ・アンド・ドロップの矢印ポップアップの背景が透過しない環境がある。
