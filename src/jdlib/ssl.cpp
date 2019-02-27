@@ -74,7 +74,11 @@ bool JDSSL::connect( const int soc, const char *host )
 #if GNUTLS_VERSION_NUMBER >= 0x030406
     ret = gnutls_certificate_allocate_credentials( &m_cred );
     assert( ret == GNUTLS_E_SUCCESS );
+#ifdef DEFAULT_TRUST_STORE_FILE
+    ret = gnutls_certificate_set_x509_trust_file( m_cred, DEFAULT_TRUST_STORE_FILE, GNUTLS_X509_FMT_PEM );
+#else
     ret = gnutls_certificate_set_x509_system_trust( m_cred );
+#endif
     assert( ret >= 0 );
 
     ret = gnutls_server_name_set( m_session, GNUTLS_NAME_DNS, host, strlen( host ) );

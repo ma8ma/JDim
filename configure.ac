@@ -509,4 +509,20 @@ AC_ARG_WITH(pangolayout,[ --with-pangolayout    (use pangolayout)],
        fi ])
 
 
+dnl
+dnl checking default trust store file
+dnl
+AC_MSG_CHECKING(for --with-default-trust-store-file)
+AC_ARG_WITH(default-trust-store-file,
+  [AS_HELP_STRING([--with-default-trust-store-file=FILE],
+                  [use the given file default trust store])],
+  [with_default_trust_store_file="$withval"],
+  [with_default_trust_store_file=no])
+AC_MSG_RESULT($with_default_trust_store_file)
+
+AS_IF([test "x$with_default_trust_store_file" != xno],
+      [AC_DEFINE_UNQUOTED([DEFAULT_TRUST_STORE_FILE],
+                          ["$with_default_trust_store_file"], [use the given file default trust store])])
+
+
 AC_OUTPUT(Makefile src/Makefile src/skeleton/Makefile src/jdlib/Makefile src/dbtree/Makefile src/dbimg/Makefile  src/bbslist/Makefile src/board/Makefile src/article/Makefile src/image/Makefile src/message/Makefile src/history/Makefile src/config/Makefile src/icons/Makefile src/sound/Makefile src/xml/Makefile src/control/Makefile )

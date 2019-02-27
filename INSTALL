@@ -109,6 +109,11 @@
 
        gtkmm2のかわりにgtkmm3を使用する。
 
+    --with-default-trust-store-file=FILE
+
+       指定したFILEをデフォルトのX.509証明書として使います。
+       注意: 'no'を指定するとオプション不使用と解釈されファイル名として扱われません。
+
 * メモ
 
   最近のディストリビューションの場合は autogen.sh よりも autoreconf -i の方を推奨。
