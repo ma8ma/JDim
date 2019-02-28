@@ -1566,7 +1566,7 @@ int MISC::spchar_number_ln( const char* in_char, int& offset )
 
 
 // 特定の変換が必要なコードポイントをチェックする
-static int transform_7f_9f( int raw_point )
+static char32_t transform_7f_9f( char32_t raw_point )
 {
     switch( raw_point ) {
         case 0x80: return 0x20AC; // EURO SIGN (€)
@@ -1608,7 +1608,7 @@ static int transform_7f_9f( int raw_point )
 // 参考文献 : Numeric character reference end state (HTML 5.3)
 //            https://www.w3.org/TR/html53/syntax.html#numeric-character-reference-end-state
 //
-static int sanitize_numeric_character_reference( int raw_point )
+static char32_t sanitize_numeric_character_reference( char32_t raw_point )
 {
     // NOTE: 記号や絵文字を速やかに処理できるよう順番が組まれている
 
@@ -1668,11 +1668,11 @@ int MISC::decode_spchar_number( const char* in_char, const int offset, const int
     std::cout << "MISC::decode_spchar_number offset = " << offset << " lng = " << lng << " str = " << str_num << std::endl;
 #endif
 
-    int num = 0;
-    if( offset == 2 ) num = atoi( str_num );
-    else num = strtol( str_num, nullptr, 16 );
-
-    return sanitize_numeric_character_reference( num );
+    char* end_pos;
+    const int base = offset == 2 ? 10 : 16;
+    const char32_t point = static_cast< char32_t >( std::strtol( str_num, &end_pos, base ) );
+    assert( str_num != end_pos );
+    return static_cast< int >( sanitize_numeric_character_reference( point ) );
 }
 
 
