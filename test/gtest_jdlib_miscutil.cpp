@@ -212,4 +212,168 @@ TEST_F(MISC_DecodeSpcharNumberTest, result_transform)
     EXPECT_EQ( 0x0178, MISC::decode_spchar_number( "&#x9F;", 3, 5 ) );
 }
 
+
+class MISC_AscTest : public ::testing::Test {};
+
+TEST_F(MISC_AscTest, hankaku_alpha_num)
+{
+    std::string out;
+    std::vector< int > table;
+
+    MISC::asc( u8"THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG.", out, table );
+    EXPECT_EQ( u8"THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG.", out );
+    EXPECT_EQ( out.size(), table.size() );
+    for( int i = 0, size = out.size(); i < size; ++i ) {
+        EXPECT_EQ( i, table[ i ] );
+    }
+
+    out.clear();
+    table.clear();
+    MISC::asc( u8"the quick brown fox jumps over the lazy dog.", out, table );
+    EXPECT_EQ( u8"the quick brown fox jumps over the lazy dog.", out );
+    EXPECT_EQ( out.size(), table.size() );
+    for( int i = 0, size = out.size(); i < size; ++i ) {
+        EXPECT_EQ( i, table[ i ] );
+    }
+
+    out.clear();
+    table.clear();
+    MISC::asc( u8"1234567890+-*/", out, table );
+    EXPECT_EQ( u8"1234567890+-*/", out );
+    EXPECT_EQ( out.size(), table.size() );
+    for( int i = 0, size = out.size(); i < size; ++i ) {
+        EXPECT_EQ( i, table[ i ] );
+    }
+
+    out.resize( 3 );
+    table.resize( 3 );
+    MISC::asc( u8"hello", out, table );
+    EXPECT_EQ( u8"123hello", out );
+    EXPECT_EQ( out.size(), table.size() );
+    const std::vector< int > expected = { 0, 1, 2, 0, 1, 2, 3, 4 };
+    for( int i = 0, size = table.size(); i < size; ++i ) {
+        EXPECT_EQ( table[ i ], expected[ i ] );
+    }
+}
+
+TEST_F(MISC_AscTest, zenkaku_alpha_num)
+{
+    std::string out;
+    std::vector< int > table;
+
+    // 和字間隔(U+3000)は半角スペースに変換されない
+    MISC::asc( u8"ＴＨＥ　ＱＵＩＣＫ　ＢＲＯＷＮ　ＦＯＸ　ＪＵＭＰＳ　ＯＶＥＲ　ＴＨＥ　ＬＡＺＹ　ＤＯＧ．", out,
+               table );
+    EXPECT_EQ( u8"THE　QUICK　BROWN　FOX　JUMPS　OVER　THE　LAZY　DOG．", out );
+    EXPECT_EQ( out.size(), table.size() );
+    EXPECT_EQ( 33, table.at( 15 ) );
+    EXPECT_EQ( 131, table.at( 61 ) );
+
+    out.clear();
+    table.clear();
+    MISC::asc( u8"ｔｈｅ　ｑｕｉｃｋ　ｂｒｏｗｎ　ｆｏｘ　ｊｕｍｐｓ　ｏｖｅｒ　ｔｈｅ　ｌａｚｙ　ｄｏｇ．", out,
+               table );
+    EXPECT_EQ( u8"the　quick　brown　fox　jumps　over　the　lazy　dog．", out );
+    EXPECT_EQ( out.size(), table.size() );
+    EXPECT_EQ( 33, table.at( 15 ) );
+    EXPECT_EQ( 131, table.at( 61 ) );
+
+    // 全角数字は半角に変換されるが、記号は半角に変換されない
+    out.clear();
+    table.clear();
+    MISC::asc( u8"１２３４５６７８９０＋−＊／", out, table );
+    EXPECT_EQ( u8"1234567890＋−＊／", out );
+    EXPECT_EQ( out.size(), table.size() );
+    EXPECT_EQ( 30, table.at( 10 ) );
+    EXPECT_EQ( 41, table.at( 21 ) );
+}
+
+TEST_F(MISC_AscTest, hankaku_katakana_without_dakuten)
+{
+    std::string out;
+    std::vector< int > table;
+
+    // 半角から全角へ一対一の変換
+    const char* hankaku = (
+        u8"\uFF61\uFF62\uFF63\uFF64\uFF65" u8"\uFF66" u8"\uFF67\uFF68\uFF69\uFF6A\uFF6B"
+        u8"\uFF6C\uFF6D\uFF6E\uFF6F\uFF70" u8"\uFF71\uFF72\uFF73\uFF74\uFF75" u8"\uFF76\uFF77\uFF78\uFF79\uFF7A"
+        u8"\uFF7B\uFF7C\uFF7D\uFF7E\uFF7F" u8"\uFF80\uFF81\uFF82\uFF83\uFF84" u8"\uFF85\uFF86\uFF87\uFF88\uFF89"
+        u8"\uFF8A\uFF8B\uFF8C\uFF8D\uFF8E" u8"\uFF8F\uFF90\uFF91\uFF92\uFF93" u8"\uFF94\uFF95\uFF96"
+        u8"\uFF97\uFF98\uFF99\uFF9A\uFF9B" u8"\uFF9C\uFF9D"
+    );
+    const char* zenkaku = (
+        u8"。「」、・" u8"ヲ" u8"ァィゥェォ"
+        u8"ャュョッー" u8"アイウエオ" u8"カキクケコ"
+        u8"サシスセソ" u8"タチツテト" u8"ナニヌネノ"
+        u8"ハヒフヘホ" u8"マミムメモ" u8"ヤユヨ"
+        u8"ラリルレロ" u8"ワン"
+    );
+    MISC::asc( hankaku, out, table );
+    EXPECT_EQ( zenkaku, out );
+    EXPECT_EQ( out.size(), table.size() );
+    for( int i = 0, size = out.size(); i < size; ++i ) {
+        EXPECT_EQ( i, table[ i ] );
+    }
+
+    // 半角の濁点と半濁点は単独では全角に変換されない
+    out.clear();
+    table.clear();
+    MISC::asc( u8"\uFF9E\uFF9F", out, table );
+    EXPECT_EQ( u8"\uFF9E\uFF9F", out );
+    EXPECT_EQ( out.size(), table.size() );
+    for( int i = 0, size = out.size(); i < size; ++i ) {
+        EXPECT_EQ( i, table[ i ] );
+    }
+}
+
+TEST_F(MISC_AscTest, hankaku_katakana_with_dakuten)
+{
+    std::string out;
+    std::vector< int > table, expect_table;
+
+    // 単一のコードポイントで表現可能な(半)濁点付き半角カタカナは合成される
+    const char* hankaku = (
+        u8"\uFF76\uFF9E\uFF77\uFF9E\uFF78\uFF9E\uFF79\uFF9E\uFF7A\uFF9E"
+        u8"\uFF7B\uFF9E\uFF7C\uFF9E\uFF7D\uFF9E\uFF7E\uFF9E\uFF7F\uFF9E"
+        u8"\uFF80\uFF9E\uFF81\uFF9E\uFF82\uFF9E\uFF83\uFF9E\uFF84\uFF9E"
+        u8"\uFF8A\uFF9E\uFF8B\uFF9E\uFF8C\uFF9E\uFF8D\uFF9E\uFF8E\uFF9E"
+        u8"\uFF8A\uFF9F\uFF8B\uFF9F\uFF8C\uFF9F\uFF8D\uFF9F\uFF8E\uFF9F"
+    );
+    const char* zenkaku = (
+        u8"\u30AC\u30AE\u30B0\u30B2\u30B4" // ガギグゲゴ
+        u8"\u30B6\u30B8\u30BA\u30BC\u30BE" // ザジズゼゾ
+        u8"\u30C0\u30C2\u30C5\u30C7\u30C9" // ダヂヅデド
+        u8"\u30D0\u30D3\u30D6\u30D9\u30DC" // バビブベボ
+        u8"\u30D1\u30D4\u30D7\u30DA\u30DD" // パピプペポ
+    );
+    MISC::asc( hankaku, out, table );
+    EXPECT_EQ( zenkaku, out );
+    EXPECT_EQ( out.size(), table.size() );
+    for( int i = 0, j = 0, size = out.size(); i < size; i += 3, j += 6 ) {
+        EXPECT_EQ( j, table[ i ] );
+        EXPECT_EQ( j + 1, table[ i + 1 ] );
+        EXPECT_EQ( j + 2, table[ i + 2 ] );
+    }
+
+    // ワ行の濁点付き半角カタカナは全角に変換されない(変換表が未実装) : ヴヷヺ
+    out.clear();
+    table.clear();
+    MISC::asc( u8"\uFF73\uFF9E\uFF9C\uFF9E\uFF66\uFF9E", out, table );
+    EXPECT_EQ( u8"\u30F4\uFF9C\uFF9E\uFF66\uFF9E", out );
+    EXPECT_EQ( out.size(), table.size() );
+    expect_table.assign( { 0, 1, 2, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 } );
+    EXPECT_EQ( expect_table, table );
+
+    // 単一のコードポイントで表現できない(半)濁点付き半角カタカナは全角に変換されない : カ゚キ゚ク゚ケ゚コ゚
+    // NOTE: 組み合わせが多いのでテストは網羅していない
+    out.clear();
+    table.clear();
+    MISC::asc( u8"\uFF76\uFF9F\uFF77\uFF9F\uFF78\uFF9F\uFF79\uFF9F\uFF7A\uFF9F", out, table );
+    EXPECT_EQ( u8"\uFF76\uFF9F\uFF77\uFF9F\uFF78\uFF9F\uFF79\uFF9F\uFF7A\uFF9F", out );
+    EXPECT_EQ( out.size(), table.size() );
+    for( int i = 0, size = out.size(); i < size; ++i ) {
+        EXPECT_EQ( i, table[ i ] );
+    }
+}
+
 } // namespace
