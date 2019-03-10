@@ -29,7 +29,7 @@
 
 #include <sstream>
 #include <fstream>
-
+#include <unordered_map>
 
 #ifndef MAX
 #define MAX( a, b ) ( a > b ? a : b )
@@ -3442,56 +3442,27 @@ void NodeTreeBase::update_id_name( const int from_number, const int to_number )
 
     if( empty() ) return;
     if( to_number < from_number ) return;
-    for( int i = from_number ; i <= to_number; ++i ) check_id_name( i );
-}
 
-
-//
-// number番のレスの発言数を更新
-//
-void NodeTreeBase::check_id_name( const int number )
-{
-    NODE* header = res_header( number );
-    if( ! header ) return;
-//    if( header->headinfo->abone ) return;
-    if( ! header->headinfo->block[ BLOCK_ID_NAME ] ) return;
-
-    const char* str_id = header->headinfo->block[ BLOCK_ID_NAME ]->next_node->linkinfo->link;
-
-    // 同じIDのレスを持つ一つ前のレスを探す
-    NODE* tmphead;
-    NODE* prehead = NULL;
-    for( int i = header->id_header -1 ; i >= 1 ; --i ){
-
-        tmphead = m_vec_header.at( i );
-
-        if( tmphead
-//            && ! tmphead->headinfo->abone // 対象スレがあぼーんしていたらカウントしない
-            && tmphead->headinfo->block[ BLOCK_ID_NAME ]
-            && str_id[ 0 ] == tmphead->headinfo->block[ BLOCK_ID_NAME ]->next_node->linkinfo->link[ 0 ]
-            && strcmp( str_id, tmphead->headinfo->block[ BLOCK_ID_NAME ]->next_node->linkinfo->link ) == 0 ){
-            prehead = tmphead;
-            break;
-        }
+    std::unordered_map< std::string, std::pair< int, std::vector<int> > > hash_id_name_count_resnumber;
+    for( int i = from_number ; i <= to_number; ++i ) {
+        NODE* header = res_header( i );
+        if( ! header ) return;
+        if( ! header->headinfo->block[ BLOCK_ID_NAME ] ) return;
+        
+        std::string str_id = header->headinfo->block[ BLOCK_ID_NAME ]->next_node->linkinfo->link;
+        hash_id_name_count_resnumber[str_id].first++ ;
+        hash_id_name_count_resnumber.at(str_id).second.push_back(i);
     }
 
-    // 見つからなかった
-    if( ! prehead ) set_num_id_name( header, 1, NULL );
-
-    // 見つかった
-    else{
-
-        set_num_id_name( header, prehead->headinfo->num_id_name+1, prehead );
-
-        // 以前に出た同じIDのレスの発言数を更新
-        tmphead = prehead;
-        while( tmphead ){
-
-            set_num_id_name( tmphead, tmphead->headinfo->num_id_name+1, tmphead->headinfo->pre_id_name_header );
-            tmphead = tmphead->headinfo->pre_id_name_header;
-        }
+    for( int i = from_number ; i <= to_number; ++i ) {
+        NODE* header = res_header( i );
+        if( ! header ) return;
+        if( ! header->headinfo->block[ BLOCK_ID_NAME ] ) return;
+        std::string str_id = header->headinfo->block[ BLOCK_ID_NAME ]->next_node->linkinfo->link;
+        set_num_id_name( header, hash_id_name_count_resnumber[str_id].first );
     }
 }
+
 
 
 //
@@ -3499,12 +3470,11 @@ void NodeTreeBase::check_id_name( const int number )
 //
 // IDノードの色も変更する
 //
-void NodeTreeBase::set_num_id_name( NODE* header, const int num_id_name, NODE* pre_id_name_header )
+void NodeTreeBase::set_num_id_name( NODE* header, const int num_id_name )
 {
     if( ! header->headinfo->block[ BLOCK_ID_NAME ] ) return;
 
     header->headinfo->num_id_name = num_id_name;        
-    header->headinfo->pre_id_name_header = pre_id_name_header;
 
     if( num_id_name >= m_num_id[ LINK_HIGH ] ) header->headinfo->block[ BLOCK_ID_NAME ]->next_node->color_text = COLOR_CHAR_LINK_ID_HIGH;
     else if( num_id_name >= m_num_id[ LINK_LOW ] ) header->headinfo->block[ BLOCK_ID_NAME ]->next_node->color_text = COLOR_CHAR_LINK_ID_LOW;

@@ -369,7 +369,7 @@ namespace DBTREE
 
         // 発言数( num_id_name )の更新
         // IDノードの色も変更する
-        void set_num_id_name( NODE* header, const int num_id_name, NODE* pre_id_name_header );
+        void set_num_id_name( NODE* header, const int num_id_name );
 
 
         // from_number番から to_number 番までのレスのフォント判定を更新
