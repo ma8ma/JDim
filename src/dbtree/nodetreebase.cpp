@@ -2,7 +2,7 @@
 
 //#define _DEBUG
 #include "jddebug.h"
-
+#include <unordered_map>
 #include "nodetreebase.h"
 #include "spchar_decoder.h"
 #include "interface.h"
@@ -96,14 +96,13 @@ NodeTreeBase::NodeTreeBase( const std::string& url, const std::string& modified 
     set_date_modified( modified );
 
     clear();
-
-    // ヘッダのポインタの配列作成
-    m_vec_header = ( NODE** ) m_heap.heap_alloc( sizeof( NODE* ) * MAX_RESNUMBER );
+    m_vec_header.reserve( MAX_RESNUMBER ) ;
 
     // ルートヘッダ作成。中は空。
     m_id_header = -1; // ルートヘッダIDが 0 になるように -1
-    NODE* tmpnode = create_node_header(); 
-    m_vec_header[ m_id_header ] = tmpnode;
+    NODE* tmpnode = create_node_header();
+    assert( m_id_header == m_vec_header.size() );
+    m_vec_header.push_back( tmpnode );
 
     m_default_noname = DBTREE::default_noname( m_url );
 
@@ -213,7 +212,7 @@ NODE* NodeTreeBase::res_header( int number )
 {
     if( number > m_id_header || number <= 0 ) return NULL;
     
-    return m_vec_header[ number ];
+    return m_vec_header.at( number );
 }
 
 
@@ -826,7 +825,7 @@ NODE* NodeTreeBase::create_node_header()
 
     // ヘッダ情報
     tmpnode->headinfo = ( HEADERINFO* )m_heap.heap_alloc( sizeof( HEADERINFO ) );
-    if( m_id_header >= 2 ) m_vec_header[ m_id_header -1 ]->headinfo->next_header = tmpnode;
+    if( m_id_header >= 2 ) m_vec_header.at( m_id_header -1 )->headinfo->next_header = tmpnode;
     
     return tmpnode;
 }
@@ -1068,7 +1067,8 @@ NODE* NodeTreeBase::append_html( const std::string& html )
 #endif
 
     NODE* header = create_node_header();
-    m_vec_header[ m_id_header ] = header;
+    assert( m_id_header == m_vec_header.size() );
+    m_vec_header.push_back( header ) ;
 
     init_loading();
     header->headinfo->block[ BLOCK_MES ] = create_node_block();
@@ -1555,7 +1555,8 @@ const char* NodeTreeBase::add_one_dat_line( const char* datline )
 
     size_t i;
     NODE* header = create_node_header();
-    m_vec_header[ m_id_header ] =  header;
+    assert( m_id_header == m_vec_header.size() );
+    m_vec_header.push_back( header ) ;
 
     // レス番号
     char tmplink[ LNG_RES ], tmpstr[ LNG_RES ];
@@ -2809,7 +2810,7 @@ bool NodeTreeBase::get_abone( int number )
 void NodeTreeBase::clear_abone()
 {
     for( int i = 1; i <= m_id_header; ++i ){
-        NODE* tmphead = m_vec_header[ i ];
+        NODE* tmphead = m_vec_header.at( i );
         if( tmphead && tmphead->headinfo ) tmphead->headinfo->abone = false;
     }
 }
@@ -3225,7 +3226,7 @@ bool NodeTreeBase::check_abone_chain( const int number )
 void NodeTreeBase::clear_reference()
 {
     for( int i = 1; i <= m_id_header; ++i ){
-        NODE* tmphead = m_vec_header[ i ];
+        NODE* tmphead = m_vec_header.at( i );
         if( tmphead && tmphead->headinfo && tmphead->headinfo->block[ BLOCK_NUMBER ]->next_node ){
             tmphead->headinfo->num_reference = 0;
             tmphead->headinfo->block[ BLOCK_NUMBER ]->next_node->color_text = COLOR_CHAR_LINK_RES;
@@ -3422,7 +3423,7 @@ void NodeTreeBase::inc_reference( NODE* head, const int count )
 void NodeTreeBase::clear_id_name()
 {
     for( int i = 1; i <= m_id_header; ++i ){
-        NODE* tmphead = m_vec_header[ i ];
+        NODE* tmphead = m_vec_header.at( i );
         if( tmphead && tmphead->headinfo && tmphead->headinfo->block[ BLOCK_ID_NAME ] ){
             tmphead->headinfo->num_id_name = 0;
             tmphead->headinfo->block[ BLOCK_ID_NAME ]->next_node->color_text = COLOR_CHAR;
@@ -3445,7 +3446,6 @@ void NodeTreeBase::update_id_name( const int from_number, const int to_number )
 }
 
 
-
 //
 // number番のレスの発言数を更新
 //
@@ -3463,7 +3463,7 @@ void NodeTreeBase::check_id_name( const int number )
     NODE* prehead = NULL;
     for( int i = header->id_header -1 ; i >= 1 ; --i ){
 
-        tmphead = m_vec_header[ i ];
+        tmphead = m_vec_header.at( i );
 
         if( tmphead
 //            && ! tmphead->headinfo->abone // 対象スレがあぼーんしていたらカウントしない

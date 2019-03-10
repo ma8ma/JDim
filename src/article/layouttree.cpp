@@ -55,7 +55,6 @@ using namespace ARTICLE;
 LayoutTree::LayoutTree( const std::string& url, const bool show_abone, const bool show_multispace )
     : m_heap( SIZE_OF_HEAP ),
       m_url( url ),
-      m_vec_header( NULL ),
       m_local_nodetree( 0 ),
       m_separator_header( NULL ),
       m_show_abone( show_abone ),
@@ -65,7 +64,7 @@ LayoutTree::LayoutTree( const std::string& url, const bool show_abone, const boo
 #ifdef _DEBUG
     std::cout << "LayoutTree::LayoutTree : url = " << url << " show_abone = " << m_show_abone << std::endl;
 #endif    
-
+    m_vec_header.reserve( MAX_RESNUMBER ) ;
     m_article = DBTREE::get_article( m_url );
     assert( m_article );
 
@@ -88,8 +87,8 @@ void LayoutTree::clear()
 {
     m_heap.clear();
 
-    m_vec_header = NULL;
-    
+    m_vec_header.clear();
+
     m_last_header = NULL;
     m_max_res_number = 0;
 
@@ -283,7 +282,6 @@ LAYOUT* LayoutTree::create_layout_sssp( const char* link )
     return tmplayout;
 }
 
-
 //
 // nodetreeのノード構造をコピーし、レイアウトツリーの一番最後に加える
 //
@@ -326,7 +324,6 @@ void LayoutTree::append_node( DBTREE::NODE* node_header, const bool joint )
         header->res_number = res_number;
         header->node = node_header;
         if( res_number > m_max_res_number ) m_max_res_number = res_number;
-        if( ! m_vec_header ) m_vec_header = ( LAYOUT** ) m_heap.heap_alloc( sizeof( LAYOUT* ) * MAX_RESNUMBER );
         m_vec_header[ res_number ] = header;
 
         while( dom ){
@@ -466,7 +463,6 @@ void LayoutTree::append_abone_node( DBTREE::NODE* node_header )
 {
     const int res_number = node_header->id_header;
     if( res_number > m_max_res_number ) m_max_res_number = res_number;
-    if( ! m_vec_header ) m_vec_header = ( LAYOUT** ) m_heap.heap_alloc( sizeof( LAYOUT* ) * MAX_RESNUMBER );
 
 #ifdef _DEBUG
     std::cout << "LayoutTree::append_abone_node num = " << res_number << std::endl;
@@ -556,7 +552,7 @@ const LAYOUT* LayoutTree::get_header_of_res_const( const int number ){ return ge
 
 LAYOUT* LayoutTree::get_header_of_res( const int number )
 {
-    if( ! m_vec_header ) return NULL;
+    if( m_vec_header.empty() || !m_vec_header.count( number ) ) return NULL;
     if( number > m_max_res_number || number <= 0 ) return NULL;
 
     return m_vec_header[ number ];
