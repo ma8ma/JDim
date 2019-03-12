@@ -28,6 +28,8 @@ enum
     MAX_IMGITEM = 512 // struct IMGDATA.item[] のサイズ
 };
 
+static_assert( kExpectedResNumber <= kMaxResNumber, "kExpectedResNumber must be less than kMaxResNumber." );
+
 
 // 埋め込み画像用構造体
 namespace ARTICLE
@@ -64,7 +66,7 @@ LayoutTree::LayoutTree( const std::string& url, const bool show_abone, const boo
 #ifdef _DEBUG
     std::cout << "LayoutTree::LayoutTree : url = " << url << " show_abone = " << m_show_abone << std::endl;
 #endif    
-    m_vec_header.reserve( MAX_RESNUMBER ) ;
+    m_vec_header.reserve( kExpectedResNumber ) ;
     m_article = DBTREE::get_article( m_url );
     assert( m_article );
 

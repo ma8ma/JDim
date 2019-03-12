@@ -11,14 +11,15 @@ enum{
     TIMER_TIMEOUT = 50, // msec  内部クロックの周期
     TIMER_TIMEOUT_SMOOTH_SCROLL = 33, // msec  スレビューのスムーススクロール描画用クロック周期
 
-    MAX_RESNUMBER = 11000, // 最大表示可能レス数
-
     MAX_MG_LNG = 5,  // マウスジェスチャの最大ストローク
 
     ICON_SIZE = 32 // 画像アイコンの大きさ
 };
 
+// NOTE: sizeof(int) >= 4を保証するためuniform initializationを使う
 constexpr int kExpectedResInfo{ 512 }; // しおり、書き込み、返信などレス情報の想定値(上限ではない)
+constexpr int kExpectedResNumber{ 11000 }; // 最大レス数の想定値(上限ではない)
+constexpr int kMaxResNumber{ 1048576 }; // 設定可能な最大レス数(2の20乗)
 
 
 // 書き込みビューの名前欄の空白

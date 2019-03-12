@@ -47,7 +47,7 @@ constexpr int LNG_ID = 256;
 constexpr size_t LNG_LINK = 256;
 constexpr size_t MAX_ANCINFO = 64;
 constexpr int RANGE_REF = 20;
-constexpr size_t MAX_LINK_DIGIT = 4;  // レスアンカーでMAX_LINK_DIGIT 桁までリンクにする
+constexpr size_t MAX_LINK_DIGIT = 7;  // レスアンカーでMAX_LINK_DIGIT 桁までリンクにする
 
 constexpr size_t MAXSISE_OF_LINES = 512 * 1024;  // ロード時に１回の呼び出しで読み込まれる最大データサイズ
 constexpr size_t SIZE_OF_HEAP = MAXSISE_OF_LINES + 64;
@@ -96,15 +96,16 @@ NodeTreeBase::NodeTreeBase( const std::string& url, const std::string& modified 
     set_date_modified( modified );
 
     clear();
-    m_vec_header.reserve( MAX_RESNUMBER ) ;
+    m_vec_header.reserve( kExpectedResNumber ) ;
     m_vec_posted.reserve( kExpectedResInfo );
     m_vec_refer_posted.reserve( kExpectedResInfo );
 
     // ルートヘッダ作成。中は空。
     m_id_header = -1; // ルートヘッダIDが 0 になるように -1
     NODE* tmpnode = create_node_header();
-    assert( m_id_header == m_vec_header.size() );
+    assert( static_cast< size_t >( m_id_header ) == m_vec_header.size() );
     m_vec_header.push_back( tmpnode );
+    assert( static_cast< size_t >( kMaxResNumber ) >= m_vec_header.size() );
 
     m_default_noname = DBTREE::default_noname( m_url );
 
@@ -1069,8 +1070,9 @@ NODE* NodeTreeBase::append_html( const std::string& html )
 #endif
 
     NODE* header = create_node_header();
-    assert( m_id_header == m_vec_header.size() );
+    assert( static_cast< size_t >( m_id_header ) == m_vec_header.size() );
     m_vec_header.push_back( header ) ;
+    assert( static_cast< size_t >( kMaxResNumber ) >= m_vec_header.size() );
 
     init_loading();
     header->headinfo->block[ BLOCK_MES ] = create_node_block();
@@ -1557,8 +1559,9 @@ const char* NodeTreeBase::add_one_dat_line( const char* datline )
 
     size_t i;
     NODE* header = create_node_header();
-    assert( m_id_header == m_vec_header.size() );
+    assert( static_cast< size_t >( m_id_header ) == m_vec_header.size() );
     m_vec_header.push_back( header ) ;
+    assert( static_cast< size_t >( kMaxResNumber ) >= m_vec_header.size() );
 
     // レス番号
     char tmplink[ LNG_RES ], tmpstr[ LNG_RES ];
@@ -3261,7 +3264,7 @@ void NodeTreeBase::check_reference( const int number )
 
     // 2重チェック防止用
     std::unordered_set< int > checked;
-    checked.reserve( MAX_RESNUMBER );
+    checked.reserve( kExpectedResNumber );
 
     const bool posted = !m_vec_posted.empty();
 
@@ -3323,7 +3326,7 @@ void NodeTreeBase::check_reference( const int number )
                         if( anc_from == 0 ) break;
                         ++anc;
 
-                        anc_to = MIN( anc_to, MAX_RESNUMBER );
+                        anc_to = MIN( anc_to, kMaxResNumber );
 
                         // >>1-1000 みたいなアンカーは弾く
                         if( anc_to - anc_from >= RANGE_REF ) continue;

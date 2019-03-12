@@ -797,7 +797,7 @@ void ArticleBase::set_abone_res( const int num_from, const int num_to, const boo
 {
     if( empty() ) return;
     if( num_from > num_to ) return;
-    if( num_from <= 0 || num_to >= MAX_RESNUMBER ) return;
+    if( num_from <= 0 || num_to > kMaxResNumber ) return;
 
 #ifdef _DEBUG
     std::cout << "ArticleBase::set_abone_res num_from = " << num_from << " num_to = " << num_to << " set = " << set << std::endl;
@@ -921,7 +921,7 @@ bool ArticleBase::is_bookmarked( const int number )
 void ArticleBase::set_bookmark( const int number, const bool set )
 {
     if( m_vec_bookmark.empty() ) get_nodetree();
-    if( number <= 0 || number > MAX_RESNUMBER ) return;
+    if( number <= 0 || number > kMaxResNumber ) return;
 
     m_save_info = true;
     if( set ) {
