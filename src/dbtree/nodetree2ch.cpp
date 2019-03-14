@@ -26,6 +26,7 @@ enum
 {
     MODE_NORMAL = 0,
     MODE_CGI,
+    MODE_OLDURL,
     MODE_KAKO_GZ,
     MODE_KAKO,
     MODE_KAKO_EXT,
@@ -192,10 +193,10 @@ void NodeTree2ch::create_loaderdata( JDLIB::LOADERDATA& data )
         else set_resume( false );
     }
 
-    // 普通の読み込み
+    // 普通もしくは旧URLからの読み込み
     else{
 
-        data.url = get_url();
+        data.url = ( m_mode == MODE_OLDURL ) ? m_org_url : get_url();
 
         // レジューム設定
         // 1byte前からレジュームして '\n' が返ってこなかったらあぼーんがあったってこと
@@ -265,6 +266,7 @@ void NodeTree2ch::receive_finish()
 
 /*
   (1) 読み込み( dat直接, read.cgi, API )
+  (1-1) 旧URLがある場合はそのURLで再取得
   (2) 過去ログ倉庫(gz)から読み込み (※1)
     ・スレIDが10桁の場合 → http://サーバ/板ID/kako/IDの上位4桁/IDの上位5桁/ID.dat.gz
     ・スレIDが9桁の場合 → http://サーバ/板ID/kako/IDの上位3桁/ID.dat.gz
@@ -282,11 +284,14 @@ void NodeTree2ch::receive_finish()
 
 */
 
+        // 旧URLがある場合、そのURLで再取得
+        if( m_mode == MODE_NORMAL && get_url() != m_org_url ) m_mode = MODE_OLDURL;
+
         // 過去ログ倉庫(gz圧縮)
-        if( m_mode <= MODE_CGI && m_since_time < 1380246829 ){
+        else if( m_mode <= MODE_OLDURL && m_since_time < 1380246829 ){
             // ただし 2008年1月1日以降に立てられたスレは除く
             if( m_since_time < 1199113200 ) m_mode = MODE_KAKO_GZ;
-            else m_mode = MODE_KAKO;
+            else if( m_mode != MODE_OLDURL ) m_mode = MODE_KAKO;
         }
 
         // 過去ログ倉庫
