@@ -2,7 +2,6 @@
 
 //#define _DEBUG
 #include "jddebug.h"
-#include <unordered_map>
 #include "nodetreebase.h"
 #include "spchar_decoder.h"
 #include "interface.h"
@@ -97,8 +96,8 @@ NodeTreeBase::NodeTreeBase( const std::string& url, const std::string& modified 
 
     clear();
     m_vec_header.reserve( kExpectedResNumber ) ;
-    m_vec_posted.reserve( kExpectedResInfo );
-    m_vec_refer_posted.reserve( kExpectedResInfo );
+    m_posts.reserve( kExpectedResInfo );
+    m_refer_posts.reserve( kExpectedResInfo );
 
     // ルートヘッダ作成。中は空。
     m_id_header = -1; // ルートヘッダIDが 0 になるように -1
@@ -1652,7 +1651,7 @@ const char* NodeTreeBase::add_one_dat_line( const char* datline )
 
             const bool hit = MESSAGE::get_log_manager()->check_write( m_url, newthread, m_buffer_write, 0 );
             if( hit ){
-                m_vec_posted.insert( header->id_header );
+                m_posts.insert( header->id_header );
             }
 
 #ifdef _DEBUG
@@ -2826,7 +2825,7 @@ void NodeTreeBase::copy_abone_info( const std::list< std::string >& list_abone_i
                                     const std::list< std::string >& list_abone_name,
                                     const std::list< std::string >& list_abone_word,
                                     const std::list< std::string >& list_abone_regex,
-                                    const std::unordered_set< int >& vec_abone_res,
+                                    const std::unordered_set< int >& abone_reses,
                                     const bool abone_transparent, const bool abone_chain, const bool abone_age,
                                     const bool abone_board, const bool abone_global )
 {
@@ -2848,7 +2847,7 @@ void NodeTreeBase::copy_abone_info( const std::list< std::string >& list_abone_i
     m_list_abone_word_global = MISC::replace_str_list( CONFIG::get_list_abone_word(), "\\n", "\n" );
     m_list_abone_regex_global = MISC::replace_str_list( CONFIG::get_list_abone_regex(), "\\n", "\n" );
 
-    m_vec_abone_res = vec_abone_res;
+    m_abone_reses = abone_reses;
 
     if( CONFIG::get_abone_transparent() ) m_abone_transparent = true;
     else m_abone_transparent = abone_transparent;
@@ -2913,7 +2912,7 @@ void NodeTreeBase::update_abone( const int from_number, const int to_number )
 //
 bool NodeTreeBase::check_abone_res( const int number )
 {
-    if( m_vec_abone_res.find( number ) == m_vec_abone_res.end() ) return false;
+    if( m_abone_reses.find( number ) == m_abone_reses.end() ) return false;
 
     NODE* head = res_header( number );
     if( ! head ) return false;
@@ -3266,7 +3265,7 @@ void NodeTreeBase::check_reference( const int number )
     std::unordered_set< int > checked;
     checked.reserve( kExpectedResNumber );
 
-    const bool posted = !m_vec_posted.empty();
+    const bool posted = !m_posts.empty();
 
     // 過去のレスから number 番へのアンカーがあった場合
     if( m_map_future_refer.size() ){
@@ -3282,7 +3281,7 @@ void NodeTreeBase::check_reference( const int number )
             std::cout << "found number = " << number << " size = " << size << std::endl;
 #endif
             // 過去のレスへ自分の書き込みへの参照マークを付ける
-            if( posted && m_vec_posted.find( number ) != m_vec_posted.end() ) {
+            if( posted && m_posts.find( number ) != m_posts.end() ) {
 
                 for( int i = 0; i < size; ++ i ){
 
@@ -3292,7 +3291,7 @@ void NodeTreeBase::check_reference( const int number )
 #endif
                     NODE* tmphead = res_header( from );
                     if( tmphead && ! tmphead->headinfo->abone ){
-                        m_vec_refer_posted.insert( from );
+                        m_refer_posts.insert( from );
                     }
                 }
             }
@@ -3376,8 +3375,8 @@ void NodeTreeBase::check_reference( const int number )
                                 checked.insert( i );
 
                                 // 自分の書き込みに対するレス
-                                if( posted && m_vec_posted.find( i ) != m_vec_posted.end() ) {
-                                    m_vec_refer_posted.insert( number );
+                                if( posted && m_posts.find( i ) != m_posts.end() ) {
+                                    m_refer_posts.insert( number );
 
 #ifdef _DEBUG
                                     std::cout << "ref " << i << " from " << number << std::endl;
@@ -3606,7 +3605,7 @@ int NodeTreeBase::convert_amp( char* text, const int n )
 // 自分の書き込みにレスしたか
 bool NodeTreeBase::is_refer_posted( const int number )
 {
-    return m_vec_refer_posted.find( number ) != m_vec_refer_posted.end();
+    return m_refer_posts.find( number ) != m_refer_posts.end();
 }
 
 
@@ -3614,10 +3613,10 @@ bool NodeTreeBase::is_refer_posted( const int number )
 void NodeTreeBase::set_posted( const int number, const bool set )
 {
     if( set ) {
-        m_vec_posted.insert( number );
+        m_posts.insert( number );
     }
     else {
-        m_vec_posted.erase( number );
+        m_posts.erase( number );
     }
 
     // 自分の書き込みに対するレス
@@ -3628,7 +3627,7 @@ void NodeTreeBase::set_posted( const int number, const bool set )
     if( set ){
         for( ; it_res != res_num.end(); ++it_res ){
             const int n = ( *it_res );
-            m_vec_refer_posted.insert( n );
+            m_refer_posts.insert( n );
         }
     }
     
@@ -3644,15 +3643,15 @@ void NodeTreeBase::set_posted( const int number, const bool set )
 
                 // 他の自分の書き込みに対するレスになっていないか？
                 ANCINFO* anchor = ( *it_anchor );
-                const auto end = m_vec_posted.end();
+                const auto end = m_posts.end();
                 for( int i = anchor->anc_from; i <= anchor->anc_to; i++ ){
                     // 他の自分の書き込みに対するレス
-                    if( m_vec_posted.find( i ) != end ) goto KEEP_POSTMARK;
+                    if( m_posts.find( i ) != end ) goto KEEP_POSTMARK;
                 }
             }
 
             // マークを解除する
-            m_vec_refer_posted.erase( n );
+            m_refer_posts.erase( n );
 KEEP_POSTMARK:;
         }
     }
@@ -3662,6 +3661,6 @@ KEEP_POSTMARK:;
 // 書き込み履歴のリセット
 void NodeTreeBase::clear_post_history()
 {
-    m_vec_posted.clear();
-    m_vec_refer_posted.clear();
+    m_posts.clear();
+    m_refer_posts.clear();
 }

@@ -84,7 +84,7 @@ namespace ARTICLE
         JDLIB::HEAP m_heap;
         std::string m_url;
 
-        std::unordered_map< int, LAYOUT* > m_vec_header;  // ヘッダのポインタの配列
+        std::unordered_map< int, LAYOUT* > m_header_map;  // ヘッダのポインタのハッシュマップ
 
         // コメントノードやプレビュー表示時に使うローカルなノードツリー
         DBTREE::NodeTreeBase* m_local_nodetree; 

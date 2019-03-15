@@ -66,7 +66,7 @@ LayoutTree::LayoutTree( const std::string& url, const bool show_abone, const boo
 #ifdef _DEBUG
     std::cout << "LayoutTree::LayoutTree : url = " << url << " show_abone = " << m_show_abone << std::endl;
 #endif    
-    m_vec_header.reserve( kExpectedResNumber ) ;
+    m_header_map.reserve( kExpectedResNumber ) ;
     m_article = DBTREE::get_article( m_url );
     assert( m_article );
 
@@ -89,7 +89,7 @@ void LayoutTree::clear()
 {
     m_heap.clear();
 
-    m_vec_header.clear();
+    m_header_map.clear();
 
     m_last_header = NULL;
     m_max_res_number = 0;
@@ -326,7 +326,7 @@ void LayoutTree::append_node( DBTREE::NODE* node_header, const bool joint )
         header->res_number = res_number;
         header->node = node_header;
         if( res_number > m_max_res_number ) m_max_res_number = res_number;
-        m_vec_header[ res_number ] = header;
+        m_header_map[ res_number ] = header;
 
         while( dom ){
             m_last_dom_attr = dom->attr;
@@ -474,7 +474,7 @@ void LayoutTree::append_abone_node( DBTREE::NODE* node_header )
     if( ! m_show_abone && m_article->get_abone_transparent() ) return;
 
     LAYOUT* head = create_layout_header();
-    m_vec_header[ res_number ] = head;
+    m_header_map[ res_number ] = head;
 
     head->res_number = res_number;
 
@@ -554,10 +554,10 @@ const LAYOUT* LayoutTree::get_header_of_res_const( const int number ){ return ge
 
 LAYOUT* LayoutTree::get_header_of_res( const int number )
 {
-    if( m_vec_header.empty() || !m_vec_header.count( number ) ) return NULL;
+    if( m_header_map.empty() || !m_header_map.count( number ) ) return nullptr;
     if( number > m_max_res_number || number <= 0 ) return NULL;
 
-    return m_vec_header[ number ];
+    return m_header_map[ number ];
 }
 
 
