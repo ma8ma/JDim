@@ -3591,8 +3591,10 @@ void NodeTreeBase::update_id_name( const int from_number, const int to_number )
         NODE* header = res_header( i );
         if( ! header ) continue;
         if( ! header->headinfo->block[ BLOCK_ID_NAME ] ) continue;
+        NODE* inode = header->headinfo->block[ BLOCK_ID_NAME ];
+        if( ! inode || ! inode->linkinfo ) continue;
 
-        std::string str_id = header->headinfo->block[ BLOCK_ID_NAME ]->next_node->linkinfo->link;
+        std::string str_id = inode->linkinfo->link;
         m_map_id_name_resnumber[ str_id ].insert( i );
     }
 
