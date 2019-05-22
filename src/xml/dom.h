@@ -100,7 +100,7 @@ namespace XML
         DomList getElementsByTagName( const std::string& name ) const;
 
         // プロパティを扱うアクセッサ
-        int nodeType() const { return m_nodeType; }
+        int nodeType() const noexcept { return m_nodeType; }
         const std::string& nodeName() const { return m_nodeName; }
         const std::string& nodeValue() const { return m_nodeValue; }
         void nodeValue( const std::string& value ) { m_nodeValue = value; }
@@ -114,8 +114,8 @@ namespace XML
         // を返すようにしてあります。
 
         Dom* ownerDocument() const;
-        Dom* parentNode() const { return m_parentNode; }
-        bool hasChildNodes() const { return ! m_childNodes.empty(); }
+        Dom* parentNode() const noexcept { return m_parentNode; }
+        bool hasChildNodes() const noexcept { return ! m_childNodes.empty(); }
         DomList childNodes() const;
         Dom* firstChild() const;
         Dom* lastChild() const;
@@ -127,7 +127,7 @@ namespace XML
         Dom* nextSibling() const;
 
         // 属性
-        bool hasAttributes() const { return ! m_attributes.empty(); }
+        bool hasAttributes() const noexcept { return ! m_attributes.empty(); }
         std::map< std::string, std::string >& attributes(){ return m_attributes; }
         void attributes( std::map< std::string, std::string > attributes )
         {
