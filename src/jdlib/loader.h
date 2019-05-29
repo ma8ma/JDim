@@ -12,9 +12,11 @@
 #include "loaderdata.h"
 #include "jdthread.h"
 
-#include <string>
-#include <list>
 #include <zlib.h>
+
+#include <list>
+#include <string>
+#include <vector>
 
 // zlibが1.2よりバージョンが低いか判定する
 #ifndef ZLIB_VERNUM
@@ -47,13 +49,13 @@ namespace JDLIB
         
         // 読み込みバッファ
         unsigned long m_lng_buf; 
-        char* m_buf;
+        std::vector< char > m_buf;
 
         // zlib 用のバッファ
         unsigned long m_lng_buf_zlib_in;
         unsigned long m_lng_buf_zlib_out;
-        Bytef* m_buf_zlib_in;
-        Bytef* m_buf_zlib_out;
+        std::vector< Bytef > m_buf_zlib_in;
+        std::vector< Bytef > m_buf_zlib_out;
 
         // chunk 用変数
         bool m_use_chunk;
