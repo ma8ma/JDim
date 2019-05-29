@@ -12,7 +12,6 @@
 #include "loaderdata.h"
 #include "jdthread.h"
 
-#include <netdb.h>
 #include <zlib.h>
 
 #include <list>
