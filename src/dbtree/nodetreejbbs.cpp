@@ -21,7 +21,7 @@
 #define APPEND_SECTION( num ) do {\
 if( lng_sec[ num ] ){ \
 assert( byte + lng_sec[ num ] < BUF_SIZE_ICONV_OUT ); \
-memcpy( m_decoded_lines + byte, lines + pos_sec[ num ], lng_sec[ num ] ); \
+memcpy( m_decoded_lines.data() + byte, lines + pos_sec[ num ], lng_sec[ num ] ); \
 byte += lng_sec[ num ]; \
 } } while( 0 )
 
@@ -38,7 +38,6 @@ enum
 
 NodeTreeJBBS::NodeTreeJBBS( const std::string& url, const std::string& date_modified )
     : NodeTreeBase( url, date_modified )
-    , m_decoded_lines( nullptr )
     , m_mode( MODE_NORMAL )
 {
 #ifdef _DEBUG
@@ -55,9 +54,6 @@ NodeTreeJBBS::~NodeTreeJBBS()
 
     // iconv 削除
     m_iconv.reset();
-
-    if( m_decoded_lines ) free( m_decoded_lines );
-    m_decoded_lines = NULL;
 }
 
 
@@ -74,8 +70,8 @@ void NodeTreeJBBS::clear()
     // iconv 削除
     m_iconv.reset();
 
-    if( m_decoded_lines ) free( m_decoded_lines );
-    m_decoded_lines = nullptr;
+    m_decoded_lines.clear();
+    m_decoded_lines.shrink_to_fit();
 }
 
 
@@ -94,7 +90,7 @@ void NodeTreeJBBS::init_loading()
     // iconv 初期化
     if( ! m_iconv ) m_iconv.reset( new JDLIB::Iconv( DBTREE::article_charcode( get_url() ), CHARCODE_UTF8 ) );
 
-    if( ! m_decoded_lines ) m_decoded_lines = ( char* )malloc( BUF_SIZE_ICONV_OUT );
+    if( m_decoded_lines.empty() ) m_decoded_lines.resize( BUF_SIZE_ICONV_OUT );
 }
 
 
@@ -186,7 +182,7 @@ enum
 const char* NodeTreeJBBS::raw2dat( char* rawlines, int& byte )
 {
     assert( m_iconv );
-    assert( m_decoded_lines != nullptr );
+    assert( !m_decoded_lines.empty() );
 
     int byte_lines;
     const char* lines = m_iconv->convert( rawlines, strlen( rawlines ), byte_lines );
@@ -236,19 +232,19 @@ const char* NodeTreeJBBS::raw2dat( char* rawlines, int& byte )
 #endif
                     char broken_str[] = "あぼ〜ん<><>あぼ〜ん<> あぼ〜ん <>\n";
                     int lng_broken = strlen( broken_str );
-                    memcpy( m_decoded_lines + byte, broken_str, lng_broken );
+                    memcpy( m_decoded_lines.data() + byte, broken_str, lng_broken );
                     byte += lng_broken;
                     ++number;
                 }
 
                 // 名前
                 APPEND_SECTION( 1 );
-                memcpy( m_decoded_lines + byte, "<>", 2 );
+                memcpy( m_decoded_lines.data() + byte, "<>", 2 );
                 byte += 2;
 
                 // メアド
                 APPEND_SECTION( 2 );
-                memcpy( m_decoded_lines + byte, "<>", 2 );
+                memcpy( m_decoded_lines.data() + byte, "<>", 2 );
                 byte += 2;
 
                 // 日付
@@ -258,18 +254,18 @@ const char* NodeTreeJBBS::raw2dat( char* rawlines, int& byte )
                 int i = 6;
                 if( lng_sec[ i ] ){
 
-                    memcpy( m_decoded_lines + byte, " ID:", 4 );
+                    memcpy( m_decoded_lines.data() + byte, " ID:", 4 );
                     byte += 4;
 
-                    memcpy( m_decoded_lines + byte, lines + pos_sec[ i ], lng_sec[ i ] );
+                    memcpy( m_decoded_lines.data() + byte, lines + pos_sec[ i ], lng_sec[ i ] );
                     byte += lng_sec[ i ];
                 }
-                memcpy( m_decoded_lines + byte, "<>", 2 );
+                memcpy( m_decoded_lines.data() + byte, "<>", 2 );
                 byte += 2;
 
                 // 本文
                 APPEND_SECTION( 4 );
-                memcpy( m_decoded_lines + byte, "<>", 2 );
+                memcpy( m_decoded_lines.data() + byte, "<>", 2 );
                 byte += 2;
 
                 // タイトル
@@ -314,7 +310,7 @@ const char* NodeTreeJBBS::raw2dat( char* rawlines, int& byte )
     std::cout << "byte = " << byte << std::endl;
 #endif
 
-    return m_decoded_lines;
+    return m_decoded_lines.data();
 }
 
 

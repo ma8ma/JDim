@@ -10,6 +10,7 @@
 #include "nodetreebase.h"
 
 #include <memory>
+#include <vector>
 
 namespace JDLIB
 {
@@ -22,7 +23,7 @@ namespace DBTREE
     class NodeTreeJBBS : public NodeTreeBase
     {
         std::unique_ptr< JDLIB::Iconv > m_iconv;
-        char* m_decoded_lines;
+        std::vector< char > m_decoded_lines;
         int m_mode; // 読み込みモード
         
       public:
