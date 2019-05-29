@@ -13,10 +13,13 @@
 #include "dbtree/spchar_decoder.h"
 #include "dbtree/node.h"
 
-#include <sstream>
-#include <cstring>
+#include "cssmanager.h"
+
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
+#include <memory>
+#include <sstream>
 
 
 //
@@ -1080,8 +1083,8 @@ std::string MISC::url_encode( const char* str, const size_t n, const CharCode co
     }
 
     std::string str_encoded;
-    JDLIB::Iconv* icv = NULL;
-    if( coding != CHARCODE_UTF8 ) icv = new JDLIB::Iconv( CHARCODE_UTF8, coding );
+    std::unique_ptr< JDLIB::Iconv > icv;
+    if( coding != CHARCODE_UTF8 ) icv.reset( new JDLIB::Iconv( CHARCODE_UTF8, coding ) );
     
     size_t pos = 0;
     while( pos < n ){
@@ -1107,7 +1110,7 @@ std::string MISC::url_encode( const char* str, const size_t n, const CharCode co
             }
         }
 
-        unsigned char c = str[ pos ];
+        const unsigned char c = str[ pos ];
 
         // 非予約文字はそのまま
         if( ( 'a' <= c && c <= 'z' ) || ( 'A' <= c && c <= 'Z' )
@@ -1139,8 +1142,6 @@ std::string MISC::url_encode( const char* str, const size_t n, const CharCode co
         str_encoded += str_tmp;
         ++pos;
     }
-
-    if( icv ) delete icv;
 
     return str_encoded;
 }

@@ -28,7 +28,6 @@ using namespace DBTREE;
 
 NodeTreeJBBS::NodeTreeJBBS( const std::string& url, const std::string& date_modified )
     : NodeTreeBase( url, date_modified )
-    , m_iconv( nullptr )
 {
 #ifdef _DEBUG
     std::cout << "NodeTreeJBBS::NodeTreeJBBS url = " << get_url() << " modified = " << date_modified << std::endl;
@@ -57,8 +56,7 @@ void NodeTreeJBBS::clear()
     NodeTreeBase::clear();
 
     // iconv 削除
-    if( m_iconv ) delete m_iconv;
-    m_iconv = nullptr;
+    m_iconv.reset();
 
     m_decoded_lines.clear();
     m_decoded_lines.shrink_to_fit();
@@ -78,7 +76,7 @@ void NodeTreeJBBS::init_loading()
     NodeTreeBase::init_loading();
 
     // iconv 初期化
-    if( ! m_iconv ) m_iconv = new JDLIB::Iconv( DBTREE::article_charcode( get_url() ), CHARCODE_UTF8 );
+    if( ! m_iconv ) m_iconv.reset( new JDLIB::Iconv( DBTREE::article_charcode( get_url() ), CHARCODE_UTF8 ) );
 
     if( m_decoded_lines.capacity() < BUF_SIZE_ICONV_OUT ) {
         m_decoded_lines.reserve( BUF_SIZE_ICONV_OUT );
@@ -129,7 +127,7 @@ enum
 
 const char* NodeTreeJBBS::raw2dat( char* rawlines, int& byte )
 {
-    assert( m_iconv != nullptr );
+    assert( m_iconv );
 
     int byte_lines;
     const char* lines = m_iconv->convert( rawlines, strlen( rawlines ), byte_lines );

@@ -14,6 +14,7 @@
 #include "cache.h"
 
 #include <cstring>
+#include <memory>
 
 enum
 {
@@ -174,10 +175,9 @@ void TextLoader::receive_finish()
     set_str_code( std::string() );
 
     // UTF-8に変換しておく
-    JDLIB::Iconv* libiconv = new JDLIB::Iconv( get_charcode(), CHARCODE_UTF8 );
+    auto libiconv = std::unique_ptr< JDLIB::Iconv >{ new JDLIB::Iconv( get_charcode(), CHARCODE_UTF8 ) };
     int byte_out;
     m_data = libiconv->convert( &*m_rawdata.begin(), m_rawdata.size(),  byte_out );
-    delete libiconv;
     clear();
 
 #ifdef _DEBUG

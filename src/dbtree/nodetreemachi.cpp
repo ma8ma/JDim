@@ -63,8 +63,7 @@ void NodeTreeMachi::clear()
     m_regex = nullptr;
 
     // iconv 削除
-    if( m_iconv ) delete m_iconv;
-    m_iconv = nullptr;
+    m_iconv.reset();
 
     m_decoded_lines.clear();
     m_decoded_lines.shrink_to_fit();
@@ -93,7 +92,7 @@ void NodeTreeMachi::init_loading()
     if( ! m_regex ) m_regex = new JDLIB::Regex();
 
     // iconv 初期化
-    if( ! m_iconv ) m_iconv = new JDLIB::Iconv( DBTREE::article_charcode( get_url() ), CHARCODE_UTF8 );
+    if( ! m_iconv ) m_iconv.reset( new JDLIB::Iconv( DBTREE::article_charcode( get_url() ), CHARCODE_UTF8 ) );
 
     m_buffer_for_200.clear();
 

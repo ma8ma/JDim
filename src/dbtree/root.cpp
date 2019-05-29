@@ -33,6 +33,7 @@
 #include <cstring>
 #include <sys/types.h> // chmod
 #include <sys/stat.h>
+#include <memory>
 
 #ifdef _TEST_CACHE
 int cache_hit1 = 0;
@@ -402,7 +403,7 @@ void Root::receive_finish()
     }
 
     // 文字コードを変換してXML作成
-    JDLIB::Iconv* libiconv = new JDLIB::Iconv( CHARCODE_SJIS, CHARCODE_UTF8 );
+    auto libiconv = std::unique_ptr< JDLIB::Iconv >( new JDLIB::Iconv( CHARCODE_SJIS, CHARCODE_UTF8 ) );
     int byte_out;
     const char* rawdata_utf8 = libiconv->convert( &*m_rawdata.begin(), m_rawdata.size(),  byte_out );
     bbsmenu2xml( rawdata_utf8 );
@@ -416,7 +417,6 @@ void Root::receive_finish()
         CORE::core_set_command( "update_bbslist" );
     }
 
-    if( libiconv ) delete libiconv;
     clear();
 }
 
