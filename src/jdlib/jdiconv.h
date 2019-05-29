@@ -6,10 +6,10 @@
 #include "charcode.h"
 
 #include <iconv.h>
-#include <string>
+#include <vector>
 
 
-constexpr std::size_t BUF_SIZE_ICONV_OUT = 512 * 1024;
+constexpr int BUF_SIZE_ICONV_OUT = 512 * 1024;
 
 
 namespace JDLIB
@@ -18,8 +18,7 @@ namespace JDLIB
     {
         iconv_t m_cd;
 
-        char* m_buf;
-        size_t m_buf_size;
+        std::vector< char > m_buf;
 
         CharCode m_coding_from;
         CharCode m_coding_to;

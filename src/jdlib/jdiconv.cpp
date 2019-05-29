@@ -10,10 +10,11 @@
 
 #include "config/globalconf.h"
 
-#include <errno.h>
-#include <cstring>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
+#include <errno.h>
+#include <string>
 
 
 namespace
@@ -37,7 +38,6 @@ using namespace JDLIB;
 
 Iconv::Iconv( const CharCode from, const CharCode to )
     : m_cd( (iconv_t)-1 )
-    , m_buf_size( BUF_SIZE_ICONV_OUT )
     , m_coding_from( from )
     , m_coding_to( to )
 {
@@ -45,7 +45,7 @@ Iconv::Iconv( const CharCode from, const CharCode to )
     std::cout << "Iconv::Iconv coding = " << m_coding_from << " to " << m_coding_to << std::endl;
 #endif
     
-    m_buf = ( char* )malloc( m_buf_size );
+    m_buf.resize( BUF_SIZE_ICONV_OUT );
     const char* from_str = MISC::charcode_to_cstr( ( from == CHARCODE_UNKNOWN ) ? to : from );
     const char* to_str = MISC::charcode_to_cstr( ( to == CHARCODE_UNKNOWN ) ? from : to );
     
@@ -81,9 +81,8 @@ Iconv::~Iconv()
 {
 #ifdef _DEBUG
     std::cout << "Iconv::~Iconv\n";
-#endif    
-    
-    if( m_buf ) free( m_buf );
+#endif
+
     if( m_cd != ( iconv_t ) -1 ) iconv_close( m_cd );
 }
 
@@ -99,8 +98,8 @@ const char* Iconv::convert( const char* str_in, int size_in, int& size_out )
     const char* buf_in_tmp = str_in;
     const char* buf_in_end = str_in + size_in;
 
-    char* buf_out_tmp = m_buf;
-    char* buf_out_end = m_buf + m_buf_size;
+    char* buf_out_tmp = m_buf.data();
+    char* buf_out_end = m_buf.data() + m_buf.size();
 
     const char* pre_check = nullptr; // 前回チェックしたUTF-8の先頭
 
@@ -170,12 +169,12 @@ const char* Iconv::convert( const char* str_in, int size_in, int& size_out )
                             const size_t lng_span_bgn = strlen( span_bgn );
                             const size_t lng_span_end = strlen( span_end );
 
-                            while( buf_out_tmp > m_buf && *( buf_out_tmp - 1 ) < 0 ) --buf_out_tmp;
+                            while( buf_out_tmp > m_buf.data() && *( buf_out_tmp - 1 ) < 0 ) --buf_out_tmp;
                             if( ( buf_out_tmp + lng + lng_span_bgn + lng_span_end ) >= buf_out_end ){
-                                const size_t used = buf_out_tmp - m_buf;
+                                const size_t used = buf_out_tmp - m_buf.data();
                                 if( ! grow() ) break;
-                                buf_out_tmp = m_buf + used;
-                                buf_out_end = m_buf + m_buf_size;
+                                buf_out_tmp = m_buf.data() + used;
+                                buf_out_end = m_buf.data() + m_buf.size();
                             }
                             memcpy( buf_out_tmp, span_bgn, lng_span_bgn );
                             buf_out_tmp += lng_span_bgn;
@@ -225,10 +224,10 @@ const char* Iconv::convert( const char* str_in, int size_in, int& size_out )
                         buf_in_tmp += byte;
 
                         if( ( buf_out_tmp + ucs_str.length() + 3 ) >= buf_out_end ){
-                            const size_t used = buf_out_tmp - m_buf;
+                            const size_t used = buf_out_tmp - m_buf.data();
                             if( ! grow() ) break;
-                            buf_out_tmp = m_buf + used;
-                            buf_out_end = m_buf + m_buf_size;
+                            buf_out_tmp = m_buf.data() + used;
+                            buf_out_end = m_buf.data() + m_buf.size();
                         }
 
                         *(buf_out_tmp++) = '&';
@@ -269,10 +268,10 @@ const char* Iconv::convert( const char* str_in, int size_in, int& size_out )
 
                 // BOFの確認
                 if( ( buf_out_end - buf_out_tmp ) <= 3 ){
-                    const size_t used = buf_out_tmp - m_buf;
+                    const size_t used = buf_out_tmp - m_buf.data();
                     if( ! grow() ) break;
-                    buf_out_tmp = m_buf + used;
-                    buf_out_end = m_buf + m_buf_size;
+                    buf_out_tmp = m_buf.data() + used;
+                    buf_out_end = m_buf.data() + m_buf.size();
                 }
 
                 // UTF-8へ変換する場合はREPLACEMENT CHARACTERに置き換える
@@ -300,32 +299,29 @@ const char* Iconv::convert( const char* str_in, int size_in, int& size_out )
 #ifdef _DEBUG_ICONV
                 MISC::ERRMSG( "iconv E2BIG\n" );
 #endif
-                const size_t used = buf_out_tmp - m_buf;
+                const size_t used = buf_out_tmp - m_buf.data();
                 if( ! grow() ) break;
-                buf_out_tmp = m_buf + used;
-                buf_out_end = m_buf + m_buf_size;
+                buf_out_tmp = m_buf.data() + used;
+                buf_out_end = m_buf.data() + m_buf.size();
                 continue;
             }
         }
     
     } while( buf_in_tmp < buf_in_end );
 
-    size_out = buf_out_tmp - m_buf;
+    size_out = buf_out_tmp - m_buf.data();
     *buf_out_tmp = '\0';
     
 #ifdef _DEBUG
     std::cout << "Iconv::convert size_out = " << size_out << std::endl;
 #endif
-    return m_buf;
+    return m_buf.data();
 }
 
 
 
 bool Iconv::grow()
 {
-    m_buf_size += BUF_SIZE_ICONV_OUT;
-    char *tmp = ( char* )realloc( m_buf, m_buf_size );
-    if( ! tmp ) return false;
-    m_buf = tmp;
+    m_buf.resize( m_buf.size() + BUF_SIZE_ICONV_OUT );
     return true;
 }
