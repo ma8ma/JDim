@@ -22,6 +22,7 @@
 #include "httpcode.h"
 
 #include <cstring>
+#include <memory>
 
 
 namespace {
@@ -242,10 +243,11 @@ void Post::receive_finish()
     std::cout << "Post::receive_finish\n";
 #endif
 
-    JDLIB::Iconv* libiconv = new JDLIB::Iconv( CHARCODE_UTF8, DBTREE::board_charcode( m_url ) );
+    auto libiconv = std::unique_ptr< JDLIB::Iconv >{
+        new JDLIB::Iconv( CHARCODE_UTF8, DBTREE::board_charcode( m_url ) ) };
     int byte_out;
     m_return_html = libiconv->convert( &*m_rawdata.begin(), m_rawdata.size(), byte_out );
-    delete libiconv;
+    libiconv.reset();
 
 #ifdef _DEBUG
     std::cout << "code = " << get_code() << std::endl;

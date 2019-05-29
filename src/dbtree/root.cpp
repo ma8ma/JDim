@@ -33,6 +33,7 @@
 #include <cstring>
 #include <sys/types.h> // chmod
 #include <sys/stat.h>
+#include <memory>
 
 #ifdef _TEST_CACHE
 int cache_hit1 = 0;
