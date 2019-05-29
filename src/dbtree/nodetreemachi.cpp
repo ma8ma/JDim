@@ -31,7 +31,6 @@ NodeTreeMachi::NodeTreeMachi( const std::string& url, const std::string& date_mo
     : NodeTreeBase( url, date_modified )
     , m_regex( nullptr )
     , m_iconv( nullptr )
-    , m_decoded_lines( nullptr )
     , m_buffer( nullptr )
     , m_buffer_for_200( nullptr )
 {
@@ -66,8 +65,7 @@ void NodeTreeMachi::clear()
     m_regex = nullptr;
 
     // iconv 削除
-    if( m_iconv ) delete m_iconv;
-    m_iconv = nullptr;
+    m_iconv.reset();
 
     if( m_decoded_lines ) free( m_decoded_lines );
     m_decoded_lines = nullptr;
@@ -96,7 +94,7 @@ void NodeTreeMachi::init_loading()
     if( ! m_regex ) m_regex = new JDLIB::Regex();
 
     // iconv 初期化
-    if( ! m_iconv ) m_iconv = new JDLIB::Iconv( DBTREE::article_charcode( get_url() ), CHARCODE_UTF8 );
+    if( ! m_iconv ) m_iconv.reset( new JDLIB::Iconv( DBTREE::article_charcode( get_url() ), CHARCODE_UTF8 ) );
 
     if( ! m_decoded_lines ) m_decoded_lines = ( char* )malloc( BUF_SIZE_ICONV_OUT );
     if( ! m_buffer ) m_buffer = ( char* )malloc( BUF_SIZE_ICONV_OUT + 64 );

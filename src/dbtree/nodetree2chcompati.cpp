@@ -17,7 +17,6 @@ using namespace DBTREE;
 
 NodeTree2chCompati::NodeTree2chCompati( const std::string& url, const std::string& date_modified )
     : NodeTreeBase( url, date_modified )
-    , m_iconv( nullptr )
 {
 #ifdef _DEBUG
     std::cout << "NodeTree2chCompati::NodeTree2chCompati url = " << url << " modified = " << date_modified << std::endl;
@@ -32,9 +31,6 @@ NodeTree2chCompati::~NodeTree2chCompati()
 #ifdef _DEBUG    
     std::cout << "NodeTree2chCompati::~NodeTree2chCompati : " << get_url() << std::endl;
 #endif
-
-    // iconv 削除
-    if( m_iconv ) delete m_iconv;
 }
 
 
@@ -50,9 +46,7 @@ void NodeTree2chCompati::clear()
 
     NodeTreeBase::clear();
 
-    // iconv 削除
-    if( m_iconv ) delete m_iconv;
-    m_iconv = nullptr;
+    m_iconv.reset();
 }
 
 
@@ -69,7 +63,7 @@ void NodeTree2chCompati::init_loading()
     NodeTreeBase::init_loading();
 
     // iconv 初期化
-    if( ! m_iconv ) m_iconv = new JDLIB::Iconv( DBTREE::article_charcode( get_url() ), CHARCODE_UTF8 );
+    if( ! m_iconv ) m_iconv.reset( new JDLIB::Iconv( DBTREE::article_charcode( get_url() ), CHARCODE_UTF8 ) );
 }
 
 
@@ -136,7 +130,7 @@ char* NodeTree2chCompati::skip_status_line( char* pos, int status )
 //
 const char* NodeTree2chCompati::raw2dat( char* rawlines, int& byte )
 {
-    assert( m_iconv != nullptr );
+    assert( m_iconv );
 
     // バッファ自体はiconvクラスの中で持っているのでポインタだけもらう
     return  m_iconv->convert( rawlines, strlen( rawlines ), byte );

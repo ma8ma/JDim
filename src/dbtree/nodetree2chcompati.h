@@ -9,6 +9,8 @@
 
 #include "nodetreebase.h"
 
+#include <memory>
+
 namespace JDLIB
 {
     class Iconv;
@@ -18,7 +20,7 @@ namespace DBTREE
 {
     class NodeTree2chCompati : public NodeTreeBase
     {
-        JDLIB::Iconv* m_iconv;
+        std::unique_ptr< JDLIB::Iconv > m_iconv;
 
       public:
 

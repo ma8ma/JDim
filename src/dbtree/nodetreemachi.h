@@ -9,6 +9,8 @@
 
 #include "nodetreebase.h"
 
+#include <memory>
+
 namespace JDLIB
 {
     class Iconv;
@@ -21,7 +23,7 @@ namespace DBTREE
     class NodeTreeMachi : public NodeTreeBase
     {
         JDLIB::Regex* m_regex;
-        JDLIB::Iconv* m_iconv;
+        std::unique_ptr< JDLIB::Iconv > m_iconv;
         char* m_decoded_lines;
         char* m_buffer;
         char* m_buffer_for_200;  // HTTP200が来た時のdat落ち判定用

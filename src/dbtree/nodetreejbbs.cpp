@@ -29,7 +29,6 @@ using namespace DBTREE;
 
 NodeTreeJBBS::NodeTreeJBBS( const std::string& url, const std::string& date_modified )
     : NodeTreeBase( url, date_modified )
-    , m_iconv( nullptr )
     , m_decoded_lines( nullptr )
 {
 #ifdef _DEBUG
@@ -46,8 +45,7 @@ NodeTreeJBBS::~NodeTreeJBBS()
 
     clear();
     // iconv 削除
-    if( m_iconv ) delete m_iconv;
-    m_iconv = NULL;
+    m_iconv.reset();
 }
 
 
@@ -62,8 +60,7 @@ void NodeTreeJBBS::clear()
     NodeTreeBase::clear();
 
     // iconv 削除
-    if( m_iconv ) delete m_iconv;
-    m_iconv = nullptr;
+    m_iconv.reset();
 
     if( m_decoded_lines ) free( m_decoded_lines );
     m_decoded_lines = nullptr;
@@ -83,7 +80,7 @@ void NodeTreeJBBS::init_loading()
     NodeTreeBase::init_loading();
 
     // iconv 初期化
-    if( ! m_iconv ) m_iconv = new JDLIB::Iconv( DBTREE::article_charcode( get_url() ), CHARCODE_UTF8 );
+    if( ! m_iconv ) m_iconv.reset( new JDLIB::Iconv( DBTREE::article_charcode( get_url() ), CHARCODE_UTF8 ) );
 
     if( ! m_decoded_lines ) m_decoded_lines = ( char* )malloc( BUF_SIZE_ICONV_OUT );
 }
@@ -131,7 +128,7 @@ enum
 
 const char* NodeTreeJBBS::raw2dat( char* rawlines, int& byte )
 {
-    assert( m_iconv != nullptr );
+    assert( m_iconv );
     assert( m_decoded_lines != nullptr );
 
     int byte_lines;

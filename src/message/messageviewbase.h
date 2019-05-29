@@ -10,6 +10,8 @@
 #include "skeleton/compentry.h"
 #include "skeleton/jdtoolbar.h"
 
+#include <memory>
+
 #if GTKMM_CHECK_VERSION(3,0,0)
 using GtkNotebookPage = Gtk::Widget;
 #endif
@@ -62,7 +64,7 @@ namespace MESSAGE
         bool m_enable_focus;
 
         // 文字数計算用
-        JDLIB::Iconv* m_iconv;
+        std::unique_ptr< JDLIB::Iconv > m_iconv;
         int m_max_line;
         int m_max_str;
         int m_lng_str_enc;
