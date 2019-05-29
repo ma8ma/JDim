@@ -26,8 +26,6 @@ using namespace DBTREE;
 
 BoardJBBS::BoardJBBS( const std::string& root, const std::string& path_board, const std::string& name )
     : BoardBase( root, path_board, name )
-    , m_settingloader( NULL )
-    , m_ruleloader( NULL )
 {
     // dat のURLは特殊なので url_datpath()をオーバライドする
     set_path_dat( "" );
@@ -211,10 +209,10 @@ void BoardJBBS::load_rule_setting()
     std::cout << "BoardJBBS::load_rule_setting" << std::endl;
 #endif
 
-    if( ! m_ruleloader ) m_ruleloader = new RuleLoader( url_boardbase() );
+    if( ! m_ruleloader ) m_ruleloader.reset( new RuleLoader( url_boardbase() ) );
     m_ruleloader->load_text( CHARCODE_SJIS );
 
-    if( ! m_settingloader ) m_settingloader = new SettingLoader( url_boardbase() );
+    if( ! m_settingloader ) m_settingloader.reset( new SettingLoader( url_boardbase() ) );
     m_settingloader->load_text( get_charcode() );
 }
 
@@ -230,10 +228,10 @@ void BoardJBBS::download_rule_setting()
     std::cout << "BoardJBBS::download_rule_setting" << std::endl;
 #endif
 
-    if( ! m_ruleloader ) m_ruleloader = new RuleLoader( url_boardbase() );
+    if( ! m_ruleloader ) m_ruleloader.reset( new RuleLoader( url_boardbase() ) );
     m_ruleloader->download_text( CHARCODE_SJIS );
 
-    if( ! m_settingloader ) m_settingloader = new SettingLoader( url_boardbase() );
+    if( ! m_settingloader ) m_settingloader.reset( new SettingLoader( url_boardbase() ) );
     m_settingloader->download_text( get_charcode() );
 }
 

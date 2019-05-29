@@ -9,6 +9,8 @@
 
 #include "boardbase.h"
 
+#include <memory>
+
 namespace DBTREE
 {
     class SettingLoader;
@@ -16,8 +18,8 @@ namespace DBTREE
 
     class BoardJBBS : public BoardBase
     {
-        SettingLoader* m_settingloader;
-        RuleLoader* m_ruleloader;
+        std::unique_ptr< SettingLoader > m_settingloader;
+        std::unique_ptr< RuleLoader > m_ruleloader;
 
       public:
 
@@ -41,7 +43,7 @@ namespace DBTREE
 
         // SETTING.TXT のURL
         std::string url_settingtxt() override;
-        // SETTING.TXT 
+        // SETTING.TXT
         std::string settingtxt() override;
         std::string default_noname() override;
 
