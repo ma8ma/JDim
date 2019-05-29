@@ -6,11 +6,12 @@
 #include "charcode.h"
 
 #include <string>
+#include <vector>
 
 #include <gmodule.h> // GIConv
 
 
-constexpr std::size_t BUF_SIZE_ICONV_OUT = 512 * 1024;
+constexpr int BUF_SIZE_ICONV_OUT = 512 * 1024;
 
 
 namespace JDLIB
@@ -19,8 +20,7 @@ namespace JDLIB
     {
         GIConv m_cd; // iconv実装は環境で違いがあるためGlibのラッパーAPIを利用する
 
-        char* m_buf;
-        size_t m_buf_size;
+        std::vector< char > m_buf;
 
         CharCode m_coding_from;
         CharCode m_coding_to;
