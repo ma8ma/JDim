@@ -170,6 +170,11 @@ namespace MISC
     {
         return url_encode( str.c_str(), str.length(), charcode );
     }
+    template< std::size_t N >
+    inline std::string url_encode( const char (&str)[N], const CharCode charcode = CHARCODE_UTF8 )
+    {
+        return url_encode( str, N - 1, charcode );
+    }
 
     // 半角スペースまたは "" 単位で区切って url エンコード
     std::string url_encode_split( const std::string& str, const CharCode charcode );
