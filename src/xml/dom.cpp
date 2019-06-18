@@ -73,11 +73,9 @@ Dom::Dom( const Dom& dom )
 //
 void Dom::clear()
 {
-    std::list< Dom* >::iterator it = m_childNodes.begin();
-    while( it != m_childNodes.end() )
+    for( Dom* child : m_childNodes )
     {
-        if( *it ) delete *it;
-        ++it;
+        if( child ) delete child;
     }
 
     m_childNodes.clear();
@@ -491,14 +489,13 @@ void Dom::append_treestore( Glib::RefPtr< Gtk::TreeStore >& treestore,
                              const Gtk::TreeModel::Row& parent )
 {
     // ノードの子要素を走査
-    std::list< Dom* >::iterator it = m_childNodes.begin();
-    while( it != m_childNodes.end() )
+    for( Dom* child : m_childNodes )
     {
-        const int node_type = (*it)->nodeType();
+        const int node_type = child->nodeType();
 
         if( node_type == NODE_TYPE_ELEMENT )
         {
-            const int type = XML::get_type( (*it)->nodeName() );
+            const int type = XML::get_type( child->nodeName() );
 
             if( type != TYPE_UNKNOWN )
             {
@@ -509,22 +506,21 @@ void Dom::append_treestore( Glib::RefPtr< Gtk::TreeStore >& treestore,
                 else row = *( treestore->append() );
 
                 // 各値をセット
-                columns.setup_row( row, (*it)->getAttribute( "url" ), (*it)->getAttribute( "name" ), (*it)->getAttribute( "data" ), type, 0 );
+                columns.setup_row( row, child->getAttribute( "url" ), child->getAttribute( "name" ), child->getAttribute( "data" ), type, 0 );
 
                 if( type == TYPE_DIR ){
 
-                    row[ columns.m_dirid ] = atoi( (*it)->getAttribute( "dirid" ).c_str() );
+                    // 変換失敗のときは0
+                    row[ columns.m_dirid ] = std::atoi( child->getAttribute( "dirid" ).c_str() );
 
                     // 開いているツリーを追加
-                    if( (*it)->getAttribute( "open" ) == "y" ) list_path_expand.push_back( treestore->get_path( row ) );
+                    if( child->getAttribute( "open" ) == "y" ) list_path_expand.push_back( treestore->get_path( row ) );
                 }
 
                 // 再帰
-                if( (*it)->hasChildNodes() ) (*it)->append_treestore( treestore, columns, list_path_expand, row );
+                if( child->hasChildNodes() ) child->append_treestore( treestore, columns, list_path_expand, row );
             }
         }
-
-        ++it;
     }
 }
 
@@ -537,18 +533,16 @@ Dom* Dom::getElementById( const std::string& id ) const
 {
     Dom* node = nullptr;
 
-    std::list< Dom* >::const_iterator it = m_childNodes.cbegin();
-    while( it != m_childNodes.cend() )
+    for( Dom* child : m_childNodes )
     {
-        if( (*it)->nodeType() == NODE_TYPE_ELEMENT )
+        if( child->nodeType() == NODE_TYPE_ELEMENT )
         {
-            if( (*it)->getAttribute( "id" ) == id ) node = *it;
+            if( child->getAttribute( "id" ) == id ) node = child;
             // 再帰
-            else if( (*it)->hasChildNodes() ) node = (*it)->getElementById( id );
+            else if( child->hasChildNodes() ) node = child->getElementById( id );
 
             if( node ) break;
         }
-        ++it;
     }
 
     return node;
@@ -562,18 +556,16 @@ DomList Dom::getElementsByTagName( const std::string& name ) const
 {
     DomList domlist;
 
-    std::list< Dom* >::const_iterator it = m_childNodes.cbegin();
-    while( it != m_childNodes.cend() )
+    for( Dom* child : m_childNodes )
     {
-        if( (*it)->nodeType() == NODE_TYPE_ELEMENT )
+        if( child->nodeType() == NODE_TYPE_ELEMENT )
         {
-            if( (*it)->nodeName() == name ) domlist.push_back( *it );
+            if( child->nodeName() == name ) domlist.push_back( child );
 
             // 再帰
-            DomList sub_nodes = (*it)->getElementsByTagName( name );
+            DomList sub_nodes = child->getElementsByTagName( name );
             domlist.splice( domlist.end(), sub_nodes );
         }
-        ++it;
     }
 
     return domlist;
@@ -602,12 +594,7 @@ Dom* Dom::ownerDocument() const
 //
 DomList Dom::childNodes() const
 {
-    DomList result;
-
-    // DomList に std::list< Dom* > を代入している
-    result = m_childNodes;
-
-    return result;
+    return m_childNodes;
 }
 
 
@@ -618,24 +605,16 @@ void Dom::copy_childNodes( const Dom& dom )
 {
     clear();
 
-    DomList children;
-    children = dom.m_childNodes;
+    for( Dom* child : dom.m_childNodes )
+    {
+        Dom* node = new Dom( child->nodeType(), child->nodeName() );
 
-    if( children.size() ){
+        node->nodeValue( child->nodeValue() );
+        node->parentNode( this );
+        node->attributes( child->attributes() );
+        node->copy_childNodes( *child );
 
-        std::list< Dom* >::iterator it = children.begin();
-        while( it != children.end() )
-        {
-            Dom* node = new Dom( (*it)->nodeType(), (*it)->nodeName() );
-            node->nodeValue( (*it)->nodeValue() );
-            node->parentNode( this );
-            node->attributes( (*it)->attributes() );
-            node->copy_childNodes( *(*it) );
-
-            m_childNodes.push_back( node );
-
-            ++it;
-        }
+        m_childNodes.push_back( node );
     }
 }
 

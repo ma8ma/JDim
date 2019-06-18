@@ -28,8 +28,12 @@ namespace XML
         DomList() = default;
         ~DomList() noexcept = default;
 
+        DomList( const std::list< Dom* >& list ) : m_list{ list } {}
+        DomList( std::list< Dom* >&& list ) : m_list{ std::move( list ) } {}
+
         // std::list< Dom* > が代入された場合
         DomList& operator =( const std::list< Dom* >& list ){ m_list = list; return *this; }
+        DomList& operator =( std::list< Dom* >&& list ){ m_list = std::move( list ); return *this; }
 
         // 添字によるアクセス
         Dom* operator []( const unsigned int n );

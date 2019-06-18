@@ -411,13 +411,12 @@ void Root::bbsmenu2xml( const std::string& menu )
     // 現在の仕様では HTML > BODY > font[size="2"] の子要素が対象
     XML::DomList targets = html.getElementsByTagName( "font" )[0]->childNodes();
     if( targets.empty() ) targets = html.getElementsByTagName( "small" )[0]->childNodes();
-    std::list< XML::Dom* >::iterator it = targets.begin();
-    while( it != targets.end() )
+    for( const XML::Dom* target : targets )
     {
         // 要素b( カテゴリ名 )
-        if( (*it)->nodeName() == "b" )
+        if( target->nodeName() == "b" )
         {
-            const std::string category = MISC::chref_decode( (*it)->firstChild()->nodeValue() );
+            const std::string category = MISC::chref_decode( target->firstChild()->nodeValue() );
 
             // 追加しないカテゴリ
             if( category == "チャット"
@@ -425,7 +424,6 @@ void Root::bbsmenu2xml( const std::string& menu )
              || category == "他のサイト" )
             {
                 enabled = false;
-                ++it;
                 continue;
             }
             else enabled = true;
@@ -435,10 +433,10 @@ void Root::bbsmenu2xml( const std::string& menu )
             subdir->setAttribute( "name", category );
         }
         // 要素bに続く要素a( 板URL )
-        else if( subdir && enabled && (*it)->nodeName() == "a" )
+        else if( subdir && enabled && target->nodeName() == "a" )
         {
-            const std::string board_name = MISC::chref_decode( (*it)->firstChild()->nodeValue() );
-            const std::string url = (*it)->getAttribute( "href" );
+            const std::string board_name = MISC::chref_decode( target->firstChild()->nodeValue() );
+            const std::string url = target->getAttribute( "href" );
 
             // 板として扱うURLかどうかで要素名を変える
             std::string element_name;
@@ -454,8 +452,6 @@ void Root::bbsmenu2xml( const std::string& menu )
             board->setAttribute( "name", board_name );
             board->setAttribute( "url", url );
         }
-
-        ++it;
     }
 
     root->setAttribute( "date_modified", get_date_modified() );
@@ -475,18 +471,13 @@ void Root::analyze_board_xml()
     m_analyzing_board_xml = true;
     m_analyzed_path_board.clear();
 
-    XML::DomList boards = m_xml_document.getElementsByTagName( "board" );
-
-    std::list< XML::Dom* >::iterator it = boards.begin();
-    while( it != boards.end() )
+    for( const XML::Dom* board : m_xml_document.getElementsByTagName( "board" ) )
     {
-        const std::string name = (*it)->getAttribute( "name" );
-        const std::string url = (*it)->getAttribute( "url" );
+        const std::string name = board->getAttribute( "name" );
+        const std::string url = board->getAttribute( "url" );
 
         //板情報セット
         set_board( url, name );
-
-        ++it;
     }
 
     // 移転があった
