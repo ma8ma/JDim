@@ -5,26 +5,21 @@
 
 #include "heap.h"
 
-#include <cstdlib>
-#include <cstring>
-
 using namespace JDLIB;
 
-HEAP::HEAP( long blocksize )
-    : m_max( blocksize ),
-      m_used( 0 ),
-      m_total_size( 0 )
+HEAP::HEAP( std::size_t blocksize ) noexcept
+    : m_max( blocksize )
 {
-#ifdef _DEBUG        
-    std::cout << "HEAP::HEAP : max = " << m_max << std::endl;
+#ifdef _DEBUG
+    std::cout << "HEAP::HEAP: block size = " << m_max << std::endl;
 #endif
 }
 
 
 HEAP::~HEAP()
 {
-#ifdef _DEBUG        
-    std::cout << "HEAP::~HEAP : size " << m_total_size << " max =" << m_max << std::endl;
+#ifdef _DEBUG
+    std::cout << "HEAP::~HEAP: block size = " << m_max << " number = " << m_heap_list.size() << std::endl;
 #endif
 
     clear();
@@ -33,44 +28,40 @@ HEAP::~HEAP()
 
 void HEAP::clear()
 {
-#ifdef _DEBUG        
-    std::cout << "HEAP::crear max = " << m_max <<  " total = " << m_total_size << std::endl;
+#ifdef _DEBUG
+    std::cout << "HEAP::clear: block size = " << m_max << " number = " << m_heap_list.size() << std::endl;
 #endif
 
-    m_total_size = 0;
-    m_used = 0;
-    
-    std::list< unsigned char* >::iterator it;
-    for( it = m_heap_list.begin(); it != m_heap_list.end(); ++it ){
-        free( (*it) );
-    }
+    m_space = 0;
     m_heap_list.clear();
 }
 
 
-unsigned char* HEAP::heap_alloc( long n )
+void* HEAP::heap_alloc( std::size_t size, std::size_t align )
 {
-    assert( n > 0 && n <= m_max );
+    assert( m_max > size && size > 0 );
+    assert( size >= align );
 
-    if( m_used == 0 || m_used + n > m_max ){
-
-        m_heap_list.push_back( ( unsigned char* )malloc( m_max ) );
-        memset( m_heap_list.back(), 0, m_max );
-        m_used = 0;
-
+    while(1) {
+        if( !m_ptr || m_space < size ) {
+            m_heap_list.emplace_back( new unsigned char[m_max]{} );
+            m_ptr = &m_heap_list.back()[0];
+            m_space = m_max;
 #ifdef _DEBUG
-        std::cout << "HEAP::heap_alloc malloc max = " << m_max <<  " total = " << m_total_size + n << std::endl;
+            std::cout << "HEAP::heap_alloc: block size = " << m_max << " number = " << m_heap_list.size() << std::endl;
 #endif
-    }
+        }
 
-    unsigned char* heap = m_heap_list.back() + m_used;
-#ifdef __i386__
-    if( n & 3 ) n = ( n + 4 ) & ~ 3;
-#else // __x86_64__ or etc
-    if( n & 7 ) n = ( n + 8 ) & ~ 7;
-#endif
-    m_used += n;
-    m_total_size += n;
-    
-    return heap;
+        // アライメント調整された指定サイズのバッファを探す
+        if(std::align( align, size, m_ptr, m_space )) {
+            void* result = m_ptr;
+            m_ptr = std::next( reinterpret_cast<unsigned char*>(m_ptr), size );
+            m_space -= size;
+            return result;
+        }
+        else {
+            m_ptr = nullptr;
+            m_space = 0;
+        }
+    }
 }
