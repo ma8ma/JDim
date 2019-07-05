@@ -2,7 +2,6 @@ sources = [
   'article2ch.cpp',
   'article2chcompati.cpp',
   'articlebase.cpp',
-  'articlehash.cpp',
   'articlejbbs.cpp',
   'articlelocal.cpp',
   'articlemachi.cpp',

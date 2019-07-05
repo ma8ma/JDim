@@ -9,10 +9,11 @@
 #include "jdlib/jdregex.h"
 #include "skeleton/loadable.h"
 
-#include <string>
-#include <list>
-#include <vector>
 #include <ctime>
+#include <list>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 #ifdef _WIN32
 #include <sys/time.h>
@@ -48,13 +49,14 @@ namespace DBTREE
 
     class Root;
     class ArticleBase;
-    class ArticleHash;
+
+    using ArticleHash = std::unordered_map< std::string, ArticleBase* >;
 
     class BoardBase : public SKELETON::Loadable
     {
         // ArticleBaseクラス のキャッシュ
         // ArticleBaseクラスは一度作ったら~BoardBase()以外ではdeleteしないこと
-        ArticleHash* m_hash_article;
+        ArticleHash m_hash_article;
 
         // subject.txt から作ったArticleBaseクラスのポインタのリスト
         // subject.txt と同じ順番で、ロードされるたびに更新される
@@ -214,9 +216,9 @@ namespace DBTREE
 
         ARTICLE_INFO_LIST& get_list_artinfo(){ return m_list_artinfo; }
 
-        ArticleHash* get_hash_article(){ return m_hash_article; }
         std::list< std::string >& get_url_update_views(){ return  m_url_update_views; }
 
+        void insert_to_hashmap( ArticleBase* article );
         ArticleBase* get_article_null();
         ArticleBase* get_article( const std::string& datbase, const std::string& id );
         ArticleBase* get_article_create( const std::string& datbase, const std::string& id );
