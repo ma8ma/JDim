@@ -5,7 +5,6 @@
 
 #include "board2chcompati.h"
 #include "article2chcompati.h"
-#include "articlehash.h"
 #include "settingloader.h"
 #include "ruleloader.h"
 
@@ -254,7 +253,7 @@ ArticleBase* Board2chCompati::append_article( const std::string& datbase, const 
 
     ArticleBase* article = new DBTREE::Article2chCompati( datbase, id, cached, get_charcode() );
     if( article ){
-        get_hash_article()->push( article );
+        insert_to_hashmap( article );
     }
     else return get_article_null();
     

@@ -5,7 +5,6 @@
 
 #include "boardjbbs.h"
 #include "articlejbbs.h"
-#include "articlehash.h"
 #include "settingloader.h"
 #include "ruleloader.h"
 
@@ -69,7 +68,7 @@ ArticleBase* BoardJBBS::append_article( const std::string& datbase, const std::s
 
     ArticleBase* article = new DBTREE::ArticleJBBS( datbase, id, cached, get_charcode() );
     if( article ){
-        get_hash_article()->push( article );
+        insert_to_hashmap( article );
     }
     else return get_article_null();
 

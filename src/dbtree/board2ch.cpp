@@ -5,7 +5,6 @@
 
 #include "board2ch.h"
 #include "article2ch.h"
-#include "articlehash.h"
 
 #include "config/globalconf.h"
 
@@ -257,7 +256,7 @@ ArticleBase* Board2ch::append_article( const std::string& datbase, const std::st
 
     ArticleBase* article = new DBTREE::Article2ch( datbase, id, cached, get_charcode() );
     if( article ){
-        get_hash_article()->push( article );
+        insert_to_hashmap( article );
     }
     else return get_article_null();
 
