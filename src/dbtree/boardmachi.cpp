@@ -5,7 +5,6 @@
 
 #include "boardmachi.h"
 #include "articlemachi.h"
-#include "articlehash.h"
 
 #include "jdlib/miscutil.h"
 #include "jdlib/miscmsg.h"
@@ -80,7 +79,7 @@ ArticleBase* BoardMachi::append_article( const std::string& datbase, const std::
 
     ArticleBase* article = new DBTREE::ArticleMachi( datbase, id, cached, get_charcode() );
     if( article ){
-        get_hash_article()->push( article );
+        insert_to_hashmap( article );
     }
     else return get_article_null();
 
