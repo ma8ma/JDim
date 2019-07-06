@@ -12,6 +12,7 @@
 #include <ctime>
 #include <list>
 #include <string>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
@@ -50,13 +51,14 @@ namespace DBTREE
     class Root;
     class ArticleBase;
 
-    using ArticleHash = std::unordered_map< std::string, ArticleBase* >;
-
     class BoardBase : public SKELETON::Loadable
     {
+        template< typename T, typename std::enable_if< std::is_pointer<T>::value, std::nullptr_t >::type = nullptr >
+        using owner = T;
+
         // ArticleBaseクラス のキャッシュ
         // ArticleBaseクラスは一度作ったら~BoardBase()以外ではdeleteしないこと
-        ArticleHash m_hash_article;
+        std::unordered_map< std::string, owner<ArticleBase*> > m_hash_article;
 
         // subject.txt から作ったArticleBaseクラスのポインタのリスト
         // subject.txt と同じ順番で、ロードされるたびに更新される
@@ -217,7 +219,7 @@ namespace DBTREE
 
         std::list< std::string >& get_url_update_views(){ return  m_url_update_views; }
 
-        void insert_to_hashmap( ArticleBase* article );
+        void insert_to_hashmap( owner<ArticleBase*> article );
         ArticleBase* get_article_null();
         ArticleBase* get_article( const std::string& datbase, const std::string& id );
         ArticleBase* get_article_create( const std::string& datbase, const std::string& id );

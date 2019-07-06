@@ -104,7 +104,7 @@ BoardBase::~BoardBase()
 }
 
 
-void BoardBase::insert_to_hashmap( ArticleBase* article )
+void BoardBase::insert_to_hashmap( owner<ArticleBase*> article )
 {
     m_hash_article.emplace( article->get_url(), article );
 }
