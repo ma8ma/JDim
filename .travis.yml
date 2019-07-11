@@ -70,6 +70,19 @@ matrix:
             - libgnutls28-dev
             - libgcrypt20-dev
 
+    - name: "manual build"
+      os: linux
+      language: ruby
+      rvm: 2.4.5
+      cache: bundler
+      sudo: false
+      env: NOKOGIRI_USE_SYSTEM_LIBRARIES=true
+      addons:
+        apt:
+          packages:
+            - libcurl4-openssl-dev
+      script: make -j3 -C docs build
+
 install:
   - travis_retry git clone --depth 1 --branch master https://github.com/google/googletest.git test/googletest
 
