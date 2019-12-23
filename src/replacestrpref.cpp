@@ -485,7 +485,7 @@ void ReplaceStrPref::slot_delete()
 //
 void ReplaceStrPref::slot_add()
 {
-    constexpr ReplaceStrCondition condition = { { true, false, false, false, false } };
+    const ReplaceStrCondition condition = { { true, false, false, false, false } };
     ReplaceStrDiag dlg( this, condition.raw, "", "" );
     if( dlg.run() == Gtk::RESPONSE_OK )
         append_row( m_current_store, dlg.get_condition(),
