@@ -90,7 +90,7 @@ LayoutTree::~LayoutTree()
 
 void LayoutTree::clear()
 {
-    m_heap_default.clear();
+    m_heap_default.clear_while_keeping_blocks();
 
     m_map_header.clear();
     
@@ -783,7 +783,7 @@ void LayoutTree::hide_layout_refer_posts_from_newres()
     // 内部 heap 清掃
     if ( m_local_nodetree_newres ) m_local_nodetree_newres->~NodeTreeBase();
     m_local_nodetree_newres = nullptr;
-    m_heap_refer_posts_from_newres.clear();
+    m_heap_refer_posts_from_newres.clear_while_keeping_blocks();
 }
 
 //
