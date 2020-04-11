@@ -269,6 +269,8 @@ namespace DBTREE
         // 新着返信レス取得
         const std::set<int>& get_refer_posts_from_newres () const noexcept { return m_refer_posts_from_newres; }
 
+        void clear_while_keeping_blocks();
+
       protected:
 
         virtual void clear();

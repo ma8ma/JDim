@@ -110,7 +110,7 @@ void LayoutTree::clear()
     m_separator_header = create_separator();
 
     // 新着返信関連削除
-    if ( m_local_nodetree_newres ) m_local_nodetree_newres->~NodeTreeBase();
+    if ( m_local_nodetree_newres ) delete m_local_nodetree_newres;
     m_local_nodetree_newres = nullptr;
     m_heap_refer_posts_from_newres.clear();
     m_refer_posts_from_newres_number = 0;
@@ -727,9 +727,9 @@ void LayoutTree::create_layout_refer_posts_from_newres()
         html += std::to_string( res_number );
     }
 
-
-    m_local_nodetree_newres = m_heap_refer_posts_from_newres.heap_alloc<DBTREE::NodeTreeBase>();
-    m_local_nodetree_newres = new( m_local_nodetree_newres ) DBTREE::NodeTreeBase( m_url, std::string(), SIZE_OF_HEAP_REFER_POSTS_LOCAL_NODE );
+    if( ! m_local_nodetree_newres ) {
+        m_local_nodetree_newres = new DBTREE::NodeTreeBase( m_url, std::string(), SIZE_OF_HEAP_REFER_POSTS_LOCAL_NODE );
+    }
     DBTREE::NODE* node_header = m_local_nodetree_newres->append_html( html );
 
     append_block( node_header->headinfo->block[ DBTREE::BLOCK_MES ], 0, nullptr, 0, &m_heap_refer_posts_from_newres );
@@ -784,8 +784,7 @@ void LayoutTree::hide_layout_refer_posts_from_newres()
     m_refer_posts_from_newres_header = nullptr;
 
     // 内部 heap 清掃
-    if ( m_local_nodetree_newres ) m_local_nodetree_newres->~NodeTreeBase();
-    m_local_nodetree_newres = nullptr;
+    if ( m_local_nodetree_newres ) m_local_nodetree_newres->clear_while_keeping_blocks();
     m_heap_refer_posts_from_newres.clear_while_keeping_blocks();
 }
 

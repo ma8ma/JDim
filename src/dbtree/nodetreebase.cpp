@@ -194,6 +194,53 @@ void NodeTreeBase::clear()
 }
 
 
+void NodeTreeBase::clear_while_keeping_blocks()
+{
+    // clear()からコピー
+    //
+    m_buffer_lines.clear();
+    m_parsed_text.clear();
+    m_buffer_write.clear();
+    if( m_fout ) fclose( m_fout );
+    m_fout = nullptr;
+    m_ext_err.clear();
+
+    // ブロックを確保したまま使用状況をリセット
+    m_heap.clear_while_keeping_blocks();
+    m_vec_header.clear();
+    m_posts.clear();
+    m_refer_posts.clear();
+    m_map_future_refer.clear();
+    m_map_id_name_resnumber.clear();
+
+    // コンストラクタからコピー
+    //
+    // ルートヘッダ作成。中は空。
+    m_id_header = -1; // ルートヘッダIDが 0 になるように -1
+    NODE* tmpnode = create_node_header();
+    assert( tmpnode );
+    assert( m_vec_header.size() == static_cast< decltype( m_vec_header.size() ) >( m_id_header ) );
+    m_vec_header.push_back( tmpnode );
+
+    m_default_noname = DBTREE::default_noname( m_url );
+
+    // 参照で色を変える回数
+    m_num_reference[ LINK_HIGH ] = CONFIG::get_num_reference_high();
+    m_num_reference[ LINK_LOW ] = CONFIG::get_num_reference_low();
+
+    // 発言数で色を変える回数
+    m_num_id[ LINK_HIGH ] = CONFIG::get_num_id_high();
+    m_num_id[ LINK_LOW ] = CONFIG::get_num_id_low();
+
+    // レスにアスキーアートがあると判定する正規表現
+    if( CONFIG::get_aafont_enabled() ){
+        m_aa_regex = CONFIG::get_regex_res_aa();
+    } else {
+        m_aa_regex = std::string();
+    }
+}
+
+
 //
 // 総レス数
 //
