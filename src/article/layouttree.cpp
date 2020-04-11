@@ -69,7 +69,6 @@ LayoutTree::LayoutTree( const std::string& url, const bool show_abone, const boo
     std::cout << "LayoutTree::LayoutTree : url = " << url << " show_abone = " << m_show_abone << std::endl;
 #endif    
 
-    m_heap = &m_heap_default;
     m_article = DBTREE::get_article( m_url );
     assert( m_article );
 
@@ -120,9 +119,10 @@ void LayoutTree::clear()
 
 
 // RECTANGLE型のメモリ確保
-RECTANGLE* LayoutTree::create_rect()
+RECTANGLE* LayoutTree::create_rect( JDLIB::HEAP* heap )
 {
-    RECTANGLE* rect = m_heap->heap_alloc<RECTANGLE>();
+    if( ! heap ) heap = &m_heap_default;
+    RECTANGLE* rect = heap->heap_alloc<RECTANGLE>();
     rect->end = true;
 
     return rect;
@@ -132,9 +132,10 @@ RECTANGLE* LayoutTree::create_rect()
 //
 // 基本レイアウトノード作成
 //
-LAYOUT* LayoutTree::create_layout( const int type )
+LAYOUT* LayoutTree::create_layout( const int type, JDLIB::HEAP* heap )
 {
-    LAYOUT* tmplayout = m_heap->heap_alloc<LAYOUT>();
+    if( ! heap ) heap = &m_heap_default;
+    LAYOUT* tmplayout = heap->heap_alloc<LAYOUT>();
     tmplayout->type = type;
     tmplayout->id_header = m_id_header; 
     tmplayout->id = m_id_layout++;
@@ -172,9 +173,10 @@ LAYOUT* LayoutTree::create_layout_header()
 //
 //　テキストノード作成
 //
-LAYOUT* LayoutTree::create_layout_text( const char* text, const unsigned char* color_text, bool bold )
+LAYOUT* LayoutTree::create_layout_text( const char* text, const unsigned char* color_text, bool bold,
+                                        JDLIB::HEAP* heap )
 {
-    LAYOUT* tmplayout = create_layout( DBTREE::NODE_TEXT );
+    LAYOUT* tmplayout = create_layout( DBTREE::NODE_TEXT, heap );
     m_last_layout->next_layout = tmplayout;
     m_last_layout = tmplayout;
 
@@ -190,9 +192,10 @@ LAYOUT* LayoutTree::create_layout_text( const char* text, const unsigned char* c
 //
 //　リンクノード作成
 //
-LAYOUT* LayoutTree::create_layout_link( const char* text, const char* link, const unsigned char* color_text, bool bold )
+LAYOUT* LayoutTree::create_layout_link( const char* text, const char* link, const unsigned char* color_text, bool bold,
+                                        JDLIB::HEAP* heap )
 {
-    LAYOUT* tmplayout = create_layout_text( text, color_text, bold );
+    LAYOUT* tmplayout = create_layout_text( text, color_text, bold, heap );
 
     tmplayout->type = DBTREE::NODE_LINK;
     tmplayout->link = link;
@@ -203,7 +206,8 @@ LAYOUT* LayoutTree::create_layout_link( const char* text, const char* link, cons
 
 // 発言回数(IDの出現数)ノード
 //
-LAYOUT* LayoutTree::create_layout_idnum( const char* text, const unsigned char* color_text, bool bold )
+LAYOUT* LayoutTree::create_layout_idnum( const char* text, const unsigned char* color_text, bool bold,
+                                         JDLIB::HEAP* heap )
 {
     LAYOUT* tmplayout = create_layout_text( text, color_text, bold );
     tmplayout->type = DBTREE::NODE_IDNUM;
@@ -215,12 +219,12 @@ LAYOUT* LayoutTree::create_layout_idnum( const char* text, const unsigned char* 
 //
 // 改行ノード作成
 //
-LAYOUT* LayoutTree::create_layout_br( const bool nobr )
+LAYOUT* LayoutTree::create_layout_br( const bool nobr, JDLIB::HEAP* heap )
 {
     if( nobr ){
-        return create_layout_text( " ", nullptr, false );
+        return create_layout_text( " ", nullptr, false, heap );
     }
-    LAYOUT* tmplayout = create_layout( DBTREE::NODE_BR );
+    LAYOUT* tmplayout = create_layout( DBTREE::NODE_BR, heap );
     m_last_layout->next_layout = tmplayout;
     m_last_layout = tmplayout;
     return tmplayout;
@@ -230,9 +234,9 @@ LAYOUT* LayoutTree::create_layout_br( const bool nobr )
 //
 // 水平線ノード作成
 //
-LAYOUT* LayoutTree::create_layout_hr()
+LAYOUT* LayoutTree::create_layout_hr( JDLIB::HEAP* heap )
 {
-    LAYOUT* tmplayout = create_layout( DBTREE::NODE_HR );
+    LAYOUT* tmplayout = create_layout( DBTREE::NODE_HR, heap );
     m_last_layout->next_layout = tmplayout;
     m_last_layout = tmplayout;
     return tmplayout;
@@ -242,9 +246,9 @@ LAYOUT* LayoutTree::create_layout_hr()
 //
 // 水平スペースノード作成
 //
-LAYOUT* LayoutTree::create_layout_hspace( const int type )
+LAYOUT* LayoutTree::create_layout_hspace( const int type, JDLIB::HEAP* heap )
 {
-    LAYOUT* tmplayout = create_layout( type );
+    LAYOUT* tmplayout = create_layout( type, heap );
     m_last_layout->next_layout = tmplayout;
     m_last_layout = tmplayout;
     return tmplayout;
@@ -254,15 +258,16 @@ LAYOUT* LayoutTree::create_layout_hspace( const int type )
 //
 // divノード作成
 //
-LAYOUT* LayoutTree::create_layout_div( const int id )
+LAYOUT* LayoutTree::create_layout_div( const int id, JDLIB::HEAP* heap )
 {
-    LAYOUT* div = create_layout( DBTREE::NODE_DIV );
+    if( ! heap ) heap = &m_heap_default;
+    LAYOUT* div = create_layout( DBTREE::NODE_DIV, heap );
     if( m_last_layout ) m_last_layout->next_layout = div;
     m_last_layout = div;
 
     m_last_div = div;
 
-    div->css = m_heap->heap_alloc<CORE::CSS_PROPERTY>();
+    div->css = heap->heap_alloc<CORE::CSS_PROPERTY>();
     *div->css = CORE::get_css_manager()->get_property( id );
 
     return div;
@@ -272,9 +277,9 @@ LAYOUT* LayoutTree::create_layout_div( const int id )
 //
 // img ノード作成
 //
-LAYOUT* LayoutTree::create_layout_img( const char* link )
+LAYOUT* LayoutTree::create_layout_img( const char* link, JDLIB::HEAP* heap )
 {
-    LAYOUT* tmplayout = create_layout( DBTREE::NODE_IMG );
+    LAYOUT* tmplayout = create_layout( DBTREE::NODE_IMG, heap );
     m_last_layout->next_layout = tmplayout;
     m_last_layout = tmplayout;
     tmplayout->link = link;
@@ -286,9 +291,9 @@ LAYOUT* LayoutTree::create_layout_img( const char* link )
 //
 // sssp ノード作成
 //
-LAYOUT* LayoutTree::create_layout_sssp( const char* link )
+LAYOUT* LayoutTree::create_layout_sssp( const char* link, JDLIB::HEAP* heap )
 {
-    LAYOUT* tmplayout = create_layout_img( link );
+    LAYOUT* tmplayout = create_layout_img( link, heap );
     tmplayout->type = DBTREE::NODE_SSSP;
 
     return tmplayout;
@@ -392,7 +397,8 @@ void LayoutTree::append_node( DBTREE::NODE* node_header, const bool joint )
 //
 // 名前やメールなどのブロックのコピー
 //
-void LayoutTree::append_block( DBTREE::NODE* block, const int res_number, IMGDATA* imgdata, const int dom_attr )
+void LayoutTree::append_block( DBTREE::NODE* block, const int res_number, IMGDATA* imgdata, const int dom_attr,
+                               JDLIB::HEAP* heap )
 {
     if( ! block ) return;
 
@@ -405,12 +411,12 @@ void LayoutTree::append_block( DBTREE::NODE* block, const int res_number, IMGDAT
         switch( tmpnode->type ){
         
             case DBTREE::NODE_TEXT:
-                tmplayout = create_layout_text( tmpnode->text, &tmpnode->color_text, tmpnode->bold );
+                tmplayout = create_layout_text( tmpnode->text, &tmpnode->color_text, tmpnode->bold, heap );
                 break;
 
             case DBTREE::NODE_LINK:
                 tmplayout = create_layout_link( tmpnode->text, tmpnode->linkinfo->link,
-                                                &tmpnode->color_text, tmpnode->bold );
+                                                &tmpnode->color_text, tmpnode->bold, heap );
                 // 画像リンクのurlを集める
                 if( imgdata && tmpnode->linkinfo->imglink && imgdata->num < MAX_IMGITEM ){
 
@@ -423,7 +429,7 @@ void LayoutTree::append_block( DBTREE::NODE* block, const int res_number, IMGDAT
             case DBTREE::NODE_SSSP:
 
                 if( CONFIG::get_show_ssspicon() ){
-                    tmplayout = create_layout_sssp( tmpnode->linkinfo->link );
+                    tmplayout = create_layout_sssp( tmpnode->linkinfo->link, heap );
                 }
                 else{
                     // 次が改行ノードの時は飛ばす
@@ -434,27 +440,28 @@ void LayoutTree::append_block( DBTREE::NODE* block, const int res_number, IMGDAT
                 break;
 
             case DBTREE::NODE_IDNUM:
-                tmplayout = create_layout_idnum( tmpnode->text, &tmpnode->color_text, tmpnode->bold );
+                tmplayout = create_layout_idnum( tmpnode->text, &tmpnode->color_text, tmpnode->bold, heap );
                 break;
 
             case DBTREE::NODE_BR:
-                tmplayout = create_layout_br( dom_attr & CORE::DOMATTR_NOBR );
+                tmplayout = create_layout_br( dom_attr & CORE::DOMATTR_NOBR, heap );
                 break;
 
             case DBTREE::NODE_HR:
-                tmplayout = create_layout_hr();
+                tmplayout = create_layout_hr( heap );
                 break;
             
             case DBTREE::NODE_ZWSP: // 幅0スペース
-                tmplayout = create_layout_hspace( tmpnode->type );
+                tmplayout = create_layout_hspace( tmpnode->type, heap );
                 break;
 
             case DBTREE::NODE_MULTISP: // 連続半角スペース
-                if( m_show_multispace ) tmplayout = create_layout_text( tmpnode->text, &tmpnode->color_text, tmpnode->bold );
+                if( m_show_multispace ) tmplayout = create_layout_text( tmpnode->text, &tmpnode->color_text, tmpnode->bold,
+                                                                        heap );
                 break;
 
             case DBTREE::NODE_HTAB: // 水平タブ
-                tmplayout = create_layout_hspace( tmpnode->type );
+                tmplayout = create_layout_hspace( tmpnode->type, heap );
                 break;
         }
 
@@ -587,7 +594,7 @@ LAYOUT* LayoutTree::create_separator()
     LAYOUT* header = create_layout_div( classid );
     header->type = DBTREE::NODE_HEADER;
 
-    DBTREE::NODE* node = m_heap->heap_alloc<DBTREE::NODE>();
+    DBTREE::NODE* node = m_heap_default.heap_alloc<DBTREE::NODE>();
     node->fontid = FONT_DEFAULT; // デフォルトフォントを設定
     header->node = node;
 
@@ -694,9 +701,6 @@ void LayoutTree::create_layout_refer_posts_from_newres()
     }
     if ( v_newres.empty() ) return;
 
-    // 内部 heap切り替え
-    m_heap = &m_heap_refer_posts_from_newres;
-
     // layoutの履歴保存
     LAYOUT* last_layout_preserve = m_last_layout;
     LAYOUT* last_div_preserve = m_last_div;
@@ -706,10 +710,10 @@ void LayoutTree::create_layout_refer_posts_from_newres()
 
     // CSSはセパレータのものを流用
     int classid = CORE::get_css_manager()->get_classid( "separator" );
-    LAYOUT* header = create_layout_div( classid );
+    LAYOUT* header = create_layout_div( classid, &m_heap_refer_posts_from_newres );
     header->type = DBTREE::NODE_HEADER;
 
-    DBTREE::NODE* node = m_heap->heap_alloc<DBTREE::NODE>();
+    DBTREE::NODE* node = m_heap_refer_posts_from_newres.heap_alloc<DBTREE::NODE>();
     node->fontid = FONT_DEFAULT; // デフォルトフォントを設定
     header->node = node;
 
@@ -724,21 +728,20 @@ void LayoutTree::create_layout_refer_posts_from_newres()
     }
 
 
-    m_local_nodetree_newres = m_heap->heap_alloc<DBTREE::NodeTreeBase>();
+    m_local_nodetree_newres = m_heap_refer_posts_from_newres.heap_alloc<DBTREE::NodeTreeBase>();
     m_local_nodetree_newres = new( m_local_nodetree_newres ) DBTREE::NodeTreeBase( m_url, std::string(), SIZE_OF_HEAP_REFER_POSTS_LOCAL_NODE );
     DBTREE::NODE* node_header = m_local_nodetree_newres->append_html( html );
 
-    append_block( node_header->headinfo->block[ DBTREE::BLOCK_MES ], 0 );
+    append_block( node_header->headinfo->block[ DBTREE::BLOCK_MES ], 0, nullptr, 0, &m_heap_refer_posts_from_newres );
 
     // RECTANGLEのメモリを予め確保
     LAYOUT* layout = header;
     while( layout ){
-        layout->rect = create_rect();
+        layout->rect = create_rect( &m_heap_refer_posts_from_newres );
         layout = layout->next_layout;
     }
 
-    // heap, layout履歴を元に戻す
-    m_heap = &m_heap_default;
+    // layout履歴を元に戻す
     m_last_layout = last_layout_preserve;
     m_last_div = last_div_preserve;
     m_id_layout = id_layout_preserve;
@@ -823,4 +826,3 @@ void LayoutTree::insert_layout_refer_posts_from_newres()
     std::cout << "inserted before = " << num_tmp << std::endl;
 #endif
 }
-

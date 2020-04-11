@@ -81,7 +81,6 @@ namespace ARTICLE
         // 高速化のため直接アクセス
         JDLIB::RefPtr_Lock< DBTREE::ArticleBase > m_article; 
 
-        JDLIB::HEAP *m_heap; // 現在使っているheap
         JDLIB::HEAP m_heap_default; // デフォルトのheap
         JDLIB::HEAP m_heap_refer_posts_from_newres; // 新着返信用のheap
         std::string m_url;
@@ -134,7 +133,7 @@ namespace ARTICLE
         void clear();
 
         // RECTANGLE型のメモリ確保
-        RECTANGLE* create_rect();
+        RECTANGLE* create_rect( JDLIB::HEAP* heap = nullptr );
 
         LAYOUT* top_header() const { return m_root_header->next_header; }
         const LAYOUT* last_header() const { return m_last_header; }
@@ -145,7 +144,8 @@ namespace ARTICLE
         // joint == true の時はヘッダを作らないで、本文を前のツリーの続きに連結する
         void append_node( DBTREE::NODE* node_header, const bool joint );
 
-        void append_block( DBTREE::NODE* block, const int res_number, IMGDATA* imgdata = nullptr, const int dom_attr = 0 );
+        void append_block( DBTREE::NODE* block, const int res_number, IMGDATA* imgdata = nullptr, const int dom_attr = 0,
+                           JDLIB::HEAP* heap = nullptr );
 
         // html をパースして追加
         void append_html( const std::string& html );
@@ -171,17 +171,20 @@ namespace ARTICLE
 
       private:
         
-        LAYOUT* create_layout( const int type );
+        LAYOUT* create_layout( const int type, JDLIB::HEAP* heap = nullptr );
         LAYOUT* create_layout_header();
-        LAYOUT* create_layout_text( const char* text, const unsigned char* color_text, bool bold );
-        LAYOUT* create_layout_link( const char* text, const char* link, const unsigned char* color_text, bool bold );
-        LAYOUT* create_layout_idnum( const char* text, const unsigned char* color_text, bool bold );
-        LAYOUT* create_layout_br( const bool nobr = false );
-        LAYOUT* create_layout_hr();
-        LAYOUT* create_layout_hspace( const int type );
-        LAYOUT* create_layout_div( const int id );
-        LAYOUT* create_layout_img( const char* link );
-        LAYOUT* create_layout_sssp( const char* link );
+        LAYOUT* create_layout_text( const char* text, const unsigned char* color_text, bool bold,
+                                    JDLIB::HEAP* heap = nullptr );
+        LAYOUT* create_layout_link( const char* text, const char* link, const unsigned char* color_text, bool bold,
+                                    JDLIB::HEAP* heap = nullptr );
+        LAYOUT* create_layout_idnum( const char* text, const unsigned char* color_text, bool bold,
+                                    JDLIB::HEAP* heap = nullptr );
+        LAYOUT* create_layout_br( const bool nobr = false, JDLIB::HEAP* heap = nullptr );
+        LAYOUT* create_layout_hr( JDLIB::HEAP* heap = nullptr );
+        LAYOUT* create_layout_hspace( const int type, JDLIB::HEAP* heap = nullptr );
+        LAYOUT* create_layout_div( const int id, JDLIB::HEAP* heap = nullptr );
+        LAYOUT* create_layout_img( const char* link, JDLIB::HEAP* heap = nullptr );
+        LAYOUT* create_layout_sssp( const char* link, JDLIB::HEAP* heap = nullptr );
 
         void append_abone_node( DBTREE::NODE* node_header );
         LAYOUT* create_separator();
