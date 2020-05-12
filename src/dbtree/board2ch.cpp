@@ -11,7 +11,6 @@
 
 #include "jdlib/miscutil.h"
 #include "jdlib/misctime.h"
-#include "jdlib/jdregex.h"
 
 #include "login2ch.h"
 #include "loginbe.h"
@@ -125,7 +124,7 @@ std::string Board2ch::cookie_for_write()
 #endif
 
     std::string cookie = Board2chCompati::cookie_for_write();
-
+    if( cookie.empty() ) cookie = get_hap();
 
     // BE ログイン中
     if( CORE::get_loginbe()->login_now() ){
@@ -256,40 +255,14 @@ void Board2ch::update_hap()
 {
     if( ! CONFIG::get_use_cookie_hap() ) return;
 
-    const std::list< std::string > list_cookies = BoardBase::list_cookies_for_write();
-    if( list_cookies.empty() ) return;
+    const std::string new_cookie = Board2chCompati::cookie_for_write();
 
+    if( ! new_cookie.empty() ) {
+        const std::string old_cookie = get_hap();
+        set_hap( new_cookie );
 #ifdef _DEBUG
-    std::cout << "Board2ch::update_hap\n";
+        std::cout << "Board2ch::update_hap old = " << old_cookie << std::endl;
+        std::cout << "Board2ch::update_hap new = " << new_cookie << std::endl;
 #endif
-
-    JDLIB::Regex regex;
-    const size_t offset = 0;
-    const bool icase = false;
-    const bool newline = true;
-    const bool usemigemo = false;
-    const bool wchar = false;
-
-    const std::string query_hap = "HAP=([^;]*)?";
-
-    std::list< std::string >::const_iterator it = list_cookies.begin();
-    for( ; it != list_cookies.end(); ++it ){
-
-        const std::string cookie = (*it);
-#ifdef _DEBUG
-        std::cout << cookie << std::endl;
-#endif
-        if( regex.exec( query_hap, cookie, offset, icase, newline, usemigemo, wchar ) ){
-
-            const std::string tmp_hap = regex.str( 1 );
-            if( ! tmp_hap.empty() && tmp_hap != get_hap() ){
-#ifdef _DEBUG
-                std::cout << "old = " << get_hap() << std::endl;
-                std::cout << "new = " << tmp_hap << std::endl;
-#endif
-                set_hap( tmp_hap );
-                return;
-            }
-        }
     }
 }

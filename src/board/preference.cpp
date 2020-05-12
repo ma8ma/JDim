@@ -10,6 +10,7 @@
 
 #include "skeleton/msgdiag.h"
 
+#include "jdlib/cookiemanager.h"
 #include "jdlib/miscutil.h"
 #include "jdlib/misctime.h"
 
@@ -104,13 +105,12 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
 
     // cookie と 書き込みキーワード の設定
     std::string str_cookies;
-    std::list< std::string > list_cookies = DBTREE::board_list_cookies_for_write( get_url() );
-    if( list_cookies.empty() ) str_cookies = "クッキー:\n未取得\n";
-    else{
-        str_cookies = "クッキー:\n";
-        std::list< std::string >::iterator it = list_cookies.begin();
-        for( ; it != list_cookies.end(); ++it )
-            str_cookies += MISC::Iconv( (*it), DBTREE::board_charset( get_url() ), "UTF-8" ) + "\n";
+    const std::string temp_cookies = DBTREE::board_cookie_for_write( get_url() );
+    if( temp_cookies.empty() ) {
+        str_cookies = "クッキー:\n未取得\n";
+    }
+    else {
+        str_cookies = "クッキー:\n" + MISC::Iconv( temp_cookies, DBTREE::board_charset( get_url() ), "UTF-8" ) + "\n";
     }
 
     const std::string keyword = DBTREE::board_keyword_for_write( get_url() );
@@ -417,7 +417,8 @@ void Preferences::slot_set_default_namemail()
 
 void Preferences::slot_delete_cookie()
 {
-    DBTREE::board_reset_list_cookies_for_write( get_url() );
+    const std::string hostname = MISC::get_hostname( get_url(), false );
+    JDLIB::get_cookie_manager()->delete_cookie_by_host( hostname );
     DBTREE::board_set_keyword_for_write( get_url(), std::string() );
 
     m_edit_cookies.set_text( "クッキー:\n未取得\n" );
