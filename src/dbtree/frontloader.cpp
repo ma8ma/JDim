@@ -53,7 +53,8 @@ void FrontLoader::create_loaderdata( JDLIB::LOADERDATA& data )
 // ロード後に呼び出される
 void FrontLoader::parse_data()
 {
-    // TODO: ダウンロードしたHTMLをキーワード解析関数に渡す
+    // フロントページからキーワードを解析して登録する
+    DBTREE::board_analyze_keyword_for_newarticle( m_url_boadbase, get_data() );
 }
 
 

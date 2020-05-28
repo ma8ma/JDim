@@ -407,11 +407,8 @@ void Post::receive_finish()
             if( mdiag.get_chkbutton().get_active() ) CONFIG::set_always_write_ok( true );
         }
 
-        // 書き込み用キーワード( hana=mogera や suka=pontan など )をセット
-        DBTREE::board_analyze_keyword_for_write( m_url, m_return_html );
-
         // 現在のメッセージにキーワードが付加されていない時は付け加える
-        const std::string keyword = DBTREE::board_keyword_for_write( m_url );
+        const std::string keyword = update_keyword( m_url, m_return_html, m_new_article );
         if( ! keyword.empty() && m_msg.find( keyword ) == std::string::npos ) m_msg += "&" + keyword;
 
         ++m_count; // 永久ループ防止
@@ -424,11 +421,8 @@ void Post::receive_finish()
     else if( m_count < 1 // 永久ループ防止
              && ! m_subbbs && conf.find( "書き込み確認" ) != std::string::npos ){
 
-        // 書き込み用キーワード( hana=mogera や suka=pontan など )をセット
-        DBTREE::board_analyze_keyword_for_write( m_url, m_return_html );
-
         // 現在のメッセージにキーワードが付加されていない時は付け加える
-        const std::string keyword = DBTREE::board_keyword_for_write( m_url );
+        const std::string keyword = update_keyword( m_url, m_return_html, m_new_article );
         if( ! keyword.empty() && m_msg.find( keyword ) == std::string::npos ) m_msg += "&" + keyword;
 
         // subbbs.cgi にポスト先を変更してもう一回ポスト
@@ -449,4 +443,24 @@ void Post::receive_finish()
 
     set_code( HTTP_ERR );
     emit_sigfin();
+}
+
+
+//
+// キーワードを更新する
+//
+std::string Post::update_keyword( const std::string& url, const std::string& html, bool new_article )
+{
+    if( new_article ) {
+        // スレ立て用キーワードをセット
+        DBTREE::board_analyze_keyword_for_newarticle( url, html );
+
+        return DBTREE::board_keyword_for_newarticle( url );
+    }
+    else {
+        // 書き込み用キーワード( hana=mogera や suka=pontan など )をセット
+        DBTREE::board_analyze_keyword_for_write( url, html );
+
+        return DBTREE::board_keyword_for_write( url );
+    }
 }

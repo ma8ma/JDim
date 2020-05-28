@@ -63,6 +63,9 @@ namespace MESSAGE
 
         void receive_data( const char* data, size_t size ) override;
         void receive_finish() override;
+
+        // キーワードの更新
+        static std::string update_keyword( const std::string& url, const std::string& html, bool new_article );
     };
     
 }
