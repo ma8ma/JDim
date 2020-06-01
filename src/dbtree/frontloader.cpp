@@ -20,7 +20,6 @@ FrontLoader::FrontLoader( const std::string& url_boadbase )
     : SKELETON::TextLoader()
     , m_url_boadbase( url_boadbase )
 {
-    set_date_modified( DBTREE::board_date_modified( m_url_boadbase ) );
 }
 
 
@@ -54,7 +53,9 @@ void FrontLoader::create_loaderdata( JDLIB::LOADERDATA& data )
 void FrontLoader::parse_data()
 {
     // フロントページからキーワードを解析して登録する
-    DBTREE::board_analyze_keyword_for_newarticle( m_url_boadbase, get_data() );
+    if( ! get_data().empty() ) {
+        DBTREE::board_analyze_keyword_for_newarticle( m_url_boadbase, get_data() );
+    }
 }
 
 
