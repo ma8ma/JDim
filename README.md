@@ -103,10 +103,13 @@ sudo apt install libgtkmm-2.4-dev libmigemo1 libasound2-data libltdl-dev libasou
 
 ### ビルド
 
+テスト版(**minefield**ブランチ)をビルドします。
+masterブランチのビルドは https://github.com/JDimproved/JDim を見てください。
+
 *GTK3版 (デフォルト)*
 ```sh
-git clone -b master --depth 1 https://github.com/JDimproved/JDim.git jdim
-cd jdim
+git clone -b minefield --depth 1 https://github.com/ma8ma/JDim.git jdim-minefield
+cd jdim-minefield
 autoreconf -i
 ./configure
 make
@@ -114,8 +117,8 @@ make
 
 *GTK2版* - ./configure にオプション `--with-gtkmm3=no` を追加します。
 ```sh
-git clone -b master --depth 1 https://github.com/JDimproved/JDim.git jdim
-cd jdim
+git clone -b minefield --depth 1 https://github.com/ma8ma/JDim.git jdim-minefield
+cd jdim-minefield
 autoreconf -i
 ./configure --with-gtkmm3=no
 make
