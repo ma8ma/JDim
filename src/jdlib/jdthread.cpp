@@ -6,27 +6,9 @@
 #include "jdthread.h"
 #include "miscmsg.h"
 
-#include <limits.h>
-#include <cstring>
 #include <system_error>
 
 using namespace JDLIB;
-
-
-#ifdef _DEBUG
-template < class CharT, class Traits >
-static std::basic_ostream< CharT, Traits >&
-operator<<( std::basic_ostream< CharT, Traits >& ost, const std::thread& pth )
-{
-    return ost << pth.get_id();
-}
-#endif // _DEBUG
-
-
-Thread::Thread()
-{
-    JDTH_CLEAR( m_thread );
-}
 
 
 Thread::~Thread()
@@ -43,7 +25,7 @@ Thread::~Thread()
 // スレッド作成
 bool Thread::create( STARTFUNC func , void* arg, const bool detach, const int stack_kbyte )
 {
-    if( JDTH_ISRUNNING( m_thread ) ){
+    if( m_thread.get_id() != std::thread::id() ){
         MISC::ERRMSG( "Thread::create : thread is already running" );
         return false;
     }
@@ -70,7 +52,7 @@ bool Thread::create( STARTFUNC func , void* arg, const bool detach, const int st
     }
 
 #ifdef _DEBUG
-    std::cout << "thread = " << m_thread << std::endl;
+    std::cout << "thread = " << m_thread.get_id() << std::endl;
 #endif
 
     return true;
@@ -79,16 +61,16 @@ bool Thread::create( STARTFUNC func , void* arg, const bool detach, const int st
 
 bool Thread::join()
 {
-    if( ! JDTH_ISRUNNING( m_thread ) ) return true;
+    if( m_thread.get_id() == std::thread::id() ) return true;
 
 #ifdef _DEBUG
-    std::cout << "Thread:join thread = " << m_thread << std::endl;
+    std::cout << "Thread:join thread = " << m_thread.get_id() << std::endl;
 #endif
 
     if( m_thread.joinable() ) {
         m_thread.join();
     }
-    JDTH_CLEAR( m_thread );
+    m_thread = std::thread();
 
     return true;
 }
