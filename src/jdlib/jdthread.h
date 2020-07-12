@@ -9,22 +9,10 @@
 #include "config.h"
 #endif
 
-#if defined( WITH_STD_THREAD )
 #include <thread>
 #define JDTH_TYPE std::thread
 #define JDTH_ISRUNNING( pth ) ( ( pth ).get_id() != std::thread::id() )
 #define JDTH_CLEAR( pth ) ( ( pth ) = std::thread() )
-#elif defined( USE_GTHREAD )
-#include <gtkmm.h>
-#define JDTH_TYPE Glib::Thread*
-#define JDTH_ISRUNNING( pth ) ( ( pth ) != nullptr )
-#define JDTH_CLEAR( pth ) ( ( pth ) = nullptr )
-#else
-#include <pthread.h>
-#define JDTH_TYPE pthread_t
-#define JDTH_ISRUNNING( pth ) ( pth )
-#define JDTH_CLEAR( pth ) ( pth = 0 )
-#endif
 
 typedef void* ( *STARTFUNC )( void * );
 
@@ -44,10 +32,6 @@ namespace JDLIB
     class Thread
     {
         JDTH_TYPE m_thread;
-
-#ifdef USE_GTHREAD
-        static void slot_wrapper( STARTFUNC func, void* arg );
-#endif
 
     public:
 
