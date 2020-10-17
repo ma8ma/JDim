@@ -18,6 +18,165 @@ enum
 
 
 CompletionEntry::CompletionEntry( const int mode )
+    : m_mode( mode )
+{
+    add_events( Gdk::BUTTON_PRESS_MASK );
+    signal_button_press().connect( sigc::mem_fun(*this, &CompletionEntry::slot_entry_button_press ) );
+    signal_changed().connect( sigc::mem_fun( *this, &CompletionEntry::slot_entry_changed ) );
+    signal_operate().connect( sigc::mem_fun( *this, &CompletionEntry::slot_entry_operate ) );
+
+    set_max_width_chars( 1 );
+    set_width_chars( 1 );
+    set_hexpand( true );
+
+    // ポップアップ
+    m_column_record.add( m_column );
+    m_liststore = Gtk::ListStore::create( m_column_record );
+    m_completion = Gtk::EntryCompletion::create();
+    m_completion->set_model( m_liststore );
+    m_completion->set_text_column( 0 );
+    set_completion( m_completion );
+    show_popup( true );
+
+    //m_completion->signal_match_selected().connect( sigc::mem_fun( *this, &CompletionEntry::slot_completion_match_selected ) );
+    //m_completion->set_match_func( sigc::mem_fun( *this, &CompletionEntry::slot_completion_match_func ) );
+}
+
+
+// entryでボタンを押した
+void CompletionEntry::slot_entry_button_press( GdkEventButton* event )
+{
+    //if( event->type != GDK_BUTTON_PRESS ) return;
+
+    // 右クリックならコンテキストメニューを優先して補完候補は表示しない
+    //else
+        if( event->button != 3 ) {
+        //show_popup( get_text().empty() );
+        show_popup( true );
+        m_completion->complete();
+    }
+}
+
+// entry からsignal_changedを受け取った
+void CompletionEntry::slot_entry_changed()
+{
+    if( ! get_text().empty() ) show_popup( false );
+}
+
+
+
+#if 0
+bool CompletionEntry::slot_completion_match_selected( const Gtk::TreeModel::iterator& iter )
+{
+    Gtk::TreeModel::Row row = *iter;
+    if( row ){
+        set_text( row[ m_column ] );
+    }
+    return true;
+}
+#endif
+
+
+//
+// ポップアップ表示
+//
+// show_all == true なら候補を全て表示する
+//
+void CompletionEntry::show_popup( const bool show_all )
+{
+#if 0
+    const int mrg = 2;
+
+    std::string query = get_text();
+    if( ! show_all && query.empty() ){
+        //hide_popup();
+        return;
+    }
+
+    if( show_all ) query = std::string();
+#endif
+    std::string query;
+
+    CORE::COMPLIST complist = CORE::get_completion_manager()->get_list( m_mode, query );
+    if( ! complist.size() ) return;
+
+    m_liststore->clear();
+    Gtk::TreeModel::Row row;
+
+    CORE::COMPLIST_ITERATOR it = complist.begin();
+    for( ; it != complist.end(); ++it ){
+        //if( *it != get_text() ){
+            row = *( m_liststore->append() );
+            row[ m_column ] = *it;
+        //}
+    }
+
+#if 0
+    const int size = m_liststore->children().size();
+    if( ! size ){
+        hide_popup();
+        return;
+    }
+
+    // 座標と大きさを計算してポップアップ表示
+
+    const int cell_h = m_treeview.get_row_height() + mrg;
+
+    int x, y;
+    get_window()->get_origin( x, y );
+
+    Gdk::Rectangle rect = get_allocation();
+    m_popup_win.move( x + rect.get_x(), y + rect.get_y() + rect.get_height() );
+    m_popup_win.resize( get_width(), cell_h * MIN( POPUP_SIZE, size ) + mrg );
+    m_popup_win.show_all();
+    m_show_popup = true;
+
+    m_treeview.unset_cursor();
+    m_treeview.scroll_to_point( -1, 0 );
+    Gdk::RGBA rgba;
+    if( !get_style_context()->lookup_color( "theme_bg_color", rgba ) ) {
+#ifdef _DEBUG
+        std::cout << "ERROR:CompletionEntry::show_popup() "
+                  << "lookup theme_bg_color faild." << std::endl;
+#endif
+    }
+    m_treeview.get_column_cell_renderer( 0 )->property_cell_background_rgba() = rgba;
+#endif
+}
+
+bool CompletionEntry::slot_completion_match_func( const Glib::ustring& key, const Gtk::TreeModel::const_iterator& iter )
+{
+    const Gtk::TreeModel::Row row = *iter;
+    Glib::ustring text_lower;
+    if( row ){
+        text_lower = row[ m_column ];
+    }
+    auto key_lower = key.casefold();
+    return ( text_lower.find( key_lower ) != std::string::npos );
+}
+
+// entry操作
+void CompletionEntry::slot_entry_operate( int controlid )
+{
+#ifdef _DEBUG
+    std::cout << "CompletionEntry::slot_entry_operate id = " << controlid << std::endl;
+#endif
+
+    switch( controlid ){
+
+        case CONTROL::Up:
+        case CONTROL::Down:
+        case CONTROL::Cancel:
+            break;
+
+        default:
+            m_sig_operate.emit( controlid );
+    }
+}
+
+
+#if 0
+CompletionEntry::CompletionEntry( const int mode )
     : m_mode( mode ),
       m_enable_changed( true ),
       m_focused( false ),
@@ -296,3 +455,4 @@ bool CompletionEntry::slot_treeview_button_release( GdkEventButton* )
 
     return true;
 }
+#endif

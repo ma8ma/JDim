@@ -15,6 +15,55 @@
 
 namespace SKELETON
 {
+    class CompletionEntry : public JDEntry
+    {
+        typedef sigc::signal< void, int > SIG_OPERATE;
+
+        SIG_OPERATE m_sig_operate;
+        int m_mode;
+
+        // ポップアップ
+        Gtk::TreeModelColumn< Glib::ustring > m_column;
+        Gtk::TreeModel::ColumnRecord m_column_record;
+        Glib::RefPtr< Gtk::ListStore > m_liststore;
+
+        Glib::RefPtr<Gtk::EntryCompletion> m_completion;
+
+      public:
+
+        // mode は補完モード ( compmanager.h 参照 )
+        explicit CompletionEntry( const int mode );
+        ~CompletionEntry() noexcept = default;
+
+        SIG_OPERATE sig_operate(){ return m_sig_operate; }
+
+        // m_entry の入力コントローラのモード設定
+        // 補完モード(m_mode)とは異なる
+        void add_control_mode( int mode ){ add_mode( mode ); }
+
+        void modify_font( const Pango::FontDescription& pfd )
+        {
+            override_font( pfd );
+        }
+
+      private:
+
+        void show_popup( const bool show_all );
+
+        // entryでボタンを押した
+        void slot_entry_button_press( GdkEventButton* event );
+
+        // entry操作
+        void slot_entry_operate( int controlid );
+
+        // entry からsignal_changedを受け取った
+        void slot_entry_changed();
+
+        //bool slot_completion_match_selected( const Gtk::TreeModel::iterator& iter );
+
+        bool slot_completion_match_func( const Glib::ustring& key, const Gtk::TreeModel::const_iterator& iter );
+    };
+#if 0
     class CompletionEntry : public Gtk::HBox
     {
         typedef sigc::signal< void, int > SIG_OPERATE;
@@ -99,6 +148,7 @@ namespace SKELETON
         // ポップアップクリック
         bool slot_treeview_button_release( GdkEventButton* );
     };
+#endif
 }
 
 

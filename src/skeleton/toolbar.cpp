@@ -462,7 +462,7 @@ Gtk::ToolItem* ToolBar::get_tool_search( const int mode )
 
         m_entry_search->signal_changed().connect( sigc::mem_fun( *this, &ToolBar::slot_changed_search ) );
         m_entry_search->signal_activate().connect( sigc::mem_fun( *this, &ToolBar::slot_active_search ) );
-        m_entry_search->signal_operate().connect( sigc::mem_fun( *this, &ToolBar::slot_operate_search ) );
+        m_entry_search->sig_operate().connect( sigc::mem_fun( *this, &ToolBar::slot_operate_search ) );
 
         m_tool_search->add( *m_entry_search );
         m_tool_search->set_expand( true );
