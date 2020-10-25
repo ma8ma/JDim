@@ -1,0 +1,41 @@
+<?xml versoin="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/com/github/jdimproved/JDim">
+    <file preprocess="to-pixdata">bkmark.png</file>
+    <file preprocess="to-pixdata">bkmark_broken_subject.png</file>
+    <file preprocess="to-pixdata">bkmark_thread.png</file>
+    <file preprocess="to-pixdata">bkmark_update.png</file>
+    <file preprocess="to-pixdata">board.png</file>
+    <file preprocess="to-pixdata">board_update.png</file>
+    <file preprocess="to-pixdata">board_updated.png</file>
+    <file preprocess="to-pixdata">broken_subject.png</file>
+    <file preprocess="to-pixdata">check.png</file>
+    <file preprocess="to-pixdata">dir.png</file>
+    <file preprocess="to-pixdata">down.png</file>
+    <file preprocess="to-pixdata">favorite.png</file>
+    <file preprocess="to-pixdata">hist.png</file>
+    <file preprocess="to-pixdata">hist_board.png</file>
+    <file preprocess="to-pixdata">hist_close.png</file>
+    <file preprocess="to-pixdata">hist_closeboard.png</file>
+    <file preprocess="to-pixdata">hist_closeimg.png</file>
+    <file preprocess="to-pixdata">image.png</file>
+    <file preprocess="to-pixdata">info.png</file>
+    <file preprocess="to-pixdata">jd16.png</file>
+    <file preprocess="to-pixdata">jd32.png</file>
+    <file preprocess="to-pixdata">jd48.png</file>
+    <file preprocess="to-pixdata">jd96.png</file>
+    <file preprocess="to-pixdata">link.png</file>
+    <file preprocess="to-pixdata">loading.png</file>
+    <file preprocess="to-pixdata">loading_stop.png</file>
+    <file preprocess="to-pixdata">newthread.png</file>
+    <file preprocess="to-pixdata">newthread_hour.png</file>
+    <file preprocess="to-pixdata">post.png</file>
+    <file preprocess="to-pixdata">post_refer.png</file>
+    <file preprocess="to-pixdata">thread.png</file>
+    <file preprocess="to-pixdata">thread_old.png</file>
+    <file preprocess="to-pixdata">thread_update.png</file>
+    <file preprocess="to-pixdata">thread_updated.png</file>
+    <file preprocess="to-pixdata">update.png</file>
+    <file preprocess="to-pixdata">write.png</file>
+  </gresource>
+</gresources>

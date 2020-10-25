@@ -112,7 +112,7 @@ jdim_libs = [
 
 
 jdim_exe = executable(
-  'jdim', [core_sources, sources, buildinfo_h, config_h],
+  'jdim', [core_sources, sources, buildinfo_h, config_h, icons_gresource_cpp],
   dependencies : jdim_deps,
   include_directories : jdim_incs,
   link_with : jdim_libs,

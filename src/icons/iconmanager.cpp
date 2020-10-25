@@ -9,47 +9,6 @@
 
 #include "cache.h"
 
-#include "jd16.h"
-#include "jd32.h"
-#include "jd48.h"
-#include "jd96.h"
-
-#include "bkmark_update.h"
-#include "bkmark.h"
-#include "bkmark_broken_subject.h"
-#include "bkmark_thread.h"
-
-#include "update.h"
-#include "newthread.h"
-#include "newthread_hour.h"
-#include "broken_subject.h"
-#include "check.h"
-#include "down.h"
-#include "write.h"
-#include "post.h"
-#include "post_refer.h"
-#include "loading.h"
-#include "loading_stop.h"
-
-#include "dir.h"
-#include "favorite.h"
-#include "hist.h"
-#include "hist_board.h"
-#include "hist_close.h"
-#include "hist_closeboard.h"
-#include "hist_closeimg.h"
-
-#include "board.h"
-#include "board_update.h"
-#include "board_updated.h"
-#include "thread.h"
-#include "thread_update.h"
-#include "thread_updated.h"
-#include "thread_old.h"
-#include "image.h"
-#include "link.h"
-#include "info.h"
-
 #include <cstring>
 
 ICON::ICON_Manager* instance_icon_manager = nullptr;
@@ -86,45 +45,45 @@ ICON_Manager::ICON_Manager()
 {
     m_list_icons.resize( NUM_ICONS );
 
-    m_list_icons[ ICON::JD16 ] =  Gdk::Pixbuf::create_from_inline( sizeof( icon_jd16 ), icon_jd16 );
-    m_list_icons[ ICON::JD32 ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_jd32 ), icon_jd32 );
-    m_list_icons[ ICON::JD48 ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_jd48 ), icon_jd48 );
-    m_list_icons[ ICON::JD96 ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_jd96 ), icon_jd96 );
+    m_list_icons[ ICON::JD16 ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/jd16.png" );
+    m_list_icons[ ICON::JD32 ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/jd32.png" );
+    m_list_icons[ ICON::JD48 ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/jd48.png" );
+    m_list_icons[ ICON::JD96 ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/jd96.png" );
 
     // サイドバーで使用するアイコン
-    m_list_icons[ ICON::DIR ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_dir ), icon_dir );
-    m_list_icons[ ICON::IMAGE ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_image ), icon_image );
-    m_list_icons[ ICON::LINK ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_link ), icon_link );
+    m_list_icons[ ICON::DIR ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/dir.png" );
+    m_list_icons[ ICON::IMAGE ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/image.png" );
+    m_list_icons[ ICON::LINK ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/link.png" );
 
     // サイドバーやタブで使用するアイコン
-    m_list_icons[ ICON::BOARD ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_board ), icon_board );
-    m_list_icons[ ICON::BOARD_UPDATE ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_board_update ), icon_board_update );
-    m_list_icons[ ICON::THREAD ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_thread ), icon_thread );
-    m_list_icons[ ICON::THREAD_UPDATE ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_thread_update ), icon_thread_update );
-    m_list_icons[ ICON::THREAD_OLD ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_thread_old ), icon_thread_old );
+    m_list_icons[ ICON::BOARD ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/board.png" );
+    m_list_icons[ ICON::BOARD_UPDATE ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/board_update.png" );
+    m_list_icons[ ICON::THREAD ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/thread.png" );
+    m_list_icons[ ICON::THREAD_UPDATE ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/thread_update.png" );
+    m_list_icons[ ICON::THREAD_OLD ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/thread_old.png" );
 
     // タブで使用するアイコン
-    m_list_icons[ ICON::BOARD_UPDATED ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_board_updated ), icon_board_updated );
-    m_list_icons[ ICON::THREAD_UPDATED ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_thread_updated ), icon_thread_updated );
-    m_list_icons[ ICON::LOADING ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_loading ), icon_loading );
-    m_list_icons[ ICON::LOADING_STOP ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_loading_stop ), icon_loading_stop );
+    m_list_icons[ ICON::BOARD_UPDATED ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/board_updated.png" );
+    m_list_icons[ ICON::THREAD_UPDATED ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/thread_updated.png" );
+    m_list_icons[ ICON::LOADING ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/loading.png" );
+    m_list_icons[ ICON::LOADING_STOP ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/loading_stop.png" );
 
     // スレ一覧で使用するアイコン
-    m_list_icons[ ICON::BKMARK_UPDATE ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_bkmark_update ), icon_bkmark_update );
-    m_list_icons[ ICON::BKMARK_BROKEN_SUBJECT ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_bkmark_broken_subject ), icon_bkmark_broken_subject );
-    m_list_icons[ ICON::BKMARK ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_bkmark ), icon_bkmark );
-    m_list_icons[ ICON::UPDATE ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_update ), icon_update );
-    m_list_icons[ ICON::NEWTHREAD ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_newthread ), icon_newthread );
-    m_list_icons[ ICON::NEWTHREAD_HOUR ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_newthread_hour ), icon_newthread_hour );
-    m_list_icons[ ICON::BROKEN_SUBJECT ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_broken_subject ), icon_broken_subject );
-    m_list_icons[ ICON::CHECK ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_check ), icon_check );
-    m_list_icons[ ICON::OLD ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_down ), icon_down );
-    m_list_icons[ ICON::INFO ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_info ), icon_info );
+    m_list_icons[ ICON::BKMARK_UPDATE ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/bkmark_update.png" );
+    m_list_icons[ ICON::BKMARK_BROKEN_SUBJECT ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/bkmark_broken_subject.png" );
+    m_list_icons[ ICON::BKMARK ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/bkmark.png" );
+    m_list_icons[ ICON::UPDATE ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/update.png" );
+    m_list_icons[ ICON::NEWTHREAD ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/newthread.png" );
+    m_list_icons[ ICON::NEWTHREAD_HOUR ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/newthread_hour.png" );
+    m_list_icons[ ICON::BROKEN_SUBJECT ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/broken_subject.png" );
+    m_list_icons[ ICON::CHECK ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/check.png" );
+    m_list_icons[ ICON::OLD ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/down.png" );
+    m_list_icons[ ICON::INFO ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/info.png" );
 
     // スレビューで使用するアイコン
-    m_list_icons[ ICON::BKMARK_THREAD ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_bkmark_thread ), icon_bkmark_thread );
-    m_list_icons[ ICON::POST ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_post ), icon_post );
-    m_list_icons[ ICON::POST_REFER ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_post_refer ), icon_post_refer );
+    m_list_icons[ ICON::BKMARK_THREAD ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/bkmark_thread.png" );
+    m_list_icons[ ICON::POST ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/post.png" );
+    m_list_icons[ ICON::POST_REFER ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/post_refer.png" );
 
     // その他
     m_list_icons[ ICON::DOWN ] = m_list_icons[ ICON::OLD ];
@@ -147,7 +106,7 @@ ICON_Manager::ICON_Manager()
     m_list_icons[ ICON::SEARCH_PREV ] = icon_theme->load_icon( "go-up", size_menu );
     m_list_icons[ ICON::SEARCH_NEXT ] = icon_theme->load_icon( "go-down", size_menu );
     m_list_icons[ ICON::STOPLOADING ] = icon_theme->load_icon( "process-stop", size_menu );
-    m_list_icons[ ICON::WRITE ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_write ), icon_write );
+    m_list_icons[ ICON::WRITE ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/write.png" );
     m_list_icons[ ICON::RELOAD ] = icon_theme->load_icon( "view-refresh", size_menu );
     m_list_icons[ ICON::APPENDFAVORITE ] = icon_theme->load_icon( "edit-copy", size_menu );
     m_list_icons[ ICON::DELETE ] = icon_theme->load_icon( "edit-delete", size_menu );
@@ -164,12 +123,12 @@ ICON_Manager::ICON_Manager()
 
     // メイン
     m_list_icons[ ICON::BBSLISTVIEW ] = m_list_icons[ ICON::DIR ];
-    m_list_icons[ ICON::FAVORITEVIEW ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_favorite ), icon_favorite );
-    m_list_icons[ ICON::HISTVIEW ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_hist ), icon_hist );
-    m_list_icons[ ICON::HIST_BOARDVIEW ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_hist_board ), icon_hist_board );
-    m_list_icons[ ICON::HIST_CLOSEVIEW ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_hist_close ), icon_hist_close );
-    m_list_icons[ ICON::HIST_CLOSEBOARDVIEW ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_hist_closeboard ), icon_hist_closeboard );
-    m_list_icons[ ICON::HIST_CLOSEIMGVIEW ] = Gdk::Pixbuf::create_from_inline( sizeof( icon_hist_closeimg ), icon_hist_closeimg );
+    m_list_icons[ ICON::FAVORITEVIEW ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/favorite.png" );
+    m_list_icons[ ICON::HISTVIEW ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/hist.png" );
+    m_list_icons[ ICON::HIST_BOARDVIEW ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/hist_board.png" );
+    m_list_icons[ ICON::HIST_CLOSEVIEW ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/hist_close.png" );
+    m_list_icons[ ICON::HIST_CLOSEBOARDVIEW ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/hist_closeboard.png" );
+    m_list_icons[ ICON::HIST_CLOSEIMGVIEW ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/hist_closeimg.png" );
     m_list_icons[ ICON::BOARDVIEW ] = m_list_icons[ ICON::BOARD ];
     m_list_icons[ ICON::ARTICLEVIEW ] = m_list_icons[ ICON::THREAD ];
     m_list_icons[ ICON::IMAGEVIEW ] = m_list_icons[ ICON::IMAGE ];
@@ -179,7 +138,7 @@ ICON_Manager::ICON_Manager()
 
     // サイドバー
     m_list_icons[ ICON::CHECK_UPDATE_ROOT ] = icon_theme->load_icon( "view-refresh", size_menu );
-    m_list_icons[ ICON::CHECK_UPDATE_OPEN_ROOT ]  = Gdk::Pixbuf::create_from_inline( sizeof( icon_thread ), icon_thread );
+    m_list_icons[ ICON::CHECK_UPDATE_OPEN_ROOT ] = Gdk::Pixbuf::create_from_resource( "/com/github/jdimproved/JDim/thread.png" );
 
     // スレビュー
     m_list_icons[ ICON::SEARCH ] = icon_theme->load_icon( "edit-find", size_menu );

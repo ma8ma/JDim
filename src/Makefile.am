@@ -1,8 +1,21 @@
 SUBDIRS = dbtree dbimg bbslist board article image message jdlib skeleton history config icons sound xml control
 
+
+DISTCLEANFILES = icons.gresource.cpp
+
+icons.gresource.cpp: icons/icons.gresource.xml
+	glib-compile-resources $^ --sourcedir icons --internal --generate --target $@ --dependency-file .deps/$@.Po
+
+# 静的ライブラリに GResource オブジェクトを含めると __attribute__((constructor)) gcc拡張が機能しない
+# そのためオブジェクトファイルを実行ファイルのターゲットに入れる
+icons.gresource.o: icons.gresource.cpp
+	$(CXX) $(AM_CPPFLAGS) $(AM_CXXFLAGS) -o $@ -c $<
+
+
 bin_PROGRAMS = jdim
 
 jdim_LDADD = \
+	./icons.gresource.o \
 	./dbimg/libdbimg.a \
 	./bbslist/libbbslist.a \
 	./board/libboard.a \
