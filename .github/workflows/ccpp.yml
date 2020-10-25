@@ -20,7 +20,7 @@ jobs:
     strategy:
       matrix:
         sets:
-          - os: ubuntu-16.04
+          - os: ubuntu-18.04
             cc: gcc-5
             cxx: g++-5
             package: g++-5
@@ -41,7 +41,7 @@ jobs:
             package: g++-8
             debug: -Og -D_DEBUG
 
-          - os: ubuntu-16.04
+          - os: ubuntu-18.04
             cc: clang-4.0
             cxx: clang++-4.0
             package: clang-4.0
