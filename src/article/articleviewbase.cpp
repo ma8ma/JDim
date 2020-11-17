@@ -2363,9 +2363,7 @@ void ArticleViewBase::slot_on_url( const std::string& url, const std::string& im
         // 板
         else if( ! boardbase.empty() ){
 
-            std::string tmpstr = DBTREE::board_name( url );
-            args.arg1 = "[ " + tmpstr + " ] ";
-
+            args.arg1 = "[ " + DBTREE::board_name( url ) + " ] ";
             view_popup = CORE::ViewFactory( CORE::VIEW_ARTICLEPOPUPHTML, m_url_article, args );
         }
     }
