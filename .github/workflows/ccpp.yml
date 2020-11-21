@@ -113,7 +113,7 @@ jobs:
     - name: dependencies installation
       run: |
         sudo apt update
-        sudo apt install autoconf-archive libgnutls28-dev libgtest-dev libgtkmm-3.0-dev libltdl-dev libtool zlib1g-dev ${{ matrix.sets.packages }}
+        sudo apt install autoconf-archive libgnutls28-dev libgtest-dev libgtkmm-3.0-dev libltdl-dev libtool zlib1g-dev ${{ matrix.sets.package }}
     - name: autoreconf -i
       run: autoreconf -i
     - name: ./configure
@@ -229,7 +229,7 @@ jobs:
     - name: dependencies installation
       run: |
         sudo apt update
-        sudo apt install libgnutls28-dev libgtest-dev libgtkmm-3.0-dev libltdl-dev libtool ninja-build zlib1g-dev ${{ matrix.sets.packages }}
+        sudo apt install libgnutls28-dev libgtest-dev libgtkmm-3.0-dev libltdl-dev libtool ninja-build zlib1g-dev ${{ matrix.sets.package }}
     - name: install meson==0.49.2
       run: |
         python -m pip install --upgrade pip setuptools wheel
