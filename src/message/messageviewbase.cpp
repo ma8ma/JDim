@@ -230,7 +230,7 @@ void MessageViewBase::init_color()
     if( m_text_message ){
 
         if( CONFIG::get_use_message_gtktheme() ) {
-            m_text_message->update_style( u8"" );
+            m_text_message->update_style( "" );
         }
         else {
             const char* const classname = m_text_message->get_css_classname();
@@ -239,12 +239,12 @@ void MessageViewBase::init_color()
             const auto sel_fg = Gdk::RGBA( CONFIG::get_color( COLOR_CHAR_MESSAGE_SELECTION ) ).to_string();
             const auto sel_bg = Gdk::RGBA( CONFIG::get_color( COLOR_BACK_MESSAGE_SELECTION ) ).to_string();
 #if GTKMM_CHECK_VERSION(3,20,0)
-            constexpr const char* const caret_prop = u8"caret-color";
+            constexpr const char* const caret_prop = "caret-color";
 #else
-            constexpr const char* const caret_prop = u8"-GtkWidget-cursor-color";
+            constexpr const char* const caret_prop = "-GtkWidget-cursor-color";
 #endif
             m_text_message->update_style( Glib::ustring::compose(
-                u8R"(
+                R"(
                     .%1, .%1 text { color: %2; background-color: %3; %4: %2; }
                     .%1:selected, .%1:selected:focus,
                     .%1 text:selected, .%1 text:selected:focus,

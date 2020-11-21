@@ -424,11 +424,11 @@ void JDWindow::set_status_color( const std::string& color )
     Glib::ustring css;
     if( color.empty() ) {
         // テキスト部分が上手く配色されないGTKテーマがあるので明示的に設定する
-        css = Glib::ustring::compose( u8".%1:not(:selected) { color: unset; }", s_css_stat_label );
+        css = Glib::ustring::compose( ".%1:not(:selected) { color: unset; }", s_css_stat_label );
     }
     else {
         css = Glib::ustring::compose(
-            u8".%1:not(:selected), %1:active:not(:selected) { color: white; background-color: %2; }",
+            ".%1:not(:selected), %1:active:not(:selected) { color: white; background-color: %2; }",
             s_css_stat_label, Gdk::RGBA( color ).to_string() );
     }
     try {

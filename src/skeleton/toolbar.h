@@ -69,7 +69,7 @@ namespace SKELETON
         SKELETON::ToolBackForwardButton* m_button_back;
         SKELETON::ToolBackForwardButton* m_button_forward;
 
-        static constexpr const char* s_css_label = u8"jd-toolbar-label";
+        static constexpr const char* s_css_label = "jd-toolbar-label";
         Glib::RefPtr< Gtk::CssProvider > m_label_provider = Gtk::CssProvider::create();
 
       public:
@@ -177,7 +177,7 @@ namespace SKELETON
         bool slot_focusout_write_button( GdkEventFocus* event );
 
         // 閉じるボタン関係
-        static constexpr const char* s_css_leave = u8"jd-leave";
+        static constexpr const char* s_css_leave = "jd-leave";
         void setup_manual_styling( Gtk::ToolButton& toolbutton );
 
         // 検索関係

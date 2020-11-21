@@ -335,11 +335,11 @@ void ToolBar::set_color( const std::string& color )
     // TODO: 色を毎回指定するかわりにcssクラスの交換でスタイルを変更する
     Glib::ustring css;
     if( color.empty() ) {
-        css = Glib::ustring::compose( u8".%1:not(:selected) { color: unset; }", s_css_label );
+        css = Glib::ustring::compose( ".%1:not(:selected) { color: unset; }", s_css_label );
     }
     else {
         css = Glib::ustring::compose(
-            u8".%1:not(:selected), .%1:active:not(:selected) { color: white; background-color: %2; }",
+            ".%1:not(:selected), .%1:active:not(:selected) { color: white; background-color: %2; }",
             s_css_label, Gdk::RGBA( color ).to_string() );
     }
 
@@ -1041,7 +1041,7 @@ void ToolBar::setup_manual_styling( Gtk::ToolButton& toolbutton )
     try {
         // XXX: フラット表示は装飾がないという前提でcssを設定している
         provider->load_from_data( Glib::ustring::compose(
-            u8R"(
+            R"(
             .flat.%1 {
                 background-color: %2;
                 background-image: none;
