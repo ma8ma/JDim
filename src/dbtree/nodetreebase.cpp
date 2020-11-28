@@ -7,7 +7,6 @@
 #include "spchar_decoder.h"
 #include "interface.h"
 
-#include "jdlib/miscutil.h"
 #include "jdlib/miscmsg.h"
 #include "jdlib/loaderdata.h"
 
@@ -55,7 +54,7 @@ constexpr size_t SIZE_OF_HEAP = MAXSISE_OF_LINES + 64;
 
 constexpr size_t INITIAL_RES_BUFSIZE = 128;  // レスの文字列を返すときの初期バッファサイズ
 
-constexpr std::size_t kMaxBytesOfUTF8Char = 4 + 1; // UTF-8文字の最大バイト数 + ヌル文字
+constexpr std::size_t kMaxBytesOfUTF8Char = 8; // g_unichar_to_utf8の想定バイト数が6
 
 
 // レジュームのモード
@@ -2575,7 +2574,7 @@ void NodeTreeBase::parse_write( const char* str, const int lng, const std::size_
 
             const int num = MISC::decode_spchar_number( pos, offset_num, lng_num );
             char utf8[kMaxBytesOfUTF8Char]{};
-            const int n_out = MISC::ucs2toutf8( num, utf8 );
+            const int n_out = g_unichar_to_utf8( static_cast<char32_t>( num ), utf8 );
             m_buffer_write.append( utf8, n_out );
             pos += offset_num + lng_num;
 
