@@ -149,7 +149,7 @@ jobs:
       - name: dependencies installation (${{ matrix.deps.packages }})
         run: |
           sudo apt update
-          sudo apt install autoconf-archive libgtest-dev libtool libltdl-dev libgtkmm-3.0-dev g++-7
+          sudo apt install autoconf-archive libgtest-dev libtool libltdl-dev libgtkmm-3.0-dev ${{ matrix.deps.packages }} g++-7
       - name: autoreconf -i
         run: autoreconf -i
       - name: ./configure ${{ matrix.deps.config_args }}
