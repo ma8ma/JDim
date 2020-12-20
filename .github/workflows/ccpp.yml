@@ -49,8 +49,8 @@ jobs:
         run: |
           python -m pip install --upgrade pip setuptools wheel
           pip install meson==0.49.0
-      - name: meson builddir -Dbuildtype=debugoptimized -Dcpp_args="-D_DEBUG"
-        run: meson builddir -Dbuildtype=debugoptimized -Dcpp_args="-D_DEBUG"
+      - name: meson builddir -Dbuildtype=debug -Dcpp_args="-D_DEBUG"
+        run: meson builddir -Dbuildtype=debug -Dcpp_args="-D_DEBUG"
       - name: meson test -C builddir
         run: meson test -C builddir
       - name: ./builddir/src/jdim -V
@@ -85,8 +85,8 @@ jobs:
         run: |
           sudo apt update
           sudo apt install libgnutls28-dev libgtest-dev libgtkmm-3.0-dev libltdl-dev libtool meson zlib1g-dev ${{ matrix.sets.package }}
-      - name: meson builddir -Dbuildtype=debugoptimized -Dcpp_args="-D_DEBUG"
-        run: meson builddir -Dbuildtype=debugoptimized -Dcpp_args="-D_DEBUG"
+      - name: meson builddir -Dbuildtype=debug -Dcpp_args="-D_DEBUG"
+        run: meson builddir -Dbuildtype=debug -Dcpp_args="-D_DEBUG"
       - name: meson test -C builddir
         run: meson test -C builddir
       - name: ./builddir/src/jdim -V
@@ -182,8 +182,8 @@ jobs:
         run: |
           sudo apt update
           sudo apt install meson libgtest-dev libtool libltdl-dev libgtkmm-3.0-dev ${{ matrix.deps.packages }} g++-9
-      - name: meson builddir -Dbuildtype=debugoptimized -Dcpp_args="-D_DEBUG" ${{ matrix.deps.config_args }}
-        run: meson builddir -Dbuildtype=debugoptimized -Dcpp_args="-D_DEBUG" ${{ matrix.deps.config_args }}
+      - name: meson builddir -Dbuildtype=debug -Dcpp_args="-D_DEBUG" ${{ matrix.deps.config_args }}
+        run: meson builddir -Dbuildtype=debug -Dcpp_args="-D_DEBUG" ${{ matrix.deps.config_args }}
       - name: meson test -C builddir
         run: meson test -C builddir
       - name: ./builddir/src/jdim -V
