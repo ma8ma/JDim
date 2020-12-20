@@ -975,7 +975,7 @@ std::string MISC::chref_decode( cpp17::string_view str, const bool completely )
 
     if( str.empty() ) return str_out;
     if( str.find( '&' ) == cpp17::string_view::npos ) {
-        str_out.assign( str );
+        str_out.assign( str.data(), str.size() );
         return str_out;
     }
 
