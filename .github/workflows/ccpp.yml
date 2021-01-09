@@ -64,7 +64,7 @@ jobs:
           - os: ubuntu-20.04
             cc: clang-10
             cxx: clang++-10
-            package: clang-5.0
+            package: clang-10
             debug: -Og -D_DEBUG
 
           - os: ubuntu-20.04
