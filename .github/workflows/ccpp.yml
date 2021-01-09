@@ -20,7 +20,7 @@ jobs:
     strategy:
       matrix:
         sets:
-          - os: ubuntu-16.04
+          - os: ubuntu-18.04
             cc: gcc-5
             cxx: g++-5
             package: g++-5
@@ -41,7 +41,7 @@ jobs:
             package: g++-8
             debug: -Og -D_DEBUG
 
-          - os: ubuntu-16.04
+          - os: ubuntu-18.04
             cc: clang-4.0
             cxx: clang++-4.0
             package: clang-4.0
@@ -77,20 +77,15 @@ jobs:
     - name: dependencies installation
       run: |
         sudo apt update
-        sudo apt install autoconf-archive libgnutls28-dev libgtkmm-3.0-dev libltdl-dev libtool zlib1g-dev ${{ matrix.sets.package }}
-      # 16.04's libgtest-dev is not same directory hierarchy for google/googletest.
-    - name: fetch googletest 1.10.0
-      run: git clone --branch=release-1.10.0 --depth 1 https://github.com/google/googletest.git test/googletest
-    - name: autoreconf -i
-      run: autoreconf -i
-    - name: ./configure
-      run: ./configure
-    - name: make -j$(nproc)
-      run: make -j$(nproc)
-    - name: make check -j$(nproc)
-      run: make check -j$(nproc)
-    - name: ./src/jdim -V
-      run: ./src/jdim -V
+        sudo apt install cmake libgnutls28-dev libgtest-dev libgtkmm-3.0-dev libltdl-dev libtool zlib1g-dev ${{ matrix.sets.package }}
+    - name: cmake -B build
+      run: cmake -B build
+    - name: cmake --build build -j$(nproc)
+      run: cmake --build build -j$(nproc)
+    - name: ./build/test/gtest_jdim
+      run: ./build/test/gtest_jdim
+    - name: ./build/src/jdim -V
+      run: ./build/src/jdim -V
 
   meson-build:
 
@@ -136,30 +131,28 @@ jobs:
             cxx: clang++-6.0
             package: clang-6.0
         deps:
-          - config_args: --with-tls=gnutls --with-regex=posix --with-sessionlib=no --disable-compat-cache-dir
+          - config_args: -Dtls=gnutls -Dregex=posix -Dsessionlib=no -Dcompat_cache_dir=OFF
             packages: libgnutls28-dev
-          - config_args: --with-tls=openssl --with-regex=oniguruma --with-migemo --with-pangolayout
+          - config_args: -Dtls=openssl -Dregex=oniguruma -Dmigemo=ON -Dpangolayout=ON
             packages: libssl-dev libonig-dev libmigemo-dev
-          - config_args: --with-tls=gnutls --with-regex=glib --with-alsa
+          - config_args: -Dtls=gnutls -Dregex=glib -Dalsa=ON
             packages: libgnutls28-dev libasound2-dev
-          - config_args: --with-tls=openssl --with-regex=glib
+          - config_args: -Dtls=openssl -Dregex=glib
             packages: libssl-dev
     steps:
     - uses: actions/checkout@v2
     - name: dependencies installation (${{ matrix.deps.packages }})
       run: |
         sudo apt update
-        sudo apt install autoconf-archive libgtest-dev libtool libltdl-dev libgtkmm-3.0-dev ${{ matrix.deps.packages }} ${{ matrix.compiler.package }}
-    - name: autoreconf -i
-      run: autoreconf -i
-    - name: ./configure ${{ matrix.deps.config_args }}
-      run: ./configure ${{ matrix.deps.config_args }}
-    - name: make -j$(nproc)
-      run: make -j$(nproc)
-    - name: make check -j$(nproc)
-      run: make check -j$(nproc)
-    - name: ./src/jdim -V
-      run: ./src/jdim -V
+        sudo apt install cmake libgtest-dev libtool libltdl-dev libgtkmm-3.0-dev ${{ matrix.deps.packages }} ${{ matrix.compiler.package }}
+    - name: cmake -B build ${{ matrix.deps.config_args }}
+      run: cmake -B build ${{ matrix.deps.config_args }}
+    - name: cmake --build build -j$(nproc)
+      run: cmake --build build -j$(nproc)
+    - name: ./build/test/gtest_jdim
+      run: ./build/test/gtest_jdim
+    - name: ./build/src/jdim -V
+      run: ./build/src/jdim -V
 
   manual:
 
