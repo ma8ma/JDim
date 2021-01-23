@@ -1,0 +1,6 @@
+バグ情報
+
+https://engawa.5ch.net/test/read.cgi/linux/1318746312/386
+> macで書き込みができません。
+> (snip)
+> MISC::datetotime()が9時間先の時間を返しているようです。
