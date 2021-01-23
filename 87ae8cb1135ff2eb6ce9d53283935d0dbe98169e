@@ -1,0 +1,8 @@
+バグ情報
+
+https://pc11.5ch.net/test/read.cgi/linux/1220190304/297
+> FreeBSDではstrptime()とtimegm()の挙動が違うのかもしれませんね。
+
+https://pc11.5ch.net/test/read.cgi/linux/1220190304/300
+> FreeBSDのtimegm() 関数は、協定世界時 (UTC)を表す入力構造体を解釈するそうなので
+> +9時間が2回文されて、9日の9時になってしまったのかも
