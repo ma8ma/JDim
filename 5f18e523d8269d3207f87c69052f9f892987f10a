@@ -1,0 +1,44 @@
+OpenSSLとライセンスについて過去ログを調査
+- ライセンス更新を回避するためGnuTLSを追加したのでGPLリンク例外は未適用
+
+JDサポートBBS - 開発関係メインスレ
+http://jd4linux.osdn.jp/cgi-bin/bbs/test/read.cgi/support/1152463880/
+> 479 名前：113 [sage]： 2007/12/04(火) 21:08:57 ID:gr0/XvNM (3)
+> ふとそう言えば、と思って書いておきますが：
+>
+> Fedoraではライセンスの審査がより厳格になったおかげで
+> 時々頭を悩ませる事が増えていますが、
+> JDはOpenSSLを使っていますが、OpenSSLのライセンスはGPL
+> incompatibleです。
+> 以下のページにあるように、OpenSSLにリンクすることへの明示的な
+> 許可をライセンスに書いてもらえないでしょうか。
+> http://www.gnome.org/~markmc/openssl-and-the-gpl.html
+> http://opentechpress.jp/print.pl?sid=06/06/09/1537222
+> 宜しくお願いします。
+>
+> 480 名前：113=479 [sage]： 2007/12/04(火) 22:08:31 ID:gr0/XvNM (3)
+> というより、関連するソース全てのライセンスを
+> 変更してもらいたい、という事になりますね。
+>
+> 481 名前：作者 ★ [sage]： 2007/12/04(火) 22:52:42 ID:gmqtXnMQ
+> &gt;&gt;479
+> 確かどこかで聞いた様な感じはするのですが、OpenSSLにそういう問題が
+> あるとは気づきませんでした。ライセンスを変更するのもなんですので
+> GNU TLSを使用することにします。ドキュメントを見た感じでは難しく無さそう
+> なので今週中にはGNU TLSに切り替わると思います。
+>
+> 482 名前：479 [sage]： 2007/12/04(火) 22:58:47 ID:gr0/XvNM (3)
+> &gt;&gt;481
+> 分かりました。gnutlsはGPLv2+/LGPLv2+なので問題無しです。
+> 有り難うございます。
+>
+> 485 名前：作者 ★ [sage]： 2007/12/08(土) 23:00:10 ID:neLuTJ9A
+> &gt;&gt;479
+> gnutlsに対応しました。デフォルトではgnutlsを使いますが、configure のオプションで
+> --with-openssl を指定すればOpenSSLを使用します。
+>
+> (snip)
+
+将来リリースされるOpenSSL 3.0はライセンスがApache-2.0になる[1]ためGPL3と両立するようになる
+
+[1]: https://www.openssl.org/source/license.html
