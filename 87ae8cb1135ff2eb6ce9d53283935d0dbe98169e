@@ -1,4 +1,4 @@
-バグ情報
+修正の過去ログ
 
 https://pc11.5ch.net/test/read.cgi/linux/1220190304/297
 > FreeBSDではstrptime()とtimegm()の挙動が違うのかもしれませんね。
