@@ -128,6 +128,9 @@ void AboutConfig::append_rows()
     append_row( "2chにアクセスするときのエージェント名", get_confitem()->agent_for2ch, CONF_AGENT_FOR2CH );
     append_row( "2ch以外のサーバにアクセスするときのエージェント名", get_confitem()->agent_for_data, CONF_AGENT_FOR_DATA );
     append_row( "2chログイン認証サーバにアクセスするときのエージェント名", get_confitem()->x_2ch_ua, CONF_X_2CH_UA );
+    append_row( "TLSでノンブロッキングI/Oを使用する", get_confitem()->tls_nonblocking, CONF_TLS_NONBLOCKING );
+    append_row( "TLSでサーバの証明書をチェックする", get_confitem()->verify_cert, CONF_VERIFY_CERT );
+    append_row( "信頼するルート証明書のPATH", get_confitem()->root_cafile, CONF_ROOT_CAFILE );
     append_row( "スレの読み込み時のタイムアウト値(秒)", get_confitem()->loader_timeout, CONF_LOADER_TIMEOUT );
     append_row( "書き込み時のタイムアウト値(秒)", get_confitem()->loader_timeout_post, CONF_LOADER_TIMEOUT_POST );
     append_row( "画像等のデータのロード時のタイムアウト値(秒)", get_confitem()->loader_timeout_img, CONF_LOADER_TIMEOUT_IMG );
@@ -138,6 +141,8 @@ void AboutConfig::append_rows()
     append_row( "2chのクッキーを保存する", get_confitem()->use_cookie_hap, CONF_USE_COOKIE_HAP );
     append_row( "2chのクッキー", get_confitem()->cookie_hap, CONF_COOKIE_HAP );
     append_row( "BBSPINKのクッキー", get_confitem()->cookie_hap_bbspink, CONF_COOKIE_HAP_BBSPINK );
+    append_row( "5chの過去ログを外部のサイトから取得する", get_confitem()->use_external_log, CONF_USE_EXTERNAL_LOG );
+    append_row( "5chの過去ログを取得するサイトのURL", get_confitem()->url_external_log, CONF_URL_EXTERNAL_LOG );
 
     // ツリービュー
     append_row( "" );
@@ -205,6 +210,7 @@ void AboutConfig::append_rows()
     append_row( "レスを引用コピーするときに前に付ける引用文字", get_confitem()->ref_prefix, CONF_REF_PREFIX );
     append_row( "引用文字の後のスペース数", get_confitem()->ref_prefix_space, CONF_REF_PREFIX_SPACE );
     append_row( "RFC規定外の文字(^など)もURL判定に用いる", get_confitem()->loose_url, CONF_LOOSE_URL );
+    append_row( "URLのパーセントコードをデコードして表示する", get_confitem()->percent_decode, CONF_PERCENT_DECODE );
     append_row( "再読み込みボタンを押したときに全タブを更新する", get_confitem()->reload_allthreads, CONF_RELOAD_ALLTHREAD );
     append_row( "発言(同一ID)数をカウントする", get_confitem()->check_id, CONF_CHECK_ID );
     append_row( "レス参照数で色を変える回数(高)", get_confitem()->num_reference_high, CONF_NUM_REFERENCE_HIGH );
@@ -263,6 +269,7 @@ void AboutConfig::append_rows()
     append_row( "スレビューのスクロールバーを左に配置する", get_confitem()->left_scrbar, CONF_LEFT_SCRBAR );
     append_row( "メニューバーを非表示にした時にダイアログを表示", get_confitem()->show_hide_menubar_diag, CONF_SHOW_HIDE_MENUBAR_DIAG );
     append_row( "状態変更時にメインステータスバーの色を変える", get_confitem()->change_stastatus_color, CONF_CHANGE_STASTATUS_COLOR );
+    append_row( "状態変更時にスレビュータイトルの色を変える", get_confitem()->change_statitle_color, CONF_CHANGE_STATITLE_COLOR );
     append_row( "Client-Side Decorationを使うか( 0: 使わない 1: 使う 2: デスクトップに合わせる )",
                 get_confitem()->use_header_bar, CONF_USE_HEADER_BAR );
 
@@ -296,6 +303,8 @@ void AboutConfig::append_rows()
 #endif
     append_row( "FIFOの作成などにエラーがあったらダイアログを表示する", get_confitem()->show_diag_fifo_error, CONF_SHOW_DIAG_FIFO_ERROR );
     append_row( "指定した分ごとにセッションを自動保存 (0: 保存しない)", get_confitem()->save_session, CONF_SAVE_SESSION );
+    append_row( "不正なMS932文字列をUTF-8と見なす", get_confitem()->broken_sjis_be_utf8, CONF_BROKEN_SJIS_BE_UTF8 );
+    append_row( "不正な数値文字参照を無理矢理変換する", get_confitem()->correct_character_reference, CONF_CORRECT_CHAR_REFERENCE );
 }
 
 

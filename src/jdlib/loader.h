@@ -12,11 +12,11 @@
 #include "loaderdata.h"
 #include "jdthread.h"
 
-#include <string>
-#include <list>
 #include <zlib.h>
 
-#include <netdb.h>
+#include <list>
+#include <string>
+#include <vector>
 
 
 namespace SKELETON
@@ -30,7 +30,6 @@ namespace JDLIB
     class Loader
     {
         LOADERDATA m_data;
-        struct addrinfo* m_addrinfo;
 
         bool m_stop; // = true にするとスレッド停止
         bool m_loading;
@@ -42,13 +41,13 @@ namespace JDLIB
         
         // 読み込みバッファ
         unsigned long m_lng_buf; 
-        char* m_buf;
+        std::vector< char > m_buf;
 
         // zlib 用のバッファ
         unsigned long m_lng_buf_zlib_in;
         unsigned long m_lng_buf_zlib_out;
-        Bytef* m_buf_zlib_in;
-        Bytef* m_buf_zlib_out;
+        std::vector< Bytef > m_buf_zlib_in;
+        std::vector< Bytef > m_buf_zlib_out;
 
         // chunk 用変数
         bool m_use_chunk;

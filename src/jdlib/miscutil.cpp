@@ -3,6 +3,7 @@
 //#define _DEBUG
 #include "jddebug.h"
 
+#include "misccharcode.h"
 #include "miscutil.h"
 #include "miscmsg.h"
 #include "jdiconv.h"
@@ -12,10 +13,13 @@
 #include "dbtree/spchar_decoder.h"
 #include "dbtree/node.h"
 
-#include <sstream>
-#include <cstring>
+#include "cssmanager.h"
+
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
+#include <memory>
+#include <sstream>
 
 
 //
@@ -351,13 +355,15 @@ std::string MISC::remove_spaces( const std::string& str )
 
     // 最後の文字の位置は文字数より1少ない
     size_t p = r - 1;
-    while( p > 0
+    while( p > l
          && ( str[p] == '\n'
            || str[p] == '\r'
            || str[p] == '\t'
-           || str[p] == ' ' ) ){ --p; --r; }
+           || str[p] == ' ' ) ) --p;
 
-    return str.substr( l, r - l );
+    if( l == 0 && p == r - 1 ) return str;
+
+    return str.substr( l, p + 1 - l );
 }
 
 
@@ -446,6 +452,63 @@ std::string MISC::replace_str( const std::string& str, const std::string& str1, 
     return str_out;
 }
 
+//
+// str1 を str2 に置き換え(ignore case)
+//
+std::string MISC::replace_casestr( const std::string& str, const std::string& str1, const std::string& str2 )
+{
+    std::string str_out;
+
+//#ifndef _GNU_SOURCE
+#if 0
+    // 日本語ロケールだとラテン文字[a-zA-Z]以外はcase判定しないもよう
+    // コードは簡潔になるが遅くなるし旨味がない
+
+    const char *p0 = str.c_ctr(), *p1;
+
+    while( ( p1 = strcasestr( p0, str1.c_str() ) ) != NULL ){
+        str_out.append( p0, p1 - p0 );
+        str_out.append( str2 );
+        p0 = p1 + str1.length();
+    }
+#else
+    char accept[2] = { 0, 0 };
+
+    if( ( str1[ 0 ] >= 'A' && str1[ 0 ] <= 'Z' ) || ( str1[ 0 ] >= 'a' && str1[ 0 ] <= 'z' ) ){
+        accept[ 0 ] = str1[ 0 ] & ~0x20;
+        accept[ 1 ] = str1[ 0 ] | 0x20;
+    }
+    else accept[ 0 ] = str1[ 0 ];
+
+    const char *p0, *p1, *p2;
+    p0 = p1 = str.c_str();
+
+    struct searcheither{
+        inline static const char* fn( const char *p, const char* a ){
+            while( *p != a[ 0 ] && *p != a[ 1 ] && *p != '\0' ) ++p;
+            return ( *p == '\0' ) ? nullptr : p;
+        }
+    };
+
+    while( ( p2 = searcheither::fn( p1, accept ) ) != nullptr ){
+
+        if( strncasecmp( p2, str1.c_str(), str1.length() ) == 0 ){
+            str_out.append( p0, p2 - p0 );
+            str_out.append( str2 );
+            p0 = p1 = p2 + str1.length();
+            continue;
+        }
+        p1 = p2 + 1;
+    }
+#endif
+
+    if( p0 == str.c_str() ) return str;
+
+    str_out.append( str, p0 - str.c_str(), std::string::npos );
+
+    return str_out;
+}
+
 
 //
 // list_inから str1 を str2 に置き換えてリストを返す
@@ -454,8 +517,8 @@ std::list< std::string > MISC::replace_str_list( const std::list< std::string >&
                                                  const std::string& str1, const std::string& str2 )
 {
     std::list< std::string > list_out;
-    std::list< std::string >::const_iterator it = list_in.begin();
-    for( ; it != list_in.end(); ++it ) list_out.push_back( replace_str( *it, str1, str2 ) );
+    std::transform( list_in.cbegin(), list_in.cend(), std::back_inserter( list_out ),
+                    [&]( const std::string& s ) { return MISC::replace_str( s, str1, str2 ); } );
     return list_out;
 }
 
@@ -614,7 +677,7 @@ std::string MISC::intlisttostr( const std::list< int >& list_num )
 
 
 //
-// 16進数表記文字をバイナリに変換する( 例 "E38182" -> 0xE38182 )
+// 16進数表記文字列をバイト列に変換する( 例 "E38182" -> "\xE3\x81\x82" )
 //
 // 出力 : char_out 
 // 戻り値: 変換に成功した chr_in のバイト数
@@ -625,23 +688,23 @@ size_t MISC::chrtobin( const char* chr_in, char* chr_out )
 
     const size_t chr_in_length = strlen( chr_in );
 
-    size_t a, b;
-    for( a = 0, b = a; a < chr_in_length; ++a )
+    size_t a;
+    for( a = 0; a < chr_in_length; ++a )
     {
-        unsigned char chr = chr_in[a];
+        const unsigned int chr = static_cast< unsigned char >( chr_in[a] );
 
-        chr_out[b] <<= 4;
+        *chr_out <<= 4;
 
         // 0(0x30)〜9(0x39)
-        if( (unsigned char)( chr - 0x30 ) < 10 ) chr_out[b] |= chr - 0x30;
+        if( ( chr - 0x30 ) < 10 ) *chr_out |= chr - 0x30;
         // A(0x41)〜F(0x46)
-        else if( (unsigned char)( chr - 0x41 ) < 6 ) chr_out[b] |= chr - 0x37;
+        else if( ( chr - 0x41 ) < 6 ) *chr_out |= chr - 0x37;
         // a(0x61)〜f(0x66)
-        else if( (unsigned char)( chr - 0x61 ) < 6 ) chr_out[b] |= chr - 0x57;
+        else if( ( chr - 0x61 ) < 6 ) *chr_out |= chr - 0x57;
         // その他
         else break;
 
-        if( a % 2 != 0 ) ++b;
+        if( a % 2 != 0 ) ++chr_out;
     }
 
     return a;
@@ -659,7 +722,7 @@ std::string MISC::cut_str( const std::string& str, const unsigned int maxsize )
     const size_t outstr_length = outstr.length();
 
     for( pos = 0, lng_str = 0; pos < outstr_length; pos += byte ){
-        MISC::utf8toucs2( outstr.c_str()+pos, byte );
+        byte = MISC::utf8bytes( outstr.c_str() + pos );
         if( byte > 1 ) lng_str += 2;
         else ++lng_str;
         if( lng_str >= maxsize ) break;
@@ -817,9 +880,9 @@ std::string MISC::regex_unescape( const std::string& str )
 //
 // HTMLエスケープ
 //
-// include_url : URL中でもエスケープする( デフォルト = true )
+// completely : URL中でもエスケープする( デフォルト = true )
 //
-std::string MISC::html_escape( const std::string& str, const bool include_url )
+std::string MISC::html_escape( const std::string& str, const bool completely )
 {
     if( str.empty() ) return str;
 
@@ -833,15 +896,15 @@ std::string MISC::html_escape( const std::string& str, const bool include_url )
         char tmpchar = str.c_str()[ pos ];
 
         // URL中はエスケープしない場合
-        if( ! include_url )
+        if( ! completely )
         {
             // URLとして扱うかどうか
             // エスケープには影響がないので loose_url としておく
-            if( scheme != SCHEME_NONE ) is_url = is_url_char( str.c_str() + pos, true );
+            if( scheme != SCHEME_NONE ) is_url = MISC::is_url_char( str.c_str() + pos, true );
 
             // URLスキームが含まれているか判別
             int len = 0;
-            if( ! is_url ) scheme = is_url_scheme( str.c_str() + pos, &len );
+            if( ! is_url ) scheme = MISC::is_url_scheme( str.c_str() + pos, &len );
 
             // URLスキームが含まれていた場合は文字数分進めてループに戻る
             if( len > 0 )
@@ -852,17 +915,9 @@ std::string MISC::html_escape( const std::string& str, const bool include_url )
             }
         }
 
-        // include_url = false でURL中ならエスケープしない
+        // completely = false でURL中ならエスケープしない
         if( is_url ) str_out += tmpchar;
-        else if( tmpchar == '&' )
-        {
-            const int bufsize = 64;
-            char out_char[ bufsize ];
-            int n_in, n_out;
-            const int type = DBTREE::decode_char( str.c_str() + pos, n_in, out_char, n_out, false );
-            if( type == DBTREE::NODE_NONE ) str_out += "&amp;";
-            else str_out += tmpchar;
-        }
+        else if( tmpchar == '&' ) str_out += "&amp;";
         else if( tmpchar == '\"' ) str_out += "&quot;";
         else if( tmpchar == '<' ) str_out += "&lt;";
         else if( tmpchar == '>' ) str_out += "&gt;";
@@ -871,7 +926,8 @@ std::string MISC::html_escape( const std::string& str, const bool include_url )
 
 #ifdef _DEBUG
     if( str != str_out ){
-        std::cout << "MISC::html_escape\nstr = " << str << std::endl
+        std::cout << "MISC::html_escape" << std::endl
+                  << "str = " << str << std::endl
                   << "out = " << str_out << std::endl;
     }
 #endif
@@ -889,20 +945,21 @@ std::string MISC::html_unescape( const std::string& str )
     if( str.find( '&' ) == std::string::npos ) return str;
 
     std::string str_out;
-    const size_t str_length = str.length();
+    const char* pos = str.c_str();
+    const char* pos_end = pos + str.length();
 
-    for( size_t pos = 0; pos < str_length; ++pos ){
+    while( pos < pos_end ){
 
-        const int bufsize = 64;
-        char out_char[ bufsize ];
-        int n_in, n_out;
-        DBTREE::decode_char( str.c_str() + pos, n_in, out_char, n_out, false );
+        // '&' までコピーする
+        while( *pos != '&' && *pos != '\0' ) str_out.push_back( *pos++ );
+        if( pos >= pos_end ) break;
 
-        if( n_out ){
-            str_out += out_char;
-            pos += n_in -1;
-        }
-        else str_out += str.c_str()[ pos ];
+        // エスケープ用の文字参照をデコード
+        if( memcmp( pos , "&quot;", 6 ) == 0 ){ str_out.push_back( '"' ); pos += 6; }
+        else if( memcmp( pos, "&amp;", 5 ) == 0 ){ str_out.push_back( '&' ); pos += 5; }
+        else if( memcmp( pos, "&lt;", 4 ) == 0 ){ str_out.push_back( '<' ); pos += 4; }
+        else if( memcmp( pos, "&gt;", 4 ) == 0 ){ str_out.push_back( '>' ); pos += 4; }
+        else str_out.push_back( *pos++ );
     }
 
 #ifdef _DEBUG
@@ -923,7 +980,7 @@ std::string MISC::html_unescape( const std::string& str )
 // strは'&'で始まる文字列を指定すること
 // completely = true の時は'"' '&' '<' '>'も含めて変換する
 //
-static std::string chref_decode_one( const char* str, int& n_in, const bool completely )
+static std::string chref_decode_one( const char* str, int& n_in, const char pre_char, const bool completely )
 {
     std::string out_char( 15u, '\0' );
     int n_out;
@@ -931,7 +988,7 @@ static std::string chref_decode_one( const char* str, int& n_in, const bool comp
     out_char.resize( n_out );
 
     // 改行、タブ、スペースの処理
-    if( type != DBTREE::NODE_NONE && ( out_char[0] == ' ' || out_char[0] == '\n' ) ) {
+    if( type == DBTREE::NODE_SP && pre_char != ' ' ) {
         out_char.assign( 1u, ' ' );
     }
     // 変換できない文字
@@ -964,6 +1021,147 @@ static std::string chref_decode_one( const char* str, int& n_in, const bool comp
 
 
 //
+// HTMLをプレーンテキストに変換する
+//
+std::string MISC::to_plain( const std::string& html )
+{
+    if( html.empty() ) return html;
+    if( html.find_first_of( '<' ) == std::string::npos
+            && html.find_first_of( '&' ) == std::string::npos ) return html;
+
+    std::string str_out;
+    const char* pos = html.c_str();
+    const char* pos_end = pos + html.length();
+
+    while( pos < pos_end ){
+
+        // '<' か '&' までコピーする
+        while( *pos != '<' && *pos != '&' && *pos != '\0' ) str_out.push_back( *pos++ );
+        if( pos >= pos_end ) break;
+
+        // タグを取り除く
+        if( *pos == '<' ){
+            while( *pos != '>' && *pos != '\0' ) pos++;
+            if( *pos == '>' ) ++pos;
+            continue;
+        }
+
+        // 文字参照を処理する
+        if( *pos == '&' ){
+            int n_in;
+            char pre = str_out.length() ? *( str_out.end() - 1 ) : 0;
+            str_out += chref_decode_one( pos, n_in, pre, true );
+            pos += n_in;
+        }
+    }
+
+#ifdef _DEBUG
+    if( html != str_out )
+        std::cout << "MISC::to_plain" << std::endl
+                  << "html = " << html << std::endl
+                  << "plain = " << str_out << std::endl;
+#endif
+
+    return str_out;
+}
+
+
+//
+// HTMLをPango markupテキストに変換する
+//
+std::string MISC::to_markup( const std::string& html )
+{
+    if( html.empty() ) return html;
+    if( html.find_first_of( '<' ) == std::string::npos
+            && html.find_first_of( '&' ) == std::string::npos ) return html;
+
+    const char* pos = html.c_str();
+    const char* pos_end = pos + html.length();
+    std::string markuptxt;
+
+    while( pos < pos_end ){
+
+        // '<' か '&' までコピーする
+        while( *pos != '<' && *pos != '&' && *pos != '\0' ) markuptxt.push_back( *pos++ );
+        if( pos >= pos_end ) break;
+
+        // タグを処理する
+        if( *pos == '<' ){
+            ++pos;
+
+            // <mark>と<span>タグは色を変える
+            if( memcmp( pos, "mark", 4 ) == 0 || memcmp( pos, "span", 4 ) == 0 ){
+                std::string classname = ( ( *pos ) == 'm' ) ? "mark" : "";
+                pos += 4;
+                if( memcmp( pos, " class=\"", 8 ) == 0 ){
+                    pos += 8;
+                    const char* pos_name = pos;
+                    while( *pos != '"' && *pos != '\0' ) ++pos;
+                    classname = std::string( pos_name, pos - pos_name );
+                    if( *pos != '\0' ) ++pos;
+                }
+
+                markuptxt += "<span";
+
+                if( classname.size() ){
+                    CORE::Css_Manager* mgr = CORE::get_css_manager();
+                    int classid = mgr->get_classid( classname );
+                    if( classid != -1 ){
+                        CORE::CSS_PROPERTY css = mgr->get_property( classid );
+                        if( css.color != -1 ) markuptxt += " color=\"" + mgr->get_color( css.color ) + "\"";
+                        if( css.bg_color != -1 ) markuptxt += " background=\"" + mgr->get_color( css.bg_color ) + "\"";
+                    }
+                }
+
+                while( *pos != '>' && *pos != '\0' ) markuptxt.push_back( *pos++ );
+                markuptxt += ">";
+                if( *pos != '\0' ) ++pos;
+                continue;
+            }
+
+            // </mark> は </sapn>に置換する
+            if( memcmp( pos, "/mark>" , 6 ) == 0 || memcmp( pos, "/span>" , 6 ) == 0 ){
+                pos += 6;
+                markuptxt += "</span>";
+                continue;
+            }
+
+            // XXX その他のタグは取り除く
+            while( *pos != '>' && *pos != '\0' ) ++pos;
+            if( *pos == '>' ) ++pos;
+            continue;
+        }
+
+        // 文字参照を処理する
+        if( *pos == '&' ){
+            if( pos[ 1 ] == 'q' && pos[ 2 ] == 'u' && pos[ 3 ] == 'o' && pos[ 4 ] == 't' && pos[ 5 ] == ';' ){
+                markuptxt.push_back( '"' );
+                pos += 6;
+            }
+            else{
+                int n_in;
+                char pre = markuptxt.length() ? markuptxt[ markuptxt.length() - 1 ] : 0;
+                markuptxt += chref_decode_one( pos, n_in, pre, false );
+                if( n_in == 1 && markuptxt[ markuptxt.length() - 1 ] == '&' ){
+                    markuptxt += "amp;";
+                }
+                pos += n_in;
+            }
+        }
+    }
+
+#ifdef _DEBUG
+    if( html != markuptxt )
+        std::cout << "MISC::to_markup" << std::endl
+                  << "html = " << html << std::endl
+                  << "markup = " << markuptxt << std::endl;
+#endif
+
+    return markuptxt;
+}
+
+
+//
 // HTMLの文字参照をデコード
 //
 // completely = true の時は'"' '&' '<' '>'もデコードする
@@ -989,7 +1187,7 @@ std::string MISC::chref_decode( const char* str, const int lng, const bool compl
 
         // 文字参照のデコード
         int n_in;
-        str_out.append( chref_decode_one( pos, n_in, completely ) );
+        str_out.append( chref_decode_one( pos, n_in, '\0', completely ) );
         pos += n_in;
     }
 
@@ -1108,52 +1306,53 @@ bool MISC::is_url_char( const char* str_in, const bool loose_url )
 //
 // URLデコード
 //
-std::string MISC::url_decode( const std::string& url )
+std::string MISC::url_decode( const char* url, const size_t n )
 {
-    if( url.empty() ) return std::string();
+    std::string decoded;
+    if( n == 0 ) return decoded;
 
-    const size_t url_length = url.length();
-
-    std::vector< char > decoded( url_length + 1, '\0' );
-
-    unsigned int a, b;
-    for( a = 0, b = a; a < url_length; ++a, ++b )
+    unsigned int a;
+    for( a = 0; a < n; ++a )
     {
-        if( url[a] == '%' && ( a + 2 < url_length ) )
+        if( url[a] == '%' && ( a + 2 ) < n )
         {
             char src[3] = { url[ a + 1 ], url[ a + 2 ], '\0' };
             char tmp[3] = { '\0', '\0', '\0' };
 
             if( chrtobin( src, tmp ) == 2 )
             {
+                // 改行はLFにする
+                if( *tmp == '\n' && !decoded.empty() && decoded.back() == '\r' ){
+                    decoded.pop_back();
+                }
                 // '%4A' など、2文字が変換できていること
-                decoded[b] = *tmp;
+                decoded.push_back( *tmp );
                 a += 2;
             }
             else
             {
                 // 変換失敗は、単なる '%' 文字として扱う
-                decoded[b] = url[a];
+                decoded.push_back( url[a] );
             }
         }
         else if( url[a] == '+' )
         {
-            decoded[b] = ' ';
+            decoded.push_back( ' ' );
         }
         else
         {
-            decoded[b] = url[a];
+            decoded.push_back( url[a] );
         }
     }
 
-    return decoded.data();
+    return decoded;
 }
 
 
 //
 // url エンコード
 //
-std::string MISC::url_encode( const char* str, const size_t n )
+std::string MISC::url_encode( const char* str, const size_t n, const CharCode coding )
 {
     if( str[ n ] != '\0' ){
         ERRMSG( "url_encode : invalid input." );
@@ -1161,62 +1360,74 @@ std::string MISC::url_encode( const char* str, const size_t n )
     }
 
     std::string str_encoded;
-    
-    for( size_t i = 0; i < n; i++ ){
+    std::unique_ptr<JDLIB::Iconv> icv;
+    if( coding != CHARCODE_UTF8 ) icv = std::make_unique<JDLIB::Iconv>( coding, CHARCODE_UTF8 );
+
+    size_t pos = 0;
+    while( pos < n ){
         
-        unsigned char c = str[ i ];
         const int tmplng = 16;
         char str_tmp[ tmplng ];
         
-        if( ! ( 'a' <= c && c <= 'z' ) &&
-            ! ( 'A' <= c && c <= 'Z' ) &&
-            ! ( '0' <= c && c <= '9' ) &&            
-            ( c != '*' ) &&
-            ( c != '-' ) &&
-            ( c != '.' ) &&
-            ( c != '@' ) &&
-            ( c != '_' )){
+        if( icv ){
+            size_t pos_start = pos;
+            while( str[ pos ] & 0x80 ) ++pos;
+            if( pos != pos_start ){
+                int byte_out;
+                const std::string str_enc = icv->convert( str + pos_start, pos - pos_start, byte_out );
 
-            snprintf( str_tmp, tmplng , "%%%02x", c );
+                // マルチバイト文字は全てパーセントエンコードする
+                for( int i = 0; i < byte_out; ++i ){
+                    unsigned char c = str_enc[ i ];
+                    snprintf( str_tmp, tmplng , "%%%02X", c );
+                    str_encoded += str_tmp;
+                }
+
+                if( pos >= n ) break;
+            }
         }
-        else {
+
+        const unsigned char c = str[ pos ];
+
+        // 非予約文字はそのまま
+        if( ( 'a' <= c && c <= 'z' ) || ( 'A' <= c && c <= 'Z' )
+            || ( '0' <= c && c <= '9' )
+            || ( c == '-' ) || ( c == '.' ) || ( c == '_' ) || ( c == '~' ) ){
             str_tmp[ 0 ] = c;
             str_tmp[ 1 ] = '\0';
         }
+        // スペースは'+'に置換
+        else if( c == ' ' ){
+            str_tmp[ 0 ] = '+';
+            str_tmp[ 1 ] = '\0';
+        }
+        // 改行を正規化
+        else if( c == '\n' ){
+            str_tmp[ 0 ] = '%'; str_tmp[ 1 ] = '0'; str_tmp[ 2 ] = 'D'; // CR ( %0d )
+            str_tmp[ 3 ] = '%'; str_tmp[ 4 ] = '0'; str_tmp[ 5 ] = 'A'; // LF ( %0a )
+            str_tmp[ 6 ] = '\0';
+        }
+        // CR は無視
+        else if( c == '\r' ){
+            str_tmp[ 0 ] = '\0';
+        }
+        // その他はパーセントエンコード
+        else{
+            snprintf( str_tmp, tmplng , "%%%02X", c );
+        }
 
         str_encoded += str_tmp;
+        ++pos;
     }
 
     return str_encoded;
 }
 
 
-std::string MISC::url_encode( const std::string& str )
-{
-    return url_encode( str.c_str(), str.length() );
-}
-
-
 //
-// 文字コード変換して url エンコード
+// 半角スペースまたは "" 単位で区切って url エンコード
 //
-// str は UTF-8 であること
-//
-std::string MISC::charset_url_encode( const std::string& str, const std::string& charset )
-{
-    if( charset.empty() || charset == "UTF-8" ) return MISC::url_encode( str.c_str(), str.length() );
-
-    const std::string str_enc = MISC::Iconv( str, charset, "UTF-8" );
-    return  MISC::url_encode( str_enc.c_str(), str_enc.length() );
-}
-
-
-//
-// 文字コード変換して url エンコード
-//
-// ただし半角スペースのところを+に置き換えて区切る
-//
-std::string MISC::charset_url_encode_split( const std::string& str, const std::string& charset )
+std::string MISC::url_encode_split( const std::string& str, const CharCode charcode )
 {
     std::list< std::string > list_str = MISC::split_line( str );
     std::list< std::string >::iterator it = list_str.begin();
@@ -1224,7 +1435,7 @@ std::string MISC::charset_url_encode_split( const std::string& str, const std::s
     for( ; it != list_str.end(); ++it ){
 
         if( it != list_str.begin() ) str_out += "+";
-        str_out += MISC::charset_url_encode( *it, charset );
+        str_out += MISC::url_encode( it->c_str(), it->length(), charcode );
     }
 
     return str_out;
@@ -1278,27 +1489,6 @@ std::string MISC::base64( const std::string& str )
 
 
 
-
-//
-// 文字コードを coding_from から coding_to に変換
-//
-// 遅いので連続的な処理が必要な時は使わないこと
-//
-std::string MISC::Iconv( const std::string& str, const std::string& coding_to, const std::string& coding_from )
-{
-    if( coding_from == coding_to ) return str;
-
-    std::string str_bk = str;
-
-    JDLIB::Iconv libiconv( coding_to, coding_from );
-    int byte_out;
-
-    std::string str_enc = libiconv.convert( &*str_bk.begin(), str_bk.size(), byte_out );
-
-    return str_enc;
-}
-
-
 //
 // 「&#数字;」形式の数字参照文字列の中の「数字」部分の文字列長
 //
@@ -1317,7 +1507,7 @@ int MISC::spchar_number_ln( const char* in_char, int& offset )
     // offset == 2 なら 10 進数、3 なら16進数
     if( in_char[ offset ] == 'x' || in_char[ offset ] == 'X' ) ++offset;
 
-    // UCS2の2バイトの範囲でデコードするので最大65535
+    // UTF-32の範囲でデコードするので最大1114111
     // デコードするとき「;」で終端されていなくてもよい
 
     // デコード可能かチェック
@@ -1356,7 +1546,7 @@ int MISC::spchar_number_ln( const char* in_char, int& offset )
 
 
 // 特定の変換が必要なコードポイントをチェックする
-static int transform_7f_9f( int raw_point )
+static char32_t transform_7f_9f( char32_t raw_point )
 {
     switch( raw_point ) {
         case 0x80: return 0x20AC; // EURO SIGN (€)
@@ -1398,7 +1588,7 @@ static int transform_7f_9f( int raw_point )
 // 参考文献 : Numeric character reference end state (HTML 5.3)
 //            https://www.w3.org/TR/html53/syntax.html#numeric-character-reference-end-state
 //
-static int sanitize_numeric_character_reference( int raw_point )
+static char32_t sanitize_numeric_character_reference( char32_t raw_point )
 {
     // NOTE: 記号や絵文字を速やかに処理できるよう順番が組まれている
 
@@ -1459,11 +1649,11 @@ int MISC::decode_spchar_number( const char* in_char, const int offset, const int
     std::cout << "MISC::decode_spchar_number offset = " << offset << " lng = " << lng << " str = " << str_num << std::endl;
 #endif
 
-    int num = 0;
-    if( offset == 2 ) num = atoi( str_num );
-    else num = strtol( str_num, nullptr, 16 );
-
-    return sanitize_numeric_character_reference( num );
+    char* end_pos;
+    const int base = offset == 2 ? 10 : 16;
+    const char32_t point = static_cast< char32_t >( std::strtol( str_num, &end_pos, base ) );
+    assert( str_num != end_pos );
+    return static_cast< int >( sanitize_numeric_character_reference( point ) );
 }
 
 
@@ -1488,182 +1678,20 @@ std::string MISC::decode_spchar_number( const std::string& str )
 
             const int num = MISC::decode_spchar_number( str.c_str()+i, offset, lng );
 
-            char out_char[ 64 ];
-            const int n_out = MISC::ucs2toutf8( num, out_char );
-            if( ! n_out ){
+            char out_char[8];
+            const int n_out = g_unichar_to_utf8( static_cast<char32_t>( num ), out_char );
+            if( ! n_out || n_out > 4 ){
                 str_out += str[ i ];
                 continue;
             }
 
-            for( int j = 0; j < n_out; ++j ) str_out += out_char[ j ];
+            str_out.append( out_char, n_out );
             i += offset + lng;
         }
         else str_out += str[ i ];
     }
 
     return str_out;
-}
-
-
-//
-// utf-8 -> ucs2 変換
-//
-// 入力 : utfstr 入力文字 (UTF-8)
-//
-// 出力 :  byte  長さ(バイト) utfstr が ascii なら 1, UTF-8 なら 2 or 3 or 4 を入れて返す
-//
-// 戻り値 : ucs2
-//
-int MISC::utf8toucs2( const char* utfstr, int& byte )
-{
-    int ucs2 = 0;
-    byte = 0;
-
-    if( utfstr[ 0 ] == '\0' ) return '\0';
-    
-    else if( ( ( unsigned char ) utfstr[ 0 ] & 0xf0 ) == 0xe0 ){
-        byte = 3;
-        ucs2 = utfstr[ 0 ] & 0x0f;
-        ucs2 = ( ucs2 << 6 ) + ( utfstr[ 1 ] & 0x3f );
-        ucs2 = ( ucs2 << 6 ) + ( utfstr[ 2 ] & 0x3f );        
-    }
-
-    else if( ( ( unsigned char ) utfstr[ 0 ] & 0x80 ) == 0 ){ // ascii
-        byte = 1;
-        ucs2 =  utfstr[ 0 ];
-    }
-
-    else if( ( ( unsigned char ) utfstr[ 0 ] & 0xe0 ) == 0xc0 ){
-        byte = 2;
-        ucs2 = utfstr[ 0 ] & 0x1f;
-        ucs2 = ( ucs2 << 6 ) + ( utfstr[ 1 ] & 0x3f );
-    }
-
-    else if( ( ( unsigned char ) utfstr[ 0 ] & 0xf8 ) == 0xf0 ){
-        byte = 4;
-        ucs2 = utfstr[ 0 ] & 0x07;
-        ucs2 = ( ucs2 << 6 ) + ( utfstr[ 1 ] & 0x3f );
-        ucs2 = ( ucs2 << 6 ) + ( utfstr[ 2 ] & 0x3f );
-        ucs2 = ( ucs2 << 6 ) + ( utfstr[ 3 ] & 0x3f );        
-    }
-
-    // 不正なUTF8
-    else {
-        byte = 1;
-        ucs2 =  utfstr[ 0 ];
-        ERRMSG( "MISC::utf8toucs2 : invalid code = " + std::to_string( ucs2 ) );
-    }
-
-    return ucs2;
-}
-
-
-
-
-//
-// ucs2 -> utf8 変換
-//
-// 出力 : utfstr 変換後の文字
-//
-// 戻り値 : バイト数
-//
-int MISC::ucs2toutf8( const int ucs2,  char* utfstr )
-{
-    int byte = 0;
-
-    if( ucs2 <= 0x7f ){ // ascii
-        byte = 1;
-        utfstr[ 0 ] = ucs2;
-    }
-
-    else if( ucs2 <= 0x07ff ){
-        byte = 2;
-        utfstr[ 0 ] = ( 0xc0 ) + ( ucs2 >> 6 );
-        utfstr[ 1 ] = ( 0x80 ) + ( ucs2 & 0x3f );
-    }
-
-    else if( ucs2 <= 0xffff){
-        byte = 3;
-        utfstr[ 0 ] = ( 0xe0 ) + ( ucs2 >> 12 );
-        utfstr[ 1 ] = ( 0x80 ) + ( ( ucs2 >>6 ) & 0x3f );
-        utfstr[ 2 ] = ( 0x80 ) + ( ucs2 & 0x3f );
-    }
-
-    else{
-        byte = 4;
-        utfstr[ 0 ] = ( 0xf0 ) + ( ucs2 >> 18 );
-        utfstr[ 1 ] = ( 0x80 ) + ( ( ucs2 >>12 ) & 0x3f );
-        utfstr[ 2 ] = ( 0x80 ) + ( ( ucs2 >>6 ) & 0x3f );
-        utfstr[ 3 ] = ( 0x80 ) + ( ucs2 & 0x3f );
-    }
-
-    utfstr[ byte ] = 0;
-    return byte;
-}
-
-
-//
-// ucs2 の種類
-//
-int MISC::get_ucs2mode( const int ucs2 )
-{
-    if( ucs2 >= 0x0000 && ucs2 <= 0x007f ) return UCS2MODE_BASIC_LATIN;
-    if( ucs2 >= 0x3040 && ucs2 <= 0x309f ) return UCS2MODE_HIRA;
-    if( ucs2 >= 0x30a0 && ucs2 <= 0x30ff ) return UCS2MODE_KATA;
-
-    return UCS2MODE_OTHER;
-}
-
-//
-// WAVEDASHなどのWindows系UTF-8文字をUnix系文字と相互変換
-//
-std::string MISC::utf8_fix_wavedash( const std::string& str, const int mode )
-{
-    // WAVE DASH 問題
-    const size_t size = 4;
-    const unsigned char Win[size][4] = {
-        { 0xef, 0xbd, 0x9e, '\0' }, // FULLWIDTH TILDE (U+FF5E)
-        { 0xe2, 0x80, 0x95, '\0' }, // HORIZONTAL BAR (U+2015)
-        { 0xe2, 0x88, 0xa5, '\0' }, // PARALLEL TO (U+2225)
-        { 0xef, 0xbc, 0x8d, '\0' }  // FULLWIDTH HYPHEN-MINUS (U+FF0D)
-    };
-    const unsigned char Unix[size][4] = {
-        { 0xe3, 0x80, 0x9c, '\0' }, // WAVE DASH (U+301C)
-        { 0xe2, 0x80, 0x94, '\0' }, // EM DASH(U+2014)
-        { 0xe2, 0x80, 0x96, '\0' }, // DOUBLE VERTICAL LINE (U+2016)
-        { 0xe2, 0x88, 0x92, '\0' }  // MINUS SIGN (U+2212)
-    };
-    
-    std::string ret(str);
-
-    if( mode == WINtoUNIX ){
-
-        for( size_t i = 0; i < ret.length(); i++ ) {
-            for( size_t s = 0; s < size; s++ ) {
-                if( ret[ i ] != (char)Win[ s ][ 0 ] || ret[ i+1 ] != (char)Win[ s ][ 1 ] || ret[ i+2 ] != (char)Win[ s ][ 2 ] )
-                    continue;
-                for( size_t t = 0; t < 3; t++ )
-                    ret[ i+t ] = (char)Unix[ s ][ t ];
-                i += 2;
-                break;
-            }
-        }
-
-    }else{
-   
-        for( size_t i = 0; i < ret.length(); i++ ) {
-            for( size_t s = 0; s < size; s++ ) {
-                if( ret[ i ] != (char)Unix[ s ][ 0 ] || ret[ i+1 ] != (char)Unix[ s ][ 1 ] || ret[ i+2 ] != (char)Unix[ s ][ 2 ] )
-                    continue;
-                for( size_t t = 0; t < 3; t++ )
-                    ret[ i+t ] = (char)Win[ s ][ t ];
-                i += 2;
-                break;
-            }
-        }
-    }
-
-    return ret;
 }
 
 
@@ -1937,6 +1965,54 @@ void MISC::asc( const char* str1, std::string& str2, std::vector< int >& table_p
     // 文字列の終端（ヌル文字）の位置を追加する。
     // ヌル文字の位置がないと検索対象の末尾にマッチングしたとき範囲外アクセスが発生する。
     table_pos.push_back( pos );
+}
+
+
+//
+// UTF-8文字列の正規化(NFKD)
+//
+// str1 : 変換する文字列
+// str2 : 出力先
+// table_pos : 置き換えた文字列の位置
+//
+void MISC::norm( const char* str1, std::string& str2, std::vector<int>* table_pos )
+{
+    std::size_t pos = 0;
+    Glib::ustring ustr;
+
+    while( str1[ pos ] != '\0' ) {
+
+        ustr.assign( str1 + pos, std::size_t( 1u ) );
+        if( ustr.bytes() <= 1 ) {
+            str2.push_back( str1[ pos ] );
+            if( table_pos ) table_pos->push_back( pos );
+            pos++;
+            continue;
+        }
+
+        // 異字体は纏める
+        constexpr gssize nul_terminated = -1;
+        const char32_t next = g_utf8_get_char_validated( str1 + pos + ustr.bytes(), nul_terminated );
+        if( ( 0x180B <= next && next <= 0x180D ) ||
+            ( 0xFE00 <= next && next <= 0xFE0F ) ||
+            ( 0xE0100 <= next && next <= 0xE01EF ) ) {
+            ustr.push_back( next );
+        }
+
+        const std::size_t lng_before = str2.size();
+        str2.append( ustr.normalize( Glib::NORMALIZE_NFKD ) );
+        if( table_pos ) {
+            std::size_t n = pos;
+            std::generate_n( std::back_inserter( *table_pos ), str2.size() - lng_before, [&n] { return n++; } );
+        }
+
+        pos += ustr.bytes();
+    }
+    // 文字列の終端（ヌル文字）の位置を追加する。
+    // ヌル文字の位置がないと検索対象の末尾にマッチングしたとき範囲外アクセスが発生する。
+    if( table_pos ) {
+        table_pos->push_back( pos );
+    }
 }
 
 

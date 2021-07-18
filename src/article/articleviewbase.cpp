@@ -1620,11 +1620,10 @@ void ArticleViewBase::show_res( const std::string& num, const bool show_title )
     if( show_title ){
 
         std::string html;
-        std::string tmpstr = DBTREE::board_name( m_url_article );
-        if( ! tmpstr.empty() ) html += "[ " + tmpstr + " ] ";
+        const std::string& tmpstr = DBTREE::board_name( m_url_article );
+        if( ! tmpstr.empty() ) html += "[ " + MISC::html_escape( tmpstr ) + " ] ";
 
-        tmpstr = DBTREE::article_subject( m_url_article );
-        if( ! tmpstr.empty() ) html += tmpstr;
+        html += DBTREE::article_modified_subject( m_url_article );
 
         if( ! html.empty() ) append_html( html );
     }
@@ -1692,8 +1691,9 @@ void ArticleViewBase::show_id( const std::string& id_name, const bool show_optio
     comment << raw_id << "  " << list_resnum.size() << " 件<br>";
     comment << "総参照数:" << m_article->get_res_reference( list_resnum ).size() << " 件";
 
+#if 0
     // 末尾判定
-    if( raw_id.length() == 9 ){
+    if( raw_id.length() == 12 ){
 
         char c = raw_id.c_str()[ 8 ];
         switch( c ){
@@ -1707,6 +1707,7 @@ void ArticleViewBase::show_id( const std::string& id_name, const bool show_optio
             case '0': comment << "<br>末尾:" << c << " PC";  break;
         }
     }
+#endif
 
     if( show_option && ! list_resnum.empty() ){
         if( !m_show_url4report ) comment << "<br><br><a href=\"" << PROTO_URL4REPORT << "\">抽出したレスのURLをリスト表示</a>";
@@ -2375,27 +2376,19 @@ void ArticleViewBase::slot_on_url( const std::string& url, const std::string& im
         {
             std::string tmp = MISC::url_decode( url );
 
-            const int char_code = MISC::judge_char_code( tmp );
+            const CharCode charcode = MISC::judge_char_code( tmp );
 
-            switch( char_code )
+            switch( charcode )
             {
-                case MISC::CHARCODE_EUC_JP:
+                case CHARCODE_SJIS:
+                case CHARCODE_EUCJP:
+                case CHARCODE_JIS:
 
-                    status_url = MISC::Iconv( tmp, "UTF-8", "EUC-JP" );
+                    status_url = MISC::Iconv( tmp, CHARCODE_UTF8, charcode );
                     break;
 
-                case MISC::CHARCODE_JIS:
-
-                    status_url = MISC::Iconv( tmp, "UTF-8", "ISO-2022-JP" );
-                    break;
-
-                case MISC::CHARCODE_SJIS:
-
-                    status_url = MISC::Iconv( tmp, "UTF-8", "MS932" );
-                    break;
-
-                case MISC::CHARCODE_ASCII:
-                case MISC::CHARCODE_UTF:
+                case CHARCODE_ASCII:
+                case CHARCODE_UTF8:
 
                     status_url = tmp;
                     break;
@@ -2578,17 +2571,13 @@ bool ArticleViewBase::click_url( std::string url, int res_number, GdkEventButton
 
         hide_popup();
 
-        std::stringstream ssurl;
-        ssurl << "http://be.2ch.net/test/p.php?i="
-              << url.substr( strlen( PROTO_BE ) )
-              << "&u=d:"
-              << DBTREE::url_readcgi( m_url_article, res_number, 0 );
+        const std::string openurl = "http://be.5ch.net/user/" + url.substr( strlen( PROTO_BE ) );
 #ifdef _DEBUG
-        std::cout << "open  " << ssurl.str() << std::endl;
+        std::cout << "open  " << openurl << std::endl;
 #endif
-        if( control.button_alloted( event, CONTROL::OpenBeButton ) ) CORE::core_set_command( "open_url_browser", ssurl.str() );
+        if( control.button_alloted( event, CONTROL::OpenBeButton ) ) CORE::core_set_command( "open_url_browser", openurl );
         else if( control.button_alloted( event, CONTROL::PopupmenuBeButton ) ){
-            show_popupmenu( ssurl.str(), false );
+            show_popupmenu( openurl, false );
         }
     }
 
@@ -3703,9 +3692,9 @@ void ArticleViewBase::slot_copy_res( bool ref )
 
     std::string tmpstr = m_url_tmp + "\n";
     if( ref ) tmpstr += CONFIG::get_ref_prefix();
-    std::string board_name = DBTREE::board_name( m_url_article );
+    const std::string& board_name = DBTREE::board_name( m_url_article );
     if( ! board_name.empty() ) tmpstr += "[ " + board_name + " ] ";
-    tmpstr += DBTREE::article_subject( m_url_article ) + "\n\n";
+    tmpstr += MISC::to_plain( DBTREE::article_subject( m_url_article ) ) + "\n\n";
     tmpstr += m_article->get_res_str( atoi( m_str_num.c_str() ), ref );
 
     MISC::CopyClipboard( tmpstr );
@@ -3717,7 +3706,7 @@ void ArticleViewBase::slot_copy_res( bool ref )
 //
 void ArticleViewBase::slot_copy_title_url()
 {
-    MISC::CopyClipboard( DBTREE::article_subject( m_url_article ) + '\n' + url_for_copy() );
+    MISC::CopyClipboard( MISC::to_plain( DBTREE::article_subject( m_url_article ) ) + '\n' + url_for_copy() );
 }
 
 
@@ -3732,7 +3721,7 @@ void ArticleViewBase::set_favorite()
     info.type = TYPE_THREAD;
     info.parent = ARTICLE::get_admin()->get_win();
     info.url = m_url_article;;
-    info.name = DBTREE::article_subject( m_url_article );
+    info.name = MISC::to_plain( DBTREE::article_modified_subject( m_url_article ) );
     info.path = Gtk::TreePath( "0" ).to_string();
 
     CORE::DATA_INFO_LIST list_info;

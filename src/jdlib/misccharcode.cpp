@@ -3,6 +3,7 @@
 //#define _DEBUG
 #include "jddebug.h"
 
+#include "jdiconv.h"
 #include "misccharcode.h"
 
 #include <cstring>
@@ -10,6 +11,27 @@
 
 // チェックする最大バイト数
 #define CHECK_LIMIT 1024
+
+
+static constexpr const char* encoding_string[] = { "ISO-8859-1", "ASCII", "EUCJP-MS", "ISO2022-JP", "MS932", "UTF-8" };
+
+const char* MISC::charcode_to_cstr( const CharCode charcode )
+{
+    CharCode code = charcode;
+    if( code > CHARCODE_UTF8 || code < CHARCODE_UNKNOWN ) code = CHARCODE_UNKNOWN;
+    return encoding_string[ code ];
+}
+
+CharCode MISC::charcode_from_cstr( const char* encoding )
+{
+    CharCode code = CHARCODE_UNKNOWN;
+
+    for( size_t i = sizeof( encoding_string ) / sizeof( char * ) - 1; i > 0; --i ){
+        if( strcmp( encoding_string[ i ], encoding ) == 0 ){ code = CharCode( i ); break; }
+    }
+    return code;
+}
+
 
 /*--- 制御文字とASCII -----------------------------------------------*/
 
@@ -40,14 +62,13 @@
 // 2バイト目 0xA1〜0xFE
 #define EUC_RANGE_MULTI( target ) ( (unsigned char)( target - 0xA1 ) < 0x5E )
 //
-bool MISC::is_euc( const char* input, size_t read_byte )
+bool MISC::is_eucjp( const char* input, const size_t length, size_t read_byte )
 {
-    if( ! input ) return false;
+    if( ! input || ! length ) return false;
 
     size_t byte = read_byte;
-    const size_t input_length = strlen( input );
 
-    while( byte < input_length && byte < CHECK_LIMIT )
+    while( byte < length && byte < CHECK_LIMIT )
     {
         // 制御文字かアスキー
         if( CTRL_AND_ASCII_RANGE( input[ byte ] ) )
@@ -89,13 +110,11 @@ bool MISC::is_euc( const char* input, size_t read_byte )
 // エスケープシーケンスの開始文字 ESC(0x1B)
 #define JIS_ESC_SEQ_START( target ) ( target == 0x1B )
 //
-bool MISC::is_jis( const char* input, size_t& byte )
+bool MISC::is_jis( const char* input, const size_t length, size_t& byte )
 {
-    if( ! input ) return false;
+    if( ! input || ! length ) return false;
 
-    const size_t input_length = strlen( input );
-
-    while( byte < input_length && byte < CHECK_LIMIT )
+    while( byte < length && byte < CHECK_LIMIT )
     {
         // ESCが出現したか否かだけで判断
         if( JIS_ESC_SEQ_START( input[ byte ] ) ) return true;
@@ -131,14 +150,13 @@ bool MISC::is_jis( const char* input, size_t& byte )
 // 0x80〜0xFC
 #define SJIS_RANGE_2_T( target ) ( (unsigned char)( target - 0x80 ) < 0x7D )
 //
-bool MISC::is_sjis( const char* input, size_t read_byte )
+bool MISC::is_sjis( const char* input, const size_t length, size_t read_byte )
 {
-    if( ! input ) return false;
+    if( ! input || ! length ) return false;
 
     size_t byte = read_byte;
-    const size_t input_length = strlen( input );
 
-    while( byte < input_length && byte < CHECK_LIMIT )
+    while( byte < length && byte < CHECK_LIMIT )
     {
         // 制御文字かアスキー
         if( CTRL_AND_ASCII_RANGE( input[ byte ] ) )
@@ -167,36 +185,39 @@ bool MISC::is_sjis( const char* input, size_t read_byte )
 }
 
 
+namespace {
 /*---- UTF ---------------------------------------------------------*/
 //
 // 0xC0・0xC1はセキュリティ上の問題で使用が禁止されている
 //
-// [ 1バイト目の範囲 ] 0xC2〜0xFD [ RFC2279(破棄) ]
-// [ 1バイト目の範囲 ] 0xC2〜0xF4 [ RFC6329 ]
-#define UTF_RANGE_1( target ) ( (unsigned char)( target - 0xC2 ) < 0x33 )
+// [ 1バイト目の範囲 ] 0xC2～0xFD [ RFC2279(破棄) ]
+// [ 1バイト目の範囲 ] 0xC2～0xF4 [ RFC6329 ]
+inline bool utf8_range1( std::uint8_t target ) { return static_cast< std::uint8_t >( target - 0xC2 ) < 0x33; }
 //
-// [ 1バイト目 (2バイト文字) ] 先頭2ビットが1
-#define UTF_FLAG_2( target ) ( ( target & 0xC0 ) == 0xC0 )
+// [ 2バイト目以降 ] 0x80～0xBF 先頭ビットが10
+inline bool utf8_range_multi_byte( std::uint8_t target ) { return ( target & 0xC0 ) == 0x80; }
 //
-// [ 1バイト目 (3バイト文字) ] 先頭3ビットが1
-#define UTF_FLAG_3( target ) ( ( target & 0xE0 ) == 0xE0 )
+// [ 1バイト目 (2バイト文字) ] 先頭ビットが110
+//#define UTF_FLAG_2( target ) ( ( target & 0xE0 ) == 0xC0 )
+// [ 1バイト目 (2バイト文字) ] 0xC2～0xDF
+inline bool utf8_flag2( std::uint8_t target ) { return static_cast< std::uint8_t >( target - 0xC2 ) < 0x1E; }
 //
-// [ 1バイト目 (4バイト文字) ] 先頭4ビットが1
-#define UTF_FLAG_4( target ) ( ( target & 0xF0 ) == 0xF0 )
+// [ 1バイト目 (3バイト文字) ] 先頭ビットが1110
+inline bool utf8_flag3( std::uint8_t target ) { return ( target & 0xF0 ) == 0xE0; }
 //
-// [ 2バイト目以降 ] 0x80〜0xBF
-#define UTF_RANGE_MULTI_BYTE( target ) ( (unsigned char)( target - 0x80 ) < 0x40 )
+// [ 1バイト目 (4バイト文字) ] 先頭ビットが11110
+inline bool utf8_flag4( std::uint8_t target ) { return ( target & 0xF8 ) == 0xF0; }
 //
-bool MISC::is_utf( const char* input, size_t read_byte )
+} // namespace
+bool MISC::is_utf8( const char* input, const size_t length, size_t read_byte )
 {
-    if( ! input ) return false;
+    if( ! input || ! length ) return false;
 
     bool valid = true;
 
     size_t byte = read_byte;
-    const size_t input_length = strlen( input );
 
-    while( byte < input_length && byte < CHECK_LIMIT )
+    while( byte < length && byte < CHECK_LIMIT )
     {
         // 制御文字かアスキー
         if( CTRL_AND_ASCII_RANGE( input[ byte ] ) )
@@ -205,7 +226,7 @@ bool MISC::is_utf( const char* input, size_t read_byte )
             continue;
         }
         // UTF-8の1バイト目の範囲ではない
-        else if( ! UTF_RANGE_1( input[ byte ] ) )
+        else if( ! utf8_range1( input[ byte ] ) )
         {
             return false;
         }
@@ -213,16 +234,16 @@ bool MISC::is_utf( const char* input, size_t read_byte )
         int byte_count = 1;
 
         // 4,3,2バイト
-        if( UTF_FLAG_4( input[ byte ] ) ) byte_count = 4;
-        else if( UTF_FLAG_3( input[ byte ] ) ) byte_count = 3;
-        else if( UTF_FLAG_2( input[ byte ] ) ) byte_count = 2;
+        if( utf8_flag4( input[ byte ] ) ) byte_count = 4;
+        else if( utf8_flag3( input[ byte ] ) ) byte_count = 3;
+        else if( utf8_flag2( input[ byte ] ) ) byte_count = 2;
 
         ++byte;
 
         // 2バイト目以降
         while( byte_count > 1 )
         {
-            if( UTF_RANGE_MULTI_BYTE( input[ byte ] ) )
+            if( utf8_range_multi_byte( input[ byte ] ) )
             {
                 ++byte;
             }
@@ -245,26 +266,192 @@ bool MISC::is_utf( const char* input, size_t read_byte )
 // 各コードの判定でtrueの間は文字数分繰り返されるので
 // 速度の求められる繰り返し処理などで使わない事
 //
-int MISC::judge_char_code( const std::string& str )
+CharCode MISC::judge_char_code( const std::string& str )
 {
-    int code = CHARCODE_UNKNOWN;
+    CharCode code = CHARCODE_UNKNOWN;
 
     if( str.empty() ) return code;
 
     size_t read_byte = 0;
 
     // JISの判定
-    if( is_jis( str.c_str(), read_byte ) ) code = CHARCODE_JIS;
+    if( is_jis( str.c_str(), str.length(), read_byte ) ) code = CHARCODE_JIS;
     // JISの判定で最後まで進んでいたら制御文字かアスキー
     else if( read_byte == str.length() ) code = CHARCODE_ASCII;
     // is_jis()でASCII範囲外のバイトが現れた箇所から判定する
     // UTF-8の範囲
-    else if( is_utf( str.c_str(), read_byte ) ) code = CHARCODE_UTF;
+    else if( is_utf8( str.c_str(), str.length(), read_byte ) ) code = CHARCODE_UTF8;
     // EUC-JPの範囲
-    else if( is_euc( str.c_str(), read_byte ) ) code = CHARCODE_EUC_JP;
+    else if( is_eucjp( str.c_str(), str.length(), read_byte ) ) code = CHARCODE_EUCJP;
     // Shift_JISの範囲
-    else if( is_sjis( str.c_str(), read_byte ) ) code = CHARCODE_SJIS;
+    else if( is_sjis( str.c_str(), str.length(), read_byte ) ) code = CHARCODE_SJIS;
 
     return code;
 }
 
+
+//
+// utf-8 byte数
+//
+// 入力 : utfstr 入力文字 (UTF-8)
+// 戻り値 :  byte  長さ(バイト) utfstr が ascii なら 1, UTF-8 なら 2 or 3 or 4 を返す
+//
+int MISC::utf8bytes( const char* utfstr )
+{
+    int byte = 0;
+
+    if( utfstr && *utfstr != '\0' ){
+        const unsigned char ch = static_cast< unsigned char >( *utfstr );
+        if( ch <= 0x7f ) byte = 1;
+        else if( utf8_flag3( ch ) ) byte = 3;
+        else if( utf8_flag4( ch ) ) byte = 4;
+        else if( utf8_flag2( ch ) ) byte = 2;
+#ifdef _DEBUG
+        else { // 不正なUTF8
+            std::cout << "MISC::utf8bytes : invalid 1st byte: char = "
+                      << static_cast< unsigned int >( ch ) << std::endl;
+        }
+#endif
+    }
+
+    for( int i = 1; i < byte; ++i ){
+        if( ! utf8_range_multi_byte( utfstr[ i ] ) ){
+#ifdef _DEBUG
+            // 不正なUTF8
+            std::cout << "MISC::utf8bytes : invalid code: char = " << static_cast< unsigned int >( utfstr[ 0 ] );
+            std::cout << ", " << static_cast< unsigned int >( utfstr[ 1 ] );
+            if( byte > 2 ) std::cout << ", " << static_cast< unsigned int >( utfstr[ 2 ] );
+            if( byte > 3 ) std::cout << ", " << static_cast< unsigned int >( utfstr[ 3 ] );
+            std::cout << std::endl;
+#endif
+            byte = 0;
+            break;
+        }
+    }
+
+    return byte;
+}
+
+
+//
+// utf-8 -> code point 変換
+//
+// 入力 : utfstr 入力文字 (UTF-8)
+// 出力 :  byte  長さ(バイト) utfstr が ascii なら 1, UTF-8 なら 2 or 3 or 4 を入れて返す
+// 戻り値 : code point
+//
+char32_t MISC::utf8tocp( const char* utfstr, int& byte )
+{
+    char32_t code = 0;
+    byte = utf8bytes( utfstr );
+
+    switch( byte ){
+    case 1:
+        code =  utfstr[ 0 ];
+        break;
+
+    case 2:
+        code = utfstr[ 0 ] & 0x1f;
+        code = ( code << 6 ) + ( utfstr[ 1 ] & 0x3f );
+        break;
+
+    case 3:
+        code = utfstr[ 0 ] & 0x0f;
+        code = ( code << 6 ) + ( utfstr[ 1 ] & 0x3f );
+        code = ( code << 6 ) + ( utfstr[ 2 ] & 0x3f );
+        break;
+
+    case 4:
+        code = utfstr[ 0 ] & 0x07;
+        code = ( code << 6 ) + ( utfstr[ 1 ] & 0x3f );
+        code = ( code << 6 ) + ( utfstr[ 2 ] & 0x3f );
+        code = ( code << 6 ) + ( utfstr[ 3 ] & 0x3f );
+        break;
+
+    default:
+        break;
+    }
+
+    return code;
+}
+
+
+//
+// ucs の種類
+//
+MISC::UcsType MISC::get_ucstype( const char32_t code )
+{
+    if( code <= 0x007f ) return UcsType::BasicLatin;
+    if( code >= 0x3040 && code <= 0x309f ) return UcsType::Hira;
+    if( code >= 0x30a0 && code <= 0x30ff ) return UcsType::Kata;
+
+    return UcsType::Other;
+}
+
+//
+// WAVEDASHなどのWindows系UTF-8文字をUnix系文字と相互変換
+//
+std::string MISC::utf8_fix_wavedash( const std::string& str, const MISC::WaveDashFix mode )
+{
+    // WAVE DASH 問題
+    constexpr size_t size = 4;
+    constexpr const unsigned char Win[size][4] = {
+        u8"\uFF5E", // FULLWIDTH TILDE
+        u8"\u2015", // HORIZONTAL BAR
+        u8"\u2225", // PARALLEL TO
+        u8"\uFF0D", // FULLWIDTH HYPHEN-MINUS
+    };
+    constexpr const unsigned char Unix[size][4] = {
+        u8"\u301C", // WAVE DASH
+        u8"\u2014", // EM DASH
+        u8"\u2016", // DOUBLE VERTICAL LINE
+        u8"\u2212", // MINUS SIGN
+    };
+
+    std::string ret(str);
+
+    if( mode == WaveDashFix::WinToUnix ){
+
+        for( size_t i = 0; i < ret.length(); i++ ) {
+            for( size_t s = 0; s < size; s++ ) {
+                if( ret[ i ] != (char)Win[ s ][ 0 ] || ret[ i+1 ] != (char)Win[ s ][ 1 ] || ret[ i+2 ] != (char)Win[ s ][ 2 ] )
+                    continue;
+                for( size_t t = 0; t < 3; t++ )
+                    ret[ i+t ] = (char)Unix[ s ][ t ];
+                i += 2;
+                break;
+            }
+        }
+
+    }else{
+
+        for( size_t i = 0; i < ret.length(); i++ ) {
+            for( size_t s = 0; s < size; s++ ) {
+                if( ret[ i ] != (char)Unix[ s ][ 0 ] || ret[ i+1 ] != (char)Unix[ s ][ 1 ] || ret[ i+2 ] != (char)Unix[ s ][ 2 ] )
+                    continue;
+                for( size_t t = 0; t < 3; t++ )
+                    ret[ i+t ] = (char)Win[ s ][ t ];
+                i += 2;
+                break;
+            }
+        }
+    }
+
+    return ret;
+}
+
+
+//
+// 文字コードを from から to に変換
+//
+// 遅いので連続的な処理が必要な時は使わないこと
+//
+std::string MISC::Iconv( const std::string& str, const CharCode to, const CharCode from )
+{
+    if( from == to ) return str;
+
+    JDLIB::Iconv icv( to, from );
+    int byte_out;
+
+    return icv.convert( str.c_str(), str.length(), byte_out );
+}

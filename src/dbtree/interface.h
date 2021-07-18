@@ -7,6 +7,7 @@
 #ifndef _INTERFACE_H
 #define _INTERFACE_H
 
+#include "charcode.h"
 #include "etcboardinfo.h"
 
 #include <string>
@@ -93,35 +94,36 @@ namespace DBTREE
     time_t get_time_modified(); // bbsmenuの更新時間( time_t )
 
     // board 系
-    std::string board_path( const std::string& url );
-    std::string board_id( const std::string& url );
+    const std::string& board_path( const std::string& url );
+    const std::string& board_id( const std::string& url );
     time_t board_time_modified( const std::string& url ); // 板の更新時間( time_t )
-    std::string board_date_modified( const std::string& url ); // 板の更新時間( 文字列 )
+    const std::string& board_date_modified( const std::string& url ); // 板の更新時間( 文字列 )
     void board_set_date_modified( const std::string& url, const std::string& date ); // 板の更新時間( 文字列 )をセット
     const std::string& board_get_modified_localrule( const std::string& url );
     void board_set_modified_localrule( const std::string& url, const std::string& modified );
     const std::string& board_get_modified_setting( const std::string& url );
     void board_set_modified_setting( const std::string& url, const std::string& modified );
-    std::string board_name( const std::string& url );
-    std::string board_subjecttxt( const std::string& url );
-    std::string board_charset( const std::string& url );
+    const std::string& board_name( const std::string& url );
+    const std::string& board_subjecttxt( const std::string& url );
+    CharCode board_charcode( const std::string& url );
+    void board_set_charcode( const std::string& url, const CharCode charcode );
     std::string board_cookie_by_host( const std::string& url );
     std::string board_cookie_for_request( const std::string& url );
     std::string board_cookie_for_post( const std::string& url );
     void board_set_list_cookies( const std::string& url, const std::list< std::string>& list_cookies );
     void board_delete_cookies( const std::string& url );
-    std::string board_keyword_for_write( const std::string& url );
+    const std::string& board_keyword_for_write( const std::string& url );
     void board_set_keyword_for_write( const std::string& url, const std::string& keyword );
     void board_analyze_keyword_for_write( const std::string& url, const std::string& html );
     std::string board_keyword_for_newarticle( const std::string& url );
     void board_set_keyword_for_newarticle( const std::string& url, const std::string& keyword );
     void board_analyze_keyword_for_newarticle( const std::string& url, const std::string& html );
     std::string board_parse_form_data( const std::string& url, const std::string& html );
-    std::string board_basicauth( const std::string& url );
-    std::string board_ext( const std::string& url );
+    const std::string& board_basicauth( const std::string& url );
+    const std::string& board_ext( const std::string& url );
     int board_status( const std::string& url );
     int board_code( const std::string& url );
-    std::string board_str_code( const std::string& url );
+    const std::string& board_str_code( const std::string& url );
     void board_save_info( const std::string& url );
     void board_download_front( const std::string& url );
     void board_download_subject( const std::string& url, const std::string& url_update_view );
@@ -216,6 +218,8 @@ namespace DBTREE
     time_t article_time_modified( const std::string& url ); // スレの更新時間( time_t )
     std::string article_date_modified( const std::string& url ); // スレの更新時間( 文字列 )
     void article_set_date_modified( const std::string& url, const std::string& date ); // スレの更新時間( 文字列 )をセット
+    CharCode article_charcode( const std::string& url );
+    void article_set_charcode( const std::string& url, const CharCode charcode );
     int article_hour( const std::string& url );
     time_t article_write_time( const std::string& url );
     std::string article_write_date( const std::string& url );
@@ -223,12 +227,15 @@ namespace DBTREE
     int article_code( const std::string& url );
     std::string article_str_code( const std::string& url );
     std::string article_ext_err( const std::string& url );
-    std::string article_subject( const std::string& url );
+    const std::string& article_subject( const std::string& url );
+    const std::string& article_modified_subject( const std::string& url, const bool renew = false );
     int article_number( const std::string& url );
     int article_number_load( const std::string& url );
     int article_number_seen( const std::string& url );
     void article_set_number_seen( const std::string& url, int seen );
     int article_number_new( const std::string& url );
+    int article_number_max( const std::string& url );
+    void article_set_number_max( const std::string& url, int max );
     bool article_is_loading( const std::string& url );
     bool article_is_checking_update( const std::string& url );
     void article_download_dat( const std::string& url, const bool check_update );
@@ -252,6 +259,9 @@ namespace DBTREE
 
     void article_update_writetime( const std::string& url );
     size_t article_lng_dat( const std::string& url );
+
+    // NodeTree削除
+    void article_clear_nodetree( const std::string& url );
 
     // ユーザーエージェント
     const std::string& get_agent( const std::string& url );   // ダウンロード用
@@ -338,7 +348,8 @@ namespace DBTREE
     const std::list< std::string >& get_abone_list_word_thread( const std::string& url );
     const std::list< std::string >& get_abone_list_regex_thread( const std::string& url );
     const std::unordered_set< int >& get_abone_reses( const std::string& url );
-    int get_abone_number_thread( const std::string& url );
+    int get_abone_min_number_thread( const std::string& url );
+    int get_abone_max_number_thread( const std::string& url );
     int get_abone_hour_thread( const std::string& url );
 
     // subject.txtのロード後にdat落ちしたスレッドをスレあぼーんのリストから取り除く
@@ -354,7 +365,8 @@ namespace DBTREE
                              const std::list< std::string >& threads,
                              const std::list< std::string >& words,
                              const std::list< std::string >& regexs,
-                             const int number, const int hour, const bool redraw );
+                             const int min_number, const int max_number,
+                             const int hour, const bool redraw );
 
     //
     // 各articlebase別のあぼーん情報
@@ -383,6 +395,7 @@ namespace DBTREE
                       const std::list< std::string >& regexs,
                       const std::vector< char >& vec_abone_res,
                       const bool transparent, const bool chain, const bool age,
+                      const bool default_name, const bool noid,
                       const bool board, const bool global
         );
 
@@ -403,6 +416,14 @@ namespace DBTREE
     // ageあぼーん
     bool get_abone_age( const std::string& url );
     void set_abone_age( const std::string& url, const bool set );
+
+    // デフォルト名無しあぼーん
+    bool get_abone_default_name( const std::string& url );
+    void set_abone_default_name( const std::string& url, const bool set );
+
+    // ID無しあぼーん
+    bool get_abone_noid( const std::string& url );
+    void set_abone_noid( const std::string& url, const bool set );
 
     // 板レベルでのあぼーん
     bool get_abone_board( const std::string& url );

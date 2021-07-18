@@ -3,7 +3,7 @@ dnl JDim用 configure.ac
 dnl
 AC_PREREQ(2.69)
 AC_INIT(jdim, 1.0)
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([1.13 -Wno-portability])
 AC_CONFIG_HEADERS(config.h)
 
 AC_PROG_CC
@@ -174,12 +174,24 @@ AS_IF(
    AC_SUBST(GNUTLS_LIBS)],
 
   [test "x$with_tls" = xopenssl],
-  [PKG_CHECK_MODULES(OPENSSL, [openssl >= 0.9])
+  [PKG_CHECK_MODULES(OPENSSL, [openssl >= 0.9.7])
    AC_DEFINE(USE_OPENSSL, , [use openssl])
    AC_SUBST(OPENSSL_CFLAGS)
    AC_SUBST(OPENSSL_LIBS)],
 
   [AC_MSG_ERROR([TLS library not found])]
+)
+
+
+AC_MSG_CHECKING(for --with-rootcert)
+AC_ARG_WITH(rootcert,
+AC_HELP_STRING([--with-rootcert=PATH],[specifiy the path of root certification file]),
+[with_rootcert="$withval"], [with_rootcert=no])
+AC_MSG_RESULT($with_rootcert)
+
+AS_IF(
+  [test "x$with_rootcert" != xno],
+  [AC_DEFINE_UNQUOTED(DEFAULT_CAFILE, "$with_rootcert", [root cert])]
 )
 
 

@@ -5,51 +5,58 @@
 #include "jddebug.h"
 
 #include "jdiconv.h"
+#include "misccharcode.h"
 #include "miscmsg.h"
-#include "miscutil.h"
 
-#include <errno.h>
-#include <cstring>
+#include "config/globalconf.h"
+
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
+#include <errno.h>
+#include <string>
 
 
 using namespace JDLIB;
 
-Iconv::Iconv( const std::string& coding_to, const std::string& coding_from )
-    : m_coding_from( coding_from )
+Iconv::Iconv( const CharCode to, const CharCode from )
+    : m_cd( (GIConv)-1 )
+    , m_coding_from( from )
+    , m_coding_to( to )
 {
 #ifdef _DEBUG
-    std::cout << "Iconv::Iconv coding = " << m_coding_from << " to " << coding_to << std::endl;
+    std::cout << "Iconv::Iconv coding = " << m_coding_from << " to " << m_coding_to << std::endl;
 #endif
     
-    m_buf_in = ( char* )malloc( BUF_SIZE_ICONV_IN );
-    m_buf_out = ( char* )malloc( BUF_SIZE_ICONV_OUT );
+    m_buf.resize( BUF_SIZE_ICONV_OUT );
+    const char* from_str = MISC::charcode_to_cstr( ( from == CHARCODE_UNKNOWN ) ? to : from );
+    const char* to_str = MISC::charcode_to_cstr( ( to == CHARCODE_UNKNOWN ) ? from : to );
     
-    m_cd = g_iconv_open( coding_to.c_str(), m_coding_from.c_str() );
+    m_cd = g_iconv_open( to_str, from_str );
 
     // MS932で失敗したらCP932で試してみる
     if( m_cd == ( GIConv ) -1 ){
-        if( coding_to == "MS932" ) m_cd = g_iconv_open( "CP932", m_coding_from.c_str() );
-        else if( coding_from == "MS932" ) m_cd = g_iconv_open( coding_to.c_str(), "CP932" );
+        if( to == CHARCODE_SJIS ) m_cd = g_iconv_open( "CP932", from_str );
+        else if( from == CHARCODE_SJIS ) m_cd = g_iconv_open( to_str, "CP932" );
     }
 
     // "EUCJP-*"で失敗したら"EUCJP"で試してみる
     if( m_cd == ( GIConv ) - 1 && ( errno & EINVAL ) != 0 )
     {
-        if( coding_to.rfind( "EUCJP-", 0 ) == 0 )
+        if( to == CHARCODE_EUCJP ) m_cd = g_iconv_open( "EUCJP//TRANSLIT", from_str );
+        else if( from == CHARCODE_EUCJP )
         {
-            m_cd = g_iconv_open( "EUCJP//TRANSLIT", coding_from.c_str() );
-        }
-        else if( coding_from.rfind( "EUCJP-", 0 ) == 0 )
-        {
-            const std::string coding_to_translit = coding_to + "//TRANSLIT";
+            const std::string coding_to_translit = std::string( to_str ) + "//TRANSLIT";
             m_cd = g_iconv_open( coding_to_translit.c_str(), "EUCJP" );
         }
     }
 
     if( m_cd == ( GIConv ) -1 ){
-        MISC::ERRMSG( "can't open iconv coding = " + m_coding_from + " to " + coding_to );
+        std::string msg = "can't open iconv coding = ";
+        msg += MISC::charcode_to_cstr( from );
+        msg += " to ";
+        msg += MISC::charcode_to_cstr( to );
+        MISC::ERRMSG( msg );
     }
 }
 
@@ -57,50 +64,44 @@ Iconv::~Iconv()
 {
 #ifdef _DEBUG
     std::cout << "Iconv::~Iconv\n";
-#endif    
-    
-    if( m_buf_in ) free( m_buf_in );
-    if( m_buf_out ) free( m_buf_out );
+#endif
+
     if( m_cd != ( GIConv ) -1 ) g_iconv_close( m_cd );
 }
 
 
-const char* Iconv::convert( char* str_in, int size_in, int& size_out )
+const char* Iconv::convert( const char* str_in, int size_in, int& size_out )
 {
 #ifdef _DEBUG
-    std::cout << "Iconv::convert size_in = " << size_in 
-              <<" left = " << m_byte_left_in << std::endl;
+    std::cout << "Iconv::convert size_in = " << size_in << std::endl;
 #endif
 
-    assert( m_byte_left_in + size_in < BUF_SIZE_ICONV_IN );
     if( m_cd == ( GIConv ) -1 ) return nullptr;
     
-    size_t byte_left_out = BUF_SIZE_ICONV_OUT;
-    char* buf_out = m_buf_out;
+    char* buf_in_tmp = const_cast<char*>( str_in );
+    const char* buf_in_end = str_in + size_in;
 
-    // 前回の残りをコピー
-    if( m_byte_left_in ){
-        memcpy( m_buf_in, m_buf_in_tmp, m_byte_left_in );
-        m_buf_in_tmp = m_buf_in;
-        memcpy( m_buf_in + m_byte_left_in , str_in, size_in );    
-    }
-    else m_buf_in_tmp = str_in;
+    char* buf_out_tmp = m_buf.data();
+    char* buf_out_end = m_buf.data() + m_buf.size();
 
-    m_byte_left_in += size_in;
+    const char* pre_check = nullptr; // 前回チェックしたUTF-8の先頭
 
     // iconv 実行
     do{
 
+        size_t byte_left_in = buf_in_end - buf_in_tmp;
+        size_t byte_left_out = buf_out_end - buf_out_tmp;
+
 #ifdef _DEBUG
-        std::cout << "m_byte_left_in = " << m_byte_left_in << std::endl;
+        std::cout << "byte_left_in = " << byte_left_in << std::endl;
         std::cout << "byte_left_out = " << byte_left_out << std::endl;
 #endif
     
-        const int ret = g_iconv( m_cd, &m_buf_in_tmp, &m_byte_left_in, &buf_out, &byte_left_out );
+        const int ret = g_iconv( m_cd, &buf_in_tmp, &byte_left_in, &buf_out_tmp, &byte_left_out );
 
 #ifdef _DEBUG
         std::cout << "--> ret = " << ret << std::endl;
-        std::cout << "m_byte_left_in = " << m_byte_left_in << std::endl;
+        std::cout << "byte_left_in = " << byte_left_in << std::endl;
         std::cout << "byte_left_out = " << byte_left_out << std::endl;
 #endif
 
@@ -112,48 +113,68 @@ const char* Iconv::convert( char* str_in, int size_in, int& size_out )
 #ifdef _DEBUG_ICONV
                 char str_tmp[256];
 #endif
-                const unsigned char code0 = *m_buf_in_tmp;
-                const unsigned char code1 = *(m_buf_in_tmp+1);
-                const unsigned char code2 = *(m_buf_in_tmp+2);
-
-                if( m_coding_from == "MS932" )
-                {
-
-                    // 空白(0xa0)
-                    if( code0 == 0xa0 ){
-                        *m_buf_in_tmp = 0x20;
-                        continue;
-                    }
-
-                    // <>の誤判別 ( 開発スレ 489 を参照 )
-                    if( code1 == 0x3c && code2 == 0x3e ){
-                        *m_buf_in_tmp = '?';
+                const unsigned char code0 = *buf_in_tmp;
 #ifdef _DEBUG_ICONV
-                        snprintf( str_tmp, 256, "iconv 0x%x%x> -> ?<>", code0, code1 );
-                        MISC::MSG( str_tmp );
+                const unsigned char code1 = *( buf_in_tmp + 1 );
+                const unsigned char code2 = *( buf_in_tmp + 2 );
 #endif
-                        continue;
-                    }
 
-                    // マッピング失敗
-                    // □(0x81a0)を表示する
-                    if( ( code0 >= 0x81 && code0 <=0x9F )
-                        || ( code0 >= 0xe0 && code0 <=0xef ) ){
+                // MS932からUTF-8へマッピング失敗
+                if( m_coding_from == CHARCODE_SJIS && m_coding_to == CHARCODE_UTF8
+                        && CONFIG::get_broken_sjis_be_utf8() ){
 
-                        *m_buf_in_tmp = static_cast< char >( 0x81 );
-                        *(m_buf_in_tmp+1) = static_cast< char >( 0xa0 );
+                    // UTF-8へ変換する場合UTF-8の混在を許容する
+                    char* bpos = buf_in_tmp;
+                    const char* epos = buf_in_tmp;
 
+                    // マルチバイトUTF-8文字列の先頭と終端を調べる
+                    while( bpos > str_in && *( bpos - 1 ) < 0 ) --bpos;
+                    while( epos < ( buf_in_tmp + byte_left_in ) && *epos < 0 ) ++epos;
+
+                    size_t lng = epos - bpos;
+
+                    // 1byteは不正、また毎回同じ文字列を判定しない
+                    if( lng > 1 && bpos != pre_check ){
+
+                        // 一文字ずつUTF-8の文字か確認
+                        size_t byte = 0;
+                        pre_check = bpos;
+
+                        if( MISC::is_utf8( bpos, lng, byte ) ){
 #ifdef _DEBUG_ICONV
-                        snprintf( str_tmp, 256, "iconv 0x%x%x -> □ (0x81a0) ", code0, code1 );
-                        MISC::MSG( str_tmp );
+                            std::string utf8( bpos, lng );
+                            snprintf( str_tmp, 256, "iconv to be utf-8: %s", utf8.c_str() );
+                            MISC::MSG( str_tmp );
 #endif
-                        continue;
+
+                            constexpr const char* span_bgn = "<span class=\"BROKEN_SJIS\">";
+                            constexpr const char* span_end = "</span>";
+                            const size_t lng_span_bgn = strlen( span_bgn );
+                            const size_t lng_span_end = strlen( span_end );
+
+                            while( buf_out_tmp > m_buf.data() && *( buf_out_tmp - 1 ) < 0 ) --buf_out_tmp;
+                            if( ( buf_out_tmp + lng + lng_span_bgn + lng_span_end ) >= buf_out_end ){
+                                const size_t used = buf_out_tmp - m_buf.data();
+                                if( ! grow() ) break;
+                                buf_out_tmp = m_buf.data() + used;
+                                buf_out_end = m_buf.data() + m_buf.size();
+                            }
+                            memcpy( buf_out_tmp, span_bgn, lng_span_bgn );
+                            buf_out_tmp += lng_span_bgn;
+                            memcpy( buf_out_tmp, bpos, lng );
+                            buf_out_tmp += lng;
+                            memcpy( buf_out_tmp, span_end, lng_span_end );
+                            buf_out_tmp += lng_span_end;
+                            buf_in_tmp = bpos + lng;
+
+                            continue;
+                        }
                     }
                 }
 
                 // unicode 文字からの変換失敗
                 // 数値文字参照(&#????;)形式にする
-                if( m_coding_from == "UTF-8" ){
+                if( m_coding_from == CHARCODE_UTF8 ){
 
                     // https://github.com/JDimproved/JDim/issues/214 （emoji subdivision flagの処理）について
                     //
@@ -168,34 +189,41 @@ const char* Iconv::convert( char* str_in, int size_in, int& size_out )
 
                     for ( ; ; ) {
                         int byte;
-                        const int ucs2 = MISC::utf8toucs2( m_buf_in_tmp, byte );
+                        const char32_t code = MISC::utf8tocp( buf_in_tmp, byte );
                         if( byte <= 1 ) break;
 
                         // emoji subdivision flags の処理
                         if ( is_handling_emoji_subdivision_flag ) {
                             // Tag Latin Small Letterの範囲か、Cancel Tagでなければ、処理中断
                             if ( byte != 4 ) break;
-                            if ( ucs2 < 917601 ) break; // U+E0061 TAG LATIN SMALL LETTER A
-                            if ( ucs2 > 917631 ) break; // U+E007F CANCEL TAG
+                            if ( code < 917601 ) break; // U+E0061 TAG LATIN SMALL LETTER A
+                            if ( code > 917631 ) break; // U+E007F CANCEL TAG
                         }
 
-                        const std::string ucs2_str = std::to_string( ucs2 );
+                        const std::string ucs_str = std::to_string( code );
 #ifdef _DEBUG
-                        std::cout << "ucs2 = " << ucs2_str << " byte = " << byte << std::endl;
+                        std::cout << "code = " << ucs_str << " byte = " << byte << std::endl;
 #endif
-                        m_buf_in_tmp += byte;
-                        m_byte_left_in -= byte;
+                        buf_in_tmp += byte;
 
-                        *(buf_out++) = '&';
-                        *(buf_out++) = '#';
-                        memcpy( buf_out, ucs2_str.c_str(), ucs2_str.size() ); buf_out += ucs2_str.size();
-                        *(buf_out++) = ';';
+                        if( ( buf_out_tmp + ucs_str.length() + 3 ) >= buf_out_end ){
+                            const size_t used = buf_out_tmp - m_buf.data();
+                            if( ! grow() ) break;
+                            buf_out_tmp = m_buf.data() + used;
+                            buf_out_end = m_buf.data() + m_buf.size();
+                        }
 
-                        byte_left_out -= ucs2_str.size() + 3;
+                        *(buf_out_tmp++) = '&';
+                        *(buf_out_tmp++) = '#';
+                        ucs_str.copy( buf_out_tmp, ucs_str.length() );
+                        buf_out_tmp += ucs_str.length();
+                        *(buf_out_tmp++) = ';';
+
+                        byte_left_out -= ucs_str.size() + 3;
                         is_converted_to_ucs2 = true;  // 一度変換されたのでマーク
 
                         if ( ! is_handling_emoji_subdivision_flag ) {
-                            if ( ( byte == 4 ) && ( ucs2 == 127988 ) ){ // U+1F3F4 WAVING BLACK FLAG
+                            if ( ( byte == 4 ) && ( code == 127988 ) ){ // U+1F3F4 WAVING BLACK FLAG
                                 // emoji subdivision flags の処理開始
                                 is_handling_emoji_subdivision_flag = true;
                                 continue; // 連続処理
@@ -216,12 +244,31 @@ const char* Iconv::convert( char* str_in, int size_in, int& size_out )
                 // 時々空白(0x20)で EILSEQ が出るときがあるのでもう一度トライする
                 if( code0 == 0x20 ) continue;
 
-                //その他、1文字を空白にして続行
 #ifdef _DEBUG_ICONV
-                snprintf( str_tmp, 256, "iconv EILSEQ left = %zu code = %x %x %x", m_byte_left_in, code0, code1, code2 );
+                snprintf( str_tmp, 256, "iconv EILSEQ left = %zu code = %x %x %x", byte_left_in, code0, code1, code2 );
                 MISC::ERRMSG( str_tmp );
 #endif
-                *m_buf_in_tmp = 0x20;
+
+                // BOFの確認
+                if( ( buf_out_end - buf_out_tmp ) <= 3 ){
+                    const size_t used = buf_out_tmp - m_buf.data();
+                    if( ! grow() ) break;
+                    buf_out_tmp = m_buf.data() + used;
+                    buf_out_end = m_buf.data() + m_buf.size();
+                }
+
+                // UTF-8へ変換する場合はREPLACEMENT CHARACTERに置き換える
+                if( m_coding_to == CHARCODE_UTF8 ){
+                    ++buf_in_tmp;
+                    *(buf_out_tmp++) = static_cast< char >( 0xef );
+                    *(buf_out_tmp++) = static_cast< char >( 0xbf );
+                    *(buf_out_tmp++) = static_cast< char >( 0xbd );
+                    continue;
+                }
+
+                //その他、1文字を?にして続行
+                ++buf_in_tmp;
+                *(buf_out_tmp++) = '?';
             }
 
             else if( errno == EINVAL ){
@@ -235,14 +282,29 @@ const char* Iconv::convert( char* str_in, int size_in, int& size_out )
 #ifdef _DEBUG_ICONV
                 MISC::ERRMSG( "iconv E2BIG\n" );
 #endif
-                break;
+                const size_t used = buf_out_tmp - m_buf.data();
+                if( ! grow() ) break;
+                buf_out_tmp = m_buf.data() + used;
+                buf_out_end = m_buf.data() + m_buf.size();
+                continue;
             }
         }
     
-    } while( m_byte_left_in > 0 );
+    } while( buf_in_tmp < buf_in_end );
 
-    size_out = BUF_SIZE_ICONV_OUT - byte_left_out;
-    m_buf_out[ size_out ] = '\0';
+    size_out = buf_out_tmp - m_buf.data();
+    *buf_out_tmp = '\0';
     
-    return m_buf_out;
+#ifdef _DEBUG
+    std::cout << "Iconv::convert size_out = " << size_out << std::endl;
+#endif
+    return m_buf.data();
+}
+
+
+
+bool Iconv::grow()
+{
+    m_buf.resize( m_buf.size() + BUF_SIZE_ICONV_OUT );
+    return true;
 }

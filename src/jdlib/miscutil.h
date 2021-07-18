@@ -5,6 +5,8 @@
 #ifndef _MISCUTIL_H
 #define _MISCUTIL_H
 
+#include "charcode.h"
+
 #include <string>
 #include <cstring>
 #include <list>
@@ -24,24 +26,6 @@ namespace MISC
 		SCHEME_TP,
                 SCHEME_SSSP
 	};
-
-     // get_ucs2mode()の戻り値
-     enum
-     {
-         UCS2MODE_BASIC_LATIN = 0,
-         UCS2MODE_HIRA,
-         UCS2MODE_KATA,
-
-         UCS2MODE_OTHER
-     };
-
-
-     // utf8_fix_wavedash のモード
-     enum
-     {
-         UNIXtoWIN = 0,
-         WINtoUNIX
-     };
 
      // parse_html_form_data() の戻り値
      struct FormDatum
@@ -104,6 +88,9 @@ namespace MISC
     // str1 を str2 に置き換え
     std::string replace_str( const std::string& str, const std::string& str1, const std::string& str2 );
 
+    // str1 を str2 に置き換え( ignore case 版 )
+    std::string replace_casestr( const std::string& str, const std::string& str1, const std::string& str2 );
+
     // list_inから str1 を str2 に置き換えてリストを返す
     std::list< std::string > replace_str_list( const std::list< std::string >& list_in,
                                                const std::string& str1, const std::string& str2 );
@@ -152,11 +139,17 @@ namespace MISC
     std::string regex_unescape( const std::string& str );
 
     // HTMLエスケープ
-    // include_url : URL中でもエスケープする( デフォルト = true )
-    std::string html_escape( const std::string& str, const bool include_url = true );
+    // completely : URL中でもエスケープする( デフォルト = true )
+    std::string html_escape( const std::string& str, const bool completely = true );
 
     // HTMLアンエスケープ
     std::string html_unescape( const std::string& str );
+
+    // HTMLをプレーンテキストに変換する
+    std::string to_plain( const std::string& html );
+
+    // HTMLをPango Markupテキストに変換する
+    std::string to_markup( const std::string& html );
 
     // HTML文字参照をデコード( completely=trueの場合は '&' '<' '>' '"' を含める )
     std::string chref_decode( const char* str, const int lng, const bool completely = true );
@@ -180,26 +173,21 @@ namespace MISC
     bool is_url_char( const char* str_in, const bool loose_url );
 
     // URLデコード
-    std::string url_decode( const std::string& url );
+    std::string url_decode( const char* url, const size_t n );
+    inline std::string url_decode( const std::string& url ){ return url_decode( url.c_str(), url.length() ); }
 
     // urlエンコード
-    std::string url_encode( const char* str, const size_t n );
-    std::string url_encode( const std::string& str );
+    std::string url_encode( const char* str, const size_t n, const CharCode charcode = CHARCODE_UTF8 );
+    inline std::string url_encode( const std::string& str, const CharCode charcode = CHARCODE_UTF8 )
+    {
+        return url_encode( str.c_str(), str.length(), charcode );
+    }
 
-    // 文字コードを変換して url エンコード
-    // str は UTF-8 であること
-    std::string charset_url_encode( const std::string& str, const std::string& charset );
-
-    // 文字コード変換して url エンコード
-    // ただし半角スペースのところを+に置き換えて区切る
-    std::string charset_url_encode_split( const std::string& str, const std::string& charset );
+    // 半角スペースまたは "" 単位で区切って url エンコード
+    std::string url_encode_split( const std::string& str, const CharCode charcode );
 
     // BASE64
     std::string base64( const std::string& str );
-
-    // 文字コードを coding_from から coding_to に変換
-    // 遅いので連続的な処理が必要な時は使わないこと
-    std::string Iconv( const std::string& str, const std::string& coding_to, const std::string& coding_from );
 
     // 「&#数字;」形式の数字参照文字列の中の「数字」部分の文字列長
     //
@@ -226,23 +214,6 @@ namespace MISC
 
     // str に含まれる「&#数字;」形式の数字参照文字列を全てユニーコード文字に変換する
     std::string decode_spchar_number( const std::string& str );
-
-    // utf-8 -> ucs2 変換
-    // 入力 : utfstr 入力文字 (UTF-8)
-    // 出力 :  byte  長さ(バイト) utfstr が ascii なら 1, UTF-8 なら 2 or 3 or 4 を入れて返す
-    // 戻り値 : ucs2
-    int utf8toucs2( const char* utfstr, int& byte );
-
-    // ucs2 の種類
-    int get_ucs2mode( const int ucs2 );
-
-    // ucs2 -> utf8 変換
-    // 出力 : utfstr 変換後の文字
-    // 戻り値 : バイト数
-    int ucs2toutf8( const int ucs2, char* utfstr );
-
-    // WAVEDASHなどのWindows系UTF-8文字をUnix系文字と相互変換
-    std::string utf8_fix_wavedash( const std::string& str, const int mode );
 
     // str を大文字化
     std::string toupper_str( const std::string& str );
@@ -276,6 +247,10 @@ namespace MISC
     // 全角英数字(str1) -> 半角英数字(str2)
     // table_pos : 置き換えた文字列の位置
     void asc( const char* str1, std::string& str2, std::vector< int >& table_pos );
+
+    // UTF-8文字列(str1) -> 正規化文字列(str2)
+    // table_pos : 置き換えた文字列の位置
+    void norm( const char* str1, std::string& str2, std::vector<int>* table_pos = nullptr );
 
 
     // URL中のスキームを判別する

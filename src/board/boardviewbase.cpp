@@ -660,7 +660,10 @@ void BoardViewBase::update_columns()
         Gtk::CellRenderer *cell = column->get_first_cell();
 
         // 実際の描画の際に cellrendere のプロパティをセットするスロット関数
-        if( cell ) column->set_cell_data_func( *cell, sigc::mem_fun( *this, &BoardViewBase::slot_cell_data ) );
+        if( cell ){
+            if( id == COL_SUBJECT ) column->set_cell_data_func( *cell, sigc::mem_fun( *this, &BoardViewBase::slot_cell_data_markup ) );
+            else column->set_cell_data_func( *cell, sigc::mem_fun( *this, &BoardViewBase::slot_cell_data ) );
+        }
 
         Gtk::CellRendererText* rentext = dynamic_cast< Gtk::CellRendererText* >( cell );
         if( rentext ){
@@ -808,6 +811,28 @@ void BoardViewBase::save_column_width()
             break;
         }
     }
+}
+
+
+
+//
+// Subjectの実際の描画の際に cellrendere のプロパティをセットするスロット関数
+//
+void BoardViewBase::slot_cell_data_markup( Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& it )
+{
+    Gtk::TreeModel::Row row = *it;
+
+    // ハイライト色 ( 抽出状態 )
+    if( row[ m_columns.m_col_drawbg ] ){
+        cell->property_cell_background() = CONFIG::get_color( COLOR_BACK_HIGHLIGHT_TREE );
+        cell->property_cell_background_set() = true;
+    }
+
+    else m_treeview.slot_cell_data( cell, it );
+
+    Gtk::CellRendererText* rentext = dynamic_cast< Gtk::CellRendererText* >( cell );
+    rentext->property_text() = "";
+    rentext->property_markup() = row[ m_columns.m_col_subject ];
 }
 
 
@@ -1239,7 +1264,7 @@ void BoardViewBase::redraw_scrollbar()
 //
 // 色、フォント、表示内容の更新
 //
-void BoardViewBase::relayout()
+void BoardViewBase::relayout( const bool completely )
 {
     m_treeview.init_color( COLOR_CHAR_BOARD, COLOR_BACK_BOARD, COLOR_BACK_BOARD_EVEN );
     m_treeview.init_font( CONFIG::get_fontname( FONT_BOARD ) );
@@ -1877,7 +1902,7 @@ void BoardViewBase::update_row_common( const Gtk::TreeModel::Row& row )
     const int res = art->get_number();
 
     // タイトル、レス数、抽出
-    row[ m_columns.m_col_subject ] = art->get_subject();
+    row[ m_columns.m_col_subject ] = MISC::to_markup( art->get_modified_subject( true ) );
     row[ m_columns.m_col_res ] = res;
 
     // 読み込み数
@@ -1896,6 +1921,10 @@ void BoardViewBase::update_row_common( const Gtk::TreeModel::Row& row )
         // キャッシュがあって新着0の物より下げる
         row[ m_columns.m_col_new ] = -1;
     }
+
+    // 速度
+    if( ( art->get_status() & STATUS_NORMAL ) && ! art->is_924() )
+        row[ m_columns.m_col_speed ] = art->get_speed();
 
 
     //
@@ -2244,7 +2273,7 @@ bool BoardViewBase::slot_query_tooltip( int x, int y, bool keyboard_tooltip,
         // セルの内容が空ならツールチップを表示しない
         if( cell_text.empty() ) return false;
 
-        const auto layout = m_treeview.create_pango_layout( cell_text );
+        const auto layout = m_treeview.create_pango_layout( MISC::to_plain( cell_text ) );
         int pixel_width, ph;
         layout->get_pixel_size( pixel_width, ph );
         constexpr int offset{ 8 };
@@ -2252,7 +2281,12 @@ bool BoardViewBase::slot_query_tooltip( int x, int y, bool keyboard_tooltip,
         if( pixel_width + offset < column->get_width() ) return false;
 
         // ツールチップにセルの内容をセットする
-        tooltip->set_text( cell_text );
+        if( title == ITEM_NAME_NAME ) {
+            tooltip->set_markup( cell_text );
+        }
+        else {
+            tooltip->set_text( cell_text );
+        }
         return true;
     }
     return false;
@@ -2420,7 +2454,7 @@ void BoardViewBase::slot_copy_title_url()
     if( m_path_selected.empty() ) return;
 
     const std::string url = DBTREE::url_readcgi( path2daturl( m_path_selected ), 0, 0 );
-    const std::string name = DBTREE::article_subject( url );
+    const std::string name = MISC::to_plain( DBTREE::article_subject( url ) );
 
     MISC::CopyClipboard( name + '\n' + url );
 }
@@ -2613,12 +2647,13 @@ bool BoardViewBase::drawout( const bool force_reset )
     constexpr bool icase = true; // 大文字小文字区別しない
     constexpr bool newline = true; // . に改行をマッチさせない
     constexpr bool usemigemo = true; // migemo使用
-    constexpr bool wchar = true;  // 全角半角の区別をしない
+    constexpr bool wchar = false;  // 全角半角の区別をしない
+    constexpr bool norm = true; // Unicodeの互換文字を区別しない
 
     Gtk::TreeModel::Children child = m_liststore->children();
     Gtk::TreeModel::Children::iterator it = child.begin();
 
-    if ( ! reset ) regexptn.set( query, icase, newline, usemigemo, wchar );
+    if ( ! reset ) regexptn.set( query, icase, newline, usemigemo, wchar, norm );
 
     for( ; it != child.end() ; ++it ){
 
@@ -2626,7 +2661,7 @@ bool BoardViewBase::drawout( const bool force_reset )
         const Glib::ustring subject = row[ m_columns.m_col_subject ];
 
         if( reset ) row[ m_columns.m_col_drawbg ] = false;
-        else if( regex.match( regexptn, subject, 0 ) ){
+        else if( regex.match( regexptn, MISC::to_plain( subject ), 0 ) ){
             row[ m_columns.m_col_drawbg ] = true;
             ++hit;
 
@@ -2698,7 +2733,8 @@ void BoardViewBase::exec_search()
     constexpr bool icase = true; // 大文字小文字区別しない
     constexpr bool newline = true; // . に改行をマッチさせない
     constexpr bool usemigemo = true; // migemo使用
-    constexpr bool wchar = true;  // 全角半角の区別をしない
+    constexpr bool wchar = false; // 全角半角の区別をしない
+    constexpr bool norm = true; // Unicodeの互換文字を区別しない
 
 #ifdef _DEBUG
     std::cout << "BoardViewBase::search start = " << path_start.to_string() << " query = " <<  query << std::endl;
@@ -2724,7 +2760,7 @@ void BoardViewBase::exec_search()
         if( path == path_start ) break;
 
         Glib::ustring subject = get_name_of_cell( path, m_columns.m_col_subject );
-        if( regex.exec( query, subject, offset, icase, newline, usemigemo, wchar ) ){
+        if( regex.exec( query, MISC::to_plain( subject ), offset, icase, newline, usemigemo, wchar, norm ) ){
             m_treeview.scroll_to_row( path, 0 );
             m_treeview.set_cursor( path );
             return;
@@ -2987,10 +3023,11 @@ void BoardViewBase::slot_abone_thread()
     // あぼーん情報更新
     std::list< std::string > words = DBTREE::get_abone_list_word_thread( get_url_board() );
     std::list< std::string > regexs = DBTREE::get_abone_list_regex_thread( get_url_board() );
-    const int number = DBTREE::get_abone_number_thread( get_url_board() );
+    const int min_number = DBTREE::get_abone_min_number_thread( get_url_board() );
+    const int max_number = DBTREE::get_abone_max_number_thread( get_url_board() );
     const int hour = DBTREE::get_abone_hour_thread( get_url_board() );
     const bool redraw = false; // 板の再描画はしない
-    DBTREE::reset_abone_thread( get_url_board(), threads, words, regexs, number, hour, redraw );
+    DBTREE::reset_abone_thread( get_url_board(), threads, words, regexs, min_number, max_number, hour, redraw );
 
     m_treeview.delete_selected_rows( true );
 }
@@ -3033,7 +3070,7 @@ void BoardViewBase::set_article_to_buffer()
             info.type = TYPE_THREAD;
             info.parent = BOARD::get_admin()->get_win();
             info.url = art->get_url();
-            info.name = name.raw();
+            info.name = MISC::to_plain( name.raw() );
             info.path = path.to_string();
 
             list_info.push_back( info );

@@ -7,8 +7,10 @@
 #include "spchar_decoder.h"
 #include "interface.h"
 
-#include "jdlib/miscutil.h"
+#include "jdlib/misccharcode.h"
+#include "jdlib/miscgtk.h"
 #include "jdlib/miscmsg.h"
+#include "jdlib/misctrip.h"
 #include "jdlib/loaderdata.h"
 
 #include "dbimg/imginterface.h"
@@ -26,6 +28,7 @@
 #include "session.h"
 #include "replacestrmanager.h"
 #include "urlreplacemanager.h"
+#include "cssmanager.h"
 
 #include <algorithm>
 #include <fstream>
@@ -50,12 +53,13 @@ constexpr size_t MAX_ANCINFO = 64;
 constexpr int RANGE_REF = 20;
 constexpr size_t MAX_RES_DIGIT = std::numeric_limits< int >::digits10 + 1;  // レスアンカーや発言数で使われるレスの桁数
 
-constexpr size_t MAXSISE_OF_LINES = 512 * 1024;  // ロード時に１回の呼び出しで読み込まれる最大データサイズ
-constexpr size_t SIZE_OF_HEAP = MAXSISE_OF_LINES + 64;
+constexpr size_t MAXSISE_OF_LINES = 256 * 1024;  // ロード時に１回の呼び出しで読み込まれる最大データサイズ
+constexpr size_t SIZE_OF_HEAP = 512 * 1024;
 
 constexpr size_t INITIAL_RES_BUFSIZE = 128;  // レスの文字列を返すときの初期バッファサイズ
+constexpr size_t IDHASH_TBLSIZE = 1024;  // IDのハッシュテーブルサイズ
 
-constexpr std::size_t kMaxBytesOfUTF8Char = 4 + 1; // UTF-8文字の最大バイト数 + ヌル文字
+constexpr std::size_t kMaxBytesOfUTF8Char = 8; // g_unichar_to_utf8の想定バイト数が6
 
 
 // レジュームのモード
@@ -93,6 +97,7 @@ NodeTreeBase::NodeTreeBase( const std::string& url, const std::string& modified 
     assert( m_vec_header.size() == static_cast< decltype( m_vec_header.size() ) >( m_id_header ) );
     m_vec_header.push_back( tmpnode );
 
+    m_url_readcgi = url_readcgi( m_url, 0, 0 );
     m_default_noname = DBTREE::default_noname( m_url );
 
     // 参照で色を変える回数
@@ -141,6 +146,7 @@ void NodeTreeBase::update_url( const std::string& url )
 #endif
 
     m_url = url;
+    m_url_readcgi = url_readcgi( m_url, 0, 0 );
 
 #ifdef _DEBUG
     if( ! old_url.empty() ) std::cout << "NodeTreeBase::update_url from "  << old_url
@@ -218,10 +224,17 @@ int NodeTreeBase::get_num_id_name( const std::string& id ) const
     }
 
     // IDの数を数えている場合
-
-    for( int i = 1; i <= m_id_header; ++i ){
-
-        if( get_id_name( i ) == id ) return get_num_id_name( i );
+    if( m_idhash ){
+        const size_t key = MISC::fnv_hash( id.c_str(), id.length() ) % IDHASH_TBLSIZE;
+        IDHASH* idhash = m_idhash[ key ];
+        if( idhash ){
+            while( true ){
+                const int cmp = strcmp( id.c_str(), idhash->id );
+                if( cmp == 0 ) return get_num_id_name( idhash->num );
+                if( ! idhash->child[ cmp>0 ] ) break;
+                idhash = idhash->child[ cmp>0 ];
+            }
+        }
     }
 
     return 0;
@@ -365,7 +378,7 @@ std::list< int > NodeTreeBase::get_res_with_url() const
 //
 // 含まれる URL をリストにして取得
 //
-std::list< std::string > NodeTreeBase::get_urls() const
+std::list< std::string > NodeTreeBase::get_imglinks() const
 {
     std::list< std::string > list_urls;
     for( int i = 1; i <= m_id_header; ++i ){
@@ -378,7 +391,8 @@ std::list< std::string > NodeTreeBase::get_urls() const
                 const NODE* node = head->headinfo->block[ block ];
 
                 while( node ){
-                    if( IS_URL( node ) ) list_urls.push_back( node->linkinfo->link );
+                    if( IS_URL( node ) && node->linkinfo->imglink )
+                        list_urls.emplace_back( node->linkinfo->imglink );
                     node = node->next_node;
                 }
             }
@@ -561,9 +575,10 @@ std::list< int > NodeTreeBase::get_res_query( const std::string& query, const bo
         constexpr bool icase = true; // 大文字小文字区別しない
         constexpr bool newline = true; // . に改行をマッチさせない
         constexpr bool usemigemo = true; // migemo使用
-        constexpr bool wchar = true; // 全角半角の区別をしない
+        constexpr bool wchar = false; // 全角半角の区別をしない
+        constexpr bool norm = true; // Unicodeの互換文字を区別しない
 
-        return JDLIB::RegexPattern( query, icase, newline, usemigemo, wchar );
+        return JDLIB::RegexPattern( query, icase, newline, usemigemo, wchar, norm );
     };
 
     const std::list<std::string> list_query = MISC::split_line( query );
@@ -620,6 +635,7 @@ std::list< int > NodeTreeBase::get_res_query( const std::string& query, const bo
 node = head->headinfo->block[ id ]; \
 while( node ){ \
 if( node->type == DBTREE::NODE_BR ) str_res += "\n" + ref_prefix; \
+else if( node->type == DBTREE::NODE_SP ) str_res += " "; \
 else if( node->type == DBTREE::NODE_HTAB ) str_res += "\t"; \
 else if( node->text ) str_res += node->text; \
 node = node->next_node; \
@@ -741,10 +757,17 @@ std::string NodeTreeBase::get_time_str( int number ) const
 std::string NodeTreeBase::get_id_name( int number ) const
 {
     const NODE* head = res_header( number );
-    if( ! head ) return std::string();
-    if( ! head->headinfo->block[ BLOCK_ID_NAME ] ) return std::string();
+    if( ! head || ! head->headinfo->block[ BLOCK_ID_NAME ] ) return std::string();
 
-    return head->headinfo->block[ BLOCK_ID_NAME ]->next_node->linkinfo->link;
+    const NODE* idnode = head->headinfo->block[ BLOCK_ID_NAME ]->next_node;
+    while( idnode && ( ! idnode->linkinfo || ! idnode->linkinfo->link
+                        || idnode->linkinfo->link[ 0 ] != 'I' ) ){
+        idnode = idnode->next_node;
+    }
+
+    if( idnode ) return idnode->linkinfo->link;
+
+    return std::string();
 }
 
 
@@ -824,7 +847,8 @@ NODE* NodeTreeBase::create_node_idnum()
 //
 NODE* NodeTreeBase::create_node_br()
 {
-    NODE* tmpnode = create_node();
+    // 改行前の空白を取り除く
+    NODE* tmpnode = ( m_node_previous->type == NODE_SP ) ? m_node_previous : create_node();
     tmpnode->type = NODE_BR;
     return tmpnode;
 }
@@ -844,10 +868,23 @@ NODE* NodeTreeBase::create_node_hr()
 //
 // スペースノード
 //
-NODE* NodeTreeBase::create_node_space( const int type )
+NODE* NodeTreeBase::create_node_space( const int type, const int bg )
 {
-    NODE* tmpnode = create_node();
-    tmpnode->type = type;
+    NODE* tmpnode;
+
+    if( type != NODE_SP ||
+            ( m_node_previous->type != type && m_node_previous->type != NODE_MULTISP
+              && m_node_previous->type != NODE_HTAB ) ){
+        tmpnode = create_node();
+        tmpnode->type = type;
+        tmpnode->color_text = COLOR_CHAR;
+        tmpnode->color_back = bg;
+        tmpnode->bold = false;
+    }
+    else{
+        tmpnode = m_node_previous;
+    }
+
     return tmpnode;
 }
 
@@ -855,21 +892,10 @@ NODE* NodeTreeBase::create_node_space( const int type )
 //
 // 連続半角スペース
 //
-NODE* NodeTreeBase::create_node_multispace( const char* text, const int n, const char fontid )
+NODE* NodeTreeBase::create_node_multispace( const char* text, const int n, const int bg, const char fontid )
 {
-    NODE* tmpnode = create_node_ntext( text, n, COLOR_CHAR, false, fontid );
+    NODE* tmpnode = create_node_ntext( text, n, COLOR_CHAR, bg, false, fontid );
     tmpnode->type = NODE_MULTISP;
-    return tmpnode;
-}
-
-
-//
-// 水平タブノード
-//
-NODE* NodeTreeBase::create_node_htab()
-{
-    NODE* tmpnode = create_node();
-    tmpnode->type = NODE_HTAB;
     return tmpnode;
 }
 
@@ -879,9 +905,9 @@ NODE* NodeTreeBase::create_node_htab()
 //
 // bold : 太字か
 //
-NODE* NodeTreeBase::create_node_link( const char* text, const int n, const char* link, const int n_link, const int color_text, const bool bold, const char fontid )
+NODE* NodeTreeBase::create_node_link( const char* text, const int n, const char* link, const int n_link, const int color_text, const int color_back, const bool bold, const char fontid )
 {
-    NODE* tmpnode = create_node_ntext( text, n, color_text, bold, fontid );
+    NODE* tmpnode = create_node_ntext( text, n, color_text, color_back, bold, fontid );
 
     if( tmpnode ){
         tmpnode->type = NODE_LINK;
@@ -907,7 +933,7 @@ NODE* NodeTreeBase::create_node_anc( const char* text, const int n, const char* 
                                      const int color_text,  const bool bold,
                                      const ANCINFO* ancinfo, const int lng_ancinfo, const char fontid )
 {
-    NODE* tmpnode = create_node_link( text, n, link, n_link, color_text, bold, fontid );
+    NODE* tmpnode = create_node_link( text, n, link, n_link, color_text, COLOR_NONE, bold, fontid );
     if( tmpnode ){
 
         tmpnode->linkinfo->ancinfo = m_heap.heap_alloc<ANCINFO>( lng_ancinfo + 1 );
@@ -946,7 +972,7 @@ NODE* NodeTreeBase::create_node_sssp( const char* link, const int n_link )
 //
 NODE* NodeTreeBase::create_node_img( const char* text, const int n, const char* link, const int n_link, const int color_text,  const bool bold, const char fontid )
 {
-    NODE* tmpnode = create_node_link( text, n, link, n_link, color_text, bold, fontid );
+    NODE* tmpnode = create_node_link( text, n, link, n_link, color_text, COLOR_NONE, bold, fontid );
     if( tmpnode ){
         tmpnode->linkinfo->image = true;
         tmpnode->linkinfo->imglink = tmpnode->linkinfo->link;
@@ -961,7 +987,7 @@ NODE* NodeTreeBase::create_node_img( const char* text, const int n, const char* 
 //
 NODE* NodeTreeBase::create_node_thumbnail( const char* text, const int n, const char* link, const int n_link, const char* thumb, const int n_thumb, const int color_text, const bool bold, const char fontid )
 {
-    NODE* tmpnode = create_node_link( text, n, link, n_link, color_text, bold, fontid );
+    NODE* tmpnode = create_node_link( text, n, link, n_link, color_text, COLOR_NONE, bold, fontid );
 
     if( tmpnode ){
         // サムネイル画像のURLをセット
@@ -982,7 +1008,7 @@ NODE* NodeTreeBase::create_node_thumbnail( const char* text, const int n, const 
 //
 NODE* NodeTreeBase::create_node_text( const char* text, const int color_text, const bool bold, const char fontid )
 {
-    return create_node_ntext( text, strlen( text ), color_text, bold, fontid );
+    return create_node_ntext( text, strlen( text ), color_text, COLOR_NONE, bold, fontid );
 }
 
 
@@ -990,7 +1016,7 @@ NODE* NodeTreeBase::create_node_text( const char* text, const int color_text, co
 //
 // テキストノード作成( サイズ指定 )
 //
-NODE* NodeTreeBase::create_node_ntext( const char* text, const int n, const int color_text, const bool bold, const char fontid )
+NODE* NodeTreeBase::create_node_ntext( const char* text, const int n, const int color_text, const int color_back, const bool bold, const char fontid )
 {
     if( n <= 0 ) return nullptr;
     
@@ -1002,6 +1028,7 @@ NODE* NodeTreeBase::create_node_ntext( const char* text, const int n, const int 
         tmpnode->text = m_heap.heap_alloc<char>( n + MAX_RES_DIGIT + 4 );
         memcpy( tmpnode->text, text, n ); tmpnode->text[ n ] = '\0';
         tmpnode->color_text = color_text;
+        tmpnode->color_back = color_back;
         tmpnode->bold = bold;
         if ( fontid != FONT_MAIN ) tmpnode->fontid = fontid;
     }
@@ -1079,19 +1106,16 @@ void NodeTreeBase::load_cache()
         std::string str;
         if( CACHE::load_rawdata( path_cache, str ) ){
 
-            const char* data = str.data();
-            size_t size = 0;
             m_check_update = false;
             m_check_write = false;
             m_loading_newthread = false;
             set_resume( false );
             init_loading();
+
+            const char* data = str.data();
             const size_t str_length = str.length();
-            while( size < str_length ){
-                size_t size_tmp = MIN( MAXSISE_OF_LINES - m_buffer_lines.size(), str_length - size );
-                receive_data( data + size, size_tmp );
-                size += size_tmp;
-            }
+
+            receive_data( data, str_length );
             receive_finish();
 
             // レジューム時のチェックデータをキャッシュ
@@ -1124,8 +1148,6 @@ void NodeTreeBase::set_resume_data( const char* data, size_t length )
 //
 void NodeTreeBase::init_loading()
 {
-    clear();
-
     // 一時バッファ作成
     if( m_buffer_lines.capacity() < MAXSISE_OF_LINES ) {
         m_buffer_lines.reserve( MAXSISE_OF_LINES );
@@ -1218,6 +1240,7 @@ void NodeTreeBase::download_dat( const bool check_update )
     if( m_check_update ){
         data.head = true;
         data.timeout = CONFIG::get_loader_timeout_checkupdate();
+        if( data.byte_readfrom ) data.byte_readfrom += 1;
     }
 
     if( data.url.empty() || ! start_load( data ) ){
@@ -1232,8 +1255,6 @@ void NodeTreeBase::download_dat( const bool check_update )
 //
 void NodeTreeBase::receive_data( const char* data, size_t size )
 {
-    // BOF防止
-    size = MIN( MAXSISE_OF_LINES, size );
 
     if( is_loading()
         && ( get_code() != HTTP_OK && get_code() != HTTP_PARTIAL_CONTENT ) ){
@@ -1282,33 +1303,57 @@ void NodeTreeBase::receive_data( const char* data, size_t size )
     if( m_resume == RESUME_FAILED ) return;
 
     if( !size ) return;
-    
-    // バッファが '\n' で終わるように調整
-    const char* pos = data + size;
-    if( *pos == '\n' && pos != data ) --pos;
-    if( *pos == '\0' ) --pos; // '\0' を除く
-    while( *pos != '\n' && pos != data ) --pos;
 
-    // 前回の残りのデータに新しいデータを付け足して add_raw_lines()にデータを送る
-    size_t size_in = ( int )( pos - data );
-    if( size_in > 0 ){
-        size_in ++; // '\n'を加える
-        m_buffer_lines.append( data, size_in );
-        add_raw_lines( &*m_buffer_lines.begin(), m_buffer_lines.size() );
-        // 送ったバッファをクリア
-        m_buffer_lines.clear();
+    while( size > 0 ){
+
+        // BOF防止
+        size_t size_in = MIN( MAXSISE_OF_LINES - m_buffer_lines.size() - 1, size );
+
+        // バッファが '\n' で終わるように調整
+        const char* pos = data + size_in;
+        while( pos != data && *(pos - 1) != '\n' ) --pos;
+
+        if( pos != data ) size_in = pos - data;
+        // バッファサイズの半分までは改行を待ってみる
+        else if( ( m_buffer_lines.size() + size ) < ( MAXSISE_OF_LINES / 2 ) ) size_in = 0;
+
+        if( size_in > 0 ){
+            // 前回の残りのデータに新しいデータを付け足して add_raw_lines()にデータを送る
+            m_buffer_lines.append( data, size_in );
+            size_t lng = add_raw_lines( &*m_buffer_lines.begin(), m_buffer_lines.size() );
+            m_buffer_lines.erase( 0, lng );
+            data += size_in;
+            size -= size_in;
+        }
+        else break;
+
+        // add_raw_lines() でレジュームに失敗したと判断したら、バッファをクリアする
+        if( m_resume == RESUME_FAILED ){
+            m_buffer_lines.clear();
+            return;
+        }
     }
 
-    // add_raw_lines() でレジュームに失敗したと判断したら、バッファをクリアする
-    if( m_resume == RESUME_FAILED ){
-        m_buffer_lines.clear();
-        return;
+    // 残りの分をバッファにコピーしておく
+    if( size > 0 ){
+        m_buffer_lines.append( data, size );
     }
-
-    // 残りのデータをバッファにコピーしておく
-    m_buffer_lines.assign( data + size_in, size - size_in );
 }
 
+
+//
+// 保留された受信データのはき出し
+//
+void NodeTreeBase::sweep_buffer()
+{
+    // 特殊スレのdatには、最後の行に'\n'がない場合がある
+    if( m_buffer_lines.size() > 0 ){
+        // 正常に読込完了した場合で、バッファが残っていれば add_raw_lines()にデータを送る
+        add_raw_lines( &*m_buffer_lines.begin(), m_buffer_lines.size() );
+        // バッファをクリア
+        m_buffer_lines.clear();
+    }
+}
 
 
 //
@@ -1333,21 +1378,15 @@ void NodeTreeBase::receive_finish()
         MISC::ERRMSG( err.str() );
     }
 
-    if( ! m_check_update ){
+    // 保留データの処理
+    if( ! is_error ) sweep_buffer();
+    else m_buffer_lines.clear();
 
-        if( ! is_error ){
-            // 特殊スレのdatには、最後の行に'\n'がない場合がある
-            if( !m_buffer_lines.empty() ) {
-                // 正常に読込完了した場合で、バッファが残っていれば add_raw_lines()にデータを送る
-                add_raw_lines( &*m_buffer_lines.begin(), m_buffer_lines.size() );
-                // バッファをクリア
-                m_buffer_lines.clear();
-            }
-        }
+    if( ! m_check_update ){
 
         // Requested Range Not Satisfiable
         if( get_code() == HTTP_RANGE_ERR ){
-            m_broken = true;
+//            m_broken = true;
             MISC::ERRMSG( "Requested Range Not Satisfiable" );
         }
 
@@ -1402,7 +1441,7 @@ void NodeTreeBase::receive_finish()
 //
 // 鯖から生の(複数)行のデータを受け取ってdat形式に変換して add_one_dat_line() に出力
 //
-void NodeTreeBase::add_raw_lines( char* rawlines, size_t size )
+size_t NodeTreeBase::add_raw_lines( char* rawlines, size_t size )
 {
     // 時々サーバ側のdatファイルが壊れていてデータ中に \0 が
     // 入っている時があるので取り除く
@@ -1416,10 +1455,10 @@ void NodeTreeBase::add_raw_lines( char* rawlines, size_t size )
     }
 
     // 保存前にrawデータを加工
-    rawlines = process_raw_lines( rawlines );
+    rawlines = process_raw_lines( rawlines, size );
 
     size_t lng = strlen( rawlines );
-    if( ! lng ) return;
+    if( ! lng ) return size;
 
     // サーバが range を無視してデータを送ってきたときのレジューム処理
     if( m_resume == RESUME_MODE2 ){
@@ -1441,7 +1480,7 @@ void NodeTreeBase::add_raw_lines( char* rawlines, size_t size )
             m_broken = true;
             MISC::ERRMSG( "failed to resume" );
             m_resume = RESUME_FAILED;
-            return;
+            return size;
         }
     }
 
@@ -1454,7 +1493,7 @@ void NodeTreeBase::add_raw_lines( char* rawlines, size_t size )
 #endif
 
         m_resume_lng += lng;
-        if( m_resume_lng <= m_lng_dat ) return;
+        if( m_resume_lng <= m_lng_dat ) return size;
 
         // 越えた分をカットしてレジューム処理終了
         rawlines += ( lng  - ( m_resume_lng - m_lng_dat ) );
@@ -1466,7 +1505,7 @@ void NodeTreeBase::add_raw_lines( char* rawlines, size_t size )
 #endif
     }
 
-    if( ! lng ) return;
+    if( ! lng ) return size;
 
     m_lng_dat += lng;
 
@@ -1485,7 +1524,7 @@ void NodeTreeBase::add_raw_lines( char* rawlines, size_t size )
     // dat形式に変換
     int byte;
     const char* datlines = raw2dat( rawlines, byte );
-    if( !byte ) return;
+    if( !byte ) return size;
 
     // '\n' 単位で区切って add_one_dat_line() に渡す
     int num_before = m_id_header;
@@ -1510,6 +1549,7 @@ void NodeTreeBase::add_raw_lines( char* rawlines, size_t size )
         // articlebase クラスに状態が変わったことを知らせる
         m_sig_updated.emit();
     }
+    return size;
 }
 
 
@@ -1542,7 +1582,7 @@ const char* NodeTreeBase::add_one_dat_line( const char* datline )
 
     node = header->headinfo->block[ BLOCK_NUMBER ] = create_node_block();
     node->fontid = FONT_MAIL;
-    create_node_link( tmpstr.c_str(), tmpstr.size(), tmplink.c_str(), tmplink.size(), COLOR_CHAR_LINK_RES, true, FONT_MAIL );
+    create_node_link( tmpstr.c_str(), tmpstr.size(), tmplink.c_str(), tmplink.size(), COLOR_CHAR_LINK_RES, COLOR_NONE, true, FONT_MAIL );
 
     const char* section[ SECTION_NUM ]{};
     int section_lng[ SECTION_NUM ]{};
@@ -1594,6 +1634,8 @@ const char* NodeTreeBase::add_one_dat_line( const char* datline )
 
     // 本文
     if( i > 3 ) {
+        // EXTDAT情報を取得
+        if( header->id_header == 1 ) parse_extattr( section[3], section_lng[3] );
 
         header->headinfo->block[ BLOCK_MES ] = create_node_block();
 
@@ -1635,7 +1677,7 @@ const char* NodeTreeBase::add_one_dat_line( const char* datline )
         parse_html( message, std::strlen( message ), COLOR_CHAR, digitlink, bold, ahref, FONT_MAIL );
 
         const char str_broken[] = "ここ";
-        create_node_link( str_broken, strlen( str_broken ) , PROTO_BROKEN, strlen( PROTO_BROKEN ), COLOR_CHAR_LINK, false );
+        create_node_link( str_broken, strlen( str_broken ) , PROTO_BROKEN, strlen( PROTO_BROKEN ), COLOR_CHAR_LINK, COLOR_NONE, false );
         create_node_text( "をクリックしてスレを再取得して下さい。", COLOR_CHAR );
 
         return pos;
@@ -1687,15 +1729,15 @@ const char* NodeTreeBase::add_one_dat_line( const char* datline )
 //
 void NodeTreeBase::parse_name( NODE* header, const char* str, const int lng, const int color_name )
 {
-    const bool bold = true;
     const bool ahref = false;
     int lng_name = lng;
     NODE *node;
 
-    const bool defaultname{ m_default_noname.compare( 0, lng, str, lng ) == 0 };
-
     // 後ろの空白を除く
     while( lng_name > 0 && str[ lng_name - 1 ] == ' ' ) --lng_name;
+
+    const bool defaultname = ( m_default_noname.length() == ( size_t )lng_name
+            && m_default_noname.compare( 0, lng_name, str, lng_name ) == 0 );
 
     // 文字列置換
     std::string str_name;
@@ -1713,7 +1755,7 @@ void NodeTreeBase::parse_name( NODE* header, const char* str, const int lng, con
     if( defaultname ) create_node_text( "名前", COLOR_CHAR, false, FONT_MAIL );
     else{
         const char namestr[] = "名前";
-        create_node_link( namestr, strlen( namestr ) , PROTO_NAME, strlen( PROTO_NAME ), COLOR_CHAR, false, FONT_MAIL );
+        create_node_link( namestr, strlen( namestr ) , PROTO_NAME, strlen( PROTO_NAME ), COLOR_CHAR, COLOR_NONE, false, FONT_MAIL );
     }
 
     node = header->headinfo->block[ BLOCK_NAME ] = create_node_block();
@@ -1722,6 +1764,7 @@ void NodeTreeBase::parse_name( NODE* header, const char* str, const int lng, con
     // デフォルト名無しと同じときはアンカーを作らない
     if( defaultname ){
         constexpr bool digitlink = false;
+        constexpr bool bold = true;
         parse_html( str, lng_name, color_name, digitlink, bold, ahref, FONT_MAIL );
     }
     else{
@@ -1736,17 +1779,19 @@ void NodeTreeBase::parse_name( NODE* header, const char* str, const int lng, con
                 if( str[ i ] == '<'
                     && str[ i+1 ] == '/'
                     && ( str[ i+2 ] == 'b' || str[ i+2 ] == 'B' )
-                    && str[ i+3 ] == '>' ) break;
+                    && str[ i+3 ] == '>' ){ i += 4; break; }
             }
 
             // </b>の前までパース
             if( i != pos ){
                 // デフォルト名無しと同じときはアンカーを作らない
-                const bool digitlink = ( strncmp( m_default_noname.data(), str + pos, i - pos ) != 0 );
+                const size_t len = m_default_noname.size();
+                const bool digitlink = m_default_noname.compare( 0, len, str + pos, len );
+                constexpr bool bold = true;
                 parse_html( str + pos, i - pos, color_name, digitlink, bold, ahref, FONT_MAIL );
             }
             if( i >= lng_name ) break;
-            pos = i + 4; // 4 = strlen( "</b>" );
+            pos = i;
 
             // <b>の位置を探す
             int pos_end = lng_name;
@@ -1770,28 +1815,25 @@ void NodeTreeBase::parse_name( NODE* header, const char* str, const int lng, con
 
             // </b><b>の中をパース
             constexpr bool digitlink = false; // 数字が入ってもリンクしない
+            constexpr bool bold = false;
             parse_html( str + pos, pos_end - pos, COLOR_CHAR_NAME_B, digitlink, bold, ahref, FONT_MAIL );
 
-            pos = pos_end + 3; // 3 = strlen( "<b>" );
+            pos = pos_end;
         }
     }
 
     // plainな名前取得
     // 名前あぼーんや名前抽出などで使用する
-    if( defaultname ){
-        header->headinfo->name = m_heap.heap_alloc<char>( lng_name +2 );
-        std::memcpy( header->headinfo->name, str, lng_name );
-    }
-    else{
-        std::string str_tmp;
+    std::string str_tmp;
+    node = node->next_node;
+    while( node ){
+        if( node->type == NODE_TEXT && node->text ) str_tmp += node->text;
+        if( node->type == NODE_SP ) str_tmp += " ";
         node = node->next_node;
-        while( node ){
-            if( node->text ) str_tmp += node->text;
-            node = node->next_node;
-        }
-        header->headinfo->name = m_heap.heap_alloc<char>( str_tmp.length() +2 );
-        memcpy( header->headinfo->name, str_tmp.c_str(), str_tmp.length() );
     }
+    header->headinfo->name = m_heap.heap_alloc<char>( str_tmp.length() + 1 );
+    memcpy( header->headinfo->name, str_tmp.c_str(), str_tmp.length() );
+    header->headinfo->name[ str_tmp.length() ] = '\0';
 }
 
 
@@ -1856,14 +1898,14 @@ void NodeTreeBase::parse_date_id( NODE* header, const char* str, const int lng )
         lng_date = str_date.size();
     }
 
+    constexpr bool digitlink = false;
+    constexpr bool bold = false;
+
     int start = 0;
     int lng_text = 0;
     int lng_link_tmp;
     char tmplink[ LNG_LINK ];
     NODE *node;
-
-    int lng_id_tmp;
-    char tmpid[ LNG_ID ];
 
     node = header->headinfo->block[ BLOCK_DATE ] = create_node_block();
     node->fontid = FONT_MAIL;
@@ -1876,12 +1918,18 @@ void NodeTreeBase::parse_date_id( NODE* header, const char* str, const int lng )
         // 空白ごとにブロック分けしてパースする
         int start_block = start + lng_text;
         int lng_block = 0; // ブロックの長さ
-        while( start_block + lng_block < lng_date && str[ start_block + lng_block ] != ' ' ) ++lng_block;
+        while( start_block + lng_block < lng_date && str[ start_block + lng_block ] != ' ' ){
+            if( str[ start_block + lng_block ] == '<' )
+                while( start_block + lng_block < lng_date &&
+                    str[ start_block + lng_block ] != '>' ) ++lng_block;
+            else
+                ++lng_block;
+        };
+
         if( !lng_block ) break;
 
-        if(
-            // ID ( ??? の時は除く )
-            ( str[ start_block ] == 'I' && str[ start_block + 1 ] == 'D' && str[ start_block + 3 ] != '?' )
+        if( // ID
+            ( str[ start_block ] == 'I' && str[ start_block + 1 ] == 'D' )
 
             // HOST
             || ( str[ start_block + 0 ] == 'H' && str[ start_block + 1 ] == 'O' && str[ start_block + 2 ] == 'S' && str[ start_block + 3 ] == 'T' )
@@ -1896,8 +1944,7 @@ void NodeTreeBase::parse_date_id( NODE* header, const char* str, const int lng )
 
             // フラッシュ
             if( lng_text ){
-                if( *( str + start + lng_text - 1 ) == ' ' ) --lng_text;
-                create_node_ntext( str + start, lng_text, COLOR_CHAR, false, FONT_MAIL );
+                parse_html( str + start, lng_text, COLOR_CHAR, digitlink, bold, false, FONT_MAIL );
             }
 
             int offset = 0;
@@ -1911,14 +1958,13 @@ void NodeTreeBase::parse_date_id( NODE* header, const char* str, const int lng )
             else if( str[ start_block ] == (char)0xe7 ) offset = 10;
 
             // id 取得
-            lng_id_tmp = MIN( lng_block, LNG_ID - 16 );
-            memcpy( tmpid, str + start_block, lng_id_tmp );
-            tmpid[ lng_id_tmp ] = '\0';
+            const int lng_id = MIN( lng_block, (int)( LNG_ID - sizeof( PROTO_ID ) ) );
             
             // リンク文字作成
             memcpy( tmplink, PROTO_ID, sizeof( PROTO_ID ) );
-            memcpy( tmplink + sizeof( PROTO_ID ) - 1, tmpid, lng_id_tmp + 1 );
-            lng_link_tmp = strlen( tmplink );
+            memcpy( tmplink + sizeof( PROTO_ID ) - 1, str + start_block, lng_id );
+            lng_link_tmp = sizeof( PROTO_ID ) - 1 + lng_id;
+            tmplink[ lng_link_tmp ] = '\0';
 
             // 後ろに●が付いていたら取り除く
             if( tmplink[ lng_link_tmp - 3 ] == (char)0xe2 && tmplink[ lng_link_tmp - 2 ] == (char)0x97 && tmplink[ lng_link_tmp - 1 ] == (char)0x8f ){
@@ -1929,8 +1975,8 @@ void NodeTreeBase::parse_date_id( NODE* header, const char* str, const int lng )
             // リンク作成
             node = header->headinfo->block[ BLOCK_ID_NAME ] = create_node_block();
             node->fontid = FONT_MAIL;
-            create_node_link( tmpid, offset, tmplink, lng_link_tmp, COLOR_CHAR, false, FONT_MAIL );
-            create_node_ntext( tmpid +offset, lng_id_tmp -offset, COLOR_CHAR, false, FONT_MAIL);
+            create_node_link( str + start_block, offset, tmplink, lng_link_tmp, COLOR_CHAR, COLOR_NONE, false, FONT_MAIL );
+            create_node_ntext( str + start_block + offset, lng_id - offset, COLOR_CHAR, COLOR_NONE, false, FONT_MAIL );
 
             // 発言回数ノード作成
             node = create_node_idnum();
@@ -1944,26 +1990,34 @@ void NodeTreeBase::parse_date_id( NODE* header, const char* str, const int lng )
         // BE:
         else if( str[ start_block ] == 'B' && str[ start_block + 1 ] == 'E' ){
 
-            const int strlen_of_BE = 3; // = strlen( "BE:" );
+            const int strlen_of_BE = strlen( "BE:" );
 
             // フラッシュ
-            if( lng_text ) create_node_ntext( str + start, lng_text, COLOR_CHAR, false, FONT_MAIL );
+            if( lng_text ){
+                parse_html( str + start, lng_text, COLOR_CHAR, digitlink, bold, false, FONT_MAIL );
+            }
 
             // id 取得
             int lng_header = 0;
             while( str[ start_block + lng_header ] != '-' && lng_header < lng_block ) ++lng_header;
-            lng_id_tmp = lng_header - strlen_of_BE;
+            const int lng_id = lng_header - strlen_of_BE;
             if( str[ start_block + lng_header ] == '-' ) ++lng_header;
-            memcpy( tmpid, str + start_block + strlen_of_BE, lng_id_tmp );
-            tmpid[ lng_id_tmp ] = '\0';
 
             // リンク文字作成
+            if( ! header->headinfo->block[ BLOCK_ID_NAME ] )
+                node = header->headinfo->block[ BLOCK_ID_NAME ] = create_node_block();
+            else
+                node = create_node_space( NODE_SP, COLOR_NONE );
+            node->fontid = FONT_MAIL;
+
             memcpy( tmplink, PROTO_BE, sizeof( PROTO_BE ) );
-            memcpy( tmplink + sizeof( PROTO_BE ) -1, tmpid, lng_id_tmp + 1 );
+            memcpy( tmplink + sizeof( PROTO_BE ) - 1, str + start_block + strlen_of_BE, lng_id );
+            lng_link_tmp = sizeof( PROTO_BE ) - 1 + lng_id;
+            tmplink[ lng_link_tmp ] = '\0';
 
             // リンク作成
-            create_node_link( "?", 1, tmplink, strlen( tmplink ), COLOR_CHAR, false, FONT_MAIL );
-            create_node_ntext( str + start_block + lng_header, lng_block - lng_header, COLOR_CHAR, false, FONT_MAIL );
+            create_node_link( str + start_block + lng_header, lng_block - lng_header,
+                    tmplink, lng_link_tmp, COLOR_CHAR, COLOR_NONE, false, FONT_MAIL );
 
             // 次のブロックへ移動
             start = start_block + lng_block;
@@ -1976,7 +2030,9 @@ void NodeTreeBase::parse_date_id( NODE* header, const char* str, const int lng )
                  && str[ start_block + 2 ] == ' ' ){
 
             // フラッシュ
-            if( lng_text ) create_node_ntext( str + start, lng_text, COLOR_CHAR, false, FONT_MAIL );
+            if( lng_text ){
+                parse_html( str + start, lng_text, COLOR_CHAR, digitlink, bold, false, FONT_MAIL );
+            }
 
             // </a>までブロックの長さを伸ばす
             while( start_block + lng_block < lng_date
@@ -1984,8 +2040,13 @@ void NodeTreeBase::parse_date_id( NODE* header, const char* str, const int lng )
                           && str[ start_block + lng_block ] == '>' ) ) ++lng_block;
             ++lng_block;
 
-            const bool digitlink = false;
-            const bool bold = false;
+            // リンク作成
+            if( ! header->headinfo->block[ BLOCK_ID_NAME ] )
+                node = header->headinfo->block[ BLOCK_ID_NAME ] = create_node_block();
+            else
+                node = create_node_space( NODE_SP, COLOR_NONE );
+            node->fontid = FONT_MAIL;
+
             const bool ahref = true;
             parse_html( str + start_block, lng_block, COLOR_CHAR, digitlink, bold, ahref, FONT_MAIL );
 
@@ -1995,11 +2056,37 @@ void NodeTreeBase::parse_date_id( NODE* header, const char* str, const int lng )
         }
 
         // テキスト(日付含む)
-        else lng_text += lng_block;
+        else{
+            bool no_date = true;
+            for( int i = start_block; i < start_block + lng_block; ++i )
+                if( (str[ i ] >= '0' && str[ i ] <= '9') || str[ i ] == ':' ) no_date = false;
+
+            // 日付や時刻を含まないまたは1文字(IDの末尾だけ)はIDノードにする
+            if( ( no_date || lng_block == 1 ) && ! header->headinfo->block[ BLOCK_ID_NAME ] ){
+                if( lng_text ){
+                    // フラッシュ
+                    parse_html( str + start, lng_text, COLOR_CHAR, digitlink, bold, false, FONT_MAIL );
+                    lng_text = 0;
+                }
+
+                // IDノード作成
+                node = header->headinfo->block[ BLOCK_ID_NAME ] = create_node_block();
+                node->fontid = FONT_MAIL;
+
+
+                // 次のブロックへ移動
+                start = start_block;
+            }
+
+            lng_text += lng_block;
+        }
     }
 
-    // フラッシュ
-    if( lng_text ) create_node_ntext( str + start, lng_text, COLOR_CHAR, false, FONT_MAIL );
+    if( lng_text ){
+        // 末端の空白を削ってフラッシュ
+        while( lng_text > 0 && str[ start + lng_text - 1 ] == ' ' ) --lng_text;
+        parse_html( str + start, lng_text, COLOR_CHAR, digitlink, bold, false, FONT_MAIL );
+    }
 }
 
 
@@ -2025,6 +2112,13 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
 {
     const char* pos = str;
     const char* pos_end = str + lng;
+    int fgcolor = color_text;
+    int fgcolor_bak = color_text;
+    int bgcolor = COLOR_NONE;
+    int bgcolor_bak = COLOR_NONE;
+    bool in_bold = bold;
+    std::vector< std::string >& colors = CORE::get_css_manager()->get_colors();
+    char tmplink[ LNG_LINK ];
     NODE *node;
 
     m_parsed_text.clear();
@@ -2039,17 +2133,44 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
             while( *pos == ' ' ) {
                 m_parsed_text.push_back( *(pos++) );
             }
-            create_node_multispace( m_parsed_text.c_str(), m_parsed_text.size(), fontid );
+            create_node_multispace( m_parsed_text.c_str(), m_parsed_text.size(), bgcolor, fontid );
             m_parsed_text.clear();
         }
     }
    
-    for( ; pos < pos_end; ++pos, digitlink = false ){
+    for( ; pos < pos_end; digitlink = false ){
+
+        ///////////////////////
+        // 半角空白, LF(0x0A), CR(0x0D)
+        if( *pos == ' ' || *pos == 10 || *pos == 13 ){
+
+            // フラッシュしてから半角空白ノードを作る
+            create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
+            m_parsed_text.clear();
+
+            ++pos;
+            if( pos < pos_end ) {
+                node = create_node_space( NODE_SP, bgcolor );
+                if( fontid != FONT_MAIN ) node->fontid = fontid;
+            }
+
+create_multispace:
+            // 連続スペースノードを作成
+            if( *pos == ' ' ){
+                while( *pos == ' ' ) m_parsed_text.push_back( *pos++ );
+                if( pos < pos_end ){
+                    create_node_multispace( m_parsed_text.c_str(), m_parsed_text.size(), bgcolor, fontid );
+                    m_parsed_text.clear();
+                }
+            }
+
+            continue;
+        }
 
 
         ///////////////////////
         // HTMLタグ
-        if( *pos == '<' ){ 
+        else if( *pos == '<' ){
 
             bool br = false;
 
@@ -2063,7 +2184,7 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
                      ( *( pos + 1 ) == 'a' || *( pos + 1 ) == 'A' ) && *( pos + 2 ) == ' ' ){
 
                 // フラッシュ
-                create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), color_text, bold, fontid );
+                create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
                 m_parsed_text.clear();
 
                 while( pos < pos_end && *pos != '=' ) ++pos;
@@ -2091,9 +2212,7 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
                 const char* pos_str_start = pos;
                 int lng_str = 0;
 
-                bool exec_decode = false;
-                while( pos < pos_end && *pos != '<' ){
-                    if( *pos == '&' ) exec_decode = true;
+                while( pos < pos_end && ( *pos != '<' || pos[ 1 ] != '/' || ( pos[ 2 ] != 'a' && pos[ 2 ] != 'A' ) || pos[ 3 ] != '>' ) ){
                     ++pos;
                     ++lng_str;
                 }
@@ -2105,32 +2224,116 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
 
                 if( lng_link && lng_str ){
 
-                    // 特殊文字デコード
-                    if( exec_decode ){
+                    // BE link
+                    if( memcmp( pos_link_start, "javascript:be(", 14 ) == 0 ){
+                        memcpy( tmplink, PROTO_BE, sizeof( PROTO_BE ) );
+                        memcpy( tmplink + sizeof( PROTO_BE ) -1, pos_link_start +14, lng_link -14 -2 );
+                        create_node_link( pos_str_start, lng_str, tmplink, strlen( tmplink ), fgcolor, bgcolor, in_bold, fontid );
+                    }
+                    else{
 
-                        for( int pos_tmp = 0; pos_tmp < lng_str; ++ pos_tmp ){
-                            int n_in = 0;
-                            int n_out = 0;
-                            char out_char[kMaxBytesOfUTF8Char]{}; // FIXME: std::stringを受け付けるdecode_char()を作る
-                            const int ret_decode = DBTREE::decode_char( pos_str_start + pos_tmp, n_in, out_char, n_out, false );
-                            if( ret_decode != NODE_NONE ){
-                                m_parsed_text.append( out_char, n_out );
-                                pos_tmp += n_in;
-                                pos_tmp--;
+                        if( *pos_link_start == '/' || ! memcmp( pos_link_start, "../", 3 ) ){
+                            const size_t link_offset = ( *pos_link_start == '/' ) ? 0 : 2;
+
+                            // アンカーの判定
+                            const size_t pos_root = m_url_readcgi.find_first_of( '/', 8 ); // httpsでも8文字目でOK
+                            if( pos_root == std::string::npos ||
+                                    ! m_url_readcgi.compare( pos_root, m_url_readcgi.length() - pos_root, pos_link_start + link_offset, m_url_readcgi.length() - pos_root ) ){
+
+                                // アンカーは後で処理するのでここは抜ける
+                                pos = pos_str_start;
+                                lng_str = 0;
                             }
-                            else {
-                                m_parsed_text.push_back( *( pos_str_start + pos_tmp ) );
+                            else if( pos_root + lng_link >= LNG_LINK ){
+                                // XXX リンクが長すぎる
+                                pos = pos_str_start;
+                                lng_str = 0;
+                            }
+                            else{
+                                // 相対リンクから完全なURLを作る
+                                m_url_readcgi.copy( tmplink, pos_root );
+                                memcpy( tmplink + pos_root, pos_link_start + link_offset, lng_link - link_offset );
+                                lng_link += pos_root - link_offset;
                             }
                         }
-#ifdef _DEBUG
-                        std::cout << m_parsed_text << std::endl;
-#endif
-                        pos_str_start = m_parsed_text.c_str();
-                        lng_str = m_parsed_text.size();
-                    }
+                        else{
+                            memcpy( tmplink, pos_link_start, lng_link );
+                            tmplink[ lng_link ] = '\0';
 
-                    create_node_link( pos_str_start, lng_str , pos_link_start, lng_link, COLOR_CHAR_LINK, false, fontid );
-                    m_parsed_text.clear();
+                            while( remove_imenu( tmplink ) ); // ime.nuなどの除去
+                        }
+
+                        if( lng_str ){
+
+                            for( int pos_tmp = 0; pos_tmp < lng_str; ){
+                                const char ch = pos_str_start[ pos_tmp ];
+
+                                if( ch == '\t' || ch == '\n' || ch == '\r' || ch == ' ' ){
+                                    // 空白の連続は削る
+                                    if( ! m_parsed_text.empty() && m_parsed_text.back() != ' ' ) {
+                                        m_parsed_text.push_back( ' ' );
+                                    }
+                                    ++pos_tmp;
+                                    continue;
+                                }
+                                else if( ch == '<' ){
+                                    // タグは取り除く
+                                    while( pos_tmp < lng_str && pos_str_start[ pos_tmp ] != '>' ) ++pos_tmp;
+                                    if( pos_str_start[ pos_tmp ] == '>' ) ++pos_tmp;
+                                    continue;
+                                }
+                                else if( ch != '&' ){
+                                    // 表示用文字列にコピー
+                                    m_parsed_text.push_back( pos_str_start[ pos_tmp++ ] );
+                                    continue;
+                                }
+
+                                // 特殊文字デコード
+                                int n_in = 0;
+                                int n_out = 0;
+                                char out_char[kMaxBytesOfUTF8Char]{};
+                                const int ret_decode = decode_char( pos_str_start + pos_tmp, n_in, out_char, n_out, false );
+                                switch( ret_decode ){
+
+                                case NODE_HTAB:
+                                case NODE_SP:
+                                    // 空白の連続は無視する
+                                    if( m_parsed_text.empty() || m_parsed_text.back() != ' ' ) {
+                                        m_parsed_text.push_back( ' ' );
+                                    }
+                                    pos_tmp += n_in;
+                                    break;
+
+                                case NODE_ZWSP:
+                                case NODE_TEXT:
+                                    if( out_char[0] == '\xC2' && out_char[1] == '\xA0' ) {
+                                        // &nbsp; は空白に置き換える
+                                        m_parsed_text.push_back( ' ' );
+                                    }
+                                    else {
+                                        m_parsed_text.append( out_char, n_out );
+                                    }
+                                    pos_tmp += n_in;
+                                    break;
+
+                                case NODE_NONE:
+                                default:
+                                    m_parsed_text.push_back( pos_str_start[ pos_tmp++ ] );
+                                }
+                            }
+#ifdef _DEBUG
+                            std::cout << m_parsed_text << std::endl;
+#endif
+                            pos_str_start = m_parsed_text.c_str();
+                            lng_str = m_parsed_text.size();;
+                        }
+
+                        // アンカーの時はlng_strが0でリンクを作らない
+                        if( lng_str ) {
+                            create_node_link( pos_str_start, lng_str, pos_link_start, lng_link, fgcolor, bgcolor, in_bold, fontid );
+                            m_parsed_text.clear();
+                        }
+                    }
                 }
             }
 
@@ -2165,6 +2368,12 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
                     && *( pos + 1 ) == '/'
                     )
 
+                // <ul>
+                || (
+                    ( *( pos + 1 ) == 'u' || *( pos + 1 ) == 'U' )
+                    && ( *( pos + 2 ) == 'l' || *( pos + 2 ) == 'L' )
+                    )
+
                 // </ul>
                 || (
                     ( *( pos + 2 ) == 'u' || *( pos + 2 ) == 'U' )
@@ -2191,9 +2400,9 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
 
                 ) br = true;
 
-            // <li>は・にする
-            else if( ( *( pos + 1 ) == 'l' || *( pos + 2 ) == 'L' )
-                     && ( *( pos + 2 ) == 'i' || *( pos + 3 ) == 'I' )
+            // <li>はBULLET (•)にする
+            else if( ( *( pos + 1 ) == 'l' || *( pos + 1 ) == 'L' )
+                     && ( *( pos + 2 ) == 'i' || *( pos + 2 ) == 'I' )
                 ){
 
                 pos += 4;
@@ -2205,7 +2414,7 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
                      && ( *( pos + 2 ) == 'r' || *( pos + 2 ) == 'R' ) ){
 
                 // フラッシュ
-                create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), color_text, bold, fontid );
+                create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
                 m_parsed_text.clear();
 
                 // 水平線ノード作成
@@ -2215,12 +2424,169 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
                 pos += 4;
             }
 
-            // その他のタグは無視。タグを取り除いて中身だけを見る
+            // ボールド <B>
+            else if( ( *( pos + 1 ) == 'b' || *( pos + 1 ) == 'B' ) && *( pos + 2 ) == '>' ){
+
+                // フラッシュ
+                create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
+                m_parsed_text.clear();
+                in_bold = true;
+                pos += 3;
+            }
+
+            // </B>
+            else if( *( pos + 1 ) == '/' && ( *( pos + 2 ) == 'b' || *( pos + 2 ) == 'B' )
+                     && *( pos + 3 ) == '>' ){
+
+                // フラッシュ
+                create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
+                m_parsed_text.clear();
+                in_bold = bold;
+                pos += 4;
+            }
+
+            // 閉じるタグの時は文字色を戻す
+            else if( *( pos + 1 ) == '/' ){
+                // フラッシュ
+                create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
+                m_parsed_text.clear();
+
+                fgcolor = fgcolor_bak;
+                fgcolor_bak = color_text;
+                bgcolor = bgcolor_bak;
+                bgcolor_bak = COLOR_NONE;
+
+                while( pos < pos_end && *pos != '>' ) ++pos;
+                ++pos;
+            }
+
+            // その他のタグはタグを取り除いて中身だけを見る
             else {
 
                 // フラッシュ
-                create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), color_text, bold, fontid );
+                create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
                 m_parsed_text.clear();
+
+                // <span
+                if(( *( pos + 1 ) == 's' || *( pos + 1 ) == 'S' )
+                        && ( *( pos + 2 ) == 'p' || *( pos + 2 ) == 'P' )
+                        && ( *( pos + 3 ) == 'a' || *( pos + 3 ) == 'A' )
+                        && ( *( pos + 4 ) == 'n' || *( pos + 4 ) == 'N' )
+                        ){
+                    pos += 5;
+
+                    // class属性を取り出す
+                    std::string classname;
+                    if( strncasecmp( pos, " class=\"", 8 ) == 0 ){
+                        pos += 8;
+                        const char* pos_name = pos;
+                        while( *pos != '"' && *pos != '\0' ) ++pos;
+                        classname = std::string( pos_name, pos - pos_name );
+                    }
+
+                    // 文字色を保存
+                    fgcolor_bak = fgcolor;
+                    bgcolor_bak = bgcolor;
+
+                    if( ! classname.empty() && classname != "name" ){
+
+                        CORE::Css_Manager* mgr = CORE::get_css_manager();
+                        const int classid = mgr->get_classid( classname );
+                        if( classid != -1 ){
+                            CORE::CSS_PROPERTY css = mgr->get_property( classid );
+                            if( css.color != -1 ) fgcolor = css.color;
+                            if( css.bg_color != -1 ) bgcolor = css.bg_color;
+                        }
+                        else{
+                            fgcolor = COLOR_CHAR_NAME_B;
+                        }
+                    }
+                }
+
+                // <mark
+                else if(( *( pos + 1 ) == 'm' || *( pos + 1 ) == 'M' )
+                        && ( *( pos + 2 ) == 'a' || *( pos + 2 ) == 'A' )
+                        && ( *( pos + 3 ) == 'r' || *( pos + 3 ) == 'R' )
+                        && ( *( pos + 4 ) == 'k' || *( pos + 4 ) == 'K' )
+                        ){
+
+                    CORE::Css_Manager* mgr = CORE::get_css_manager();
+                    CORE::CSS_PROPERTY css = mgr->get_property( mgr->get_classid( "mark" ) );
+                    fgcolor_bak = fgcolor;
+                    bgcolor_bak = bgcolor;
+                    if( css.color != -1 ) fgcolor = css.color;
+                    if( css.bg_color != -1 ) bgcolor = css.bg_color;
+                }
+
+                if( CONFIG::get_use_color_html() ){
+                    // タグで指定された色を使う場合
+
+                    while( pos < pos_end && *pos != '>' ){
+                        bool background = false;
+
+                        while( pos < pos_end && *pos != '>' && *pos != ' '
+                                && *pos != '"' && *pos != '\'' ) ++pos;
+
+                        if( *pos == '>' ) break;
+
+                        else if( ( *pos == ' ' || *pos == '"' || *pos == '\'' )
+                                && ! memcmp( pos + 1, "color", 5 ) ) pos += 6;
+
+                        else if( ( *pos == ' ' || *pos == '"' || *pos == '\'' )
+                                && ! memcmp( pos + 1, "fgcolor", 7 ) ) pos += 8;
+
+                        else if( ( *pos == ' ' || *pos == '"' || *pos == '\'' )
+                                && ! memcmp( pos + 1, "foreground", 10 ) ) pos += 11;
+
+                        else if( ( *pos == ' ' || *pos == '"' || *pos == '\'' )
+                                && ! memcmp( pos + 1, "bgcolor", 7 ) ){ pos += 8; background = true; }
+
+                        else if( ( *pos == ' ' || *pos == '"' || *pos == '\'' )
+                                && ! memcmp( pos + 1, "background-color", 16 ) ){ pos += 17; background = true; }
+
+                        else if( ( *pos == ' ' || *pos == '"' || *pos == '\'' )
+                                && ! memcmp( pos + 1, "background", 10 ) ){ pos += 11; background = true; }
+
+                        else{ ++pos; continue; }
+
+                        if( *pos == '=' || *pos == ':' ) ++pos;
+                        if( *pos == ' ' || *pos == '"' ) ++pos;
+
+                        const char* st = pos;
+                        while( pos < pos_end && *pos != '>' && *pos != ' ' && *pos != ';' && *pos != '\'' && *pos != '"' ) ++pos;
+
+                        std::string col( st, pos - st );
+                        if( col == "transparent" ){
+                            // 透明の場合は基本の背景色（でよいか？）
+                            if( background ) bgcolor = COLOR_BACK;
+                            else fgcolor = COLOR_BACK;
+                            continue;
+                        }
+
+                        const std::string col_str = MISC::htmlcolor_to_str( col ) ;
+                        if( col_str.empty() ){
+                            MISC::ERRMSG( "unhandled color : " + col );
+                            continue;
+                        }
+
+                        std::vector< std::string >::const_iterator it = colors.begin();
+                        for( ; it < colors.end(); ++it )
+                            if( ! (*it).compare( col_str ) ) break;
+
+                        int num_color;
+                        if( it == colors.end() ){
+                            colors.push_back( col_str );
+                            num_color = colors.size() - 1;
+                        }
+                        else{
+                            num_color = it - colors.begin();
+                        }
+
+                        // 指定された文字色に変更する
+                        if( background ) bgcolor = num_color + USRCOLOR_BASE;
+                        else fgcolor = num_color + USRCOLOR_BASE;
+                    }
+                }
 
                 while( pos < pos_end && *pos != '>' ) ++pos;
                 ++pos;
@@ -2230,10 +2596,7 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
             if( br ){
 
                 // フラッシュ
-                if( *( pos - 1 ) == ' ' && ! m_parsed_text.empty() ) {
-                    m_parsed_text.pop_back(); // 改行前の空白を取り除く
-                }
-                create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), color_text, bold, fontid );
+                create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
                 m_parsed_text.clear();
 
                 // 改行ノード作成
@@ -2255,14 +2618,12 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
                         while( *pos == ' ' ) {
                             m_parsed_text.push_back( *(pos++) );
                         }
-                        create_node_multispace( m_parsed_text.c_str(), m_parsed_text.size(), fontid );
+                        create_node_multispace( m_parsed_text.c_str(), m_parsed_text.size(), bgcolor, fontid );
                         m_parsed_text.clear();
                     }
                 }
             }
 
-            // forのところで++されるので--しておく
-            --pos;
             continue;
         }
 
@@ -2271,23 +2632,22 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
         // アンカーのチェック
         int n_in = 0;
         char tmpstr[ LNG_LINK +16 ]; // 画面に表示する文字列
-        char tmplink[ LNG_LINK +16 ]; // 編集したリンク文字列
-        int lng_str = 0, lng_link = strlen( PROTO_ANCHORE );
+        size_t lng_str = 0, lng_link = strlen( PROTO_ANCHORE );
         ANCINFO ancinfo[ MAX_ANCINFO ];
-        int lng_anc = 0;
+        size_t lng_anc = 0;
 
         int mode = 0;
         if( digitlink ) mode = 2;
 
-        if( check_anchor( mode , pos, n_in, tmpstr + lng_str, tmplink + lng_link, LNG_LINK - lng_link, ancinfo + lng_anc ) ){
+        if( check_anchor( mode , pos, n_in, tmpstr, tmplink + lng_link, LNG_LINK - lng_link, ancinfo ) ){
 
             // フラッシュしてからアンカーノードをつくる
-            create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), color_text, bold, fontid );
+            create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
             m_parsed_text.clear();
 
             memcpy( tmplink, PROTO_ANCHORE, strlen( PROTO_ANCHORE ) );
-            lng_str += strlen( tmpstr ) - lng_str;
-            lng_link += strlen( tmplink ) - lng_link;
+            lng_str = strlen( tmpstr );
+            lng_link = strlen( tmplink );
             ++lng_anc;
             pos += n_in; 
 
@@ -2298,16 +2658,14 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
                    check_anchor( mode, pos, n_in, tmpstr + lng_str, tmplink + lng_link ,
                                  LNG_LINK - lng_link, ancinfo + lng_anc ) ){
 
-                lng_str += strlen( tmpstr ) - lng_str;
-                lng_link += strlen( tmplink ) - lng_link;
+                lng_str = strlen( tmpstr );
+                lng_link = strlen( tmplink );
                 ++lng_anc;
                 pos += n_in; 
             }
 
             create_node_anc( tmpstr, lng_str, tmplink, lng_link, COLOR_CHAR_LINK, bold, ancinfo, lng_anc, fontid );
 
-            // forのところで++されるので--しておく
-            --pos;
             continue;
         }
 
@@ -2321,82 +2679,64 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
 
         ///////////////////////
         // リンク(http)のチェック
-        char tmpreplace[ LNG_LINK +16 ]; // Urlreplaceで変換した後のリンク文字列
-        int lng_replace = 0;
-        int linktype = check_link( pos, (int)( pos_end - pos ), n_in, tmplink, LNG_LINK );
+        n_in = pos_end - pos;
+        lng_str = lng_link = LNG_LINK;
+        const int linktype = check_link( pos, n_in, (char*)tmpstr, lng_str, (char*)tmplink, lng_link );
+
         if( linktype != MISC::SCHEME_NONE ){
             // リンクノードで実際にアクセスするURLの変換
             while( remove_imenu( tmplink ) ); // ime.nuなどの除去
-            lng_link = convert_amp( tmplink, strlen( tmplink ) ); // &amp; → &
+            lng_link = strlen( tmplink );
 
             // Urlreplaceによる正規表現変換
-            std::string tmpurl( tmplink, lng_link );
-            if( CORE::get_urlreplace_manager()->exec( tmpurl ) == false ){
-                // 変換されてない
-                lng_replace = lng_link;
-                memcpy( tmpreplace, tmplink, lng_replace +1 );
+            std::string tmpreplace( tmplink, lng_link );
+            if( CORE::get_urlreplace_manager()->exec( tmpreplace ) ){
+                int delim_pos = 0;
 
-            } else {
-                if( tmpurl.size() > LNG_LINK ){
-                    MISC::ERRMSG( std::string( "too long replaced url : " ) + tmplink );
-
+                if( tmpreplace.length() >= LNG_LINK ){
                     // 変換後のURLが長すぎるので、元のURLのままにする
-                    lng_replace = lng_link;
-                    memcpy( tmpreplace, tmplink, lng_replace +1 );
-                } else {
-                    // 正常に変換された
-                    lng_replace = tmpurl.size();
-                    memcpy( tmpreplace, tmpurl.c_str(), lng_replace +1 );
+                    MISC::ERRMSG( std::string( "too long replaced url : " ) + tmplink );
+                    tmpreplace.assign( tmplink, lng_link );
 
-                    // 正規表現変換の結果、スキームだけの簡易チェックをする
-                    int delim_pos = 0;
-                    if( MISC::SCHEME_NONE == MISC::is_url_scheme( tmpreplace, &delim_pos ) ){
-                        // スキーム http:// が消えていた
-                        linktype = MISC::SCHEME_NONE;
-                    }
+                // 正常に変換された結果、スキームだけの簡易チェックをする
+                } else if( MISC::SCHEME_NONE == MISC::is_url_scheme( tmpreplace.c_str(), &delim_pos ) ){
+                    // プロトコルスキームが消えていた
+                    m_parsed_text.append( tmpstr, lng_str );
+                    pos += n_in;
+                    continue;
                 }
             }
-        }
-        // リンクノードか再チェック
-        if( linktype != MISC::SCHEME_NONE ){
-            // フラッシュしてからリンクノードつくる
-            create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), color_text, bold, fontid );
-            m_parsed_text.clear();
 
-            // リンクノードの表示テキスト
-            memcpy( tmpstr, pos, n_in );
-            tmpstr[ n_in ] = '\0';
-            lng_str = convert_amp( tmpstr, n_in ); // &amp; → &
+            // フラッシュしてからリンクノードつくる
+            create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
+            m_parsed_text.clear();
 
             // ssspアイコン
             if( linktype == MISC::SCHEME_SSSP ){
-                node = create_node_sssp( tmpreplace, lng_replace );
+                node = create_node_sssp( tmpreplace.c_str(), tmpreplace.length() );
                 if (fontid != FONT_MAIN) node->fontid = fontid;
             }
 
             else {
                 // Urlreplaceによる画像コントロールを取得する
-                int imgctrl = CORE::get_urlreplace_manager()->get_imgctrl( std::string( tmpreplace, lng_replace ) );
+                const int imgctrl = CORE::get_urlreplace_manager()->get_imgctrl( tmpreplace );
 
                 // youtubeなどのサムネイル画像リンク
                 if( imgctrl & CORE::IMGCTRL_THUMBNAIL ){
-                    create_node_thumbnail( tmpstr, lng_str, tmplink , lng_link, tmpreplace, lng_replace, COLOR_CHAR_LINK, bold, fontid );
+                    create_node_thumbnail( tmpstr, lng_str, tmplink , lng_link, tmpreplace.c_str(), tmpreplace.length(), COLOR_CHAR_LINK, bold, fontid );
                 }
 
                 // 画像リンク
-                else if( DBIMG::get_type_ext( tmpreplace, lng_replace ) != DBIMG::T_UNKNOWN ){
-                    node = create_node_img( tmpstr, lng_str, tmpreplace , lng_replace, COLOR_IMG_NOCACHE, bold );
+                else if( DBIMG::get_type_ext( tmpreplace.c_str(), tmpreplace.length() ) != DBIMG::T_UNKNOWN ){
+                    node = create_node_img( tmpstr, lng_str, tmpreplace.c_str(), tmpreplace.length(), COLOR_IMG_NOCACHE, bold );
                     if ( fontid != FONT_MAIN ) node->fontid = fontid;
                 }
-    
+
                 // 一般リンク
-                else create_node_link( tmpstr, lng_str, tmpreplace , lng_replace, COLOR_CHAR_LINK, bold, fontid );
+                else create_node_link( tmpstr, lng_str, tmpreplace.c_str(), tmpreplace.length(), COLOR_CHAR_LINK, bgcolor, bold, fontid );
             }
 
             pos += n_in;
-
-            // forのところで++されるので--しておく
-            --pos;
             continue;
         }
 
@@ -2406,74 +2746,94 @@ void NodeTreeBase::parse_html( const char* str, const int lng, const int color_t
 
             int n_out = 0;
             char out_char[kMaxBytesOfUTF8Char]{};
-            const int ret_decode = DBTREE::decode_char( pos, n_in, out_char, n_out, false );
+            const int ret_decode = decode_char( pos, n_in, out_char, n_out, false );
 
             if( ret_decode != NODE_NONE ){
 
                 // 文字以外の空白ノードならフラッシュして空白ノード追加
                 if( ret_decode != NODE_TEXT ){
-                    create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), color_text, bold, fontid );
+                    create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
                     m_parsed_text.clear();
-                    node = create_node_space( ret_decode );
+                    node = create_node_space( ret_decode, bgcolor );
                     if ( fontid != FONT_MAIN ) node->fontid = fontid;
+                }
+                else if( out_char[0] == '\xC2' && out_char[1] == '\xA0' ) {
+                    // &nbsp; は空白に置き換える
+                    m_parsed_text.push_back( ' ' );
                 }
                 else {
                     m_parsed_text.append( out_char, n_out );
                 }
 
                 pos += n_in;
-
-                // forのところで++されるので--しておく
-                --pos;
                 continue;
             }
         }
 
         ///////////////////////
         // 水平タブ(0x09)
-        if( *pos == 0x09 ){
+        else if( *pos == '\t' ){
 
             // フラッシュしてからタブノードをつくる
-            create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), color_text, bold, fontid );
+            create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
             m_parsed_text.clear();
-            node = create_node_htab();
+            node = create_node_space( NODE_HTAB, bgcolor );
             if ( fontid != FONT_MAIN ) node->fontid = fontid;
+            ++pos;
+
+            goto create_multispace;
+        }
+
+        ///////////////////////
+        // フォームフィード(0x0C)
+        else if( *pos == '\f' ){
+
+            // フラッシュしてからZWSPノードをつくる
+            create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
+            m_parsed_text.clear();
+            node = create_node_space( NODE_ZWSP, bgcolor );
+            if ( fontid != FONT_MAIN ) node->fontid = fontid;
+            ++pos;
+
             continue;
         }
 
         ///////////////////////
-        // LF(0x0A), CR(0x0D)
-        if( *pos == 0x0A || *pos == 0x0D ){
+        // NBSP(0xC2 0xA0)
+        else if( *pos == '\xc2' && *(pos + 1) == '\xa0' ){
+            // 空白に置き換える
+            m_parsed_text.push_back( ' ' );
+            pos += 2;
 
-            // 無視する
             continue;
         }
 
         ///////////////////////
-        // 連続半角空白
-        if( *pos == ' ' && *( pos + 1 ) == ' ' ){
+        // その他のASCIIおよびマルチバイト文字
+        switch( MISC::utf8bytes( pos ) ){
+        case 4: m_parsed_text.push_back( *pos++ );
+                // fallthrough
+        case 3: m_parsed_text.push_back( *pos++ );
+                // fallthrough
+        case 2: m_parsed_text.push_back( *pos++ );
+                // fallthrough
+        case 1: m_parsed_text.push_back( *pos++ );
+                break;
+        default:
+            // Iconvでエンコード変換済みなので不正な文字が
+            // ここで検出されるのは何かがおかしい
+            MISC::ERRMSG( "invalid char = " + std::to_string( (unsigned char) *pos ) );
 
-            m_parsed_text.push_back( *(pos++) );
-
-            // フラッシュしてから連続半角ノードを作る
-            create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), color_text, bold, fontid );
-            m_parsed_text.clear();
-
-            while( *pos == ' ' ) {
-                m_parsed_text.push_back( *(pos++) );
-            }
-            create_node_multispace( m_parsed_text.c_str(), m_parsed_text.size(), fontid );
-            m_parsed_text.clear();
-
-            // forのところで++されるので--しておく
-            --pos;
-            continue;
+            // REPLACEMENT CHARACTERに置き換える
+            ++pos;
+            m_parsed_text.push_back( static_cast< char >( 0xef ) );
+            m_parsed_text.push_back( static_cast< char >( 0xbf ) );
+            m_parsed_text.push_back( static_cast< char >( 0xbd ) );
+            break;
         }
-
-        m_parsed_text.push_back( *pos );
     }
 
-    create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), color_text, bold, fontid );
+    create_node_ntext( m_parsed_text.c_str(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
     m_parsed_text.clear();
 }
 
@@ -2583,7 +2943,7 @@ void NodeTreeBase::parse_write( const char* str, const int lng, const std::size_
 
             const int num = MISC::decode_spchar_number( pos, offset_num, lng_num );
             char utf8[kMaxBytesOfUTF8Char]{};
-            const int n_out = MISC::ucs2toutf8( num, utf8 );
+            const int n_out = g_unichar_to_utf8( static_cast<char32_t>( num ), utf8 );
             m_buffer_write.append( utf8, n_out );
             pos += offset_num + lng_num;
 
@@ -2762,125 +3122,137 @@ bool NodeTreeBase::check_anchor( const int mode, const char* str_in,
 //
 // 入力
 // str_in : 入力文字列の先頭アドレス
-// lng_str : str_inのバッファサイズ
+// lng_in : str_inのバッファサイズ
+// lng_text : str_textのバッファサイズ
 // lng_link : str_linkのバッファサイズ
-// linktype : is_url_scheme()のリタンコード
-// delim_pos : is_url_scheme()で得たスキーム文字列の長さ
 //
 // 出力
-// n_in : str_in から何バイト読み取ったか
+// lng_in : str_in から何バイト読み取ったか
+// str_text : リンクの表示文字列
+// lng_text : str_textのサイズ
 // str_link : リンクの文字列
+// lng_link : str_linkのサイズ
 //
 // 戻り値 : リンクのタイプ(例えばSCHEME_HTTPなど)
 //
 // 注意 : MISC::is_url_scheme() と MISC::is_url_char() の仕様に合わせる事
 //
-int NodeTreeBase::check_link_impl( const char* str_in, const int lng_in, int& n_in, char* str_link, const int lng_link,
-                                   const int linktype, const int delim_pos ) const
+int NodeTreeBase::check_link( const char* str_in, int& lng_in, char* str_text, size_t& lng_text, char* str_link,
+                              size_t& lng_link ) const
 {
+    int delim_pos = 0;
+    const int linktype = MISC::is_url_scheme( str_in, &delim_pos );
+    if( linktype == MISC::SCHEME_NONE ) return linktype;
+
     // CONFIG::get_loose_url() == true の時はRFCで規定されていない文字も含める
     const bool loose_url = CONFIG::get_loose_url();
 
-    // リンクの長さを取得
-    n_in = delim_pos;
-    int n_in_tmp, n_out_tmp;
-    char buf[16];
-
-    while( n_in < lng_in ){
-
-        // URLとして扱う文字かどうか
-        if ( MISC::is_url_char( str_in + n_in, loose_url ) == false ) break;
-
-        // HTML特殊文字( &〜; )
-        if ( *( str_in + n_in ) == '&' &&
-             DBTREE::decode_char( str_in + n_in, n_in_tmp, buf, n_out_tmp, false ) != DBTREE::NODE_NONE ){
-
-             // デコード結果が"&(&amp;)"でないもの
-             if( n_out_tmp != 1 || buf[0] != '&' ) break;
-        }
-
-        n_in++;
-    }
-
-    // URLとして短かすぎる場合は除外する( 最短ドメイン名の例 "1.cc" )
-    if( n_in - delim_pos < 4 ) return MISC::SCHEME_NONE;
-
-    // URL出力バッファより長いときも除外する( 一般に256バイトを超えるとキャッシュをファイル名として扱えなくなる )
-    if( lng_link <= n_in ) return MISC::SCHEME_NONE;
-
-    char *pos = str_link;
+    const char *pos_in = str_in;
+    char *pos_text = str_text;
+    char *pos_link = str_link;
+    const char* pos_in_end = str_in + lng_in;
+    const char* pos_text_end = str_text + lng_text;
+    const char* pos_link_end = str_link + lng_link;
 
     // URLスキームを修正
-    int str_pos = 0;
     switch( linktype ){
-
-        // ttp -> http
-        case MISC::SCHEME_TTP:
-
-            if( n_in + 1 >= lng_link ) return MISC::SCHEME_NONE;
-
-            *pos = 'h';
-            pos++;
-            break;
-
-        // tp -> http
-        case MISC::SCHEME_TP:
-
-            if( n_in + 2 >= lng_link ) return MISC::SCHEME_NONE;
-
-            *pos  = 'h';
-            *(++pos) = 't';
-            pos++;
-            break;
-
-        // sssp -> http
         case MISC::SCHEME_SSSP:
-
-            *pos = 'h';
-            *(++pos) = 't';
-            *(++pos) = 't';
-            pos++;
-            str_pos = 3;
-            break;
+        case MISC::SCHEME_HTTP: *pos_text++ = *pos_in++;
+                                // fallthrough
+        case MISC::SCHEME_TTP:  *pos_text++ = *pos_in++;
+                                // fallthrough
+        case MISC::SCHEME_TP:   *pos_text++ = *pos_in++;
     }
 
-    // srr_inの文字列をstr_linkにコピー
-    int i = str_pos;
-    for( ; i < n_in; i++, pos++ ){
+    // str_inの文字列をdelim_posまでコピー
+    *pos_link++ = 'h'; *pos_link++ = 't'; *pos_link++ = 't';
+    for( ; pos_in < str_in + delim_pos; ++pos_in ) *pos_text++ = *pos_link++ = *pos_in;
 
-        *pos = str_in[ i ];
+    // str_inの残り文字列をstr_linkにコピー
+    while( pos_in < pos_in_end ){
+        int n_in_tmp, n_out_tmp;
+        char ch = *pos_in;
+
+        // 文字参照を変換
+        if( ch == '&' && decode_char( pos_in, n_in_tmp, pos_link, n_out_tmp, false ) != NODE_NONE ){
+            // URLとして扱う文字かどうか
+            if( n_out_tmp == 1 && MISC::is_url_char( pos_link, loose_url ) ){
+                ch = *pos_text++ = *pos_link++;
+                pos_in += n_in_tmp;
+            }
+            else{
+                break;
+            }
+        }
+
+        // URLとして扱う文字かどうか
+        else if( MISC::is_url_char( pos_in, loose_url ) ){
+            *pos_text++ = *pos_link++ = ch;
+            ++pos_in;
+        }
+        else{
+            break;
+        }
+
+        if( pos_text >= pos_text_end || pos_link >= pos_link_end ) return MISC::SCHEME_NONE;
 
         // loose_urlで含める"^"と"|"をエンコードする
         // "[]"はダウンローダに渡す用途のためにエンコードしないでおく
-        if( loose_url == true ){
+        if( loose_url ){
 
-            if( str_in[ i ] == '^' ){
+            if( ch == '^' ){        // '^' → "%5E"(+2Byte)
+                if( pos_link + 2 >= pos_link_end ) return MISC::SCHEME_NONE;
 
-                // '^' → "%5E"(+2Byte)
-                if( n_in + 2 >= lng_link ) return MISC::SCHEME_NONE;
-
-                *pos = '%';
-                *(++pos) = '5';
-                *(++pos) = 'E';
+                *( pos_link - 1 ) = '%';
+                *pos_link++ = '5';
+                *pos_link++ = 'E';
             }
-            else if( str_in[ i ] == '|' ){
+            else if( ch == '|' ){   // '|' → "%7C"(+2Byte)
+                if( pos_link + 2 >= pos_link_end ) return MISC::SCHEME_NONE;
 
-                // '|' → "%7C"(+2Byte)
-                if( n_in + 2 >= lng_link ) return MISC::SCHEME_NONE;
-
-                *pos = '%';
-                *(++pos) = '7';
-                *(++pos) = 'C';
+                *( pos_link - 1 ) = '%';
+                *pos_link++ = '7';
+                *pos_link++ = 'C';
             }
         }
     }
 
     // str_linkの終端
-    *pos = '\0';
+    *pos_text = *pos_link = '\0';
+    lng_in = pos_in - str_in;
+    lng_text = pos_text - str_text;
+    lng_link = pos_link - str_link;
+
+    // パーセントコードの処理
+    if( CONFIG::get_percent_decode() && memchr( str_text, '%', lng_text ) != nullptr )
+    {
+        std::string tmp = MISC::url_decode( str_text, lng_text );
+
+        const CharCode charcode = MISC::judge_char_code( tmp );
+
+        if( charcode == CHARCODE_SJIS || charcode == CHARCODE_EUCJP ||
+                charcode == CHARCODE_JIS ){
+            tmp = MISC::Iconv( tmp, charcode, CHARCODE_UTF8 );
+        }
+
+        if( charcode != CHARCODE_UNKNOWN ){
+            // 改行はパーセントエンコード( 元に戻す )
+            tmp = MISC::replace_newlines_to_str( tmp, "%0A" );
+
+            if( tmp.length() < lng_text ){
+                tmp.copy( str_text, std::string::npos );
+                lng_text = tmp.length();
+            }
+        }
+    }
+
+    // URLとして短かすぎる場合は除外する( 最短ドメイン名の例 "1.cc" )
+    if( lng_in - delim_pos < 4 ) return MISC::SCHEME_NONE;
+
 
 #ifdef _DEBUG
     std::cout << str_link << std::endl
-              << "len = " << strlen( str_link ) << " lng_link = " << lng_link << " n_in = " << n_in << std::endl;
+              << " lng_link = " << lng_link << " lng_in = " << lng_in << std::endl;
 #endif
 
     return linktype;
@@ -2918,6 +3290,7 @@ void NodeTreeBase::copy_abone_info( const std::list< std::string >& list_abone_i
                                     const std::list< std::string >& list_abone_regex,
                                     const std::unordered_set< int >& abone_reses,
                                     const bool abone_transparent, const bool abone_chain, const bool abone_age,
+                                    const bool abone_default_name, const bool abone_noid,
                                     const bool abone_board, const bool abone_global )
 {
     m_list_abone_id = list_abone_id;
@@ -2961,6 +3334,8 @@ void NodeTreeBase::copy_abone_info( const std::list< std::string >& list_abone_i
     else m_abone_chain = abone_chain;
 
     m_abone_age = abone_age;
+    m_abone_default_name = abone_default_name;
+    m_abone_noid = abone_noid;
     m_abone_board = abone_board;
     m_abone_global = abone_global;
 }
@@ -2978,8 +3353,8 @@ void NodeTreeBase::update_abone_all()
     update_abone( 1, m_id_header );
 
     // 発言数更新
-    clear_id_name();
-    update_id_name( 1, m_id_header );
+    //clear_id_name();
+    //update_id_name( 1, m_id_header );
 
     // 参照状態更新
     clear_reference();
@@ -3038,23 +3413,32 @@ bool NodeTreeBase::check_abone_id( const int number )
     const bool check_id = ! m_list_abone_id.empty();
     const bool check_id_board = ! m_list_abone_id_board.empty();
 
-    if( !check_id && !check_id_board ) return false;
+    if( !m_abone_noid && !check_id && !check_id_board ) return false;
 
     NODE* head = res_header( number );
     if( ! head ) return false;
     if( ! head->headinfo ) return false;
     if( head->headinfo->abone ) return true;
-    if( ! head->headinfo->block[ BLOCK_ID_NAME ] ) return false;
+    if( ! head->headinfo->block[ BLOCK_ID_NAME ] ){
+        // ID無し
+        if( m_abone_noid ){
+            head->headinfo->abone = true;
+            return true;
+        }
+        else return false;
+    }
 
-    const int ln_protoid = strlen( PROTO_ID );
+    NODE* idnode = head->headinfo->block[ BLOCK_ID_NAME ]->next_node;
+    if( ! idnode || ! idnode->linkinfo ) return false;
+
+    const char* protoid = idnode->linkinfo->link + strlen( PROTO_ID );
 
     // ローカルID
     if( check_id ){
         std::list< std::string >::iterator it = m_list_abone_id.begin();
         for( ; it != m_list_abone_id.end(); ++it ){
 
-            // std::string の find は遅いのでstrcmp使う
-            if( strcmp( head->headinfo->block[ BLOCK_ID_NAME ]->next_node->linkinfo->link + ln_protoid, ( *it ).c_str() ) == 0 ){
+            if( *protoid == ( *it )[ 0 ] && ( *it ).compare( protoid ) == 0 ){
                 head->headinfo->abone = true;
                 return true;
             }
@@ -3066,8 +3450,7 @@ bool NodeTreeBase::check_abone_id( const int number )
         std::list< std::string >::iterator it = m_list_abone_id_board.begin();
         for( ; it != m_list_abone_id_board.end(); ++it ){
 
-            // std::string の find は遅いのでstrcmp使う
-            if( strcmp( head->headinfo->block[ BLOCK_ID_NAME ]->next_node->linkinfo->link + ln_protoid, ( *it ).c_str() ) == 0 ){
+            if( *protoid == ( *it )[ 0 ] && ( *it ).compare( protoid ) == 0 ){
                 head->headinfo->abone = true;
                 return true;
             }
@@ -3089,13 +3472,22 @@ bool NodeTreeBase::check_abone_name( const int number )
     const bool check_name_board = ! m_list_abone_name_board.empty();
     const bool check_name_global = ! CONFIG::get_list_abone_name().empty();
 
-    if( !check_name && !check_name_board && !check_name_global ) return false;
+    if( !m_abone_default_name && !check_name && !check_name_board && !check_name_global ) return false;
 
     NODE* head = res_header( number );
     if( ! head ) return false;
     if( ! head->headinfo ) return false;
     if( head->headinfo->abone ) return true;
     if( ! head->headinfo->name ) return false;
+
+    // デフォルト名無し
+    if( m_abone_default_name && head->headinfo->block[ BLOCK_NAMELINK ] ){
+        NODE* idnode = head->headinfo->block[ BLOCK_NAMELINK ]->next_node;
+        if( idnode && ! idnode->linkinfo ){
+            head->headinfo->abone = true;
+            return true;
+        }
+    }
 
     std::list< std::string >::const_iterator it;
     const std::string name_str( head->headinfo->name );
@@ -3192,9 +3584,8 @@ bool NodeTreeBase::check_abone_word( const int number )
     // ローカル NG word
     if( check_word ){
 
-        std::list< std::string >::iterator it = m_list_abone_word.begin();
-        for( ; it != m_list_abone_word.end(); ++it ){
-            if( res_str.find( *it ) != std::string::npos ){
+        for( const std::string& word : m_list_abone_word ) {
+            if( res_str.find( word ) != std::string::npos ){
                 head->headinfo->abone = true;
                 return true;
             }
@@ -3215,9 +3606,8 @@ bool NodeTreeBase::check_abone_word( const int number )
     // 板レベル NG word
     if( check_word_board ){
 
-        std::list< std::string >::iterator it = m_list_abone_word_board.begin();
-        for( ; it != m_list_abone_word_board.end(); ++it ){
-            if( res_str.find( *it ) != std::string::npos ){
+        for( const std::string& word : m_list_abone_word_board ) {
+            if( res_str.find( word ) != std::string::npos ){
                 head->headinfo->abone = true;
                 return true;
             }
@@ -3238,9 +3628,8 @@ bool NodeTreeBase::check_abone_word( const int number )
     // 全体 NG word
     if( check_word_global ){
 
-        std::list< std::string >::iterator it = m_list_abone_word_global.begin();
-        for( ; it != m_list_abone_word_global.end(); ++it ){
-            if( res_str.find( *it ) != std::string::npos ){
+        for( const std::string& word : m_list_abone_word_global ) {
+            if( res_str.find( word ) != std::string::npos ){
                 head->headinfo->abone = true;
                 return true;
             }
@@ -3534,28 +3923,74 @@ void NodeTreeBase::clear_id_name()
 void NodeTreeBase::update_id_name( const int from_number, const int to_number )
 {
     if( ! CONFIG::get_check_id() ) return;
+
     if( empty() ) return;
     if( to_number < from_number ) return;
+    for( int i = from_number ; i <= to_number; ++i ) check_id_name( i );
+}
 
-    //まずIDをキーにしたレス番号の一覧を集計
-    for( int i = from_number ; i <= to_number; ++i ) {
-        NODE* header = res_header( i );
-        if( ! header ) continue;
-        if( ! header->headinfo->block[ BLOCK_ID_NAME ] ) continue;
 
-        std::string str_id = header->headinfo->block[ BLOCK_ID_NAME ]->next_node->linkinfo->link;
-        m_map_id_name_resnumber[ str_id ].insert( i );
+
+//
+// number番のレスの発言数を更新
+//
+void NodeTreeBase::check_id_name( const int number )
+{
+    NODE* header = res_header( number );
+    if( ! header ) return;
+//    if( header->headinfo->abone ) return;
+    if( ! header->headinfo->block[ BLOCK_ID_NAME ] ) return;
+
+    NODE* idnode = header->headinfo->block[ BLOCK_ID_NAME ]->next_node;
+    if( ! idnode || ! idnode->linkinfo ) return;
+
+    const char* str_id = idnode->linkinfo->link;
+
+    // ID:???はカウントしない
+    if( str_id[ sizeof( PROTO_ID ) + 2 ] == '?' ) return;
+
+    // 同じIDのレスを持つ一つ前のレスを探す
+    if( ! m_idhash ){
+        m_idhash = m_heap.heap_alloc<IDHASH*>( IDHASH_TBLSIZE );
     }
-
-    //集計したものを元に各ノードの情報を更新
-    for( const auto &a: m_map_id_name_resnumber ){ // ID = a.first, レス番号の一覧 = a.second
-        for( const auto &num: a.second ) {
-            NODE* header = res_header( num );
-            if( ! header ) continue;
-            if( ! header->headinfo->block[ BLOCK_ID_NAME ] ) continue;
-            set_num_id_name( header, a.second.size() );
+    const size_t key = MISC::fnv_hash( str_id, strlen( str_id ) ) % IDHASH_TBLSIZE;
+    IDHASH* idhash = m_idhash[ key ];
+    if( ! idhash ){
+        idhash = m_heap.heap_alloc<IDHASH>();
+        m_idhash[ key ] = idhash;
+        idhash->id = str_id;
+    }
+    else do{
+        const int cmp = strcmp( str_id, idhash->id );
+        if( cmp == 0 ) break;
+        if( ! idhash->child[ cmp>0 ] ){
+            idhash->child[ cmp>0 ] = m_heap.heap_alloc<IDHASH>();
+            idhash = idhash->child[ cmp>0 ];
+            idhash->id = str_id;
+            break;
         }
-     }
+        idhash = idhash->child[ cmp>0 ];
+    } while( true );
+
+    NODE* prehead = res_header( idhash->num );
+    idhash->num = number;
+
+    // 見つからなかった
+    if( ! prehead ) set_num_id_name( header, 1, nullptr );
+
+    // 見つかった
+    else{
+
+        set_num_id_name( header, prehead->headinfo->num_id_name+1, prehead );
+
+        // 以前に出た同じIDのレスの発言数を更新
+        NODE* tmphead = prehead;
+        while( tmphead ){
+
+            set_num_id_name( tmphead, tmphead->headinfo->num_id_name+1, tmphead->headinfo->pre_id_name_header );
+            tmphead = tmphead->headinfo->pre_id_name_header;
+        }
+    }
 }
 
 
@@ -3564,15 +3999,18 @@ void NodeTreeBase::update_id_name( const int from_number, const int to_number )
 //
 // IDノードの色も変更する
 //
-void NodeTreeBase::set_num_id_name( NODE* header, const int num_id_name )
+void NodeTreeBase::set_num_id_name( NODE* header, const int num_id_name, NODE* pre_id_name_header )
 {
-    if( ! header->headinfo->block[ BLOCK_ID_NAME ] ) return;
+    if( ! header->headinfo->block[ BLOCK_ID_NAME ] ||
+        ! header->headinfo->block[ BLOCK_ID_NAME ]->next_node ) return;
 
     header->headinfo->num_id_name = num_id_name;        
+    header->headinfo->pre_id_name_header = pre_id_name_header;
 
-    if( num_id_name >= m_num_id[ LINK_HIGH ] ) header->headinfo->block[ BLOCK_ID_NAME ]->next_node->color_text = COLOR_CHAR_LINK_ID_HIGH;
-    else if( num_id_name >= m_num_id[ LINK_LOW ] ) header->headinfo->block[ BLOCK_ID_NAME ]->next_node->color_text = COLOR_CHAR_LINK_ID_LOW;
-    else header->headinfo->block[ BLOCK_ID_NAME ]->next_node->color_text = COLOR_CHAR;
+    NODE* idnode = header->headinfo->block[ BLOCK_ID_NAME ]->next_node;
+    if( num_id_name >= m_num_id[ LINK_HIGH ] ) idnode->color_text = COLOR_CHAR_LINK_ID_HIGH;
+    else if( num_id_name >= m_num_id[ LINK_LOW ] ) idnode->color_text = COLOR_CHAR_LINK_ID_LOW;
+    else idnode->color_text = COLOR_CHAR;
 }
 
 
@@ -3642,56 +4080,52 @@ void NodeTreeBase::check_fontid( const int number )
 //static member
 bool NodeTreeBase::remove_imenu( char* str_link )
 {
-    char *p = str_link;
-
-    if ( memcmp( p, "http", strlen( "http" ) ) != 0 ) return false;
-    p += strlen( "http" );
-    if ( *p == 's' ) p++;
-    if ( memcmp( p, "://", strlen( "://" ) ) != 0 ) return false;
-    p += strlen( "://" );
-
-    const char *cut_sites[] = { "ime.nu/", "ime.st/", "nun.nu/", "pinktower.com/", nullptr };
-    const char **q = cut_sites;
-    while ( *q ) {
-        size_t cs_len = strlen( *q );
-        if ( memcmp( p, *q, cs_len ) == 0 ) {
-            // "http://ime.nu/"等、URLがそれだけだった場合は削除しない
-            if ( p[cs_len] == '\0' ) return false;
-            memmove( p, p + cs_len, strlen( p + cs_len ) + 1 );
-            return true;
-        }
-        q ++;
-    }
-    return false;
-}
-
-
-// 文字列中の"&amp;"を"&"に変換する
-//static member
-int NodeTreeBase::convert_amp( char* text, const int n )
-{
-    int m = n;
-
-    int i;
-    for( i = 0; i < m; i++ ){
-
-        if( text[ i ] == '&' &&
-            m > (i + 4) &&
-            text[i + 1] == 'a' &&
-            text[i + 2] == 'm' &&
-            text[i + 3] == 'p' &&
-            text[i + 4] == ';' ){
-
-            // &の次, &amp;の次, &amp;の次からの長さ
-            memmove( text + i + 1, text + i + 5, n - i - 5 );
-
-            // "amp;"の分減らす
-            m -= 4;
+    int lng_cut = 4;
+    char *str_colon = str_link + lng_cut;
+    if( memcmp( str_link, "http", lng_cut ) == 0 ){
+        if( str_link[ lng_cut ] == 's' ){
+            lng_cut++;
+            str_colon++;
         }
     }
+    else return false;
 
-    text[m] = '\0';
-    return m;
+    if(
+      ! (
+        ( str_colon[ 3 ] == 'i' && str_colon[ 4 ] == 'm' )
+        || ( str_colon[ 3 ] == 'n' && str_colon[ 4 ] == 'u' )
+        || ( str_colon[ 3 ] == 'p' && str_colon[ 4 ] == 'i' )
+        || ( str_colon[ 3 ] == 'j' && str_colon[ 4 ] == 'u' )
+      )
+    ) return false;
+
+    if( memcmp( str_colon, "://ime.nu/", 10 ) == 0 ||
+        memcmp( str_colon, "://ime.st/", 10 ) == 0 ||
+        memcmp( str_colon, "://nun.nu/", 10 ) == 0 ){
+        lng_cut += 10;
+    }
+    else if( memcmp( str_colon, "://pinktower.com/", 17 ) == 0 ||
+             memcmp( str_colon, "://jump.2ch.net/?", 17 ) == 0 ||
+             memcmp( str_colon, "://jump.5ch.net/?", 17 ) == 0 ){
+        lng_cut += 17;
+    }
+    else return false;
+
+    int lng_link = strlen( str_link );
+
+    // "http://ime.nu/"等、URLがそれだけだった場合は削除しない
+    if( lng_link == lng_cut ) return false;
+
+    if( memcmp( str_link + lng_cut, "http", 4 ) == 0 ){
+        // プロトコルが続く場合は頭から削る
+        memmove( str_link, str_link + lng_cut, lng_link + 1 - lng_cut );
+    }
+    else{
+        // 上記以外はプロトコルを残して削る
+        memmove( str_colon + 3, str_link + lng_cut, lng_link + 1 - lng_cut );
+    }
+
+    return true;
 }
 
 

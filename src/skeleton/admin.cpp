@@ -619,7 +619,10 @@ void Admin::exec_command()
     }
 
     // 全てのビューを再描画
-    else if( command.command == "relayout_all" ) relayout_all();
+    else if( command.command == "relayout_all" ){
+        const bool completely = ( command.arg1 == "completely" );
+        relayout_all( completely );
+    }
 
     // タイトル表示
     // アクティブなviewから依頼が来たらコアに渡す
@@ -1808,11 +1811,12 @@ void Admin::set_tablabel( const std::string& url, const std::string& str_label )
     SKELETON::View* view = get_view( url );
     if( view ){
 
-        m_notebook->set_tab_fulltext( str_label, m_notebook->page_num( *view ) );
+        const std::string label = MISC::to_plain( str_label );
+        m_notebook->set_tab_fulltext( label, m_notebook->page_num( *view ) );
 
         // View履歴のタイトルも更新
         if( m_use_viewhistory ){
-            HISTORY::get_history_manager()->replace_current_title_viewhistory( view->get_url(), str_label );
+            HISTORY::get_history_manager()->replace_current_title_viewhistory( view->get_url(), label );
         }
     }
 }
@@ -1822,13 +1826,13 @@ void Admin::set_tablabel( const std::string& url, const std::string& str_label )
 //
 // 再レイアウト実行
 //
-void Admin::relayout_all()
+void Admin::relayout_all( const bool completely )
 {
     std::list< SKELETON::View* > list_view = get_list_view();
     std::list< SKELETON::View* >::iterator it = list_view.begin();
     for( ; it != list_view.end(); ++it ){
         SKELETON::View* view = ( *it );
-        if( view ) view->relayout();
+        if( view ) view->relayout( completely );
     }
 }
 

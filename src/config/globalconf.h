@@ -56,6 +56,10 @@ namespace CONFIG
     bool get_use_select_gtkrc();
     void set_use_select_gtkrc( const bool use );
 
+    // スレビューでHTMLタグ指定の色を使用するか
+    bool get_use_color_html();
+    void set_use_color_html( const bool use );
+
     // ツリービューの行間スペース
     int get_tree_ypad();
 
@@ -195,6 +199,15 @@ namespace CONFIG
     bool get_use_ipv6();
     void set_use_ipv6( const bool set );
 
+    // TLSでノンブロッキングI/Oを使用する
+    bool get_tls_nonblocking();
+
+    // TLSでサーバの証明書をチェックする
+    bool get_verify_cert();
+
+    // 信頼するルート証明書
+    const std::string& get_root_cafile();
+
     // 同一ホストに対する最大コネクション数( 1 または 2 )
     int get_connection_num();
 
@@ -206,6 +219,10 @@ namespace CONFIG
     void set_cookie_hap_bbspink( const std::string& cookie_hap );
 
     bool get_use_offlaw2_2ch() = delete; // Removed in v0.3.0 (2020-04)
+
+    // 2chの過去ログを外部のサイトから取得する
+    bool get_use_external_log();
+    const std::string& get_url_external_log();
 
     // リンクをクリックしたときに実行するコマンド
     const std::string& get_command_openurl();
@@ -457,6 +474,9 @@ namespace CONFIG
     // datのパース時にURL判定を甘くする(^なども含める)
     bool get_loose_url();
 
+    // URLのパーセントコードをデコードして表示する
+    bool get_percent_decode();
+
     // ユーザーコマンドで選択できない項目を非表示にする
     bool get_hide_usrcmd();
     void set_hide_usrcmd( const bool hide );
@@ -504,8 +524,11 @@ namespace CONFIG
     int get_remove_old_abone_thread(); // dat落ちしたスレをNGスレタイトルリストから取り除くか( 0: ダイアログ表示 1: 取り除く 2: 除かない )
     void set_remove_old_abone_thread( const int remove ); 
 
-    int get_abone_number_thread();
-    void set_abone_number_thread( const int number );
+    int get_abone_min_number_thread();
+    void set_abone_min_number_thread( const int number );
+
+    int get_abone_max_number_thread();
+    void set_abone_max_number_thread( const int number );
 
     int get_abone_hour_thread();
     void set_abone_hour_thread( const int hour );
@@ -580,6 +603,9 @@ namespace CONFIG
     // 状態変更時にメインステータスバーの色を変える
     bool get_change_stastatus_color();
 
+    // 状態変更時にスレビュータイトルの色を変える
+    bool get_change_statitle_color();
+
     // Client-Side Decorationを使うか( 0: 使わない 1: 使う 2: デスクトップに合わせる )
     int get_use_header_bar();
 
@@ -610,6 +636,14 @@ namespace CONFIG
     // migemo-dictの場所
     const std::string& get_migemodict_path();
 #endif
+
+    // 不正なMS932文字列をUTF-8と見なす
+    bool get_broken_sjis_be_utf8();
+    void set_broken_sjis_be_utf8( const bool set );
+
+    // 不正な数値文字参照を無理矢理変換する
+    bool get_correct_character_reference();
+    void set_correct_character_reference( const bool set );
 }
 
 

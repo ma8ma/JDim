@@ -15,6 +15,7 @@
 #include "skeleton/editview.h"
 #include "skeleton/detaildiag.h"
 
+#include "jdlib/misccharcode.h"
 #include "jdlib/miscutil.h"
 #include "jdlib/misctime.h"
 #include "jdlib/misctrip.h"
@@ -77,7 +78,7 @@ MessageViewBase::MessageViewBase( const std::string& url )
     m_max_line = DBTREE::line_number( get_url() ) * 2;
     m_max_str = DBTREE::message_count( get_url() );
 
-    m_iconv = std::make_unique<JDLIB::Iconv>( DBTREE::board_charset( get_url() ), "UTF-8" );;
+    m_iconv = std::make_unique<JDLIB::Iconv>( DBTREE::board_charcode( get_url() ), CHARCODE_UTF8 );
 
     m_lng_iconv = m_max_str * 3;
     if( ! m_lng_iconv ) m_lng_iconv = MAX_STR_ICONV;
@@ -730,7 +731,7 @@ bool MessageViewBase::slot_button_press( GdkEventButton* event )
 //
 // フォントの更新
 //
-void MessageViewBase::relayout()
+void MessageViewBase::relayout( const bool completely )
 {
     init_font( CONFIG::get_fontname( FONT_MESSAGE ) );
     init_color();
@@ -877,12 +878,6 @@ void MessageViewBase::slot_switch_page( Gtk::Widget*, guint page )
         std::string new_subject = MESSAGE::get_admin()->get_new_subject();
         if( ! new_subject.empty() ) set_label( new_subject );
 
-        // URLを除外してエスケープ
-        const bool include_url = false;
-        std::string msg;
-        if( m_text_message ) msg = MISC::html_escape( m_text_message->get_text(), include_url );
-        msg = MISC::replace_str( msg, "\n", " <br> " );
-
         std::stringstream ss;
 
         // 名前 + トリップ
@@ -897,7 +892,7 @@ void MessageViewBase::slot_switch_page( Gtk::Widget*, guint page )
             std::string trip;
             if( trip_pos != std::string::npos )
             {
-                trip = MISC::get_trip( name_field.substr( trip_pos + 1 ), DBTREE::board_charset( get_url() ) );
+                trip = MISC::get_trip( name_field.substr( trip_pos + 1 ), DBTREE::board_charcode( get_url() ) );
             }
 
             ss << name;
@@ -910,9 +905,29 @@ void MessageViewBase::slot_switch_page( Gtk::Widget*, guint page )
         ss << "<>" << mail  << "<>";
 
         const std::time_t current = std::time( nullptr );
-        ss << MISC::timettostr( current, MISC::TIME_WEEK );
+        ss << MISC::timettostr( current, MISC::TIME_WEEK ) << " ID:\?\?\?<>";
 
-        ss << " ID:???" << "<>" << msg << "<>\n";
+        if( m_text_message ){
+            std::string msg = m_text_message->get_text();
+            if( DBTREE::get_unicode( get_url() ) == "change" ){
+                // MS932等に無い文字を数値参照にするために文字コードを変換する
+                int byte_out;
+                const std::string str_enc = m_iconv->convert( msg.c_str(), msg.length(), byte_out );
+                msg = MISC::Iconv( str_enc, DBTREE::board_charcode( get_url() ), CHARCODE_UTF8 );
+            }
+            else{
+                // XXX 2chでは文字実態参照はデコードされない
+                msg = MISC::chref_decode( msg );
+            }
+
+            // URLを除外してエスケープ
+            constexpr bool include_url = false;
+            msg = MISC::html_escape( msg, include_url );
+
+            ss << MISC::replace_str( msg, "\n", " <br> " );
+        }
+
+        ss << "<>\n";
 
 #ifdef _DEBUG
         std::cout << ss.str() << std::endl;
@@ -978,8 +993,7 @@ void MessageViewBase::show_status()
     else if( m_text_changed )
     {
         int byte_out;
-        const char* msgc = message.c_str();
-        std::string str_enc = m_iconv->convert( (char*)msgc, strlen( msgc ), byte_out );
+        std::string str_enc = m_iconv->convert( message.c_str(), message.length(), byte_out );
         m_lng_str_enc = str_enc.length();
 
         // 特殊文字の文字数を計算

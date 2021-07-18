@@ -628,7 +628,7 @@ void BBSListViewBase::redraw_view()
 //
 // 色やフォントなどの変更
 //
-void BBSListViewBase::relayout()
+void BBSListViewBase::relayout( const bool completely )
 {
     m_treeview.init_color( COLOR_CHAR_BBS, COLOR_BACK_BBS, COLOR_BACK_BBS_EVEN );
     m_treeview.init_font( CONFIG::get_fontname( FONT_BBS ) );
@@ -1578,9 +1578,21 @@ void BBSListViewBase::slot_copy_title_url()
     if( m_path_selected.empty() ) return;
 
     const std::string url = path2url( m_path_selected );
-    const std::string name = path2name( m_path_selected );
+    std::string name;
 
-    MISC::CopyClipboard( name + '\n' + url );
+    const int type = path2type( m_path_selected );
+    switch( type ){
+        case TYPE_THREAD:
+        case TYPE_THREAD_UPDATE:
+        case TYPE_THREAD_OLD:
+            name = MISC::to_plain( DBTREE::article_subject( url ) );
+            break;
+
+        default:
+            name = path2name( m_path_selected );
+    }
+
+    MISC::CopyClipboard( name + '\n' + url + '\n' );
 }
 
 
@@ -2482,9 +2494,10 @@ void BBSListViewBase::select_item( const std::string& url )
     for( ; ! it.end(); ++it ){
 
         Gtk::TreeModel::Row row = *it;
-        Gtk::TreePath path = GET_PATH( row );
+        const Glib::ustring& ustr_url = row[ m_columns.m_url ];
 
-        if( url_item == row[ m_columns.m_url ] || url_item == path2url( path ) ){
+        if( url_item == ustr_url.raw() ){
+            Gtk::TreePath path = GET_PATH( row );
 
             // 最初に見つかったものにフォーカスする
             if( m_treeview.is_expand( path ) ){
@@ -2530,7 +2543,7 @@ void BBSListViewBase::replace_thread( const std::string& url, const std::string&
     const std::string urldat_new = DBTREE::url_dat( url_new );
     if( urldat_new.empty() ) return;
 
-    const std::string name_new = DBTREE::article_subject( urldat_new );
+    const std::string name_new = MISC::to_plain( DBTREE::article_modified_subject( urldat_new ) );
     if( name_new.empty() ) return;
 
     bool show_diag = CONFIG::show_diag_replace_favorite();
@@ -2538,8 +2551,7 @@ void BBSListViewBase::replace_thread( const std::string& url, const std::string&
     if( ! show_diag && mode == REPLACE_NEXT_NO ) return;
 
     const std::string urldat = DBTREE::url_dat( url );
-    const std::string urlcgi = DBTREE::url_readcgi( url, 0, 0 );
-    const std::string name_old = MISC::remove_space( DBTREE::article_subject( urldat ) );
+    const std::string name_old = MISC::to_plain( DBTREE::article_modified_subject( urldat ) );
 
     int type = TYPE_THREAD;
     const int status = DBTREE::article_status( urldat_new );

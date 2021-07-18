@@ -130,7 +130,7 @@ namespace BOARD
         void stop() override;
         void show_view() override;
         void redraw_scrollbar() override;
-        void relayout() override;
+        void relayout( const bool completely = false ) override;
         void focus_view() override;
         void focus_out() override;
         void close_view() override;
@@ -231,6 +231,7 @@ namespace BOARD
         // 列の幅の保存
         virtual void save_column_width();
 
+        void slot_cell_data_markup( Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& it );
         void slot_cell_data( Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& it );
 
         // 全ての行の表示内容更新

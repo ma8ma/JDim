@@ -34,14 +34,18 @@ namespace CONFIG
         CONF_LOADER_TIMEOUT_IMG = 30,  // 画像ローダのタイムアウト値
         CONF_LOADER_TIMEOUT_CHECKUPDATE = 10,  // 更新チェックのタイムアウト値
         CONF_USE_IPV6 = 1,          // ipv6使用
+        CONF_TLS_NONBLOCKING = 1,   // TLSでノンブロッキングI/Oを使用する
+        CONF_VERIFY_CERT = 1,       // TLSでサーバの証明書をチェックする
         CONF_CONNECTION_NUM = 2,    // 同一ホストに対する最大コネクション数( 1 または 2 )
         CONF_USE_COOKIE_HAP = 0,    // 2chのクッキーを保存する (互換性のため設定名は旧名称を使う)
+        CONF_USE_EXTERNAL_LOG = 0,  // 2chの過去ログを外部サイトから取得する
         CONF_REFPOPUP_BY_MO = 0,    // レス番号の上にマウスオーバーしたときに参照ポップアップ表示する
         CONF_NAMEPOPUP_BY_MO = 0,   // 名前の上にマウスオーバーしたときにポップアップ表示する
         CONF_IDPOPUP_BY_MO = 0,     // IDの上にマウスオーバーしたときにIDをポップアップ表示する
         CONF_USE_MESSAGE_GTKTHEME = 0, // 書き込みビューでGTKテーマの設定を使用するか (GTK3版のみ)
         CONF_USE_TREE_GTKRC = 0,    // ツリービューでgtkrcの設定を使用するか
         CONF_USE_SELECT_GTKRC = 0,  // スレビューの選択色でgtkrcの設定を使用するか
+        CONF_USE_COLOR_HTML = 1,  // スレビューでHTMLタグ指定の色を使用するか
         CONF_TREE_YPAD = 1,         // ツリービューの行間スペース
         CONF_TREE_SHOW_EXPANDERS = 1, // ツリービューにエクスパンダを表示
         CONF_TREE_LEVEL_INDENT = 0, // ツリービューのレベルインデント調整量(ピクセル)
@@ -99,6 +103,7 @@ namespace CONFIG
         CONF_NUM_ID_HIGH = 4,       // 発言数で色を変える回数 (高)
         CONF_NUM_ID_LOW = 2,        // 発言数で色を変える回数 (低)
         CONF_LOOSE_URL = 1,         // datのパース時にURL判定を甘くする(^なども含める)
+        CONF_PERCENT_DECODE = 0,    // URLのパーセントコードをデコードして表示する
         CONF_HIDE_USRCMD = 0, // ユーザーコマンドで選択できない項目を非表示にする
         CONF_RELOAD_ALLTHREAD = 0,  // スレビューで再読み込みボタンを押したときに全タブを更新する
         CONF_TAB_MIN_STR = 4, // タブに表示する文字列の最小値
@@ -134,7 +139,8 @@ namespace CONFIG
         CONF_USE_LINK_AS_BOARD = 0,     // bbsmenu.html内にあるリンクは全て板とみなす
         CONF_SHOW_MOVEDIAG = 1,    // 板移転時に確認ダイアログを表示する
         CONF_REMOVE_OLD_ABONE_THREAD = 0, // dat落ちしたスレをNGスレタイトルリストから取り除くか( 0: ダイアログ表示 1: 取り除く 2: 除かない )
-        CONF_ABONE_NUMBER_THREAD = 0, // スレあぼーん( レス数 )
+        CONF_ABONE_MIN_NUMBER_THREAD = 0, // スレあぼーん( レス数(最小) )
+        CONF_ABONE_MAX_NUMBER_THREAD = 0, // スレあぼーん( レス数(最大) )
         CONF_ABONE_HOUR_THREAD = 0,   // スレあぼーん( スレ立てからの経過時間 )
         CONF_ABONE_TRANSPARENT = 0, // デフォルトで透明あぼーんをする
         CONF_ABONE_CHAIN = 0,       // デフォルトで連鎖あぼーんをする
@@ -154,6 +160,7 @@ namespace CONFIG
         CONF_DISABLE_CLOSE = 0, // Ctrl+qでウィンドウを閉じない
         CONF_SHOW_HIDE_MENUBAR_DIAG = 1, // メニューバーを非表示にした時にダイアログを表示
         CONF_CHANGE_STASTATUS_COLOR = 1, // 状態変更時にメインステータスバーの色を変える
+        CONF_CHANGE_STATITLE_COLOR = 1, // 状態変更時にスレビュータイトルの色を変える
         CONF_USE_HEADER_BAR = 2, // Client-Side Decorationを使うか( 0: 使わない 1: 使う 2: デスクトップに合わせる )
         CONF_USE_MACHI_OFFLAW = 0, // まちBBSの取得に offlaw.cgi を使用する
         CONF_SHOW_DEL_WRITTEN_THREAD_DIAG = 1, // 書き込み履歴のあるスレを削除する時にダイアログを表示
@@ -161,6 +168,8 @@ namespace CONFIG
         CONF_MAX_RESNUMBER = 65536, //最大表示可能レス数
         CONF_SHOW_DIAG_FIFO_ERROR = 1, // FIFOの作成などにエラーがあったらダイアログを表示する
         CONF_SAVE_SESSION = 0, // 指定した分ごとにセッションを自動保存 (0: 保存しない)
+        CONF_BROKEN_SJIS_BE_UTF8 = 0, // 不正なMS932文字列をUTF-8と見なす
+        CONF_CORRECT_CHAR_REFERENCE = 0, // 不正な数値文字参照を無理矢理変換する
     };
 
 // browsers.cpp のデフォルトのラベル番号
@@ -201,7 +210,7 @@ namespace CONFIG
 #define CONF_LOGIN2CH "https://2chv.tora3.net/futen.cgi"
 
 // BEの認証サーバのアドレス
-#define CONF_LOGINBE "http://be.2ch.net/test/login.php"
+#define CONF_LOGINBE "http://be.5ch.net/test/login.php"
 
 // bbsmenu.htmlのURL
 #define CONF_URL_BBSMENU "https://menu.5ch.net/bbsmenu.html"
@@ -220,6 +229,9 @@ namespace CONFIG
 // 2chのクッキー (互換性のため設定名は旧名称を使う)
 #define CONF_COOKIE_HAP ""
 #define CONF_COOKIE_HAP_BBSPINK ""
+
+// 過去ログを取得する外部サイトのURL
+#define CONF_URL_EXTERNAL_LOG "http://mimizun.com/log/2ch/$BBSNAME/$DATNAME.dat"
 
 // 色
 #define CONF_COLOR_CHAR    "#000000000000"     // スレの文字
@@ -275,6 +287,13 @@ namespace CONFIG
 #define CONF_MIGEMO_PATH MIGEMODICT
 #else    
 #define CONF_MIGEMO_PATH "/usr/share/migemo/utf-8/migemo-dict"
+#endif
+
+// TLSのルート証明書
+#ifdef DEFAULT_CAFILE
+#define CONF_ROOT_CAFILE DEFAULT_CAFILE
+#else
+#define CONF_ROOT_CAFILE "/etc/ssl/certs/ca-certificates.crt"
 #endif
 
 }

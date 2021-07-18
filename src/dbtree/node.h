@@ -29,11 +29,9 @@ namespace DBTREE
         NODE_DIV,   // div
         NODE_IMG,   // img
 
-        // スペース(幅0)
-        NODE_ZWSP,
-
-        // 連続半角スペース
-        NODE_MULTISP,
+        NODE_SP,    // スペース
+        NODE_ZWSP,  // スペース(幅0)
+        NODE_MULTISP, // 連続半角スペース
 
         // 水平タブ(0x09)
         NODE_HTAB,
@@ -79,6 +77,7 @@ namespace DBTREE
         bool sage; // メール欄がsageか
 
         int num_id_name; // 同じIDのレスの個数( = 発言数 )
+        NODE* pre_id_name_header; // 同じIDを持つ一つ前のヘッダノードのアドレス
 
         NODE* block[ BLOCK_NUM ];
     };
@@ -117,6 +116,7 @@ namespace DBTREE
         
         char* text;
         unsigned char color_text; // 色
+        unsigned char color_back; // 背景色
         bool bold;
         char fontid; // fontid.h
         

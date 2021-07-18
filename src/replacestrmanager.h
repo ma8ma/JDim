@@ -20,8 +20,6 @@ namespace XML
 
 namespace CORE
 {
-    // NOTE: スレタイトル(subject)は未実装の項目(予約済)
-    constexpr int kReplStrTargetReserved_0 = 1;
     enum
     {
         REPLACETARGET_SUBJECT = 0,
@@ -44,8 +42,8 @@ namespace CORE
         unsigned char active : 1; // 0
         unsigned char icase  : 1; // 1
         unsigned char regex  : 1; // 2
-        unsigned char wchar  : 1; // 3 reserved
-        unsigned char norm   : 1; // 4 reserved
+        unsigned char wchar  : 1; // 3
+        unsigned char norm   : 1; // 4
 
         static ReplaceStrCondition from_ulong( unsigned long condition ) noexcept;
         unsigned long to_ulong() const;

@@ -6,13 +6,13 @@
 #include <iomanip>
 #endif
 
+#include "misccharcode.h"
 #include "misctrip.h"
 #include "miscutil.h"
 
 #include <sstream>
 #include <cstring>
 #include <ctype.h>
-#include <unistd.h> // crypt
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -26,8 +26,13 @@
 #include <gnutls/crypto.h>
 #endif
 
-#if __has_include(<crypt.h>)
-#include <crypt.h>
+// for crypt
+#if defined (USE_OPENSSL)
+#  include <openssl/des.h>
+#elif __has_include(<crypt.h>)
+#  include <crypt.h>
+#else
+#  include <unistd.h>
 #endif
 
 
@@ -147,12 +152,15 @@ std::string create_trip_newtype( const std::string& key )
                     salt.append( ".." );
 
                     // crypt (key は先頭8文字しか使われない)
-#ifdef HAVE_CRYPT_R
-                    struct crypt_data data;
-                    data.initialized = 0;
-                    const char* crypted = crypt_r( key_binary, salt.c_str(), &data );
+#ifdef USE_OPENSSL
+                    char ret[14];
+                    const char *crypted = DES_fcrypt( key_binary, salt.c_str(), ret );
+#elif defined(HAVE_CRYPT_R)
+                    struct crypt_data crydat;
+                    crydat.initialized = 0;
+                    const char *crypted = crypt_r( key_binary, salt.c_str(), &crydat );
 #else
-                    const char* crypted = crypt( key_binary, salt.c_str() );
+                    const char *crypted = crypt( key_binary, salt.c_str() );
 #endif
 
                     // 末尾から10文字(cryptの戻り値はnullptrでなければ必ず13文字)
@@ -227,12 +235,15 @@ std::string create_trip_conventional( const std::string& key )
     salt.append( "H." );
 
     // crypt (key は先頭8文字しか使われない)
-#ifdef HAVE_CRYPT_R
-    struct crypt_data data;
-    data.initialized = 0;
-    const char* crypted = crypt_r( key.c_str(), salt.c_str(), &data );
+#ifdef USE_OPENSSL
+    char ret[14];
+    const char *crypted = DES_fcrypt( key.c_str(), salt.c_str(), ret );
+#elif defined(HAVE_CRYPT_R)
+    struct crypt_data crydat;
+    crydat.initialized = 0;
+    const char *crypted = crypt_r( key.c_str(), salt.c_str(), &crydat );
 #else
-    const char* crypted = crypt( key.c_str(), salt.c_str() );
+    const char *crypted = crypt( key.c_str(), salt.c_str() );
 #endif
 
     std::string trip;
@@ -251,12 +262,12 @@ std::string create_trip_conventional( const std::string& key )
 // param2: 書き込む掲示板の文字コード
 // return: トリップ文字列
 /*--------------------------------------------------------------------*/
-std::string MISC::get_trip( const std::string& str, const std::string& charset )
+std::string MISC::get_trip( const std::string& str, const CharCode charcode )
 {
     if( str.empty() ) return std::string();
 
-    // str の文字コードを UTF-8 から charset に変更して key に代入する
-    std::string key = MISC::Iconv( str, charset, "UTF-8" );
+    // str の文字コードを UTF-8 から変更して key に代入する
+    std::string key = MISC::Iconv( str, charcode, CHARCODE_UTF8 );
 
     std::string trip;
 
@@ -276,4 +287,22 @@ std::string MISC::get_trip( const std::string& str, const std::string& charset )
 #endif
 
     return trip;
+}
+
+
+//
+// FNV Hash Algorithm
+//
+uint32_t MISC::fnv_hash( const char *key, size_t length )
+{
+    constexpr uint32_t OFFSET = 2166136261U;
+    constexpr uint32_t PRIME = 16777619U;
+
+    uint32_t hash = OFFSET;
+    uint8_t *bytes = (uint8_t*)key;
+    for(size_t i = 0 ; i < length ; ++i) {
+        hash = (PRIME * hash) ^ bytes[i];
+    }
+
+    return hash;
 }

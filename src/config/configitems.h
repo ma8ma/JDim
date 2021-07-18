@@ -90,6 +90,15 @@ namespace CONFIG
         // ipv6使用
         bool use_ipv6{};
 
+        // TLSでノンブロッキングI/Oを使用する
+        bool tls_nonblocking{};
+
+        // TLSでサーバの証明書をチェックする
+        bool verify_cert{};
+
+        // 信頼するルート証明書
+        std::string root_cafile;
+
         // 同一ホストに対する最大コネクション数( 1 または 2 )
         int connection_num{};
 
@@ -101,6 +110,10 @@ namespace CONFIG
         std::string cookie_hap_bbspink;
 
         enum { use_offlaw2_2ch }; // Removed in v0.3.0 (2020-04)
+
+        // 2chの過去ログを外部のサイトから取得する
+        bool use_external_log{};
+        std::string url_external_log;
 
         // リンクをクリックしたときに実行するコマンド
         std::string command_openurl;
@@ -222,6 +235,9 @@ namespace CONFIG
 
         // スレビューの選択色でgtkrcの設定を使用するか
         bool use_select_gtkrc{};
+
+        // スレビューでHTMLタグ指定の色を使用するか
+        bool use_color_html{};
 
         // ツリービューの行間スペース
         int tree_ypad{};
@@ -399,6 +415,9 @@ namespace CONFIG
         // datのパース時にURL判定を甘くする(^なども含める)
         bool loose_url{};
 
+        // URLのパーセントコードをデコードして表示する
+        bool percent_decode{};
+
         // ユーザーコマンドで選択できない項目を非表示にする
         bool hide_usrcmd{};
 
@@ -442,7 +461,8 @@ namespace CONFIG
         int remove_old_abone_thread{};
 
         // スレ あぼーん レス数
-        int abone_number_thread{};
+        int abone_min_number_thread{};
+        int abone_max_number_thread{};
 
         // スレ あぼーん スレ立てからの経過時間
         int abone_hour_thread{};
@@ -506,6 +526,9 @@ namespace CONFIG
         // 状態変更時にメインステータスバーの色を変える
         bool change_stastatus_color{};
 
+        // 状態変更時にスレビュータイトルの色を変える
+        bool change_statitle_color{};
+
         // Client-Side Decorationを使うか( 0: 使わない 1: 使う 2: デスクトップに合わせる )
         int use_header_bar{};
 
@@ -531,6 +554,12 @@ namespace CONFIG
         // migemo-dictの場所
         std::string migemodict_path;
 #endif
+
+        // 不正なMS932文字列をUTF-8と見なす
+        bool broken_sjis_be_utf8{};
+
+        // 不正な数値文字参照を無理矢理変換する
+        bool correct_character_reference{};
 
         /////////////////////////
 

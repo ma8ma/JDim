@@ -16,6 +16,7 @@
 #include "embeddedimage.h"
 
 #include "jdlib/jdregex.h"
+#include "jdlib/misccharcode.h"
 #include "jdlib/miscgtk.h"
 #include "jdlib/miscmsg.h"
 #include "jdlib/miscutil.h"
@@ -528,13 +529,15 @@ int DrawAreaBase::get_current_res_num() const
 
     // 先頭のヘッダブロックから順に調べる
     const LAYOUT* header = m_layout_tree->top_header();
-    while( header ){
+    const LAYOUT* next_header = header ? header->next_header : nullptr;
+    while( next_header ){
 
         // y が含まれているブロックを探す
-        if( header->rect->y >= y ) return header->res_number -1;
+        if( next_header->rect->y >= y ) return header->res_number;
 
         // 次のブロックへ
-        header = header->next_header;
+        header = next_header;
+        next_header = header->next_header;
     }
 
     return max_number();
@@ -1453,6 +1456,14 @@ void DrawAreaBase::layout_one_text_node( LAYOUT* layout, int& x, int& y, int& br
 
         pos_start = pos_to;
     }
+
+    // 次のノードが改行でなければ wrap するか確認する
+    if( layout->next_layout && layout->next_layout->type != DBTREE::NODE_BR
+            && is_wrapped( x, border, " " ) ){
+        x = div ? div->rect->x + div->css->padding_left : 0;
+        y += br_size;
+        br_size = m_font->br_size; // 次の行の改行位置をリセット
+    }
 }
 
 
@@ -1535,8 +1546,7 @@ bool DrawAreaBase::set_init_wide_mode( const char* str, const int pos_start, con
     int i = pos_start;
     while( i < pos_to ){
 
-        int byte_tmp;
-        MISC::utf8toucs2( str + i, byte_tmp );
+        const int byte_tmp = MISC::utf8bytes( str + i );
 
         // 文字列に全角が含まれていたら全角モードで開始
         if( byte_tmp != 1 ) break;
@@ -1570,8 +1580,22 @@ int DrawAreaBase::get_width_of_one_char( const char* utfstr, int& byte, char& pr
     int width = 0;
     int width_wide = 0;
 
+    const char32_t code = MISC::utf8tocp( utfstr, byte );
+
+    if( ! byte ){
+#ifdef _DEBUG
+        std::cout << "DrawAreaBase::get_width_of_one_char "
+                  << "invalid char " << (unsigned char)utfstr[ 0 ]
+                  << " " << (unsigned char)utfstr[ 1 ]
+                  << " " << (unsigned char)utfstr[ 2 ]
+                  << " " << (unsigned char)utfstr[ 3 ] << std::endl;
+#endif
+        byte = 1;
+        return 0;
+    }
+
     // キャッシュに無かったら幅を調べてキャッシュに登録
-    if( ! ARTICLE::get_width_of_char( utfstr, byte, pre_char, width, width_wide, mode ) ){
+    if( ! ARTICLE::get_width_of_char( code, pre_char, width, width_wide, mode ) ){
 
         const std::string tmpchar( utfstr, byte );
 
@@ -1633,26 +1657,26 @@ int DrawAreaBase::get_width_of_one_char( const char* utfstr, int& byte, char& pr
         // フォントが無い
         if( width_wide <= 0 ){
 
-            int byte_tmp;
-            const unsigned int code = MISC::utf8toucs2( tmpchar.c_str(), byte_tmp );
-
-            std::stringstream ss_err;
-            ss_err << "unknown font byte = " << byte_tmp << " ucs2 = " << code << " width = " << width;
-
 #ifdef _DEBUG
             std::cout << "DrawAreaBase::get_width_of_one_char "
                       << "byte = " << byte
-                      << " byte_tmp = " << byte_tmp
                       << " code = " << code
                       << " [" << tmpchar << "]\n";
 #endif
 
-            MISC::ERRMSG( ss_err.str() );
+            if( ( code < 0xE000 || code > 0xF8FF ) // 基本面私用領域ではない
+                && ( code < 0xF0000 || code > 0x10FFFF ) // 私用面ではない
+              ){
+                std::stringstream ss_err;
+                ss_err << "unknown font byte = " << byte << " ucs = " << code << " width = " << width;
 
-            ARTICLE::set_width_of_char( utfstr, byte, pre_char, -1, -1, mode );
+                MISC::ERRMSG( ss_err.str() );
+            }
+
+            ARTICLE::set_width_of_char( code, pre_char, -1, -1, mode );
             width = width_wide = 0;
         }
-        else ARTICLE::set_width_of_char( utfstr, byte, pre_char, width, width_wide, mode );
+        else ARTICLE::set_width_of_char( code, pre_char, width, width_wide, mode );
     }
 
     int ret = 0;
@@ -2125,8 +2149,9 @@ bool DrawAreaBase::draw_one_node( LAYOUT* layout, const CLIPINFO& ci )
             if( layout->rect ){
                 const int x = layout->rect->x;
                 const int y = layout->rect->y - ci.pos_y;
-                const int color_text = get_colorid_text();
-
+                int color_text = get_colorid_text();
+                if( color_text == COLOR_CHAR && layout->div && layout->div->css->color >= 0 )
+                    color_text = layout->div->css->color;
                 cairo_t* const cr = cairo_create( m_backscreen.get() );
                 gdk_cairo_set_source_rgba( cr, m_color[ color_text ].gobj() );
                 cairo_set_line_width( cr, 1.0 );
@@ -2500,7 +2525,8 @@ void DrawAreaBase::draw_one_text_node( LAYOUT* layout, const CLIPINFO& ci )
     if( color_text == COLOR_CHAR && layout->div && layout->div->css->color >= 0 ) color_text = layout->div->css->color;
 
     int color_back = get_colorid_back();
-    if( layout->div && layout->div->css->bg_color >= 0 ) color_back = layout->div->css->bg_color;
+    if( layout->node && layout->node->color_back != COLOR_NONE ) color_back = layout->node->color_back;
+    else if( layout->div && layout->div->css->bg_color >= 0 ) color_back = layout->div->css->bg_color;
     else if( layout->header && layout->header->css->bg_color >= 0 ) color_back = layout->header->css->bg_color;
 
     // 通常描画
@@ -2749,6 +2775,8 @@ void DrawAreaBase::draw_string( LAYOUT* node, const CLIPINFO& ci,
                 width_line = PANGO_PIXELS( width_line );
             }
         }
+
+        if( color >= int( m_color.size() ) || color_back >= int( m_color.size() ) ) init_color();
 
         if( width_line ){
 
@@ -3475,9 +3503,10 @@ int DrawAreaBase::search( const std::list< std::string >& list_query, const bool
         constexpr bool icase = true; // 大文字小文字区別しない
         constexpr bool newline = true; // . に改行をマッチさせない
         constexpr bool usemigemo = true; // migemo使用
-        constexpr bool wchar = true;  // 全角半角の区別をしない
+        constexpr bool wchar = false; // 全角半角の区別をしない
+        constexpr bool norm = true; // Unicodeの互換文字を区別しない
 
-        return JDLIB::RegexPattern( query, icase, newline, usemigemo, wchar );
+        return JDLIB::RegexPattern( query, icase, newline, usemigemo, wchar, norm );
     };
 
 #ifdef _DEBUG
@@ -4117,15 +4146,15 @@ bool DrawAreaBase::set_carets_dclick( CARET_POSITION& caret_left, CARET_POSITION
                 }
 
                 int byte_char_pointer;
-                const int ucs2_pointer = MISC::utf8toucs2( layout->text + pos, byte_char_pointer );
-                const int ucs2mode_pointer = MISC::get_ucs2mode( ucs2_pointer );
+                const char32_t ucs_pointer = MISC::utf8tocp( layout->text + pos, byte_char_pointer );
+                const MISC::UcsType ucstype_pointer = MISC::get_ucstype( ucs_pointer );
 #ifdef _DEBUG
-                std::cout << "ucs2 = " << std::hex << ucs2_pointer << std::dec
-                          << " mode = " << ucs2mode_pointer << " pos = " << pos << std::endl;
+                std::cout << "ucs = " << std::hex << ucs_pointer << std::dec
+                          << " type = " << static_cast< int >( ucstype_pointer ) << " pos = " << pos << std::endl;
 #endif
 
                 // 区切り文字をダブルクリックした
-                if( is_separate_char( ucs2_pointer ) ){
+                if( is_separate_char( ucs_pointer ) ){
                     caret_left.set( layout, pos );
                     caret_right.set( layout, pos + byte_char_pointer );
                     return true;
@@ -4137,20 +4166,17 @@ bool DrawAreaBase::set_carets_dclick( CARET_POSITION& caret_left, CARET_POSITION
                 while( pos_tmp < pos ){
 
                     int byte_char;
-                    const int ucs2 = MISC::utf8toucs2( layout->text + pos_tmp, byte_char );
-                    const int ucs2mode = MISC::get_ucs2mode( ucs2 );
+                    const char32_t ucs = MISC::utf8tocp( layout->text + pos_tmp, byte_char );
+                    const MISC::UcsType ucstype = MISC::get_ucstype( ucs );
 
                     int byte_char_next;
-                    const int ucs2_next = MISC::utf8toucs2( layout->text + pos_tmp + byte_char, byte_char_next );
-                    const int ucs2mode_next = MISC::get_ucs2mode( ucs2_next );
+                    const char32_t ucs_next = MISC::utf8tocp( layout->text + pos_tmp + byte_char, byte_char_next );
+                    const MISC::UcsType ucstype_next = MISC::get_ucstype( ucs_next );
 
                     // 区切り文字が来たら左位置を移動する
-                    if( ucs2_next == '\0'
-
-                        || is_separate_char( ucs2 )
-
+                    if( ucs_next == '\0' || is_separate_char( ucs )
                         // 文字種が変わった
-                        || ( ucs2mode != ucs2mode_pointer && ucs2mode_next == ucs2mode_pointer )
+                        || ( ucstype != ucstype_pointer && ucstype_next == ucstype_pointer )
 
                         ) pos_left = pos_tmp + byte_char;
 
@@ -4162,21 +4188,21 @@ bool DrawAreaBase::set_carets_dclick( CARET_POSITION& caret_left, CARET_POSITION
                 while( pos_right < layout->lng_text ){
 
                     int byte_char;
-                    const int ucs2 = MISC::utf8toucs2( layout->text + pos_right, byte_char );
-                    const int ucs2mode = MISC::get_ucs2mode( ucs2 );
+                    const char32_t ucs = MISC::utf8tocp( layout->text + pos_right, byte_char );
+                    const MISC::UcsType ucstype = MISC::get_ucstype( ucs );
 
                     int byte_char_next;
-                    const int ucs2_next = MISC::utf8toucs2( layout->text + pos_right + byte_char, byte_char_next );
-                    const int ucs2mode_next = MISC::get_ucs2mode( ucs2_next );
+                    const char32_t ucs_next = MISC::utf8tocp( layout->text + pos_right + byte_char, byte_char_next );
+                    const MISC::UcsType ucstype_next = MISC::get_ucstype( ucs_next );
 
                     // 区切り文字が来たらbreak
-                    if( is_separate_char( ucs2 ) ) break;
+                    if( is_separate_char( ucs ) ) break;
 
                     pos_right += ( byte_char ? byte_char : 1 );
 
                     // 文字種が変わった
-                    if( ucs2_next == '\0'
-                        || ( ucs2mode == ucs2mode_pointer && ucs2mode_next != ucs2mode_pointer )
+                    if( ucs_next == '\0'
+                        || ( ucstype == ucstype_pointer && ucstype_next != ucstype_pointer )
                         ) break;
                 }
 

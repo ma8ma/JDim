@@ -28,6 +28,8 @@ ReplaceStrDiag::ReplaceStrDiag( Gtk::Window* parent, ReplaceStrCondition conditi
     , m_check_active( "有効(_E)", true )
     , m_check_icase( "大文字小文字(_I)", true )
     , m_check_regex( "正規表現(_R)", true )
+    , m_check_wchar( "全角半角(_W)", true )
+    , m_check_norm( "互換文字(_N)", true )
     , m_label_pattern( "置換パターン(_P)：", true )
     , m_label_replace( "置換文字列(_S)：", true )
 {
@@ -35,18 +37,27 @@ ReplaceStrDiag::ReplaceStrDiag( Gtk::Window* parent, ReplaceStrCondition conditi
 
     m_button_copy.signal_clicked().connect( [this] { slot_copy(); } );
     m_check_regex.signal_clicked().connect( [this] { slot_sens(); } );
+    m_check_wchar.signal_clicked().connect( [this] { slot_sens(); } );
+    m_check_norm.signal_clicked().connect( [this] { slot_sens(); } );
 
     m_check_active.set_active( condition.active );
     m_check_icase.set_active( condition.icase );
-    m_check_icase.set_sensitive( condition.regex );
     m_check_regex.set_active( condition.regex );
+    m_check_wchar.set_active( condition.wchar );
+    m_check_wchar.set_sensitive( condition.regex && ! condition.norm );
+    m_check_norm.set_active( condition.norm );
+    m_check_norm.set_sensitive( condition.regex && condition.wchar );
 
     m_check_active.set_tooltip_text( "この条件の置換を有効にする" );
     m_check_icase.set_tooltip_text( "大文字小文字を区別しない" );
     m_check_regex.set_tooltip_text( "正規表現を使用する" );
+    m_check_wchar.set_tooltip_text( "英数字とカナの種類(俗にいう全角半角)を区別しない" );
+    m_check_norm.set_tooltip_text( "Unicodeの互換文字を区別しない" );
 
     m_hbox_regex.pack_start( m_check_regex, Gtk::PACK_SHRINK );
     m_hbox_regex.pack_start( m_check_icase, Gtk::PACK_SHRINK );
+    m_hbox_regex.pack_start( m_check_wchar, Gtk::PACK_SHRINK );
+    m_hbox_regex.pack_start( m_check_norm, Gtk::PACK_SHRINK );
 
     m_entry_pattern.set_text( pattern );
     m_entry_replace.set_text( replace );
@@ -85,6 +96,8 @@ ReplaceStrCondition ReplaceStrDiag::get_condition() const
     condition.active = get_active();
     condition.icase = get_icase();
     condition.regex = get_regex();
+    condition.wchar = get_wchar();
+    condition.norm = get_norm();
 
     return condition;
 }
@@ -107,7 +120,8 @@ void ReplaceStrDiag::slot_copy()
 //
 void ReplaceStrDiag::slot_sens()
 {
-    m_check_icase.set_sensitive( get_regex() );
+    m_check_wchar.set_sensitive( get_regex() && ! get_norm() );
+    m_check_norm.set_sensitive( get_regex() && get_wchar() );
 }
 
 
@@ -162,10 +176,16 @@ ReplaceStrPref::ReplaceStrPref( Gtk::Window* parent, const std::string& url )
     columns[2] = Gtk::manage( new Gtk::TreeViewColumn( "大小", m_columns.m_col_icase ) );
     columns[2]->set_fixed_width( 35 );
     columns[2]->set_alignment( Gtk::ALIGN_CENTER );
-    columns[3] = Gtk::manage( new Gtk::TreeViewColumn( "置換パターン", m_columns.m_col_pattern ) );
-    columns[3]->set_fixed_width( 220 );
-    columns[4] = Gtk::manage( new Gtk::TreeViewColumn( "置換文字列", m_columns.m_col_replace ) );
-    columns[4]->set_fixed_width( 200 );
+    columns[3] = Gtk::manage( new Gtk::TreeViewColumn( "全角", m_columns.m_col_wchar ) );
+    columns[3]->set_fixed_width( 35 );
+    columns[3]->set_alignment( Gtk::ALIGN_CENTER );
+    columns[4] = Gtk::manage( new Gtk::TreeViewColumn( "互換", m_columns.m_col_norm ) );
+    columns[4]->set_fixed_width( 35 );
+    columns[4]->set_alignment( Gtk::ALIGN_CENTER );
+    columns[5] = Gtk::manage( new Gtk::TreeViewColumn( "置換パターン", m_columns.m_col_pattern ) );
+    columns[5]->set_fixed_width( 220 );
+    columns[6] = Gtk::manage( new Gtk::TreeViewColumn( "置換文字列", m_columns.m_col_replace ) );
+    columns[6]->set_fixed_width( 200 );
 
     for( Gtk::TreeViewColumn* col : columns ) {
         col->set_sizing( Gtk::TREE_VIEW_COLUMN_FIXED );
@@ -188,9 +208,9 @@ ReplaceStrPref::ReplaceStrPref( Gtk::Window* parent, const std::string& url )
     m_hbox.pack_start( m_scrollwin, Gtk::PACK_EXPAND_WIDGET );
     m_hbox.pack_start( m_vbuttonbox, Gtk::PACK_SHRINK );
 
-    // スレタイトルは未実装のため省略する
-    std::for_each( kReplStrTargetLabels.begin() + kReplStrTargetReserved_0, kReplStrTargetLabels.end(),
-                   [this]( const char* target ) { m_menu_target.append( target ); } );
+    for( const char* target : kReplStrTargetLabels ) {
+        m_menu_target.append( target );
+    }
     m_menu_target.signal_changed().connect( [this] { slot_target_changed(); } );
     m_menu_target.set_active_text( kReplStrTargetLabels.back() );
     m_label_target.set_mnemonic_widget( m_menu_target );
@@ -233,8 +253,7 @@ void ReplaceStrPref::append_rows()
         }
     }
 
-    // 省略したスレタイトルの分インデックスをずらしてデリファレンスする
-    const int id = m_menu_target.get_active_row_number() + kReplStrTargetReserved_0;
+    const int id = m_menu_target.get_active_row_number();
     m_check_chref.set_active( m_chref[id] );
     select_row( get_top_row() );
 }
@@ -250,6 +269,8 @@ void ReplaceStrPref::append_row( const Glib::RefPtr<Gtk::ListStore>& store, Repl
         row[ m_columns.m_col_active ] = condition.active;
         row[ m_columns.m_col_icase ] = condition.icase;
         row[ m_columns.m_col_regex ] = condition.regex;
+        row[ m_columns.m_col_wchar ] = condition.wchar;
+        row[ m_columns.m_col_norm ] = condition.norm;
         row[ m_columns.m_col_pattern ] = pattern;
         row[ m_columns.m_col_replace ] = replace;
 
@@ -314,9 +335,10 @@ void ReplaceStrPref::slot_ok_clicked()
             const bool active = row[ m_columns.m_col_active ];
             const bool icase = row[ m_columns.m_col_icase ];
             const bool regex = row[ m_columns.m_col_regex ];
-            constexpr bool reserved = false; // wchar, norm
+            const bool wchar = row[ m_columns.m_col_wchar ];
+            const bool norm = row[ m_columns.m_col_norm ];
 
-            const ReplaceStrCondition condition{ active, icase, regex, reserved, reserved };
+            const ReplaceStrCondition condition{ active, icase, regex, wchar, norm };
             const Glib::ustring& pattern = row[ m_columns.m_col_pattern ];
             const Glib::ustring& replace = row[ m_columns.m_col_replace ];
 
@@ -328,7 +350,7 @@ void ReplaceStrPref::slot_ok_clicked()
 
     //DBTREE::update_abone_thread();
     CORE::core_set_command( "relayout_all_board" );
-    CORE::core_set_command( "relayout_all_article" );
+    CORE::core_set_command( "relayout_all_article", "", "completely" );
 }
 
 
@@ -344,14 +366,17 @@ void ReplaceStrPref::slot_row_activated( const Gtk::TreeModel::Path& path, Gtk::
     const bool active = row[ m_columns.m_col_active ];
     const bool icase = row[ m_columns.m_col_icase ];
     const bool regex = row[ m_columns.m_col_regex ];
-    constexpr bool reserved = false; // wchar, norm
-    const ReplaceStrCondition condition{ active, icase, regex, reserved, reserved };
+    const bool wchar = row[ m_columns.m_col_wchar ];
+    const bool norm = row[ m_columns.m_col_norm ];
+    const ReplaceStrCondition condition{ active, icase, regex, wchar, norm };
 
     ReplaceStrDiag dlg( this, condition, row[ m_columns.m_col_pattern ], row[ m_columns.m_col_replace ] );
     if( dlg.run() == Gtk::RESPONSE_OK ) {
         row[ m_columns.m_col_active ] = dlg.get_active();
         row[ m_columns.m_col_icase ] = dlg.get_icase();
         row[ m_columns.m_col_regex ] = dlg.get_regex();
+        row[ m_columns.m_col_wchar ] = dlg.get_wchar();
+        row[ m_columns.m_col_norm ] = dlg.get_norm();
         row[ m_columns.m_col_pattern ] = dlg.get_pattern();
         row[ m_columns.m_col_replace ] = dlg.get_replace();
 
@@ -360,7 +385,7 @@ void ReplaceStrPref::slot_row_activated( const Gtk::TreeModel::Path& path, Gtk::
             constexpr bool newline = true;
             constexpr bool migemo = false;
 
-            if( ! ptn.set( dlg.get_pattern(), dlg.get_icase(), newline, migemo ) ) {
+            if( ! ptn.set( dlg.get_pattern(), dlg.get_icase(), newline, migemo, dlg.get_wchar(), dlg.get_norm() ) ) {
                 const std::string msg = ptn.errstr() + "\n\n" + dlg.get_pattern();
 
                 SKELETON::MsgDiag mdlg( *this, msg, false, Gtk::MESSAGE_WARNING, Gtk::BUTTONS_OK );
@@ -516,8 +541,7 @@ void ReplaceStrPref::slot_add()
 //
 void ReplaceStrPref::slot_target_changed()
 {
-    // 省略したスレタイトルの分インデックスをずらしてデリファレンスする
-    const int id = m_menu_target.get_active_row_number() + kReplStrTargetReserved_0;
+    const int id = m_menu_target.get_active_row_number();
 #ifdef _DEBUG
     std::cout << "ReplaceStrPref::slot_target_changed target=" << id << std::endl;
 #endif

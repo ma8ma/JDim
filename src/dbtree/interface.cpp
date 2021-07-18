@@ -231,13 +231,13 @@ time_t DBTREE::get_time_modified()
 }
 
 
-std::string DBTREE::board_path( const std::string& url )
+const std::string& DBTREE::board_path( const std::string& url )
 {
     return DBTREE::get_board( url )->get_path_board();
 }
 
 
-std::string DBTREE::board_id( const std::string& url )
+const std::string& DBTREE::board_id( const std::string& url )
 {
     return DBTREE::get_board( url )->get_id();
 }
@@ -249,7 +249,7 @@ time_t DBTREE::board_time_modified( const std::string& url )
 }
 
 // 板の更新時間( 文字列 )
-std::string DBTREE::board_date_modified( const std::string& url )
+const std::string& DBTREE::board_date_modified( const std::string& url )
 {
     return DBTREE::get_board( url )->get_date_modified();
 }
@@ -281,21 +281,27 @@ void DBTREE::board_set_modified_setting( const std::string& url, const std::stri
 }
 
 
-std::string DBTREE::board_name( const std::string& url )
+const std::string& DBTREE::board_name( const std::string& url )
 {
     return DBTREE::get_board( url )->get_name();
 }
 
 
-std::string DBTREE::board_subjecttxt( const std::string& url )
+const std::string& DBTREE::board_subjecttxt( const std::string& url )
 {
     return DBTREE::get_board( url )->get_subjecttxt();
 }
 
 
-std::string DBTREE::board_charset( const std::string& url )
+CharCode DBTREE::board_charcode( const std::string& url )
 {
-    return DBTREE::get_board( url )->get_charset();
+    return DBTREE::get_board( url )->get_charcode();
+}
+
+
+void DBTREE::board_set_charcode( const std::string& url, const CharCode charcode )
+{
+    return DBTREE::get_board( url )->set_charcode( charcode );
 }
 
 
@@ -327,7 +333,7 @@ void DBTREE::board_delete_cookies( const std::string& url )
     DBTREE::get_board( url )->delete_cookies();
 }
 
-std::string DBTREE::board_keyword_for_write( const std::string& url )
+const std::string& DBTREE::board_keyword_for_write( const std::string& url )
 {
     return DBTREE::get_board( url )->get_keyword_for_write();
 }
@@ -369,13 +375,13 @@ std::string DBTREE::board_parse_form_data( const std::string& url, const std::st
 }
 
 
-std::string DBTREE::board_basicauth( const std::string& url )
+const std::string& DBTREE::board_basicauth( const std::string& url )
 {
     return DBTREE::get_board( url )->get_basicauth();
 }
 
 
-std::string DBTREE::board_ext( const std::string& url )
+const std::string& DBTREE::board_ext( const std::string& url )
 {
     return DBTREE::get_board( url )->get_ext();
 }
@@ -393,7 +399,7 @@ int DBTREE::board_code( const std::string& url )
 }
 
 
-std::string DBTREE::board_str_code( const std::string& url )
+const std::string& DBTREE::board_str_code( const std::string& url )
 {
     return DBTREE::get_board( url )->get_str_code();
 }
@@ -778,9 +784,14 @@ const std::list< std::string >& DBTREE::get_abone_list_regex_thread( const std::
     return DBTREE::get_board( url )->get_abone_list_regex_thread();
 }
 
-int DBTREE::get_abone_number_thread( const std::string& url )
+int DBTREE::get_abone_min_number_thread( const std::string& url )
 {
-    return DBTREE::get_board( url )->get_abone_number_thread();
+    return DBTREE::get_board( url )->get_abone_min_number_thread();
+}
+
+int DBTREE::get_abone_max_number_thread( const std::string& url )
+{
+    return DBTREE::get_board( url )->get_abone_max_number_thread();
 }
 
 int DBTREE::get_abone_hour_thread( const std::string& url )
@@ -803,12 +814,13 @@ void DBTREE::reset_abone_thread( const std::string& url,
                                  const std::list< std::string >& threads,
                                  const std::list< std::string >& words,
                                  const std::list< std::string >& regexs,
-                                 const int number,
+                                 const int min_number,
+                                 const int max_number,
                                  const int hour,
                                  const bool redraw
     )
 {
-    DBTREE::get_board( url )->reset_abone_thread( threads, words, regexs, number, hour, redraw );
+    DBTREE::get_board( url )->reset_abone_thread( threads, words, regexs, min_number, max_number, hour, redraw );
 }
 
 /////////////////////////////////////////////////
@@ -872,7 +884,19 @@ void DBTREE::article_set_date_modified( const std::string& url, const std::strin
     DBTREE::get_article( url )->set_date_modified( date );
 }
 
-int  DBTREE::article_hour( const std::string& url )
+// スレの文字コード
+CharCode DBTREE::article_charcode( const std::string& url )
+{
+    return DBTREE::get_article( url )->get_charcode();
+}
+
+// スレの文字コードをセット
+void DBTREE::article_set_charcode( const std::string& url, const CharCode charcode )
+{
+    DBTREE::get_article( url )->set_charcode( charcode );
+}
+
+int DBTREE::article_hour( const std::string& url )
 {
     return DBTREE::get_article( url )->get_hour();
 }
@@ -912,11 +936,15 @@ std::string DBTREE::article_ext_err( const std::string& url )
     return DBTREE::get_article( url )->get_ext_err();
 }
 
-std::string DBTREE::article_subject( const std::string& url )
+const std::string& DBTREE::article_subject( const std::string& url )
 {
     return DBTREE::get_article( url )->get_subject();
 }
 
+const std::string& DBTREE::article_modified_subject( const std::string& url, const bool renew )
+{
+    return DBTREE::get_article( url )->get_modified_subject( renew );
+}
 
 int DBTREE::article_number( const std::string& url )
 {
@@ -941,6 +969,16 @@ void DBTREE::article_set_number_seen( const std::string& url, int seen )
 int DBTREE::article_number_new( const std::string& url )
 {
     return DBTREE::get_article( url )->get_number_new();
+}
+
+int DBTREE::article_number_max( const std::string& url )
+{
+    return DBTREE::get_article( url )->get_number_max();
+}
+
+void DBTREE::article_set_number_max( const std::string& url, int max )
+{
+    DBTREE::get_article( url )->set_number_max( max );
 }
 
 bool DBTREE::article_is_loading( const std::string& url )
@@ -984,6 +1022,13 @@ int DBTREE::article_get_speed( const std::string& url )
 void DBTREE::article_clear_post_history( const std::string& url )
 {
     DBTREE::get_article( url )->clear_post_history();
+}
+
+
+// NodeTree削除
+void DBTREE::article_clear_nodetree( const std::string& url )
+{
+    DBTREE::get_article( url )->unlock_impl();
 }
 
 
@@ -1225,10 +1270,11 @@ void DBTREE::reset_abone( const std::string& url,
                           const std::list< std::string >& regexs,
                           const std::vector< char >& vec_abone_res,
                           const bool transparent, const bool chain, const bool age,
+                          const bool default_name, const bool noid,
                           const bool board, const bool global
     )
 {
-    DBTREE::get_article( url )->reset_abone( ids, names, words, regexs, vec_abone_res, transparent, chain, age, board, global );
+    DBTREE::get_article( url )->reset_abone( ids, names, words, regexs, vec_abone_res, transparent, chain, age, default_name, noid, board, global );
 }
 
 
@@ -1291,6 +1337,32 @@ bool DBTREE::get_abone_age( const std::string& url )
 void DBTREE::set_abone_age( const std::string& url, const bool set )
 {
     DBTREE::get_article( url )->set_abone_age( set );
+}
+
+
+// デフォルト名無しあぼーん
+bool DBTREE::get_abone_default_name( const std::string& url )
+{
+    return DBTREE::get_article( url )->get_abone_default_name();
+}
+
+
+void DBTREE::set_abone_default_name( const std::string& url, const bool set )
+{
+    DBTREE::get_article( url )->set_abone_default_name( set );
+}
+
+
+// ID無しあぼーん
+bool DBTREE::get_abone_noid( const std::string& url )
+{
+    return DBTREE::get_article( url )->get_abone_noid();
+}
+
+
+void DBTREE::set_abone_noid( const std::string& url, const bool set )
+{
+    DBTREE::get_article( url )->set_abone_noid( set );
 }
 
 

@@ -9,6 +9,7 @@
 
 #include "configitems.h"
 #include "defaultconf.h"
+#include "globalconf.h"
 
 #include "jdlib/confloader.h"
 #include "jdlib/miscutil.h"
@@ -148,6 +149,15 @@ bool ConfigItems::load( const bool restore )
     // ipv6使用
     use_ipv6 = cf.get_option_bool( "use_ipv6", CONF_USE_IPV6 );
 
+    // TLSでノンブロッキングI/Oを使用する
+    tls_nonblocking = cf.get_option_bool( "tls_nonblocking", CONF_TLS_NONBLOCKING );
+
+    // TLSでサーバの証明書をチェックする
+    verify_cert = cf.get_option_bool( "verify_cert", CONF_VERIFY_CERT );
+
+    // 信頼するルート証明書
+    root_cafile = cf.get_option_str( "root_cafile", CONF_ROOT_CAFILE );
+
     // 同一ホストに対する最大コネクション数( 1 または 2 )
     connection_num = cf.get_option_int( "connection_num", CONF_CONNECTION_NUM, 1, 2 );
 
@@ -157,6 +167,10 @@ bool ConfigItems::load( const bool restore )
     // 2chのクッキー (互換性のため設定名は旧名称を使う)
     cookie_hap = cf.get_option_str( "cookie_hap", CONF_COOKIE_HAP );
     cookie_hap_bbspink = cf.get_option_str( "cookie_hap_bbspink", CONF_COOKIE_HAP_BBSPINK );
+
+    // 2chの過去ログを外部のサイトから取得する
+    use_external_log = cf.get_option_bool( "use_external_log", CONF_USE_EXTERNAL_LOG );
+    url_external_log = cf.get_option_str( "url_external_log", CONF_URL_EXTERNAL_LOG );
 
     // ブラウザ設定ダイアログのコンボボックスの番号
     browsercombo_id = cf.get_option_int( "browsercombo_id", CONF_BROWSER_NO, 0, CORE::get_browser_number() -1 );
@@ -268,6 +282,9 @@ bool ConfigItems::load( const bool restore )
 
     // スレビューの選択色でgtkrcの設定を使用するか
     use_select_gtkrc = cf.get_option_bool( "use_select_gtkrc", CONF_USE_SELECT_GTKRC );
+
+    // スレビューでHTMLタグ指定の色を使用するか
+    use_color_html = cf.get_option_bool( "use_color_html", CONF_USE_COLOR_HTML );
 
     // ツリービューの行間スペース
     tree_ypad = cf.get_option_int( "tree_ypad", CONF_TREE_YPAD, 0, 64 );
@@ -445,6 +462,9 @@ bool ConfigItems::load( const bool restore )
     // datのパース時にURL判定を甘くする(^なども含める)
     loose_url = cf.get_option_bool( "loose_url", CONF_LOOSE_URL );
 
+    // URLのパーセントコードをデコードして表示する
+    percent_decode = cf.get_option_bool( "percent_decode", CONF_PERCENT_DECODE );
+
     // ユーザーコマンドで選択できない項目を非表示にする
     hide_usrcmd = cf.get_option_bool( "hide_usrcmd", CONF_HIDE_USRCMD );
 
@@ -490,7 +510,8 @@ bool ConfigItems::load( const bool restore )
     remove_old_abone_thread = cf.get_option_int( "remove_old_abone_thread", CONF_REMOVE_OLD_ABONE_THREAD, 0, 2 );
 
     // スレ あぼーん( レス数 )
-    abone_number_thread = cf.get_option_int( "abone_number_thread", CONF_ABONE_NUMBER_THREAD, 0, 9999 );
+    abone_min_number_thread = cf.get_option_int( "abone_min_number_thread", CONF_ABONE_MIN_NUMBER_THREAD, 0, CONFIG::get_max_resnumber() );
+    abone_max_number_thread = cf.get_option_int( "abone_number_thread", CONF_ABONE_MAX_NUMBER_THREAD, 0, CONFIG::get_max_resnumber() );
 
     // スレ あぼーん( スレ立てからの経過時間 )
     abone_hour_thread = cf.get_option_int( "abone_hour_thread", CONF_ABONE_HOUR_THREAD, 0, 9999 );
@@ -557,6 +578,9 @@ bool ConfigItems::load( const bool restore )
     // 状態変更時にメインステータスバーの色を変える
     change_stastatus_color = cf.get_option_bool( "change_stastatus_color", CONF_CHANGE_STASTATUS_COLOR );
 
+    // 状態変更時にスレビュータイトルの色を変える
+    change_statitle_color = cf.get_option_bool( "change_statitle_color", CONF_CHANGE_STATITLE_COLOR );
+
     // Client-Side Decorationを使うか( 0: 使わない 1: 使う 2: デスクトップに合わせる )
     use_header_bar = cf.get_option_int( "use_header_bar", CONF_USE_HEADER_BAR, 0, 2 );
 
@@ -582,6 +606,12 @@ bool ConfigItems::load( const bool restore )
     // migemo-dictの場所
     migemodict_path = cf.get_option_str( "migemodict_path", CONF_MIGEMO_PATH );
 #endif
+
+    // 不正なMS932文字列をUTF-8と見なす
+    broken_sjis_be_utf8 = cf.get_option_bool( "broken_sjis_be_utf8", CONF_BROKEN_SJIS_BE_UTF8 );
+
+    // 不正な数値文字参照を無理矢理変換する
+    correct_character_reference = cf.get_option_bool( "correct_character_reference", CONF_CORRECT_CHAR_REFERENCE );
 
     m_loaded = true;
 
@@ -699,11 +729,17 @@ void ConfigItems::save_impl( const std::string& path )
     cf.update( "loader_timeout_checkupdate", loader_timeout_checkupdate );
 
     cf.update( "use_ipv6", use_ipv6 );
+    cf.update( "tls_nonblocking", tls_nonblocking );
+    cf.update( "verify_cert", verify_cert );
+    cf.update( "root_cafile", root_cafile );
     cf.update( "connection_num", connection_num );
 
     cf.update( "use_cookie_hap", use_cookie_hap );
     cf.update( "cookie_hap", cookie_hap );
     cf.update( "cookie_hap_bbspink", cookie_hap_bbspink );
+
+    cf.update( "use_external_log", use_external_log );
+    cf.update( "url_external_log", url_external_log );
 
     cf.update( "command_openurl", command_openurl );
     cf.update( "browsercombo_id", browsercombo_id );
@@ -774,6 +810,7 @@ void ConfigItems::save_impl( const std::string& path )
     cf.update( "use_message_gtktheme", use_message_gtktheme );
     cf.update( "use_tree_gtkrc", use_tree_gtkrc );
     cf.update( "use_select_gtkrc", use_select_gtkrc );
+    cf.update( "use_color_html", use_color_html );
 
     cf.update( "tree_ypad", tree_ypad );
     cf.update( "tree_show_expanders", tree_show_expanders );
@@ -848,6 +885,8 @@ void ConfigItems::save_impl( const std::string& path )
 
     cf.update( "loose_url", loose_url );
 
+    cf.update( "percent_decode", percent_decode );
+
     cf.update( "hide_usrcmd", hide_usrcmd );
     cf.update( "reload_allthreads", reload_allthreads );
 
@@ -877,7 +916,8 @@ void ConfigItems::save_impl( const std::string& path )
 
     cf.update( "remove_old_abone_thread", remove_old_abone_thread );
 
-    cf.update( "abone_number_thread", abone_number_thread );
+    cf.update( "abone_min_number_thread", abone_min_number_thread );
+    cf.update( "abone_number_thread", abone_max_number_thread );
     cf.update( "abone_hour_thread", abone_hour_thread );
 
     // あぼーん情報
@@ -911,6 +951,7 @@ void ConfigItems::save_impl( const std::string& path )
     cf.update( "disable_close", disable_close );
     cf.update( "show_hide_menubar_diag", show_hide_menubar_diag );
     cf.update( "change_stastatus_color", change_stastatus_color );
+    cf.update( "change_statitle_color", change_statitle_color );
     cf.update( "use_header_bar", use_header_bar );
     cf.update( "use_machi_offlaw", use_machi_offlaw );
     cf.update( "show_del_written_thread_diag", show_del_written_thread_diag );
@@ -922,6 +963,9 @@ void ConfigItems::save_impl( const std::string& path )
 #ifdef HAVE_MIGEMO_H
     cf.update( "migemodict_path", migemodict_path );
 #endif
+
+    cf.update( "broken_sjis_be_utf8", broken_sjis_be_utf8 );
+    cf.update( "correct_character_reference", correct_character_reference );
 
     cf.save();
 }

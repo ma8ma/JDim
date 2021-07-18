@@ -107,7 +107,6 @@ namespace DBTREE
         // m_subjecttxt = "subject.txt"
         // m_ext = ".dat"
         // m_id = "hogeboard"
-        // m_charset = "MS932"
         //
         // 先頭に'/'を付けて最後に '/' は付けないことにフォーマットを統一
         //
@@ -120,7 +119,6 @@ namespace DBTREE
         std::string m_subjecttxt;
         std::string m_ext;
         std::string m_id;
-        std::string m_charset;
         std::string m_name; // 板名
 
         // dat型のurlに変換する時のquery ( url_dat()で使用する )
@@ -139,7 +137,8 @@ namespace DBTREE
         std::list< std::string > m_list_abone_thread_remove; // あぼーんするスレのタイトル( dat 落ち判定用、remove_old_abone_thread()を参照せよ )
         std::list< std::string > m_list_abone_word_thread; // あぼーんする文字列
         std::list< std::string > m_list_abone_regex_thread; // あぼーんする正規表現
-        int m_abone_number_thread{}; // レスの数
+        int m_abone_min_number_thread{}; // レスの数(最小)
+        int m_abone_max_number_thread{}; // レスの数(最大)
         int m_abone_hour_thread{}; // スレ立てからの経過時間
 
         // 読み込み用ローカルプロキシ設定
@@ -178,6 +177,7 @@ namespace DBTREE
         std::unique_ptr<JDLIB::Iconv> m_iconv;
         std::string m_rawdata;
         std::string m_rawdata_left;
+        CharCode m_charcode_bak;
 
         // 情報ファイルを読みこんだらtrueにして2度読みしないようにする
         bool m_read_info{};
@@ -228,7 +228,6 @@ namespace DBTREE
         void set_subjecttxt( const std::string& str ){ m_subjecttxt = str; }
         void set_ext( const std::string& str ){ m_ext = str; }
         void set_id( const std::string& str ){ m_id = str; }
-        void set_charset( const std::string& str ){ m_charset = str; }
 
         // articleがスレあぼーんされているか
         bool is_abone_thread( ArticleBase* article );
@@ -296,7 +295,6 @@ namespace DBTREE
         const std::string& get_path_board() const { return m_path_board; }
         const std::string& get_ext() const { return m_ext; }
         const std::string& get_id() const { return m_id; }
-        const std::string& get_charset() const { return m_charset; }
         const std::string& get_name() const { return m_name; }
         void update_name( const std::string& name );
         const std::string& get_subjecttxt() const { return m_subjecttxt; }
@@ -468,7 +466,8 @@ namespace DBTREE
         const std::list< std::string >& get_abone_list_thread_remove(){ return m_list_abone_thread_remove; }
         const std::list< std::string >& get_abone_list_word_thread(){ return m_list_abone_word_thread; }
         const std::list< std::string >& get_abone_list_regex_thread(){ return m_list_abone_regex_thread; }
-        int get_abone_number_thread() const noexcept { return m_abone_number_thread; }
+        int get_abone_min_number_thread() const noexcept { return m_abone_min_number_thread; }
+        int get_abone_max_number_thread() const noexcept { return m_abone_max_number_thread; }
         int get_abone_hour_thread() const noexcept { return m_abone_hour_thread; }
 
         // subject.txtのロード後にdat落ちしたスレッドをスレあぼーんのリストから取り除く
@@ -484,7 +483,8 @@ namespace DBTREE
         void reset_abone_thread( const std::list< std::string >& threads,
                                  const std::list< std::string >& words,
                                  const std::list< std::string >& regexs,
-                                 const int number,
+                                 const int min_number,
+                                 const int max_number,
                                  const int hour,
                                  const bool redraw
             );
@@ -613,7 +613,8 @@ namespace DBTREE
 
         // レス数であぼーん(グローバル)
         // 2ch以外の板ではキャンセルする
-        virtual int get_abone_number_global() const { return 0; }
+        virtual int get_abone_min_number_global() const { return 0; }
+        virtual int get_abone_max_number_global() const { return 0; }
     };
 }
 

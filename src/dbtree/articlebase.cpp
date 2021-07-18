@@ -9,6 +9,7 @@
 
 #include "skeleton/msgdiag.h"
 
+#include "jdlib/misccharcode.h"
 #include "jdlib/miscutil.h"
 #include "jdlib/misctime.h"
 #include "jdlib/miscmsg.h"
@@ -24,6 +25,7 @@
 #include "cache.h"
 #include "global.h"
 #include "login2ch.h"
+#include "replacestrmanager.h"
 #include "session.h"
 #include "updatemanager.h"
 
@@ -62,11 +64,12 @@ if( it2 != lines.end() ){ \
 
 
 
-ArticleBase::ArticleBase( const std::string& datbase, const std::string& id, bool cached )
+ArticleBase::ArticleBase( const std::string& datbase, const std::string& id, bool cached, const CharCode charcode )
     : SKELETON::Lockable()
     , m_id( id )
     , m_code( HTTP_INIT )
     , m_status( STATUS_UNKNOWN )
+    , m_charcode( charcode )
     , m_abone_board( true )
     , m_abone_global( true )
     , m_cached( cached )
@@ -423,25 +426,37 @@ void ArticleBase::reset_status()
 }
 
 
+const std::string& ArticleBase::get_modified_subject( const bool renew )
+{
+    if( renew || m_modified_subject.empty() ){
+        const CORE::ReplaceStr_Manager* const mgr = CORE::get_replacestr_manager();
+
+        // タイトル文字列置換
+        if( mgr->list_get_active( CORE::REPLACETARGET_SUBJECT ) ){
+            m_modified_subject = mgr->replace( m_subject.c_str(), m_subject.length(), CORE::REPLACETARGET_SUBJECT );
+        }
+        else m_modified_subject = m_subject;
+
+    }
+
+    return m_modified_subject;
+}
+
+
 void ArticleBase::set_subject( const std::string& subject )
 {
     if( subject.empty() ) return;
 
-    // 特殊文字の置き換え
-    if( subject.find( '&' ) != std::string::npos ){
+    std::string tmp_subject = MISC::remove_spaces( subject );
 
-        std::string subject_tmp = MISC::html_unescape( subject );
-
-        if( subject_tmp != m_subject ){
-            m_subject = subject_tmp;
-            m_save_info = true;
-        }
-    }
-    else if( subject != m_subject ){
-
-        m_subject = subject;
+    if( tmp_subject != m_subject ){
+        m_subject = std::move( tmp_subject );
         m_save_info = true;
     }
+
+    // 置換設定に変更がある場合も読み直すのでm_subjectが同じでも
+    // 次に読み込まれる時に生成させる為にクリア
+    m_modified_subject.clear();
 }
 
 
@@ -465,7 +480,7 @@ void ArticleBase::set_number( const int number, const bool is_online )
     // subject.txt に示されたレス数よりも実際の取得数の方が多い
     else if( is_online && number < m_number ){
 #ifdef _DEBUG
-        std::cout << "ArticleBase::set_number : broken_subject " << get_subject() << " "
+        std::cout << "ArticleBase::set_number : broken_subject " << m_subject << " "
                   << number << " / " << m_number << std::endl;
 #endif
         m_status |= STATUS_BROKEN_SUBJECT;
@@ -483,6 +498,15 @@ void ArticleBase::set_number_seen( const int number_seen )
 {
     if( number_seen && number_seen != m_number_seen ){
         m_number_seen = number_seen;
+        m_save_info = true;
+    }
+}
+
+
+void ArticleBase::set_number_max( const int number_max )
+{
+    if( number_max != m_number_max ){
+        m_number_max = number_max;
         m_save_info = true;
     }
 }
@@ -556,13 +580,17 @@ bool ArticleBase::enable_load() const
 //
 bool ArticleBase::is_finished() const
 {
-    if( is_cached() && ! enable_load() &&  m_number_max && get_number_seen() >= m_number_max ){
+    if( is_cached() && ! enable_load() ){
+        const int number_max = ( m_number_max != 0 ) ? m_number_max
+                                                     : DBTREE::board_get_number_max_res( m_url );
+        if( number_max && m_number_load >= number_max ){
 
 #ifdef _DEBUG
-        std::cout << "ArticleBase::is_finished :  seen = " << get_number_seen() << " max = " << m_number_max << " : " << get_subject() << std::endl;
+            std::cout << "ArticleBase::is_finished :  load = " << m_number_load << " max = " << number_max << " : " << m_subject << std::endl;
 #endif
 
-        return true;
+            return true;
+        }
     }
 
     return false;
@@ -614,7 +642,8 @@ void ArticleBase::update_abone()
     if( ! m_nodetree ) return;
 
     get_nodetree()->copy_abone_info( m_list_abone_id, m_list_abone_name, m_list_abone_word, m_list_abone_regex, m_abone_reses,
-                                     m_abone_transparent, m_abone_chain, m_abone_age, m_abone_board, m_abone_global );
+                                     m_abone_transparent, m_abone_chain, m_abone_age, m_abone_default_name, m_abone_noid,
+                                     m_abone_board, m_abone_global );
 
     get_nodetree()->update_abone_all();
 }
@@ -630,6 +659,7 @@ void ArticleBase::reset_abone( const std::list< std::string >& ids,
                                const std::list< std::string >& regexs,
                                const std::vector< char >& vec_abone_res,
                                const bool transparent, const bool chain, const bool age,
+                               const bool default_name, const bool noid,
                                const bool board, const bool global
     )
 {
@@ -668,6 +698,8 @@ void ArticleBase::reset_abone( const std::list< std::string >& ids,
     m_abone_transparent = transparent;
     m_abone_chain = chain;
     m_abone_age = age;
+    m_abone_default_name = default_name;
+    m_abone_noid = noid;
     m_abone_board = board;
     m_abone_global = global;
 
@@ -811,6 +843,36 @@ void ArticleBase::set_abone_age( const bool set )
 
     m_save_info = true;
 } 
+
+
+//
+// デフォルト名無しあぼーん更新
+//
+void ArticleBase::set_abone_default_name( const bool set )
+{
+    if( empty() ) return;
+
+    m_abone_default_name = set;
+
+    update_abone();
+
+    m_save_info = true;
+}
+
+
+//
+// ageあぼーん更新
+//
+void ArticleBase::set_abone_noid( const bool set )
+{
+    if( empty() ) return;
+
+    m_abone_noid = set;
+
+    update_abone();
+
+    m_save_info = true;
+}
 
 
 //
@@ -970,7 +1032,8 @@ NodeTreeBase* ArticleBase::get_nodetree()
 
         // あぼーん情報のコピー
         m_nodetree->copy_abone_info( m_list_abone_id, m_list_abone_name, m_list_abone_word, m_list_abone_regex, m_abone_reses,
-                                     m_abone_transparent, m_abone_chain, m_abone_age, m_abone_board, m_abone_global );
+                                     m_abone_transparent, m_abone_chain, m_abone_age, m_abone_default_name, m_abone_noid,
+                                     m_abone_board, m_abone_global );
 
         // 書き込み情報のコピー
         m_nodetree->copy_post_info( m_posts );
@@ -1123,6 +1186,9 @@ void ArticleBase::download_dat( const bool check_update )
         return;
     }
 
+    // 全レス既読ならロードしない
+    if( is_finished() ) return;
+
 #ifdef _DEBUG
     std::cout << "start\n";
 #endif       
@@ -1194,10 +1260,12 @@ void ArticleBase::copy_article_info( const std::string& url_src )
     const bool transparent = DBTREE::get_abone_transparent( url_src );
     const bool chain = DBTREE::get_abone_chain( url_src );
     const bool age = DBTREE::get_abone_age( url_src );
+    const bool default_name = DBTREE::get_abone_default_name( url_src );
+    const bool noid = DBTREE::get_abone_noid( url_src );
     const bool board = DBTREE::get_abone_board( url_src );
     const bool global = DBTREE::get_abone_global( url_src );
 
-    reset_abone( ids, names ,words, regexs, vec_abone_res, transparent, chain, age, board, global );
+    reset_abone( ids, names ,words, regexs, vec_abone_res, transparent, chain, age, default_name, noid, board, global );
 }
 
 
@@ -1223,6 +1291,13 @@ void ArticleBase::slot_node_updated()
 
         // スレの読み込み数更新
         m_number_load = m_nodetree->get_res_number();
+
+        // スレの最大レス数更新
+        if( m_number_max == 0 ){
+            int res_max = m_nodetree->get_res_number_max();
+            if( res_max > 0 ) m_number_max = res_max;
+            else if( res_max == 0 ) m_number_max = CONFIG::get_max_resnumber();
+        }
 
         // 対応するarticleビューを更新
         CORE::core_set_command( "update_article", m_url );
@@ -1566,7 +1641,7 @@ void ArticleBase::delete_cache( const bool cache_only )
 
         if( m_bookmarked_thread ){
 
-            const std::string msg = "「" + get_subject() +
+            const std::string msg = "「" + MISC::to_plain( get_modified_subject() ) +
             "」にはしおりが付けられています。\n\nスレを削除しますか？\n\nしおりを解除するにはスレの上で右クリックしてしおり解除を選択してください。";
 
             SKELETON::MsgDiag mdiag( nullptr, msg, false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
@@ -1576,7 +1651,7 @@ void ArticleBase::delete_cache( const bool cache_only )
 
         if( CONFIG::get_show_del_written_thread_diag() && m_write_time ){
 
-            const std::string msg = "「" + get_subject() + "」には書き込み履歴が残っています。\n\nスレを削除しますか？";
+            const std::string msg = "「" + MISC::to_plain( get_modified_subject() ) + "」には書き込み履歴が残っています。\n\nスレを削除しますか？";
 
             SKELETON::MsgCheckDiag mdiag( nullptr, msg,
                                           "今後表示しない(常に削除)(_D)",
@@ -1590,23 +1665,15 @@ void ArticleBase::delete_cache( const bool cache_only )
         // スレ内の画像キャッシュ削除
         if( CONFIG::get_delete_img_in_thread() != 2 ){
 
-            bool delete_img_cache = false;
+            const std::list< std::string > list_urls = get_nodetree()->get_imglinks();
 
-            std::list< std::string > list_urls = get_nodetree()->get_urls();
-            std::list< std::string >::iterator it = list_urls.begin();
-            for( ; it != list_urls.end(); ++it ){
-
-                if( DBIMG::get_type_ext( *it ) != DBIMG::T_UNKNOWN && DBIMG::is_cached( *it ) ){
-                    delete_img_cache = true;
-                    break;
-                }
-            }
+            bool delete_img_cache = std::any_of( list_urls.begin(), list_urls.end(), &DBIMG::is_cached );
 
             if( delete_img_cache ){
 
                 if( CONFIG::get_delete_img_in_thread() == 0 ){
 
-                    const std::string msg = "「" + get_subject() + "」には画像が貼られています。\n\n画像のキャッシュも削除しますか？";
+                    const std::string msg = "「" + MISC::to_plain( get_modified_subject() ) + "」には画像が貼られています。\n\n画像のキャッシュも削除しますか？";
 
                     SKELETON::MsgCheckDiag mdiag( nullptr, msg,
                                                   "今後表示しない(常に削除しない)(_D)",
@@ -1627,15 +1694,14 @@ void ArticleBase::delete_cache( const bool cache_only )
 
                 if( delete_img_cache ){
 
-                    it = list_urls.begin();
-                    for( ; it != list_urls.end(); ++it ){
+                    for( const std::string& url : list_urls ) {
 
-                        if( DBIMG::get_type_ext( *it ) != DBIMG::T_UNKNOWN && DBIMG::is_cached( *it ) ){
+                        if( DBIMG::is_cached( url ) ){
 
 #ifdef _DEBUG
-                            std::cout << "delete " << *it << std::endl;
+                            std::cout << "delete " << url << std::endl;
 #endif
-                            DBIMG::delete_cache( *it );
+                            DBIMG::delete_cache( url );
                         }
                     }
                 }
@@ -1674,6 +1740,8 @@ void ArticleBase::delete_cache( const bool cache_only )
         m_abone_transparent = false;
         m_abone_chain = false;
         m_abone_age = false;
+        m_abone_default_name = false;
+        m_abone_noid = false;
         m_abone_board = true;
         m_abone_global = true;
         m_read_info = false;
@@ -1767,6 +1835,7 @@ void ArticleBase::read_info()
 
         // subject
         GET_INFOVALUE( m_subject, "subject = " );
+        m_modified_subject.clear(); // 読み込まれる時に生成
 
         // 旧ホスト名
         GET_INFOVALUE( m_org_host, "org_host = " );
@@ -1782,6 +1851,11 @@ void ArticleBase::read_info()
         m_number_seen = 0;
         GET_INFOVALUE( str_tmp, "seen = " );
         if( ! str_tmp.empty() ) m_number_seen = std::stoi( str_tmp );
+
+        // 最大レス数
+        m_number_max = 0;
+        GET_INFOVALUE( str_tmp, "max = " );
+        if( ! str_tmp.empty() ) m_number_max = atoi( str_tmp.c_str() );
 
         // 更新時間 (time)
         GET_INFOVALUE( m_date_modified, "modified = " );
@@ -1836,6 +1910,10 @@ void ArticleBase::read_info()
         reset_status();
         GET_INFOVALUE( str_tmp, "status = " );
         if( ! str_tmp.empty() ) m_status = atoi( str_tmp.c_str() );
+
+        // charset
+        GET_INFOVALUE( str_tmp, "charset = " );
+        if( ! str_tmp.empty() ) set_charcode( MISC::charcode_from_cstr( str_tmp.c_str() ) );
 
         // あぼーん ID
         GET_INFOVALUE( str_tmp, "aboneid = " );
@@ -1909,6 +1987,16 @@ void ArticleBase::read_info()
         m_abone_age = false;
         GET_INFOVALUE( str_tmp, "aboneage = " );
         if( ! str_tmp.empty() ) m_abone_age = atoi( str_tmp.c_str() );
+
+        // デフォルト名無しあぼーん
+        m_abone_default_name = false;
+        GET_INFOVALUE( str_tmp, "abonedefaultname = " );
+        if( ! str_tmp.empty() ) m_abone_default_name = atoi( str_tmp.c_str() );
+
+        // ID無しあぼーん
+        m_abone_noid = false;
+        GET_INFOVALUE( str_tmp, "abonenoid = " );
+        if( ! str_tmp.empty() ) m_abone_noid = atoi( str_tmp.c_str() );
 
         // 最終更新チェック時間 (elisp の Lisp timestamp形式)
         GET_INFOVALUE( str_tmp, "checktime = " );
@@ -1985,6 +2073,7 @@ void ArticleBase::read_info()
               << "org_host = " << m_org_host << std::endl
               << "load = " << m_number_load << std::endl
               << "seen = " << m_number_seen << std::endl
+              << "max = " << m_number_max << std::endl
               << "modified = " << m_date_modified << std::endl
               << "writetime = " << m_write_time_date << std::endl
               << "writename = " << m_write_name << std::endl
@@ -1992,6 +2081,7 @@ void ArticleBase::read_info()
               << "writefixname = " << m_write_fixname << std::endl
               << "writefixmail = " << m_write_fixmail << std::endl
               << "status = " << m_status << std::endl
+              << "charcode = " << get_charcode() <<std::endl
               << "transparent_abone = " << m_abone_transparent << std::endl
               << "bookmarked_thread = " << m_bookmarked_thread << std::endl
     ;
@@ -2110,6 +2200,7 @@ void ArticleBase::save_info( const bool force )
          << "org_host = " << m_org_host << std::endl
          << "load = " << m_number_load << std::endl
          << "seen = " << m_number_seen << std::endl
+         << "max = " << m_number_max << std::endl
          << "modified = " << m_date_modified << std::endl
          << "access = " << get_access_time_str() << std::endl
          << "writetime = " << ss_write.str() << std::endl
@@ -2118,6 +2209,7 @@ void ArticleBase::save_info( const bool force )
          << "writefixname = " << m_write_fixname << std::endl
          << "writefixmail = " << m_write_fixmail << std::endl
          << "status = " << m_status << std::endl
+         << "charset = " << MISC::charcode_to_cstr( get_charcode() ) << std::endl
          << "aboneid = " << str_abone_id << std::endl
          << "abonename = " << str_abone_name << std::endl
          << "bookmark = " << ss_bookmark.str() << std::endl
@@ -2129,6 +2221,8 @@ void ArticleBase::save_info( const bool force )
          << "bkmark_thread = " << m_bookmarked_thread << std::endl
          << "posted = " << ss_posted.str() << std::endl
          << "aboneage = " << m_abone_age << std::endl
+         << "abonedefaultname = " << m_abone_default_name << std::endl
+         << "abonenoid = " << m_abone_noid << std::endl
          << "checktime = " << ss_check.str() << std::endl
          << "aboneboard = " << m_abone_board << std::endl
          << "aboneglobal = " << m_abone_global << std::endl

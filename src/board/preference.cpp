@@ -10,8 +10,9 @@
 
 #include "skeleton/msgdiag.h"
 
-#include "jdlib/miscutil.h"
+#include "jdlib/misccharcode.h"
 #include "jdlib/misctime.h"
+#include "jdlib/miscutil.h"
 
 #include "config/globalconf.h"
 
@@ -108,7 +109,7 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
         str_cookies = "クッキー:\n未取得\n";
     }
     else {
-        str_cookies = "クッキー:\n" + MISC::Iconv( temp_cookies, "UTF-8", DBTREE::board_charset( get_url() ) ) + "\n";
+        str_cookies = "クッキー:\n" + MISC::Iconv( temp_cookies, CHARCODE_UTF8, DBTREE::board_charcode( get_url() ) ) + "\n";
     }
 
     std::string keyword = DBTREE::board_keyword_for_write( get_url() );
@@ -148,9 +149,19 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     m_hbox_live.set_spacing( 4 );
     m_hbox_live.pack_start( m_label_live, Gtk::PACK_SHRINK );
     m_hbox_live.pack_start( m_spin_live, Gtk::PACK_SHRINK );
-    m_hbox_live.pack_start( m_check_live, Gtk::PACK_SHRINK );
+    m_hbox_live.pack_start( m_check_live );
 
     set_activate_entry( m_spin_live );
+
+    // 文字エンコーディング
+    m_label_charset.set_text( "エンコーディング：" );
+    m_combo_charset.append( MISC::charcode_to_cstr( CHARCODE_UTF8 ) );
+    m_combo_charset.append( MISC::charcode_to_cstr( CHARCODE_SJIS ) );
+    m_combo_charset.append( MISC::charcode_to_cstr( CHARCODE_EUCJP ) );
+    m_combo_charset.set_active_text( MISC::charcode_to_cstr( DBTREE::board_charcode( get_url() ) ) );
+
+    m_hbox_live.pack_start( m_label_charset, Gtk::PACK_SHRINK );
+    m_hbox_live.pack_start( m_combo_charset, Gtk::PACK_SHRINK );
 
     // 一般ページのパッキング
     m_label_max_line.set_text( std::to_string( DBTREE::line_number( get_url() ) * 2 ) );
@@ -290,16 +301,27 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     // スレ数、時間
     m_label_abone_thread.set_text( "以下の数字が0の時は、設定メニューの全体あぼ〜ん設定で指定した数字が用いられます。\nまたキャッシュにログがあるスレはあぼ〜んされません。\n\n" );
 
-    m_label_number.set_text( "レス以上のスレをあぼ〜ん" );
-    m_spin_number.set_range( 0, 9999 );
-    m_spin_number.set_increments( 1, 1 );
-    m_spin_number.set_value( DBTREE::get_abone_number_thread( get_url() ) );
-            
-    m_hbox_number.set_spacing( 4 );
-    m_hbox_number.pack_start( m_spin_number, Gtk::PACK_SHRINK );
-    m_hbox_number.pack_start( m_label_number, Gtk::PACK_SHRINK );
+    m_label_min_number.set_text( "レス以下のスレをあぼ〜ん" );
+    m_spin_min_number.set_range( 0, CONFIG::get_max_resnumber() );
+    m_spin_min_number.set_increments( 1, 1 );
+    m_spin_min_number.set_value( DBTREE::get_abone_min_number_thread( get_url() ) );
 
-    set_activate_entry( m_spin_number );
+    m_hbox_min_number.set_spacing( 4 );
+    m_hbox_min_number.pack_start( m_spin_min_number, Gtk::PACK_SHRINK );
+    m_hbox_min_number.pack_start( m_label_min_number, Gtk::PACK_SHRINK );
+
+    set_activate_entry( m_spin_max_number );
+
+    m_label_max_number.set_text( "レス以上のスレをあぼ〜ん" );
+    m_spin_max_number.set_range( 0, CONFIG::get_max_resnumber() );
+    m_spin_max_number.set_increments( 1, 1 );
+    m_spin_max_number.set_value( DBTREE::get_abone_max_number_thread( get_url() ) );
+
+    m_hbox_max_number.set_spacing( 4 );
+    m_hbox_max_number.pack_start( m_spin_max_number, Gtk::PACK_SHRINK );
+    m_hbox_max_number.pack_start( m_label_max_number, Gtk::PACK_SHRINK );
+
+    set_activate_entry( m_spin_max_number );
 
     m_label_hour.set_text( "時間以上スレ立てから経過したスレをあぼ〜ん" );
     m_spin_hour.set_range( 0, 9999 );
@@ -315,7 +337,8 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     m_vbox_abone_thread.set_border_width( 16 );
     m_vbox_abone_thread.set_spacing( 8 );
     m_vbox_abone_thread.pack_start( m_label_abone_thread, Gtk::PACK_SHRINK );
-    m_vbox_abone_thread.pack_start( m_hbox_number, Gtk::PACK_SHRINK );
+    m_vbox_abone_thread.pack_start( m_hbox_min_number, Gtk::PACK_SHRINK );
+    m_vbox_abone_thread.pack_start( m_hbox_max_number, Gtk::PACK_SHRINK );
     m_vbox_abone_thread.pack_start( m_hbox_hour, Gtk::PACK_SHRINK );
 
     // スレあぼーん
@@ -494,6 +517,10 @@ void Preferences::slot_ok_clicked()
     else if( tmpmail.empty() ) tmpmail = JD_MAIL_BLANK; // 空白の場合 JD_MAIL_BLANK をセットする
     DBTREE::board_set_write_mail( get_url(), tmpmail );
 
+    // charset
+    std::string tmpcharset = m_combo_charset.get_active_text();
+    DBTREE::board_set_charcode( get_url(), MISC::charcode_from_cstr( tmpcharset.c_str() ) );
+
     // 実況間隔
     int live_sec = 0;
     if( m_check_live.get_active() ) live_sec = m_spin_live.get_value_as_int();
@@ -518,11 +545,12 @@ void Preferences::slot_ok_clicked()
     std::list< std::string > list_thread = MISC::get_lines( m_edit_thread.get_text() );
     std::list< std::string > list_word_thread = MISC::get_lines( m_edit_word_thread.get_text() );
     std::list< std::string > list_regex_thread = MISC::get_lines( m_edit_regex_thread.get_text() );
-    const int number = m_spin_number.get_value_as_int();
+    const int min_number = m_spin_min_number.get_value_as_int();
+    const int max_number = m_spin_max_number.get_value_as_int();
     const int hour = m_spin_hour.get_value_as_int();
 
     const bool redraw = true; // ここでスレ一覧の再描画指定をする
-    DBTREE::reset_abone_thread( get_url(), list_thread, list_word_thread, list_regex_thread, number, hour, redraw );  
+    DBTREE::reset_abone_thread( get_url(), list_thread, list_word_thread, list_regex_thread, min_number, max_number, hour, redraw );
 
     DBTREE::board_save_info( get_url() );
 }

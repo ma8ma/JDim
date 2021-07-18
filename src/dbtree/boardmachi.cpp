@@ -34,7 +34,7 @@ BoardMachi::BoardMachi( const std::string& root, const std::string& path_board, 
     set_subjecttxt( "subject.txt" );
     set_ext( "" );
     set_id( path_board.substr( 1 ) ); // 先頭の '/' を除く  
-    set_charset( "MS932" );
+    set_charcode( CHARCODE_SJIS );
 }
 
 
@@ -78,13 +78,9 @@ ArticleBase* BoardMachi::append_article( const std::string& datbase, const std::
 {
     if( empty() ) return get_article_null();
 
-    ArticleBase* article = insert( std::make_unique<DBTREE::ArticleMachi>( datbase, id, cached ) );
-    if( article ){
-        // 最大レス数セット
-        article->set_number_max( get_number_max_res() );
-    }
-    else return get_article_null();
+    ArticleBase* article = insert( std::make_unique<DBTREE::ArticleMachi>( datbase, id, cached, get_charcode() ) );
 
+    if( ! article ) return get_article_null();
     return article;
 }
 
@@ -265,9 +261,6 @@ void BoardMachi::parse_subject( const char* str_subject_txt )
         artinfo.id = MISC::remove_space( artinfo.id );
 
         artinfo.subject.assign( str_subject, lng_subject );
-        artinfo.subject = MISC::remove_space( artinfo.subject );
-        artinfo.subject = MISC::replace_str( artinfo.subject, "&lt;", "<" );
-        artinfo.subject = MISC::replace_str( artinfo.subject, "&gt;", ">" );
 
         const auto num = std::atoi( str_num.c_str() );
         artinfo.number = ( num < CONFIG::get_max_resnumber() ) ? num : CONFIG::get_max_resnumber();

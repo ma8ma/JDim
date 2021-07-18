@@ -237,8 +237,7 @@ void Post::receive_finish()
 #endif
 
     {
-        const std::string charset = DBTREE::board_charset( m_url );
-        JDLIB::Iconv libiconv( "UTF-8", charset );
+        JDLIB::Iconv libiconv( CHARCODE_UTF8, DBTREE::board_charcode( m_url ) );
         int byte_out;
         m_return_html = libiconv.convert( &*m_rawdata.begin(), m_rawdata.size(), byte_out );
     }
@@ -336,10 +335,8 @@ void Post::receive_finish()
         newline = false; // . に改行をマッチさせる
         // Smaba24規制の場合
         //   ＥＲＲＯＲ - 593 60 sec たたないと書けません。(1回目、8 sec しかたってない)
-        // 忍法帖規制の場合 ( samba秒だけ取得する。 )
-        //   ＥＲＲＯＲ：修行が足りません(Lv=2)。しばらくたってから投稿してください。(48 sec)
-        //   この板のsambaは samba=30 sec
-        if( regex.exec( "ＥＲＲＯＲ( +- +593 +|：.+samba=)([0-9]+) +sec", m_errmsg, offset, icase, newline, usemigemo, wchar ) ){
+        //   ERROR: Samba24:Caution 25 秒たたないと書けません。(1 回目、24 秒しかたってない)
+        if( regex.exec( "(ＥＲＲＯＲ +- +593|ERROR: +Samba24:Caution|) +([0-9]+) +", m_errmsg, offset, icase, newline, usemigemo, wchar ) ){
             time_t sec = atoi( regex.str( 2 ).c_str() );
 #ifdef _DEBUG
             std::cout << "samba = " << sec << std::endl;

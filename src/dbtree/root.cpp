@@ -157,17 +157,16 @@ BoardBase* Root::get_board( const std::string& url, const int count )
     if( count == 0 ){
 
         size_t pos = url.rfind( "http://" );
+        size_t pos2 = url.rfind( "https://" );
 
         // ユーザープロフィールアドレス( http://be.2ch.net/test/p.php?u=d:http://〜 )の様に
         // 先頭以外に http:// が入っている場合は失敗
-        if( pos != std::string::npos && pos != 0 ) return m_board_null.get();
+        if( ( pos != std::string::npos && pos != 0 ) || ( pos2 != std::string::npos && pos2 != 0 ) ) {
+            return m_board_null.get();
+        }
 
-        size_t pos2 = url.rfind( "https://" );
-        if ( pos2 != std::string::npos && pos2 != 0 ) return m_board_null.get();
-        if ( pos2 == 0 ) pos = 0;
-
-        // http[s]:// が含まれていなかったら先頭に追加して再帰呼び出し
-        if( pos == std::string::npos && ! is_local( url ) ){
+        // http:// が含まれていなかったら先頭に追加して再帰呼び出し
+        else if( pos == std::string::npos && pos2 == std::string::npos && ! is_local( url ) ){
             BoardBase* board = get_board( "http://" + url , count + 1 );
             m_get_board_url = url;
             return board;
@@ -395,7 +394,7 @@ void Root::receive_finish()
     }
 
     // 文字コードを変換してXML作成
-    JDLIB::Iconv libiconv{ "UTF-8", "MS932" };
+    JDLIB::Iconv libiconv{ CHARCODE_UTF8, CHARCODE_SJIS };
     int byte_out;
     const std::string rawdata_utf8 = libiconv.convert( &*m_rawdata.begin(), m_rawdata.size(),  byte_out );
     bbsmenu2xml( rawdata_utf8 );
@@ -459,7 +458,7 @@ void Root::bbsmenu2xml( const std::string& menu )
         // 要素b( カテゴリ名 )
         if( child->nodeName() == "b" )
         {
-            const std::string category = child->firstChild()->nodeValue();
+            const std::string category = MISC::chref_decode( child->firstChild()->nodeValue() );
 
             // 追加しないカテゴリ
             if( category == "チャット"
@@ -478,13 +477,13 @@ void Root::bbsmenu2xml( const std::string& menu )
         // 要素bに続く要素a( 板URL )
         else if( subdir && enabled && child->nodeName() == "a" )
         {
-            const std::string board_name = child->firstChild()->nodeValue();
+            const std::string board_name = MISC::chref_decode( child->firstChild()->nodeValue() );
             const std::string url = child->getAttribute( "href" );
 
             // 板として扱うURLかどうかで要素名を変える
             std::string element_name;
             if( CONFIG::use_link_as_board() ) element_name = "board";
-            else if( ( regex.exec( "^https?://.*/.*/$", url, offset, icase, newline, usemigemo, wchar )
+            else if( ( regex.exec( "^(https?:)?//.*/.*/$", url, offset, icase, newline, usemigemo, wchar )
 			            && ( is_2ch( url ) || is_machi( url ) ) )
                      || is_JBBS( url )
                      || is_vip2ch( url )
@@ -570,11 +569,11 @@ int Root::get_board_type( const std::string& url, std::string& root, std::string
     int type = TYPE_BOARD_UNKNOWN;
 
     // 2ch
-    if( ! etc && is_2ch( url ) ){
+    if( /*! etc &&*/ is_2ch( url ) ){
 
-        if( regex.exec( "(https?://[^/]*)/([^/]*)/$" , url, offset, icase, newline, usemigemo, wchar ) ){
+        if( regex.exec( "(https?://[^/]*)(/[^/]*)/$" , url, offset, icase, newline, usemigemo, wchar ) ){
             root = regex.str( 1 );
-            path_board = "/" + regex.str( 2 );
+            path_board = regex.str( 2 );
 
             type = TYPE_BOARD_2CH;
         }
@@ -583,9 +582,9 @@ int Root::get_board_type( const std::string& url, std::string& root, std::string
     // JBBS
     else if( is_JBBS( url ) ){
 
-        if( regex.exec( "(https?://[^/]*)/(.*)/(index2?\\.html?)?$" , url, offset, icase, newline, usemigemo, wchar ) ){
-            root = regex.str( 1 );
-            path_board = "/" + regex.str( 2 );
+        if( regex.exec( "(https?://)[^/]*(/.*)/(index2?\\.html?)?$" , url, offset, icase, newline, usemigemo, wchar ) ){
+            root = regex.str( 1 ) + "jbbs.shitaraba.net";
+            path_board = regex.str( 2 );
 
             type = TYPE_BOARD_JBBS;
         }
@@ -594,9 +593,9 @@ int Root::get_board_type( const std::string& url, std::string& root, std::string
     // まち
     else if( is_machi( url ) ){
 
-        if( regex.exec( "(https?://[^/]*)/([^/]*)/(index2?\\.html?)?$" , url, offset, icase, newline, usemigemo, wchar ) ){
+        if( regex.exec( "(https?://[^/]*)(/[^/]*)/(index2?\\.html?)?$" , url, offset, icase, newline, usemigemo, wchar ) ){
             root = regex.str( 1 );
-            path_board = "/" + regex.str( 2 );
+            path_board = regex.str( 2 );
 
             type = TYPE_BOARD_MACHI;
         }
@@ -605,9 +604,9 @@ int Root::get_board_type( const std::string& url, std::string& root, std::string
     // vipサービス
     else if( is_vip2ch( url ) ){
 
-        if( regex.exec( "(https?://[^/]*)/([^/]*)/$" , url, offset, icase, newline, usemigemo, wchar ) ){
+        if( regex.exec( "(https?://[^/]*)(/[^/]*)/$" , url, offset, icase, newline, usemigemo, wchar ) ){
             root = regex.str( 1 );
-            path_board = "/" + regex.str( 2 );
+            path_board = regex.str( 2 );
 
             type = TYPE_BOARD_2CH_COMPATI;
         }
@@ -625,9 +624,9 @@ int Root::get_board_type( const std::string& url, std::string& root, std::string
     // その他は互換型
     else{
 
-        if( regex.exec( "(https?://.*)/([^/]*)/([^\\.]+\\.html?)?$" , url, offset, icase, newline, usemigemo, wchar ) ){
+        if( regex.exec( "(https?://.*)(/[^/]*)/([^\\.]+\\.html?)?$" , url, offset, icase, newline, usemigemo, wchar ) ){
             root = regex.str( 1 );
-            path_board = "/" + regex.str( 2 );
+            path_board = regex.str( 2 );
 
             type = TYPE_BOARD_2CH_COMPATI;
         }
@@ -647,7 +646,7 @@ int Root::get_board_type( const std::string& root, const bool etc ) const
     int type = TYPE_BOARD_UNKNOWN;
 
     // 2ch
-    if( ! etc && is_2ch( root ) )
+    if( /*! etc &&*/ is_2ch( root ) )
         type = TYPE_BOARD_2CH;
 
     // JBBS
@@ -682,11 +681,20 @@ bool Root::set_board( const std::string& url, const std::string& name, const std
     std::cout << "Root::set_board " << url << " " << name << std::endl;
 #endif
 
+    std::string real_url;
     std::string root;
     std::string path_board;
 
+    // scheme省略の場合は補う
+    if( url.compare( 0, 2, "//" ) == 0 ){
+        const std::string menu_url = CONFIG::get_url_bbsmenu();
+        const size_t pos = menu_url.find("://");
+        if( pos != std::string::npos ) real_url = menu_url.substr( 0, pos + 1 );
+    }
+    real_url += url;
+
     // タイプ判定
-    int type = get_board_type( url, root, path_board, etc );
+    const int type = get_board_type( real_url, root, path_board, etc );
     if( type == TYPE_BOARD_UNKNOWN ) return false;
 
     // 移転チェック
@@ -723,7 +731,7 @@ bool Root::set_board( const std::string& url, const std::string& name, const std
             MISC::ERRMSG( tmp_msg );
 
             const std::string path1 = CACHE::path_board_root_fast( board->url_boardbase() );
-            const std::string path2 = CACHE::path_board_root_fast( url );
+            const std::string path2 = CACHE::path_board_root_fast( real_url );
 
 #ifdef _DEBUG
             std::cout << "path1 = " << path1 << std::endl
@@ -863,19 +871,22 @@ bool Root::exec_move_board( BoardBase* board,
         // キャッシュがある場合はダイアログに表示
         m_move_info += ss.str() + "\n";
 
-        // 移動先に同名のファイルかフォルダ何かあったらリネームしてバックアップをとっておく
-        if( CACHE::file_exists( new_path ) != CACHE::EXIST_ERROR ){
+        if( new_path != old_path ){
 
-            std::string path_tmp = new_path.substr( 0, new_path.length() - 1 ) + "_bk/";
-            if( rename( new_path.c_str(), path_tmp.c_str() ) == 0 ) MISC::MSG( "rename : " +  new_path + " -> " + path_tmp );
-            else MISC::ERRMSG( "can't rename " + new_path + " to " + path_tmp );
-        }
+            // 移動先に同名のファイルかフォルダ何かあったらリネームしてバックアップをとっておく
+            if( CACHE::file_exists( new_path ) != CACHE::EXIST_ERROR ){
 
-        // キャッシュ移動
-        if( CACHE::mkdir_parent_of_board( new_url ) ){
+                std::string path_tmp = new_path.substr( 0, new_path.length() - 1 ) + "_bk/";
+                if( rename( new_path.c_str(), path_tmp.c_str() ) == 0 ) MISC::MSG( "rename : " +  new_path + " -> " + path_tmp );
+                else MISC::ERRMSG( "can't rename " + new_path + " to " + path_tmp );
+            }
 
-            if( rename( old_path.c_str(), new_path.c_str() ) == 0 ) MISC::MSG( "cache was moved : " +  old_path + " -> " + new_path );
-            else MISC::ERRMSG( "can't move cache from " + old_path + " to " + new_path );
+            // キャッシュ移動
+            if( CACHE::mkdir_parent_of_board( new_url ) ){
+
+                if( rename( old_path.c_str(), new_path.c_str() ) == 0 ) MISC::MSG( "cache was moved : " +  old_path + " -> " + new_path );
+                else MISC::ERRMSG( "can't move cache from " + old_path + " to " + new_path );
+            }
         }
 
 #ifdef _DEBUG
@@ -1102,10 +1113,10 @@ void Root::load_etc()
             if( it == list_etc.end() ) break;
 
             // basic認証
-            if( regex.exec( "https?://([^/]+:[^/]+@)(.+)$" , info.url, offset, icase, newline, usemigemo, wchar ) )
+            if( regex.exec( "(https?://)([^/]+:[^/]+@)(.+)$" , info.url, offset, icase, newline, usemigemo, wchar ) )
             {
-                info.basicauth = regex.str( 1 ).substr( 0, regex.length( 1 ) - 1 );
-                info.url = ( info.url[4] == 's' ? "https://" : "http://" ) + regex.str( 2 );
+                info.basicauth = regex.str( 2 ).substr( 0, regex.str( 2 ).length() - 1 );
+                info.url = regex.str( 1 ) + regex.str( 3 );
             }
 
             // board id

@@ -4,6 +4,7 @@
 
 #include "dbtree/interface.h"
 
+#include "jdlib/misccharcode.h"
 #include "jdlib/miscutil.h"
 #include "jdlib/misctime.h"
 
@@ -13,6 +14,7 @@
 
 #include "cache.h"
 #include "command.h"
+#include "global.h"
 
 #include <list>
 #include <set>
@@ -22,7 +24,7 @@ using namespace ARTICLE;
 
 Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std::string& command )
     : SKELETON::PrefDiag( parent, url )
-    ,m_label_name( false, "スレタイトル : ", DBTREE::article_subject( get_url() ) )
+    ,m_label_name( false, "スレタイトル : ", MISC::to_plain( DBTREE::article_subject( get_url() ) ) )
     ,m_label_url( false, "スレのURL : ", DBTREE:: url_readcgi( get_url(),0,0 ) )
     ,m_label_url_dat( false, "DATファイルのURL : ", DBTREE:: url_dat( get_url() ) )
     ,m_label_cache( false, "ローカルキャッシュパス : ", std::string() )
@@ -30,6 +32,8 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     ,m_check_transpabone( "透明あぼ〜ん" )
     ,m_check_chainabone( "連鎖あぼ〜ん" )
     ,m_check_ageabone( "sage以外をあぼ〜ん" )
+    ,m_check_defnameabone( "デフォルト名無しをあぼ〜ん" )
+    ,m_check_noidabone( "ID無しをあぼ〜ん" )
     ,m_check_boardabone( "板レベルでのあぼ〜んを有効にする" )
     ,m_check_globalabone( "全体レベルでのあぼ〜んを有効にする" )
     ,m_label_since( false, "スレ立て日時 : ", std::string() )
@@ -73,15 +77,38 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     m_hbox_write.pack_start( m_label_write );
     m_hbox_write.pack_start( m_bt_clear_post_history, Gtk::PACK_SHRINK );    
 
+    m_label_charset.set_text( "エンコーディング：" );
+    m_combo_charset.append( MISC::charcode_to_cstr( CHARCODE_UTF8 ) );
+    m_combo_charset.append( MISC::charcode_to_cstr( CHARCODE_SJIS ) );
+    m_combo_charset.append( MISC::charcode_to_cstr( CHARCODE_EUCJP ) );
+    m_combo_charset.set_active_text( MISC::charcode_to_cstr( DBTREE::article_charcode( get_url() ) ) );
+
+    m_hbox_since.pack_start( m_label_since );
+    m_hbox_since.pack_start( m_label_charset, Gtk::PACK_SHRINK );
+    m_hbox_since.pack_start( m_combo_charset, Gtk::PACK_SHRINK );
+
+
+    // 最大レス数
+    const int max_res = DBTREE::article_number_max( get_url() );
+    m_label_maxres.set_text( "最大レス数 (0 : 未設定)：" );
+    m_spin_maxres.set_range( 0, CONFIG::get_max_resnumber() );
+    m_spin_maxres.set_increments( 1, 1 );
+    m_spin_maxres.set_value( max_res );
+    m_spin_maxres.set_sensitive( true );
+
+    m_hbox_size.pack_start( m_label_size );
+    m_hbox_size.pack_start( m_label_maxres, Gtk::PACK_SHRINK );
+    m_hbox_size.pack_start( m_spin_maxres, Gtk::PACK_SHRINK );
+
     m_vbox_info.set_border_width( 16 );
     m_vbox_info.set_spacing( 8 );
     m_vbox_info.pack_start( m_label_name, Gtk::PACK_SHRINK );
     m_vbox_info.pack_start( m_label_url, Gtk::PACK_SHRINK );
     m_vbox_info.pack_start( m_label_url_dat, Gtk::PACK_SHRINK );
     m_vbox_info.pack_start( m_label_cache, Gtk::PACK_SHRINK );
-    m_vbox_info.pack_start( m_label_size, Gtk::PACK_SHRINK );
+    m_vbox_info.pack_start( m_hbox_size, Gtk::PACK_SHRINK );
 
-    m_vbox_info.pack_start( m_label_since, Gtk::PACK_SHRINK );
+    m_vbox_info.pack_start( m_hbox_since, Gtk::PACK_SHRINK );
     m_vbox_info.pack_start( m_hbox_modified, Gtk::PACK_SHRINK );
     m_vbox_info.pack_start( m_hbox_write, Gtk::PACK_SHRINK );
 
@@ -104,6 +131,12 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     // ageあぼーん
     m_check_ageabone.set_active( DBTREE::get_abone_age( get_url() ) );
 
+    // デフォルト名無しあぼーん
+    m_check_defnameabone.set_active( DBTREE::get_abone_default_name( get_url() ) );
+
+    // ID無しあぼーん
+    m_check_noidabone.set_active( DBTREE::get_abone_noid( get_url() ) );
+
     // 板レベルあぼーん
     m_check_boardabone.set_active( DBTREE::get_abone_board( get_url() ) );
 
@@ -116,6 +149,8 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     m_vbox_abone.pack_start( m_check_transpabone, Gtk::PACK_SHRINK );
     m_vbox_abone.pack_start( m_check_chainabone, Gtk::PACK_SHRINK );
     m_vbox_abone.pack_start( m_check_ageabone, Gtk::PACK_SHRINK );
+    m_vbox_abone.pack_start( m_check_defnameabone, Gtk::PACK_SHRINK );
+    m_vbox_abone.pack_start( m_check_noidabone, Gtk::PACK_SHRINK );
     m_vbox_abone.pack_start( m_check_boardabone, Gtk::PACK_SHRINK );
     m_vbox_abone.pack_start( m_check_globalabone, Gtk::PACK_SHRINK );
 
@@ -201,7 +236,7 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     m_notebook.append_page( m_notebook_abone, "あぼ〜ん設定" );
 
     get_content_area()->pack_start( m_notebook );
-    set_title( "「" + DBTREE::article_subject( get_url() ) + "」のプロパティ" );
+    set_title( "「" + MISC::to_plain( DBTREE::article_modified_subject( get_url() ) ) + "」のプロパティ" );
     resize( 600, 400 );
     show_all_children();
 
@@ -241,7 +276,21 @@ void Preferences::slot_ok_clicked()
 
     DBTREE::reset_abone( get_url(), list_id, list_name, list_word, list_regex, vec_abone_res
                          , m_check_transpabone.get_active(), m_check_chainabone.get_active(), m_check_ageabone.get_active(),
+                         m_check_defnameabone.get_active(), m_check_noidabone.get_active(),
                          m_check_boardabone.get_active(), m_check_globalabone.get_active() );
+
+    //最大レス数
+    DBTREE::article_set_number_max( get_url(), m_spin_maxres.get_value_as_int() );
+
+    // charset
+    std::string tmpcharset = m_combo_charset.get_active_text();
+    CharCode tmpcharcode = MISC::charcode_from_cstr( tmpcharset.c_str() );
+    if( tmpcharcode != DBTREE::article_charcode( get_url() ) ){
+        // charcodeを更新
+        DBTREE::article_set_charcode( get_url(), tmpcharcode );
+        // Viewが開かれていない場合があるのでここでNodeTreeを削除する
+        DBTREE::article_clear_nodetree( get_url() );
+    }
 
     // viewの再レイアウト
     CORE::core_set_command( "relayout_article", get_url() );

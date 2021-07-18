@@ -81,6 +81,10 @@ namespace BOARD
         Gtk::CheckButton m_check_live;
         Gtk::SpinButton m_spin_live;
 
+        // 文字エンコーディング
+        Gtk::Label m_label_charset;
+        Gtk::ComboBoxText m_combo_charset;
+
         // プロキシ
         Gtk::VBox m_vbox_proxy;
         Gtk::Label m_label_proxy;
@@ -128,9 +132,13 @@ namespace BOARD
         Gtk::VBox m_vbox_abone_thread;
         Gtk::Label m_label_abone_thread;
 
-        Gtk::HBox m_hbox_number;
-        Gtk::Label m_label_number;
-        Gtk::SpinButton m_spin_number;
+        Gtk::HBox m_hbox_min_number;
+        Gtk::Label m_label_min_number;
+        Gtk::SpinButton m_spin_min_number;
+
+        Gtk::HBox m_hbox_max_number;
+        Gtk::Label m_label_max_number;
+        Gtk::SpinButton m_spin_max_number;
 
         Gtk::HBox m_hbox_hour;
         Gtk::Label m_label_hour;

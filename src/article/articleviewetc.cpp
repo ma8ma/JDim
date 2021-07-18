@@ -11,6 +11,7 @@
 #include "dbtree/articlebase.h"
 
 #include "control/controlid.h"
+#include "jdlib/miscutil.h"
 
 #include "global.h"
 
@@ -37,7 +38,7 @@ ArticleViewRes::ArticleViewRes( const std::string& url )
     setup_view();
 
     // ラベル更新
-    set_label( " [ RES:" + m_str_num + " ] - " + DBTREE::article_subject( url_article() ) );
+    set_label( " [ RES:" + m_str_num + " ] - " + MISC::to_markup( DBTREE::article_modified_subject( url_article() ) ), true );
 
     // タブ更新
     ARTICLE::get_admin()->set_command( "set_tablabel", get_url(), get_label() );
@@ -59,7 +60,7 @@ ArticleViewRes::~ArticleViewRes()
 //
 // 画面を消してレイアウトやりなおし & 再描画
 //
-void ArticleViewRes::relayout()
+void ArticleViewRes::relayout( const bool completely )
 {
 #ifdef _DEBUG
     std::cout << "ArticleViewRes::relayout\n";
@@ -120,7 +121,7 @@ ArticleViewName::ArticleViewName( const std::string& url )
     setup_view();
 
     // ラベル更新
-    set_label( " [ 名前：" + m_str_name + " ] - " + DBTREE::article_subject( url_article() ));
+    set_label( " [ 名前：" + m_str_name + " ] - " + MISC::to_markup( DBTREE::article_modified_subject( url_article() ) ), true );
 
     // タブ更新
     ARTICLE::get_admin()->set_command( "set_tablabel", get_url(), get_label() );
@@ -142,7 +143,7 @@ ArticleViewName::~ArticleViewName()
 //
 // 画面を消してレイアウトやりなおし & 再描画
 //
-void ArticleViewName::relayout()
+void ArticleViewName::relayout( const bool completely )
 {
 #ifdef _DEBUG
     std::cout << "ArticleViewName::relayout\n";
@@ -200,7 +201,7 @@ ArticleViewID::ArticleViewID( const std::string& url )
     setup_view();
 
     // ラベル更新
-    set_label( " [ " + m_str_id.substr( strlen( PROTO_ID ) ) + " ] - " + DBTREE::article_subject( url_article() ));
+    set_label( " [ " + m_str_id.substr( strlen( PROTO_ID ) ) + " ] - " + MISC::to_markup( DBTREE::article_modified_subject( url_article() ) ), true );
 
     // タブ更新
     ARTICLE::get_admin()->set_command( "set_tablabel", get_url(), get_label() );
@@ -222,7 +223,7 @@ ArticleViewID::~ArticleViewID()
 //
 // 画面を消してレイアウトやりなおし & 再描画
 //
-void ArticleViewID::relayout()
+void ArticleViewID::relayout( const bool completely )
 {
 #ifdef _DEBUG
     std::cout << "ArticleViewID::relayout\n";
@@ -278,7 +279,7 @@ ArticleViewBM::ArticleViewBM( const std::string& url )
     setup_view();
 
     // ラベル更新
-    set_label( " [ しおり ] - " + DBTREE::article_subject( url_article() ));
+    set_label( " [ しおり ] - " + MISC::to_markup( DBTREE::article_modified_subject( url_article() ) ), true );
 
     // タブ更新
     ARTICLE::get_admin()->set_command( "set_tablabel", get_url(), get_label() );
@@ -300,7 +301,7 @@ ArticleViewBM::~ArticleViewBM()
 //
 // 画面を消してレイアウトやりなおし & 再描画
 //
-void ArticleViewBM::relayout()
+void ArticleViewBM::relayout( const bool completely )
 {
 #ifdef _DEBUG
     std::cout << "ArticleViewBM::relayout\n";
@@ -357,7 +358,7 @@ ArticleViewPost::ArticleViewPost( const std::string& url )
 
 
     // ラベル更新
-    set_label( " [ 書き込み ] - " + DBTREE::article_subject( url_article() ));
+    set_label( " [ 書き込み ] - " + MISC::to_markup( DBTREE::article_modified_subject( url_article() ) ), true );
 
     // タブ更新
     ARTICLE::get_admin()->set_command( "set_tablabel", get_url(), get_label() );
@@ -379,7 +380,7 @@ ArticleViewPost::~ArticleViewPost()
 //
 // 画面を消してレイアウトやりなおし & 再描画
 //
-void ArticleViewPost::relayout()
+void ArticleViewPost::relayout( const bool completely )
 {
 #ifdef _DEBUG
     std::cout << "ArticleViewPost::relayout\n";
@@ -457,7 +458,7 @@ ArticleViewHighRefRes::~ArticleViewHighRefRes()
 //
 // 画面を消してレイアウトやりなおし & 再描画
 //
-void ArticleViewHighRefRes::relayout()
+void ArticleViewHighRefRes::relayout( const bool completely )
 {
 #ifdef _DEBUG
     std::cout << "ArticleViewHighRefRes::relayout\n";
@@ -512,7 +513,7 @@ ArticleViewURL::ArticleViewURL( const std::string& url )
     setup_view();
 
     // ラベル更新
-    set_label( " [ URL ] - " + DBTREE::article_subject( url_article() ));
+    set_label( " [ URL ] - " + MISC::to_markup( DBTREE::article_modified_subject( url_article() ) ), true );
 
     // タブ更新
     ARTICLE::get_admin()->set_command( "set_tablabel", get_url(), get_label() );
@@ -534,7 +535,7 @@ ArticleViewURL::~ArticleViewURL()
 //
 // 画面を消してレイアウトやりなおし & 再描画
 //
-void ArticleViewURL::relayout()
+void ArticleViewURL::relayout( const bool completely )
 {
 #ifdef _DEBUG
     std::cout << "ArticleViewURL::relayout\n";
@@ -593,7 +594,7 @@ ArticleViewRefer::ArticleViewRefer( const std::string& url )
     setup_view();
 
     // ラベル更新
-    set_label( " [ Re:" + m_str_num + " ] - " + DBTREE::article_subject( url_article() ));
+    set_label( " [ Re:" + m_str_num + " ] - " + MISC::to_markup( DBTREE::article_modified_subject( url_article() ) ), true );
 
     // タブ更新
     ARTICLE::get_admin()->set_command( "set_tablabel", get_url(), get_label() );
@@ -615,7 +616,7 @@ ArticleViewRefer::~ArticleViewRefer()
 //
 // 画面を消してレイアウトやりなおし & 再描画
 //
-void ArticleViewRefer::relayout()
+void ArticleViewRefer::relayout( const bool completely )
 {
 #ifdef _DEBUG
     std::cout << "ArticleViewRefer::relayout\n";
@@ -682,7 +683,7 @@ ArticleViewDrawout::ArticleViewDrawout( const std::string& url )
     std::string str_label;
     if( m_mode_or ) str_label = "[ OR 抽出 ] - ";
     else str_label = "[ AND 抽出 ] - ";
-    set_label( str_label + DBTREE::article_subject( url_article() ) );
+    set_label( str_label + MISC::to_markup( DBTREE::article_modified_subject( url_article() ) ), true );
 
     // タブ更新
     ARTICLE::get_admin()->set_command( "set_tablabel", get_url(), get_label() );
@@ -705,7 +706,7 @@ ArticleViewDrawout::~ArticleViewDrawout()
 //
 // 画面を消してレイアウトやりなおし & 再描画
 //
-void ArticleViewDrawout::relayout()
+void ArticleViewDrawout::relayout( const bool completely )
 {
 #ifdef _DEBUG
     std::cout << "ArticleViewDrawout::relayout\n";
@@ -802,7 +803,7 @@ void ArticleViewPostlog::operate_search( const std::string& controlid )
 //
 // 画面を消してレイアウトやりなおし & 再描画
 //
-void ArticleViewPostlog::relayout()
+void ArticleViewPostlog::relayout( const bool completely )
 {
 #ifdef _DEBUG
     std::cout << "ArticleViewPostlog::relayout\n";

@@ -97,6 +97,9 @@ void CONFIG::set_use_tree_gtkrc( const bool use ){ get_confitem()->use_tree_gtkr
 bool CONFIG::get_use_select_gtkrc(){ return get_confitem()->use_select_gtkrc; }
 void CONFIG::set_use_select_gtkrc( const bool use ){ get_confitem()->use_select_gtkrc = use; }
 
+bool CONFIG::get_use_color_html(){ return get_confitem()->use_color_html; }
+void CONFIG::set_use_color_html( const bool use ){ get_confitem()->use_color_html = use; }
+
 // ツリービューの行間スペース
 int CONFIG::get_tree_ypad(){ return get_confitem()->tree_ypad; }
 
@@ -229,6 +232,13 @@ int CONFIG::get_loader_timeout_checkupdate(){ return get_confitem()->loader_time
 bool CONFIG::get_use_ipv6(){ return get_confitem()->use_ipv6; }
 void CONFIG::set_use_ipv6( const bool set ){ get_confitem()->use_ipv6 = set; }
 
+// TLSでノンブロッキングI/Oを使用する
+bool CONFIG::get_tls_nonblocking(){ return get_confitem()->tls_nonblocking; }
+// TLSでサーバの証明書をチェックする
+bool CONFIG::get_verify_cert(){ return get_confitem()->verify_cert; }
+// 信頼するルート証明書
+const std::string& CONFIG::get_root_cafile(){ return get_confitem()->root_cafile; }
+
 // 同一ホストに対する最大コネクション数( 1 または 2 )
 int CONFIG::get_connection_num(){ return get_confitem()->connection_num; }
 
@@ -238,6 +248,10 @@ const std::string& CONFIG::get_cookie_hap(){ return get_confitem()->cookie_hap; 
 const std::string& CONFIG::get_cookie_hap_bbspink(){ return get_confitem()->cookie_hap_bbspink; }
 void CONFIG::set_cookie_hap( const std::string& cookie_hap ){ get_confitem()->cookie_hap = cookie_hap; }
 void CONFIG::set_cookie_hap_bbspink( const std::string& cookie_hap ){ get_confitem()->cookie_hap_bbspink = cookie_hap; }
+
+// 2chの過去ログを外部のサイトから取得する
+bool CONFIG::get_use_external_log(){ return get_confitem()->use_external_log; }
+const std::string& CONFIG::get_url_external_log(){ return get_confitem()->url_external_log; }
 
 const std::string& CONFIG::get_command_openurl() { return get_confitem()->command_openurl; }
 void CONFIG::set_command_openurl( const std::string& command ){ get_confitem()->command_openurl = command; }
@@ -435,6 +449,8 @@ int CONFIG::get_num_id_low(){ return get_confitem()->num_id_low; }
 
 bool CONFIG::get_loose_url(){ return get_confitem()->loose_url; }
 
+bool CONFIG::get_percent_decode(){ return get_confitem()->percent_decode; }
+
 bool CONFIG::get_hide_usrcmd(){ return get_confitem()->hide_usrcmd; }
 void CONFIG::set_hide_usrcmd( const bool hide ){ get_confitem()->hide_usrcmd = hide; }
 
@@ -489,8 +505,11 @@ void CONFIG::set_list_abone_regex_thread( std::list< std::string >& regex )
 int CONFIG::get_remove_old_abone_thread(){ return get_confitem()->remove_old_abone_thread; }
 void CONFIG::set_remove_old_abone_thread( const int remove ){ get_confitem()->remove_old_abone_thread = remove; }
 
-int CONFIG::get_abone_number_thread(){ return get_confitem()->abone_number_thread; }
-void CONFIG::set_abone_number_thread( const int number ){ get_confitem()->abone_number_thread = number; }
+int CONFIG::get_abone_min_number_thread(){ return get_confitem()->abone_min_number_thread; }
+void CONFIG::set_abone_min_number_thread( const int number ){ get_confitem()->abone_min_number_thread = number; }
+
+int CONFIG::get_abone_max_number_thread(){ return get_confitem()->abone_max_number_thread; }
+void CONFIG::set_abone_max_number_thread( const int number ){ get_confitem()->abone_max_number_thread = number; }
 
 int CONFIG::get_abone_hour_thread(){ return get_confitem()->abone_hour_thread; }
 void CONFIG::set_abone_hour_thread( const int hour ){ get_confitem()->abone_hour_thread = hour; }
@@ -583,6 +602,9 @@ void CONFIG::set_show_hide_menubar_diag( const bool set ){ get_confitem()->show_
 // 状態変更時にメインステータスバーの色を変える
 bool CONFIG::get_change_stastatus_color(){ return get_confitem()->change_stastatus_color; }
 
+// 状態変更時にスレビュータイトルの色を変える
+bool CONFIG::get_change_statitle_color(){ return get_confitem()->change_statitle_color; }
+
 // Client-Side Decorationを使うか( 0: 使わない 1: 使う 2: デスクトップに合わせる )
 int CONFIG::get_use_header_bar() { return get_confitem()->use_header_bar; }
 
@@ -613,3 +635,11 @@ int CONFIG::get_save_session(){ return get_confitem()->save_session; }
 #ifdef HAVE_MIGEMO_H
 const std::string& CONFIG::get_migemodict_path() { return get_confitem()->migemodict_path; }
 #endif
+
+// 不正なMS932文字列をUTF-8と見なす
+bool CONFIG::get_broken_sjis_be_utf8(){ return get_confitem()->broken_sjis_be_utf8; }
+void CONFIG::set_broken_sjis_be_utf8( const bool set ){ get_confitem()->broken_sjis_be_utf8 = set; }
+
+// 不正な数値文字参照を無理矢理変換する
+bool CONFIG::get_correct_character_reference(){ return get_confitem()->correct_character_reference; }
+void CONFIG::set_correct_character_reference( const bool set ){ get_confitem()->correct_character_reference = set; }

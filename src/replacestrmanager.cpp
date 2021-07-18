@@ -122,7 +122,8 @@ void ReplaceStr_Manager::list_append( const int id, ReplaceStrCondition conditio
         constexpr bool newline = true;
         constexpr bool migemo = false;
 
-        if( ! creg.set( pattern, condition.icase, newline, migemo ) ) {
+        if( ! creg.set( pattern, condition.icase, newline, migemo,
+                        condition.wchar, condition.norm ) ) {
             std::string msg = "invlid replacestr pattern: ";
             msg.append( creg.errstr() + ": " + pattern );
             MISC::ERRMSG( msg );
@@ -290,6 +291,7 @@ std::string ReplaceStr_Manager::replace( const char* str, const int lng, const i
         }
 
         // 正規表現を使わない置換処理
+        else if( condition.icase ) buffer = MISC::replace_casestr( buffer, item.pattern, item.replace );
         else buffer = MISC::replace_str( buffer, item.pattern, item.replace );
     }
 

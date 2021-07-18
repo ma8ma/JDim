@@ -37,6 +37,8 @@ namespace DBTREE
 
     constexpr size_t RESUME_CHKSIZE = 64;
 
+    struct IDHASH { const char *id; int num; IDHASH* child[2]; };
+
     //ノードツリーのベースクラス
     class NodeTreeBase : public SKELETON::Loadable
     {
@@ -46,6 +48,7 @@ namespace DBTREE
         SIG_UPDATED m_sig_finished;
 
         std::string m_url;
+        std::string m_url_readcgi;
         std::string m_default_noname;
 
         // コード変換前の生データのサイズ ( byte )
@@ -97,6 +100,8 @@ namespace DBTREE
         bool m_abone_transparent{}; // 透明あぼーん
         bool m_abone_chain{}; // 連鎖あぼーん
         bool m_abone_age{}; // age ているレスはあぼーん
+        bool m_abone_default_name{}; // デフォルト名無しのレスはあぼーん
+        bool m_abone_noid{}; // ID無しのレスはあぼーん
         bool m_abone_board{}; // 板レベルでのあぼーんを有効にする
         bool m_abone_global{}; // 全体レベルでのあぼーんを有効にする
 
@@ -130,8 +135,8 @@ namespace DBTREE
         // その他のエラーメッセージ
         std::string m_ext_err;
 
-        // 各IDと発言数、レス番号のマッピング
-        std::unordered_map< std::string, std::unordered_set< int > > m_map_id_name_resnumber;
+        // IDのハッシュテーブル
+        IDHASH **m_idhash{};
 
       protected:
 
@@ -161,6 +166,8 @@ namespace DBTREE
         bool is_broken() const{ return m_broken; }
         const std::string& get_ext_err() const { return m_ext_err; }
         bool is_checking_update() const { return m_check_update; }
+
+        virtual int get_res_number_max(){ return -1; }
 
         // number番のレスのヘッダノードのポインタを返す
         const NODE* res_header( int number ) const;
@@ -204,7 +211,7 @@ namespace DBTREE
         std::list< int > get_res_with_url() const;
 
         // 含まれる URL をリストにして取得
-        std::list< std::string > get_urls() const;
+        std::list< std::string > get_imglinks() const;
 
         // number番のレスを参照しているレス番号をリストにして取得
         std::list< int > get_res_reference( const int number ) const;
@@ -248,6 +255,7 @@ namespace DBTREE
                               const std::list< std::string >& list_abone_regex,
                               const std::unordered_set< int >& abone_reses,
                               const bool abone_transparent, const bool abone_chain, const bool abone_age,
+                              const bool abone_default_name, const bool abone_noid,
                               const bool abone_board, const bool abone_global );
 
         // 全レスのあぼーん状態の更新
@@ -277,7 +285,7 @@ namespace DBTREE
 
         // 保存前にrawデータを加工
         // デフォルトでは何もしない
-        virtual char* process_raw_lines( char* rawlines ){ return rawlines; }
+        virtual char* process_raw_lines( char* rawlines, size_t& size ){ return rawlines; }
 
         // raw データを dat に変換
         // デフォルトでは何もしない
@@ -288,6 +296,10 @@ namespace DBTREE
 
         void receive_data( const char* data, size_t size ) override;
         void receive_finish() override;
+        void sweep_buffer();
+
+        // 拡張属性を取り出す
+        virtual void parse_extattr( const char* str, const int lng ) {};
 
       private:
 
@@ -297,10 +309,10 @@ namespace DBTREE
         NODE* create_node_idnum();
         NODE* create_node_br();
         NODE* create_node_hr();
-        NODE* create_node_space( const int type );
-        NODE* create_node_multispace( const char* text, const int n, const char fontid = FONT_MAIN );
-        NODE* create_node_htab();
-        NODE* create_node_link( const char* text, const int n, const char* link, const int n_link, const int color_text, const bool bold, const char fontid = FONT_MAIN );
+        NODE* create_node_space( const int type, const int bg );
+        NODE* create_node_multispace( const char* text, const int n, const int bg, const char fontid = FONT_MAIN );
+        NODE* create_node_link( const char* text, const int n, const char* link, const int n_link,
+                                const int color_text, const int color_back, const bool bold, const char fontid = FONT_MAIN );
         NODE* create_node_anc( const char* text, const int n, const char* link, const int n_link,
                                const int color_text, const bool bold,
                                const ANCINFO* ancinfo, const int lng_ancinfo, const char fontid = FONT_MAIN );
@@ -308,12 +320,13 @@ namespace DBTREE
         NODE* create_node_img( const char* text, const int n, const char* link, const int n_link, const int color_text,
                                const bool bold, const char fontid = FONT_MAIN );
         NODE* create_node_text( const char* text, const int color_text, const bool bold = false, const char fontid = FONT_MAIN );
-        NODE* create_node_ntext( const char* text, const int n, const int color_text, const bool bold = false, const char fontid = FONT_MAIN );
+        NODE* create_node_ntext( const char* text, const int n, const int color_text, const int color_back = 0,
+                                 const bool bold = false, const char fontid = FONT_MAIN );
         NODE* create_node_thumbnail( const char* text, const int n, const char* link, const int n_link, const char* thumb, const int n_thumb,
                                      const int color_text, const bool bold, const char fontid = FONT_MAIN );
 
         // 以下、構文解析用関数
-        void add_raw_lines( char* rawines, size_t size );
+        size_t add_raw_lines( char* rawines, size_t size );
         const char* add_one_dat_line( const char* datline );
 
         void parse_name( NODE* header, const char* str, const int lng, const int color_name );
@@ -334,9 +347,8 @@ namespace DBTREE
 
         bool check_anchor( const int mode, const char* str_in, int& n, char* str_out, char* str_link, int lng_link,
                            ANCINFO* ancinfo ) const;
-        int check_link( const char* str_in, const int lng_in, int& n_in, char* str_link, const int lng_link ) const;
-        int check_link_impl( const char* str_in, const int lng_in, int& n_in, char* str_link, const int lng_link,
-                             const int linktype, const int delim_pos ) const;
+        int check_link( const char* str_in, int& lng_in, char* str_text, size_t& lng_text, char* str_link,
+                        size_t& lng_link ) const;
 
         // レジューム時のチェックデータをキャッシュ
         void set_resume_data( const char* data, size_t length );
@@ -379,12 +391,11 @@ namespace DBTREE
         void update_id_name( const int from_number, const int to_number );
 
         // number番のレスの発言数をチェック
-        void check_id_name( const int number ) = delete;
+        void check_id_name( const int number );
 
         // 発言数( num_id_name )の更新
         // IDノードの色も変更する
-        void set_num_id_name( NODE* header, const int num_id_name );
-
+        void set_num_id_name( NODE* header, const int num_id_name, NODE* pre_id_name_header );
 
         // from_number番から to_number 番までのレスのフォント判定を更新
         void update_fontid( const int from_number, const int to_number );
@@ -395,27 +406,7 @@ namespace DBTREE
 
         // http://ime.nu/ などをリンクから削除
         static bool remove_imenu( char* str_link );
-
-        // 文字列中の"&amp;"を"&"に変換する
-        static int convert_amp( char* text, const int n );
     };
-
-
-    //
-    // リンクが現れたかチェックして文字列を取得する関数
-    //   (引数の値は、check_link_impl()を見ること)
-    //
-    inline int NodeTreeBase::check_link( const char* str_in, const int lng_in, int& n_in, char* str_link,
-                                         const int lng_link ) const
-    {
-        // http://, https://, ftp://, ttp(s)://, tp(s):// のチェック
-        int delim_pos = 0;
-        const int linktype = MISC::is_url_scheme( str_in, &delim_pos );
-
-        if( linktype == MISC::SCHEME_NONE ) return linktype;
-
-        return check_link_impl( str_in, lng_in, n_in, str_link, lng_link, linktype, delim_pos );
-    }
 }
 
 #endif

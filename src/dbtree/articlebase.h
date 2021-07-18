@@ -9,6 +9,8 @@
 #ifndef _ARTICLEBASE_H
 #define _ARTICLEBASE_H
 
+#include "charcode.h"
+
 #include "skeleton/lockable.h"
 
 #include <ctime>
@@ -47,11 +49,14 @@ namespace DBTREE
         std::string m_ext_err;       // HTTPコード以外のエラーメッセージ
         int m_status;                // 状態 ( global.h で定義 )
 
+        CharCode m_charcode;         // 文字エンコーディング
+
         // 移転する前にこのスレがあった旧ホスト名( 移転していないなら m_url に含まれているホスト名と同じ )
         // 詳しくはコンストラクタの説明を参照せよ
         std::string m_org_host;
 
         std::string m_subject;           // サブジェクト
+        std::string m_modified_subject;  // 置換で変更されたサブジェクト
         int m_number{};                  // サーバ上にあるレスの数
         int m_number_diff{};             // レス増分( subject.txt をロードした時の m_number の増分 )
         int m_number_new{};              // 新着数( ロードした時の差分読み込み数)
@@ -78,6 +83,8 @@ namespace DBTREE
         bool m_abone_transparent{}; // 透明あぼーん
         bool m_abone_chain{}; // 連鎖あぼーん
         bool m_abone_age{}; // age ているレスをあぼーん
+        bool m_abone_default_name{}; // デフォルト名無しをあぼーん
+        bool m_abone_noid{}; // ID無しをあぼーん
         bool m_abone_board; // 板レベルでのあぼーんを有効にする
         bool m_abone_global; // 全体レベルでのあぼーんを有効にする
 
@@ -118,7 +125,7 @@ namespace DBTREE
 
       public:
 
-        ArticleBase( const std::string& datbase, const std::string& id, bool cached );
+        ArticleBase( const std::string& datbase, const std::string& id, bool cached, const CharCode charcode );
         ~ArticleBase();
 
         bool empty() const noexcept { return m_url.empty(); }
@@ -141,13 +148,17 @@ namespace DBTREE
         const std::string& get_id() const { return m_id; }
         const std::string& get_key() const { return m_key; }
         const std::string& get_subject() const { return m_subject; }
+        const std::string& get_modified_subject( const bool renew = false );
         int get_number() const noexcept { return m_number; }
         int get_number_diff() const noexcept { return m_number_diff; }
         int get_number_new() const noexcept { return m_number_new; }
         int get_number_load() const noexcept { return m_number_load; }
         int get_number_seen() const noexcept {  return m_number_seen; }
+        int get_number_max() const noexcept { return m_number_max; }
 
-        void set_number_max( const int number ){ m_number_max = number; }
+        // 文字エンコーディング
+        CharCode get_charcode() const noexcept { return m_charcode; }
+        void set_charcode( const CharCode charcode ){ m_charcode = charcode; }
 
         // スレ速度
         int get_speed() const;
@@ -290,6 +301,7 @@ namespace DBTREE
         void set_number( const int number, const bool is_online );
         void set_number_load( const int number_load );
         void set_number_seen( const int number_seen );
+        void set_number_max( const int number_max );
         void update_writetime();
 
         // キャッシュ削除
@@ -328,6 +340,12 @@ namespace DBTREE
         // ageあぼーん
         bool get_abone_age() const { return m_abone_age; }
 
+        // デフォルト名無しあぼーん
+        bool get_abone_default_name() const { return m_abone_default_name; }
+
+        // ID無しあぼーん
+        bool get_abone_noid() const { return m_abone_noid; }
+
         // 板レベルでのあぼーん
         bool get_abone_board() const { return m_abone_board; }
 
@@ -347,6 +365,7 @@ namespace DBTREE
                           const std::list< std::string >& regexs,
                           const std::vector< char >& vec_abone_res,
                           const bool transparent, const bool chain, const bool age,
+                          const bool default_name, const bool noid,
                           const bool board, const bool global
             );
 
@@ -358,6 +377,8 @@ namespace DBTREE
         void set_abone_transparent( const bool set ); // 透明
         void set_abone_chain( const bool set ); // 連鎖
         void set_abone_age( const bool set ); // age
+        void set_abone_default_name( const bool set ); // デフォルト名無し
+        void set_abone_noid( const bool set ); // ID無し
         void set_abone_board( const bool set ); // 板レベルでのあぼーん
         void set_abone_global( const bool set ); // 全体レベルでのあぼーん
 
@@ -401,6 +422,9 @@ namespace DBTREE
         // スレッド924か
         bool is_924() const noexcept { return m_924; }
 
+        // NodeTree削除
+        void unlock_impl() override;
+
       private:
 
         // 更新チェック可能
@@ -416,7 +440,6 @@ namespace DBTREE
 
         void slot_node_updated();
         void slot_load_finished();
-        void unlock_impl() override;
 
         // お気に入りのアイコンとスレビューのタブのアイコンに更新マークを表示
         // update == true の時に表示。falseなら戻す
