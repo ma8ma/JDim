@@ -195,10 +195,12 @@ std::string RegexPattern::errstr() const
 
 
 bool Regex::match( const RegexPattern& creg, const std::string& target,
-                   const std::size_t offset, const bool notbol, const bool noteol )
+                   const std::size_t offset, const bool notbol, const bool noteol,
+                   const std::vector<std::string>& named_captures )
 {
     m_pos.clear();
     m_results.clear();
+    m_named_numbers.clear();
     m_target_asc.clear();
     m_table_pos.clear();
 
@@ -308,6 +310,11 @@ bool Regex::match( const RegexPattern& creg, const std::string& target,
 
 #ifndef POSIX_STYLE_REGEX_API
     g_match_info_free( pmatch );
+
+    for( const std::string& name : named_captures ) {
+        const int num = g_regex_get_string_number( creg.m_regex, name.c_str() );
+        if( num != -1 ) m_named_numbers.emplace( name, num );
+    }
 #endif
 
     return true;
@@ -364,4 +371,17 @@ std::string Regex::str( std::size_t num ) const
     if( m_results.size() > num ) return m_results[num];
 
     return {};
+}
+
+
+//
+// パターン中に名前が有れば名前付きキャプチャ、無ければグループ番号で取得する
+// どちらにもマッチしなかったときは空文字列を返す
+//
+std::string Regex::find_first_str_of( const std::string& name, std::size_t num ) const
+{
+    const auto it = m_named_numbers.find( name );
+    if( it != m_named_numbers.end() ) return m_results[it->second];
+
+    return str( num );
 }

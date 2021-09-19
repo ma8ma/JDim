@@ -3,6 +3,7 @@
 #ifndef _JDREGEX_H
 #define _JDREGEX_H
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -70,6 +71,7 @@ namespace JDLIB
     {
         std::vector<int> m_pos;
         std::vector<std::string> m_results;
+        std::map<std::string, int> m_named_numbers; // 名前付きキャプチャからグループ番号を取得する
 
         // 全角半角を区別しないときに使う変換用バッファ
         // 処理可能なバッファ長は regoff_t (= int) のサイズに制限される
@@ -83,8 +85,10 @@ namespace JDLIB
 
         // notbol : 行頭マッチは必ず失敗する
         // noteol : 行末マッチは必ず失敗する
+        // named_captures : 後で利用する名前付きキャプチャを登録する
         bool match( const RegexPattern& creg, const std::string& target, const std::size_t offset,
-                    const bool notbol = false, const bool noteol = false );
+                    const bool notbol = false, const bool noteol = false,
+                    const std::vector<std::string>& named_captures = {} );
 
         // icase : 大文字小文字区別しない
         // newline :  . に改行をマッチさせない
@@ -103,6 +107,11 @@ namespace JDLIB
         int length( std::size_t num ) const noexcept;
         int pos( std::size_t num ) const noexcept;
         std::string str( std::size_t num ) const;
+        // 名前付きキャプチャ版の取得APIは実際に使う箇所がないため未実装
+
+        // パターン中に名前が有れば名前付きキャプチャ、無ければグループ番号で取得する
+        // どちらにもマッチしなかったときは空文字列を返す
+        std::string find_first_str_of( const std::string& name, std::size_t num ) const;
     };
 }
 

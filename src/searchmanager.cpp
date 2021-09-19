@@ -260,14 +260,16 @@ void Search_Manager::search_fin_title()
         const bool usemigemo = false;
         const bool wchar = false;
         const JDLIB::RegexPattern regexptn( pattern, icase, newline, usemigemo, wchar );
+        const std::vector<std::string> named_caps = { "url", "subject", "number" };
 
         std::size_t offset = 0;
-        while( regex.match( regexptn, source, offset ) ){
+        while( regex.match( regexptn, source, offset, false, false, named_caps ) ){
 
             SEARCHDATA data;
-            data.url_readcgi = DBTREE::url_readcgi( regex.str( 1 ), 0, 0 );
-            data.subject = MISC::html_unescape( regex.str( 2 ) );
-            data.num = std::atoi( regex.str( 3 ).c_str() ); // マッチしていなければ 0 になる
+            // パターン中に名前が有れば名前付きキャプチャ、無ければグループ番号で取得する
+            data.url_readcgi = DBTREE::url_readcgi( regex.find_first_str_of( named_caps[0], 1 ), 0, 0 );
+            data.subject = MISC::html_unescape( regex.find_first_str_of( named_caps[1], 2 ) );
+            data.num = std::atoi( regex.find_first_str_of( named_caps[2], 3 ).c_str() ); // マッチしていなければ 0 になる
             data.bookmarked = false;
             data.num_bookmarked = 0;
 
