@@ -2,6 +2,15 @@
 
 #include "jdlib/jdregex.h"
 
+// oniguruma と gtest の regex プロトタイプ宣言が衝突しエラーになるためマクロをundefする
+#undef regex_t
+#undef regmatch_t
+#undef regoff_t
+#undef regcomp
+#undef regexec
+#undef regerror
+#undef regfree
+
 #include "gtest/gtest.h"
 
 
