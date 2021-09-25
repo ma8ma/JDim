@@ -21,8 +21,8 @@
 #define POSIX_STYLE_REGEX_API 1
 #endif
 
-// clang 5.0 はコンパイルエラーが起こるためnoexcept指定を外す
-#if defined(__clang__) && __clang_majar__ < 6
+// clang はコンパイルエラーが起こるためnoexcept指定を外す
+#if defined(__clang__)
 constexpr const bool kSupport_CWG_DR1778 = false;
 #else
 constexpr const bool kSupport_CWG_DR1778 = true;
