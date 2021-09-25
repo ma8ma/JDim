@@ -80,7 +80,7 @@ namespace JDLIB
 
     public:
 
-        Regex() = default;
+        Regex() noexcept = default;
         ~Regex() noexcept = default;
 
         // notbol : 行頭マッチは必ず失敗する

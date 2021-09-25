@@ -27,9 +27,6 @@ jobs:
           - cc: gcc-8
             cxx: g++-8
             package: g++-8
-          - cc: clang-5.0
-            cxx: clang++-5.0
-            package: clang-5.0
           - cc: clang-6.0
             cxx: clang++-6.0
             package: clang-6.0
