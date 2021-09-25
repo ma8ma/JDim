@@ -2,14 +2,8 @@
 
 #include "jdlib/jdregex.h"
 
-// oniguruma と gtest の regex プロトタイプ宣言が衝突しエラーになるためマクロをundefする
-#undef regex_t
-#undef regmatch_t
-#undef regoff_t
-#undef regcomp
-#undef regexec
-#undef regerror
-#undef regfree
+// oniguruma と gtest の regex プロトタイプ宣言が衝突しコンパイルエラーになるためテストはスキップする
+#ifndef POSIX_STYLE_REGEX_API
 
 #include "gtest/gtest.h"
 
@@ -63,3 +57,5 @@ TEST_F(Regex_FindFirstStrOfTest, register_invalid_name)
 }
 
 } // namespace
+
+#endif // POSIX_STYLE_REGEX_API

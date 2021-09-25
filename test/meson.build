@@ -15,7 +15,7 @@ deps = [
 
 
 test_exe = executable(
-  'gtest_jdim', [buildinfo_h, core_sources, sources],
+  'gtest_jdim', [buildinfo_h, core_sources, sources, config_h],
   dependencies : deps,
   include_directories : jdim_incs,
   link_with : jdim_libs,

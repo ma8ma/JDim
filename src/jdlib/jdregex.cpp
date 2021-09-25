@@ -380,8 +380,10 @@ std::string Regex::str( std::size_t num ) const
 //
 std::string Regex::find_first_str_of( const std::string& name, std::size_t num ) const
 {
+#ifndef POSIX_STYLE_REGEX_API
     const auto it = m_named_numbers.find( name );
     if( it != m_named_numbers.end() ) return m_results[it->second];
+#endif
 
     return str( num );
 }
