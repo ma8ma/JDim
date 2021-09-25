@@ -21,13 +21,6 @@
 #define POSIX_STYLE_REGEX_API 1
 #endif
 
-// clang はコンパイルエラーが起こるためnoexcept指定を外す
-#if defined(__clang__)
-constexpr const bool kSupport_CWG_DR1778 = false;
-#else
-constexpr const bool kSupport_CWG_DR1778 = true;
-#endif
-
 
 namespace JDLIB
 {
@@ -87,7 +80,7 @@ namespace JDLIB
 
     public:
 
-        Regex() noexcept(kSupport_CWG_DR1778) = default;
+        Regex() = default;
         ~Regex() noexcept = default;
 
         // notbol : 行頭マッチは必ず失敗する
