@@ -18,9 +18,6 @@ jobs:
     strategy:
       matrix:
         sets:
-          - cc: gcc-6
-            cxx: g++-6
-            package: g++-6
           - cc: gcc-7
             cxx: g++-7
             package: g++-7

@@ -5,7 +5,6 @@
 
 #include "boardmachi.h"
 #include "articlemachi.h"
-#include "articlehash.h"
 
 #include "jdlib/miscutil.h"
 #include "jdlib/miscmsg.h"

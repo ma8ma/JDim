@@ -5,7 +5,6 @@
 
 #include "boardjbbs.h"
 #include "articlejbbs.h"
-#include "articlehash.h"
 #include "ruleloader.h"
 #include "settingloader.h"
 

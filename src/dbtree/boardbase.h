@@ -6,8 +6,6 @@
 #ifndef _BOARDBASE_H
 #define _BOARDBASE_H
 
-#include "articlehash.h"
-
 #include "jdlib/jdregex.h"
 #include "skeleton/loadable.h"
 
@@ -15,6 +13,7 @@
 #include <list>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 
@@ -48,6 +47,8 @@ namespace DBTREE
 
     class Root;
     class ArticleBase;
+
+    using ArticleHash = std::unordered_multimap<std::string, std::unique_ptr<ArticleBase>>;
 
     class BoardBase : public SKELETON::Loadable
     {

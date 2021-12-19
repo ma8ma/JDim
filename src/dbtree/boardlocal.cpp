@@ -5,7 +5,6 @@
 
 #include "boardlocal.h"
 #include "articlelocal.h"
-#include "articlehash.h"
 
 #include "jdlib/miscutil.h"
 #include "jdlib/jdregex.h"

@@ -6,7 +6,6 @@
 
 #include "boardbase.h"
 #include "articlebase.h"
-#include "articlehash.h"
 #include "interface.h"
 
 #include "skeleton/msgdiag.h"
@@ -437,9 +436,9 @@ void BoardBase::clear_all_post_history()
 {
     // キャッシュにあるレスをデータベースに登録
     append_all_article_in_cache();
-    if( m_hash_article.size() == 0 ) return;
+    if( m_hash_article.empty() ) return;
 
-    for( ArticleBase* a : m_hash_article ) a->clear_post_history();
+    for( auto& [_, a] : m_hash_article ) { a->clear_post_history(); }
 }
 
 
@@ -448,17 +447,17 @@ void BoardBase::clear_all_post_history()
 //
 void BoardBase::reset_all_since_date()
 {
-    for( ArticleBase* a : m_hash_article ) a->reset_since_date();
+    for( auto& [_, a] : m_hash_article ) { a->reset_since_date(); }
 }
 
 void BoardBase::reset_all_write_date()
 {
-    for( ArticleBase* a : m_hash_article ) a->reset_write_date();
+    for( auto& [_, a] : m_hash_article ) { a->reset_write_date(); }
 }
 
 void BoardBase::reset_all_access_date()
 {
-    for( ArticleBase* a : m_hash_article ) a->reset_access_date();
+    for( auto& [_, a]: m_hash_article ) { a->reset_access_date(); }
 }
 
 
@@ -473,7 +472,7 @@ void BoardBase::set_number_max_res( const int number )
 
     m_number_max_res = MAX( 0, MIN( CONFIG::get_max_resnumber(), number ) );
 
-    for( ArticleBase* a : m_hash_article ) a->set_number_max( m_number_max_res );
+    for( auto& [_, a] : m_hash_article ) { a->set_number_max( m_number_max_res ); }
 }
 
 
@@ -531,7 +530,7 @@ void BoardBase::update_url( const std::string& root, const std::string& path_boa
 
     // 配下の ArticleBase にも知らせてあげる
     const std::string datbase = url_datbase();
-    for( ArticleBase* a : m_hash_article ) a->update_datbase( datbase );
+    for( auto& [_, a] : m_hash_article ) { a->update_datbase( datbase ); }
 }
 
 
@@ -861,8 +860,11 @@ ArticleBase* BoardBase::get_article( const std::string& datbase, const std::stri
     // キャッシュにあるレスをデータベースに登録
     append_all_article_in_cache();
 
-    ArticleBase* art = m_hash_article.find( datbase, id );
-    if( art ) return art;
+    auto range = m_hash_article.equal_range( datbase + id );
+    for( auto it_kv = range.first; it_kv != range.second; ++it_kv ) {
+        ArticleBase* art = it_kv->second.get();
+        if( art->equal( datbase, id ) ) return art;
+    }
 
     return get_article_null();
 }
@@ -904,9 +906,14 @@ ArticleBase* BoardBase::get_article_create( const std::string& datbase, const st
 }
 
 
+//
+// dat ファイルのURLをキーにハッシュマップに登録する
+//
 ArticleBase* BoardBase::insert( std::unique_ptr<ArticleBase> article )
 {
-    return m_hash_article.insert( std::move( article ) );
+    ArticleBase* a = article.get();
+    m_hash_article.emplace( a->get_url(), std::move( article ) );
+    return a;
 }
 
 
@@ -1279,13 +1286,13 @@ void BoardBase::receive_finish()
 
     // 一度全てのarticleをdat落ち状態にして subject.txt に
     // 含まれているものだけ regist_article()の中で通常状態にする
-    for( ArticleBase* article : m_hash_article ) {
+    for( auto& [_, article] : m_hash_article ) {
 
         if( read_from_cache && ! article->is_924()
                 && article->get_since_time() > m_last_access_time ){
             // キャッシュから読み込む場合にsubject.txtよりも新しいスレは残す
             article->read_info();
-            if( ! is_abone_thread( article ) ) m_list_subject.push_back( article );
+            if( ! is_abone_thread( article.get() ) ) m_list_subject.push_back( article.get() );
         }
         else{
             int status = article->get_status();
@@ -1322,7 +1329,7 @@ void BoardBase::receive_finish()
         // DAT落ちなどでsubject.txtに無いスレもsubjectリストに加える
         if( CONFIG::get_show_oldarticle() || m_show_oldlog ){
 
-            for( ArticleBase* article : m_hash_article ) {
+            for( auto& [_, article] : m_hash_article ) {
 
                 if( article->is_cached()
                     && ( article->get_status() & STATUS_OLD )
@@ -1337,7 +1344,7 @@ void BoardBase::receive_finish()
 #endif
                     article->read_info();
 
-                    if( ! is_abone_thread( article ) ) m_list_subject.push_back( article );
+                    if( ! is_abone_thread( article.get() ) ) m_list_subject.push_back( article.get() );
                 }
             }
         }
@@ -1495,7 +1502,7 @@ void BoardBase::append_all_article_in_cache()
 //
 void BoardBase::update_abone_all_article()
 {
-    for( ArticleBase* a : m_hash_article ) a->update_abone();
+    for( auto& [_, a] : m_hash_article ) { a->update_abone(); }
 }
 
 
@@ -1844,7 +1851,7 @@ void BoardBase::search_cache( std::vector< DBTREE::ArticleBase* >& list_article,
 
     // キャッシュにあるレスをデータベースに登録
     append_all_article_in_cache();
-    if( m_hash_article.size() == 0 ) return;
+    if( m_hash_article.empty() ) return;
 
     const bool append_all = query.empty();
     const std::string query_local = MISC::Iconv( query, get_charset(), "UTF-8" );
@@ -1852,7 +1859,7 @@ void BoardBase::search_cache( std::vector< DBTREE::ArticleBase* >& list_article,
 
     const std::string path_board_root = CACHE::path_board_root_fast( url_boardbase() );
 
-    for( ArticleBase* article : m_hash_article ) {
+    for( auto& [_, article] : m_hash_article ) {
 
         if( stop ) break;
 
@@ -1872,7 +1879,7 @@ void BoardBase::search_cache( std::vector< DBTREE::ArticleBase* >& list_article,
 #ifdef _DEBUG
             std::cout << "append " << article->get_subject() << " bm = " << article->get_num_bookmark() << std::endl;
 #endif
-            list_article.push_back( article );
+            list_article.push_back( article.get() );
             continue;
         }
 
@@ -1897,7 +1904,7 @@ void BoardBase::search_cache( std::vector< DBTREE::ArticleBase* >& list_article,
                 std::cout << "found word in " << url_readcgi( article->get_url(), 0, 0 ) << std::endl
                           << article->get_subject() << std::endl;
 #endif
-                list_article.push_back( article );
+                list_article.push_back( article.get() );
             }
         }
     }
@@ -2264,7 +2271,7 @@ void BoardBase::save_board_info()
 //
 void BoardBase::save_articleinfo_all()
 {
-    for( ArticleBase* a : m_hash_article ) a->save_info( false );
+    for( auto& [_, a] : m_hash_article ) { a->save_info( false ); }
 }
 
 
@@ -2336,7 +2343,7 @@ std::list< std::string > BoardBase::get_check_update_articles()
 
     std::list< int > list_speed;
 
-    for( ArticleBase* article : m_hash_article ) {
+    for( auto& [_, article] : m_hash_article ) {
 
         if( article->is_cached()
             && article->get_number()

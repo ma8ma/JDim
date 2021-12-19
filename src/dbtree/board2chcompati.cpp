@@ -5,7 +5,6 @@
 
 #include "board2chcompati.h"
 #include "article2chcompati.h"
-#include "articlehash.h"
 #include "settingloader.h"
 #include "ruleloader.h"
 

@@ -5,7 +5,6 @@
 
 #include "board2ch.h"
 #include "article2ch.h"
-#include "articlehash.h"
 #include "frontloader.h"
 
 #include "config/globalconf.h"
