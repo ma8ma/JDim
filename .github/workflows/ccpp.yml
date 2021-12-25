@@ -10,7 +10,7 @@ on:
 
 jobs:
 
-  compiler-20:
+  compiler-20-1:
     runs-on: ubuntu-20.04
     env:
       CC: ${{ matrix.sets.cc }}
@@ -51,7 +51,7 @@ jobs:
       - name: ./build/src/jdim -V
         run: ./build/src/jdim -V
 
-  compiler-20:
+  compiler-20-2:
     runs-on: ubuntu-20.04
     env:
       CC: ${{ matrix.sets.cc }}
