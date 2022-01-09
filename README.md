@@ -98,9 +98,12 @@ sudo apt install libgtkmm-3.0-dev libmigemo1 libasound2-data libltdl-dev libasou
 
 ### ビルド
 
+テスト版(**minefield**ブランチ)をビルドします。
+masterブランチのビルドは https://github.com/JDimproved/JDim を見てください。
+
 ```sh
-git clone -b master --depth 1 https://github.com/JDimproved/JDim.git jdim
-cd jdim
+git clone -b minefield --depth 1 https://github.com/ma8ma/JDim.git jdim-minefield
+cd jdim-minefield
 autoreconf -i
 ./configure
 make

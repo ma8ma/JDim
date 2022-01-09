@@ -16,9 +16,9 @@
 
 #define MAJORVERSION 0
 #define MINORVERSION 7
-#define MICROVERSION 0
-#define JDDATE_FALLBACK    "20220103"
-#define JDTAG     "beta"
+#define MICROVERSION 90
+#define JDDATE_FALLBACK    "20220109"
+#define JDTAG     "ma8ma"
 
 //---------------------------------
 
