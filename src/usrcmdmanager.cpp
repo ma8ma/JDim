@@ -107,6 +107,7 @@ void Usrcmd_Manager::analyze_xml()
     }
 
     m_size = m_list_cmd.size();
+    m_need_rebuild = true;
 }
 
 
@@ -534,4 +535,142 @@ void Usrcmd_Manager::toggle_sensitive( Glib::RefPtr< Gtk::ActionGroup >& action_
             }
         }
     }
+}
+
+
+
+/** @brief ユーザーコマンドのGAction名を返す
+ *
+ * @param[in] num ユーザーコマンドの番号
+ * @return GAction名
+ */
+Glib::ustring Usrcmd_Manager::get_action_name( const int num ) const
+{
+    return Glib::ustring::compose( "usrcmd%1", num );
+}
+
+
+/**
+ * @brief ユーザーコマンドのメニューを初期化して返す
+ */
+Glib::RefPtr<Gio::Menu> Usrcmd_Manager::get_usrcmd_menu()
+{
+    if( m_menumodel ) {
+        m_menumodel->remove_all();
+    }
+    else {
+        m_menumodel = Gio::Menu::create();
+    }
+    return m_menumodel;
+}
+
+
+/** @brief ユーザコマンドの登録とメニュー作成
+ *
+ * @param[in] action_scope GActionのスコープ
+ * @param[in] dom          メニュー構造のDOM
+ * @param[in,out] cmdno    ユーザーコマンドの番号をカウントする
+ * @param[in] hide         非表示にするユーザーコマンドの番号
+ */
+Glib::RefPtr<Gio::Menu> Usrcmd_Manager::create_usrcmd_menu( const Glib::ustring& action_scope,
+                                                            const XML::Dom* dom, int& cmdno,
+                                                            const std::vector<int>& hide )
+{
+    Glib::RefPtr<Gio::Menu> menu = Gio::Menu::create();
+    if( ! dom ) return menu;
+
+    Glib::RefPtr<Gio::Menu> section = Gio::Menu::create();;
+    for( const XML::Dom* child : *dom ) {
+
+        if( child->nodeType() == XML::NODE_TYPE_ELEMENT ) {
+#ifdef _DEBUG
+            std::cout << "name = " << child->nodeName() << std::endl;
+#endif
+            const int type = XML::get_type( child->nodeName() );
+
+            if( type == TYPE_DIR ) {
+
+                const Glib::ustring name = child->getAttribute( "name" );
+#ifdef _DEBUG
+                std::cout << "[ subdir ] " << name << std::endl;
+#endif
+                section->append_submenu( name, create_usrcmd_menu( action_scope, child, cmdno, hide ) );
+            }
+
+            else if( type == TYPE_SEPARATOR ) {
+
+                menu->append_section( section );
+                section = Gio::Menu::create();
+            }
+
+            else if( type == TYPE_USRCMD ) {
+
+                if( std::find( hide.begin(), hide.end(), cmdno ) == hide.end() ) {
+                    const Glib::ustring name = child->getAttribute( "name" );
+#ifdef _DEBUG
+                    std::cout << "[" << cmdno << "] " << name << std::endl;
+#endif
+                    section->append( name, Glib::ustring::compose( "%1.usrcmd%2", action_scope, cmdno ) );
+                }
+                ++cmdno;
+            }
+
+            // root要素(ROOT_NODE_NAME_USRCMD) はDOMヘッダー(NODE_TYPE_DOCUMENT) の子要素
+            else if( child->hasChildNodes() ) {
+                menu->append_section( create_usrcmd_menu( action_scope, child, cmdno, hide ) );
+            }
+
+        }
+    }
+
+    if( section->get_n_items() > 0 ) {
+        menu->append_section( section );
+    }
+    return menu;
+}
+
+
+/** @brief ユーザーコマンドの項目を更新する
+ *
+ * 選択不可かどうか判断して visible か sensitive にする
+ * @param[in] action_group アクションのグループ
+ * @param[in] url_article  スレッドのURL
+ * @param[in] url_link     リンクのURL
+ * @param[in] str_select   選択中のテキスト
+ * @param[in] action_scope GActionのスコープ
+ */
+void Usrcmd_Manager::update_menu_items( const Glib::RefPtr<Gio::SimpleActionGroup>& action_group,
+                                        const std::string& url_article,
+                                        const std::string& url_link,
+                                        const std::string& str_select,
+                                        const std::string& action_scope )
+{
+    if( m_size == 0 || ! m_menumodel ) return;
+
+    std::vector<int> hide;
+    for( int i = 0; i < m_size; ++i ) {
+
+        auto act_name = get_action_name( i );
+        auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( action_group->lookup_action( act_name ) );
+        if( ! act ) continue;
+
+        if( is_hide( i, url_article ) ) hide.push_back( i );
+        else {
+            if( is_sensitive( i, url_link, str_select ) ) {
+                act->set_enabled( true );
+            }
+            else {
+                act->set_enabled( false );
+                if( CONFIG::get_hide_usrcmd() ) hide.push_back( i );
+            }
+        }
+    }
+
+    if( m_menumodel->get_n_items() > 0 && hide.empty() && ! m_need_rebuild ) return;
+
+    // ユーザーコマンドの項目を再構築する
+    int cmdno = 0;
+    m_menumodel->remove_all();
+    m_menumodel->append_section( create_usrcmd_menu( action_scope, &m_document, cmdno, hide ) );
+    m_need_rebuild = false;
 }
