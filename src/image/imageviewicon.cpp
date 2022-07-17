@@ -27,6 +27,7 @@ using namespace IMAGE;
 ImageViewIcon::ImageViewIcon( const std::string& url )
     : ImageViewBase( url )
     , m_provider{ Gtk::CssProvider::create() }
+    , m_prev_n_tabs{ -1 }
 {
 #ifdef _DEBUG    
     std::cout << "ImageViewIcon::ImageViewIcon : " << get_url() << std::endl;
@@ -175,19 +176,34 @@ void ImageViewIcon::switch_icon()
 //
 Gtk::Menu* ImageViewIcon::get_popupmenu( const std::string& url )
 {
-    Gtk::Menu* menu = dynamic_cast< Gtk::Menu* >( ui_manager()->get_widget( "/popup_menu_icon" ) );
+    // 初回の呼び出し時にメニューモデルをバインドする
+    if( ! m_popup_menu.get_attach_widget() ) {
+        m_menumodel = Glib::RefPtr<Gio::Menu>::cast_dynamic( m_builder->get_object( "popup_menu_icon" ) );
+        m_popup_menu.bind_model( m_menumodel, true );
+        m_popup_menu.attach_to_widget( *this );
 
-    // タブ情報セット
-    if( menu ){
+        // タブ切り替えサブメニュー
+        auto submenu = Glib::RefPtr<Gio::MenuModel>::cast_dynamic( m_builder->get_object( "move_submenu" ) );
+        m_item_sub = Gio::MenuItem::create( ITEM_NAME_GO, submenu );
 
-        // 一番上のitemのラベルを書き換える
-        auto item = dynamic_cast< Gtk::MenuItem* >( *menu->get_children().begin() );
-        auto label = dynamic_cast< Gtk::Label* >( item->get_child() );
-        if( label ) label->set_text_with_mnemonic( ITEM_NAME_GO + std::string( " [ タブ数 " )
-                                                   + std::to_string( IMAGE::get_admin()->get_tab_nums() ) + " ](_M)" );
+        m_menumodel->prepend_item( m_item_sub );
     }
 
-    return menu;
+    // メニュー項目ラベルの更新は重いためタブ数が変わらないときは更新しない
+    const int n_tabs = IMAGE::get_admin()->get_tab_nums();
+    if( n_tabs != m_prev_n_tabs ) {
+        assert( m_menumodel );
+        // Gio::Menuを使うとメニューに追加された項目のラベルは変更できない
+        // 動的なメニュー項目を実現するには一旦メニューから項目を取り除く必要がある
+        m_menumodel->remove( 0 );
+        auto label = Glib::ustring::compose( ITEM_NAME_GO " [ タブ数 %1 ](_M)", n_tabs );
+        m_item_sub->set_label( label );
+        m_menumodel->prepend_item( m_item_sub );
+
+        m_prev_n_tabs = n_tabs;
+    }
+
+    return &m_popup_menu;
 }
 
 

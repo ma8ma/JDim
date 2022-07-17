@@ -322,8 +322,13 @@ void ImageViewPopup::clicked()
 //
 Gtk::Menu* ImageViewPopup::get_popupmenu( const std::string& url )
 {
-    Gtk::Menu* popupmenu = dynamic_cast< Gtk::Menu* >( ui_manager()->get_widget( "/popup_menu_popup" ) );
-    return popupmenu;
+    // 初回の呼び出し時にメニューモデルをバインドする
+    if( ! m_popup_menu.get_attach_widget() ) {
+        auto menumodel = Glib::RefPtr<Gio::MenuModel>::cast_dynamic( m_builder->get_object( "popup_menu_popup" ) );
+        m_popup_menu.bind_model( menumodel, true );
+        m_popup_menu.attach_to_widget( *this );
+    }
+    return &m_popup_menu;
 }
 
 

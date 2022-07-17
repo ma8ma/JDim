@@ -22,6 +22,8 @@ namespace IMAGE
 
         bool m_clicked{};
 
+        Gtk::Menu m_popup_menu;
+
       public:
 
         explicit ImageViewPopup( const std::string& url );

@@ -31,6 +31,8 @@ namespace IMAGE
         bool m_do_resizing{};
         bool m_scrolled{};
 
+        Gtk::Menu m_popup_menu;
+
       public:
         explicit ImageViewMain( const std::string& url );
         ~ImageViewMain();

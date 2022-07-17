@@ -16,6 +16,11 @@ namespace IMAGE
         /// 選択されてる画像アイコンの背景色を赤に設定するプロバイダ
         Glib::RefPtr<Gtk::CssProvider> m_provider;
 
+        Gtk::Menu m_popup_menu;
+        Glib::RefPtr<Gio::Menu> m_menumodel;
+        Glib::RefPtr<Gio::MenuItem> m_item_sub;
+        int m_prev_n_tabs; ///< 前回表示したときのタブ数
+
       public:
         explicit ImageViewIcon( const std::string& url );
         ~ImageViewIcon();

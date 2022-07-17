@@ -34,6 +34,45 @@
 #include <sstream>
 
 
+// GtkMenu の項目
+// GtkBuilderのUI definitionはボイラープレートコードが多いためマクロで整理する
+
+/// メニュー項目のUI definitionを作る
+#define MENU_ITEM_ELEM(label, action) \
+    R"(<item><attribute name="label" translatable="yes">)" label "</attribute>" \
+    R"(<attribute name="action">)" action "</attribute></item>"
+
+/// サブメニューのUI definitionを作る
+#define SUBMENU_ELEM(label, ...) \
+    R"(<submenu><attribute name="label" translatable="yes">)" label "</attribute>" __VA_ARGS__ "</submenu>"
+
+
+#define POPUPMENU_FOOTER1 \
+    "<section>" \
+    MENU_ITEM_ELEM(ITEM_NAME_COPY_URL "(_U)", "image.CopyURL") \
+    "</section>" \
+    "<section>" \
+    MENU_ITEM_ELEM(ITEM_NAME_APPENDFAVORITE "(_F)...", "image.AppendFavorite") \
+    MENU_ITEM_ELEM("名前を付けて保存(_S)...", "image.Save") \
+    "</section>" \
+    "<section>" \
+    MENU_ITEM_ELEM(ITEM_NAME_STOPLOADING "(_T)", "image.LoadStop") \
+    MENU_ITEM_ELEM("強制再読み込み(_E)", "image.Reload") \
+    "</section>"
+
+#define POPUPMENU_FOOTER2 \
+    "<section>" \
+    MENU_ITEM_ELEM("キャッシュを保護する(_H)", "image.ProtectImage") \
+    SUBMENU_ELEM(ITEM_NAME_DELETE "(_D)", MENU_ITEM_ELEM("削除する(_D)", "image.DeleteImage")) \
+    "</section>" \
+    "<section>" \
+    MENU_ITEM_ELEM("画像をあぼ〜んする(_B)", "image.AboneImage") \
+    "</section>" \
+    "<section>" \
+    MENU_ITEM_ELEM(ITEM_NAME_PREF_IMAGE "(_P)...", "image.PreferenceImage") \
+    "</section>"
+
+
 #define SIZE_MENU { 25, 50, 75, 100, 150, 200, 400 }
 
 
@@ -104,261 +143,203 @@ void ImageViewBase::setup_common()
     m_event.grab_focus();
 
     // ポップアップメニューの設定
-    // アクショングループを作ってUIマネージャに登録
-    action_group() = Gtk::ActionGroup::create();
-    action_group()->add( Gtk::Action::create( "CancelMosaic", "CancelMosaic"),
-                         sigc::mem_fun( *this, &ImageViewBase::slot_cancel_mosaic ) );
-    action_group()->add( Gtk::Action::create( "ShowLargeImg", "サイズが大きい画像を表示(_G)"),
-                         sigc::mem_fun( *this, &ImageViewBase::slot_show_large_img ) );
-    action_group()->add( Gtk::Action::create( "LoadStop", "StopLoading" ), sigc::mem_fun( *this, &ImageViewBase::stop ) );
-    action_group()->add( Gtk::Action::create( "Reload", "強制再読み込み(_E)"), sigc::mem_fun( *this, &ImageViewBase::slot_reload_force ) );
-    action_group()->add( Gtk::Action::create( "AppendFavorite", "AppendFavorite"), sigc::mem_fun( *this, &ImageViewBase::slot_favorite ) );
+    // アクショングループを作ってビューにに登録
+    m_action_group = Gio::SimpleActionGroup::create();
+    m_action_group->add_action( "CancelMosaic", sigc::mem_fun( *this, &ImageViewBase::slot_cancel_mosaic ) );
+    m_action_group->add_action( "ShowLargeImg", sigc::mem_fun( *this, &ImageViewBase::slot_show_large_img ) );
+    m_action_group->add_action( "LoadStop", sigc::mem_fun( *this, &ImageViewBase::stop ) );
+    m_action_group->add_action( "Reload", sigc::mem_fun( *this, &ImageViewBase::slot_reload_force ) );
+    m_action_group->add_action( "AppendFavorite", sigc::mem_fun( *this, &ImageViewBase::slot_favorite ) );
 
-    action_group()->add( Gtk::Action::create( "ZoomFitImage", "ZoomFitImage" ),
-                         sigc::mem_fun( *this, &ImageViewBase::slot_fit_win ) );
-    action_group()->add( Gtk::Action::create( "ZoomInImage", "ZoomInImage" ),
-                         sigc::mem_fun( *this, &ImageViewBase::slot_zoom_in ) );
-    action_group()->add( Gtk::Action::create( "ZoomOutImage", "ZoomOutImage" ),
-                         sigc::mem_fun( *this, &ImageViewBase::slot_zoom_out ) );
-    action_group()->add( Gtk::Action::create( "OrgSizeImage", "OrgSizeImage" ),
-                         sigc::bind< int >( sigc::mem_fun( *this, &ImageViewBase::slot_resize_image ), 100 ) );
-
-    action_group()->add( Gtk::Action::create( "Size_Menu", "サイズ変更(_R)" ) );
+    m_action_group->add_action( "ZoomFitImage", sigc::mem_fun( *this, &ImageViewBase::slot_fit_win ) );
+    m_action_group->add_action( "ZoomInImage", sigc::mem_fun( *this, &ImageViewBase::slot_zoom_in ) );
+    m_action_group->add_action( "ZoomOutImage", sigc::mem_fun( *this, &ImageViewBase::slot_zoom_out ) );
+    m_action_group->add_action( "OrgSizeImage", sigc::bind( sigc::mem_fun( *this, &ImageViewBase::slot_resize_image ), 100 ) );
 
     // サイズ
-    unsigned int size[] = SIZE_MENU;
-    for( unsigned int i = 0; i < sizeof( size )/sizeof( unsigned int ) ; ++i ){
-        int tmp_size = size[ i ];
-        std::string str_size = std::to_string( tmp_size );
-        //ショートカットは、1から始まる
-        std::string str_shortcut = "(_" + std::to_string( i+1 ) + ")";
-        Glib::RefPtr< Gtk::Action > action = Gtk::Action::create( "Size" + str_size, str_size + "%" + str_shortcut );
-        action_group()->add( action, sigc::bind< int >( sigc::mem_fun( *this, &ImageViewBase::slot_resize_image ), tmp_size ) );
-    }
+    m_action_group->add_action( "Size25", sigc::bind( sigc::mem_fun( *this, &ImageViewBase::slot_resize_image ), 25 ) );
+    m_action_group->add_action( "Size50", sigc::bind( sigc::mem_fun( *this, &ImageViewBase::slot_resize_image ), 50 ) );
+    m_action_group->add_action( "Size75", sigc::bind( sigc::mem_fun( *this, &ImageViewBase::slot_resize_image ), 75 ) );
+    m_action_group->add_action( "Size100", sigc::bind( sigc::mem_fun( *this, &ImageViewBase::slot_resize_image ), 100 ) );
+    m_action_group->add_action( "Size150", sigc::bind( sigc::mem_fun( *this, &ImageViewBase::slot_resize_image ), 150 ) );
+    m_action_group->add_action( "Size200", sigc::bind( sigc::mem_fun( *this, &ImageViewBase::slot_resize_image ), 200 ) );
+    m_action_group->add_action( "Size400", sigc::bind( sigc::mem_fun( *this, &ImageViewBase::slot_resize_image ), 400 ) );
 
-    action_group()->add( Gtk::Action::create( "Move_Menu", ITEM_NAME_GO "(_M)" ) );
-    action_group()->add( Gtk::Action::create( "MoveHead", "先頭に移動(_H)" ), sigc::mem_fun( *this, &ImageViewBase::slot_move_head ) );
-    action_group()->add( Gtk::Action::create( "MoveTail", "最後に移動(_T)" ), sigc::mem_fun( *this, &ImageViewBase::slot_move_tail ) );
+    m_action_group->add_action( "MoveHead", sigc::mem_fun( *this, &ImageViewBase::slot_move_head ) );
+    m_action_group->add_action( "MoveTail", sigc::mem_fun( *this, &ImageViewBase::slot_move_tail ) );
 
-    action_group()->add( Gtk::Action::create( "Quit", "Quit" ), sigc::mem_fun( *this, &ImageViewBase::close_view ) );
+    m_action_group->add_action( "Quit", sigc::mem_fun( *this, &ImageViewBase::close_view ) );
 
-    action_group()->add( Gtk::Action::create( "Close_Menu", "複数の画像を閉じる(_L)" ) );
-    action_group()->add( Gtk::Action::create( "CloseOther", "他の画像(_O)" ), sigc::mem_fun( *this, &ImageViewBase::slot_close_other_views ) );
-    action_group()->add( Gtk::Action::create( "CloseLeft", "左←の画像(_L)" ), sigc::mem_fun( *this, &ImageViewBase::slot_close_left_views ) );
-    action_group()->add( Gtk::Action::create( "CloseRight", "右→の画像(_R)" ), sigc::mem_fun( *this, &ImageViewBase::slot_close_right_views ) );
-    action_group()->add( Gtk::Action::create( "CloseError404", "エラー画像(404,403のみ)(_E)" ), sigc::mem_fun( *this, &ImageViewBase::slot_close_error_views ) );
-    action_group()->add( Gtk::Action::create( "CloseError503", "エラー画像(timeout,503以外)(_T)" ), sigc::mem_fun( *this, &ImageViewBase::slot_close_notimeout_error_views ) );
-    action_group()->add( Gtk::Action::create( "CloseErrorAll", "エラー画像(読込み中含め全て)(_W)" ), sigc::mem_fun( *this, &ImageViewBase::slot_close_all_error_views ) );
-    action_group()->add( Gtk::Action::create( "CloseNoError", "エラー以外の画像(_N)" ), sigc::mem_fun( *this, &ImageViewBase::slot_close_noerror_views ) );
-    action_group()->add( Gtk::Action::create( "CloseAll", "全ての画像(_A)" ), sigc::mem_fun( *this, &ImageViewBase::slot_close_all_views ) );
+    m_action_group->add_action( "CloseOther", sigc::mem_fun( *this, &ImageViewBase::slot_close_other_views ) );
+    m_action_group->add_action( "CloseLeft", sigc::mem_fun( *this, &ImageViewBase::slot_close_left_views ) );
+    m_action_group->add_action( "CloseRight", sigc::mem_fun( *this, &ImageViewBase::slot_close_right_views ) );
+    m_action_group->add_action( "CloseError404", sigc::mem_fun( *this, &ImageViewBase::slot_close_error_views ) );
+    m_action_group->add_action( "CloseError503", sigc::mem_fun( *this, &ImageViewBase::slot_close_notimeout_error_views ) );
+    m_action_group->add_action( "CloseErrorAll", sigc::mem_fun( *this, &ImageViewBase::slot_close_all_error_views ) );
+    m_action_group->add_action( "CloseNoError", sigc::mem_fun( *this, &ImageViewBase::slot_close_noerror_views ) );
+    m_action_group->add_action( "CloseAll", sigc::mem_fun( *this, &ImageViewBase::slot_close_all_views ) );
 
-    action_group()->add( Gtk::ToggleAction::create( "LockTab", "タブをロックする(_K)", std::string(), false ),
-                         sigc::mem_fun( *this, &ImageViewBase::slot_lock ) );
+    m_action_group->add_action_bool( "LockTab", sigc::mem_fun( *this, &ImageViewBase::slot_lock ), false );
 
-    action_group()->add( Gtk::Action::create( "OpenBrowser", ITEM_NAME_OPEN_BROWSER "(_W)" ),
-                         sigc::mem_fun( *this, &ImageViewBase::slot_open_browser ) );
-    action_group()->add( Gtk::Action::create( "OpenCacheBrowser", ITEM_NAME_OPEN_CACHE_BROWSER "(_X)" ),
-                         sigc::mem_fun( *this, &ImageViewBase::slot_open_cache_browser ) );
-    action_group()->add( Gtk::Action::create( "OpenRef", "参照元のレスを開く(_O)"), sigc::mem_fun( *this, &ImageViewBase::slot_open_ref ) );
-    action_group()->add( Gtk::Action::create( "CopyURL", ITEM_NAME_COPY_URL "(_U)" ), sigc::mem_fun( *this, &ImageViewBase::slot_copy_url ) );
-    action_group()->add( Gtk::Action::create( "Save", "Save"), sigc::mem_fun( *this, &ImageViewBase::slot_save ) );
-    action_group()->add( Gtk::Action::create( "SaveAll", "全ての画像を保存(_A)..."), sigc::mem_fun( *this, &ImageViewBase::slot_save_all ) );
+    m_action_group->add_action( "OpenBrowser", sigc::mem_fun( *this, &ImageViewBase::slot_open_browser ) );
+    m_action_group->add_action( "OpenCacheBrowser", sigc::mem_fun( *this, &ImageViewBase::slot_open_cache_browser ) );
+    m_action_group->add_action( "OpenRef", sigc::mem_fun( *this, &ImageViewBase::slot_open_ref ) );
+    m_action_group->add_action( "CopyURL", sigc::mem_fun( *this, &ImageViewBase::slot_copy_url ) );
+    m_action_group->add_action( "Save", sigc::mem_fun( *this, &ImageViewBase::slot_save ) );
+    m_action_group->add_action( "SaveAll", sigc::mem_fun( *this, &ImageViewBase::slot_save_all ) );
 
-    action_group()->add( Gtk::Action::create( "DeleteMenu", "Delete" ) );    
-    action_group()->add( Gtk::Action::create( "DeleteImage", "削除する(_D)"), sigc::mem_fun( *this, &ImageViewBase::delete_view ) );
-    action_group()->add( Gtk::ToggleAction::create( "ProtectImage", "キャッシュを保護する(_H)", std::string(), false ),
-                         sigc::mem_fun( *this, &ImageViewBase::slot_toggle_protectimage ) );
+    m_action_group->add_action( "DeleteImage", sigc::mem_fun( *this, &ImageViewBase::delete_view ) );
+    m_action_group->add_action_bool( "ProtectImage", sigc::mem_fun( *this, &ImageViewBase::slot_toggle_protectimage ), false );
 
-    action_group()->add( Gtk::Action::create( "AboneImage", "画像をあぼ〜んする(_B)"), sigc::mem_fun( *this, &ImageViewBase::slot_abone_img ) );
+    m_action_group->add_action( "AboneImage", sigc::mem_fun( *this, &ImageViewBase::slot_abone_img ) );
 
-    action_group()->add( Gtk::Action::create( "PreferenceImage", "PreferenceImage"), sigc::mem_fun( *this, &ImageViewBase::show_preference ) );
-    action_group()->add( Gtk::Action::create( "Preference", "プロパティ(_P)..."), sigc::mem_fun( *this, &ImageViewBase::show_preference ) );
+    m_action_group->add_action( "PreferenceImage", sigc::mem_fun( *this, &ImageViewBase::show_preference ) );
 
-    const std::string usrcmd = CORE::get_usrcmd_manager()->create_usrcmd_menu( action_group() );
     const int usrcmd_size = CORE::get_usrcmd_manager()->get_size();
     for( int i = 0; i < usrcmd_size; ++i ){
-        Glib::RefPtr< Gtk::Action > act = CORE::get_usrcmd_manager()->get_action( action_group(), i );
-        if( act ) act->signal_activate().connect(
-            sigc::bind< int >( sigc::mem_fun( *this, &ImageViewBase::slot_usrcmd ), i ) );
+        auto act_name = CORE::get_usrcmd_manager()->get_action_name( i );
+        m_action_group->add_action( act_name, sigc::bind( sigc::mem_fun( *this, &ImageViewBase::slot_usrcmd ), i ) );
     }
 
-    ui_manager() = Gtk::UIManager::create();    
-    ui_manager()->insert_action_group( action_group() );
+    insert_action_group( "image", m_action_group );
 
     // 画像ビューのメニュー
-    const std::string menu = 
+    const std::string menu =
 
-    "<popup name='popup_menu'>"
+    R"(<menu id="popup_menu">)"
 
-    "<menuitem action='CancelMosaic'/>"
-    "<menuitem action='ShowLargeImg'/>"
-    "<separator/>"
+    "<section>"
+    MENU_ITEM_ELEM("モザイク解除(_M)", "image.CancelMosaic")
+    MENU_ITEM_ELEM("サイズが大きい画像を表示(_G)", "image.ShowLargeImg")
+    "</section>"
 
-    "<menuitem action='Quit'/>"
-    "<separator/>"
+    "<section>"
+    MENU_ITEM_ELEM(ITEM_NAME_QUIT "(_C)", "image.Quit")
+    "</section>"
 
-    "<menu action='Size_Menu'>"
-    "<menuitem action='Size25'/>"
-    "<menuitem action='Size50'/>"
-    "<menuitem action='Size75'/>"
-    "<menuitem action='Size100'/>"
-    "<menuitem action='Size150'/>"
-    "<menuitem action='Size200'/>"
-    "<menuitem action='Size400'/>"
-    "</menu>"
-    "<menuitem action='OrgSizeImage'/>"
-    "<menuitem action='ZoomFitImage'/>"
-    "<menuitem action='ZoomInImage'/>"
-    "<menuitem action='ZoomOutImage'/>"
-    "<separator/>"
+    "<section>"
+    SUBMENU_ELEM("サイズ変更(_R)",
+    MENU_ITEM_ELEM("25%(_1)", "image.Size25")
+    MENU_ITEM_ELEM("50%(_2)", "image.Size50")
+    MENU_ITEM_ELEM("75%(_3)", "image.Size75")
+    MENU_ITEM_ELEM("100%(_4)", "image.Size100")
+    MENU_ITEM_ELEM("150%(_5)", "image.Size150")
+    MENU_ITEM_ELEM("200%(_6)", "image.Size200")
+    MENU_ITEM_ELEM("400%(_7)", "image.Size400")
+    ) // SUBMENU_ELEM
+    MENU_ITEM_ELEM("元の画像サイズ(_N)", "image.OrgSizeImage")
+    MENU_ITEM_ELEM("画面に画像サイズを合わせる(_A)", "image.ZoomFitImage")
+    MENU_ITEM_ELEM("ズームイン(_I)", "image.ZoomInImage")
+    MENU_ITEM_ELEM("ズームアウト(_Z)", "image.ZoomOutImage")
+    "</section>"
 
-    "<menuitem action='OpenBrowser'/>"
-    "<menuitem action='OpenCacheBrowser'/>"
-    "<menuitem action='OpenRef'/>"
-    + usrcmd
-    + std::string( 
-    "<separator/>"
+    "<section>"
+    MENU_ITEM_ELEM(ITEM_NAME_OPEN_BROWSER "(_W)", "image.OpenBrowser")
+    MENU_ITEM_ELEM(ITEM_NAME_OPEN_CACHE_BROWSER "(_X)", "image.OpenCacheBrowser")
+    MENU_ITEM_ELEM("参照元のレスを開く(_O)", "image.OpenRef")
+    "</section>"
 
-    "<menuitem action='CopyURL'/>"
-    "<separator/>"
+    POPUPMENU_FOOTER1
+    POPUPMENU_FOOTER2
 
-    "<menuitem action='AppendFavorite'/>"
-    "<menuitem action='Save'/>"
-    "<separator/>"
-
-    "<menuitem action='LoadStop'/>"
-    "<menuitem action='Reload'/>"
-    "<separator/>"
-
-    "<menuitem action='ProtectImage'/>"
-    "<menu action='DeleteMenu'>"
-    "<menuitem action='DeleteImage'/>"
-    "</menu>"
-
-    "<separator/>"
-    "<menuitem action='AboneImage'/>"
-
-    "<separator/>"
-
-    "<menuitem action='PreferenceImage'/>"
-
-    "</popup>"
-    );
+    "</menu>";
 
     // アイコンのメニュー
-    const std::string menu_icon = 
-    
-    "<popup name='popup_menu_icon'>"
+    const std::string menu_icon =
 
-    "<menu action='Move_Menu'>"
-    "<menuitem action='MoveHead'/>"
-    "<menuitem action='MoveTail'/>"
+    R"(<menu id="move_submenu">)"
+    "<section>"
+    MENU_ITEM_ELEM("先頭に移動(_H)", "image.MoveHead")
+    MENU_ITEM_ELEM("最後に移動(_T)", "image.MoveTail")
+    "</section>"
     "</menu>"
-    "<separator/>"
 
-    "<menuitem action='LockTab'/>"
-    "<separator/>"
+    R"(<menu id="popup_menu_icon">)"
 
-    "<menuitem action='Quit'/>"
-    "<separator/>"
+    "<section>"
+    MENU_ITEM_ELEM("タブをロックする(_K)", "image.LockTab")
+    "</section>"
 
-    "<menu action='Close_Menu'>"
-    "<menuitem action='CloseAll'/>"
-    "<menuitem action='CloseOther'/>"
-    "<menuitem action='CloseLeft'/>"
-    "<menuitem action='CloseRight'/>"
-    "<separator/>"
-    "<menuitem action='CloseError404'/>"
-    "<menuitem action='CloseError503'/>"
-    "<menuitem action='CloseErrorAll'/>"
-    "<separator/>"
-    "<menuitem action='CloseNoError'/>"
-    "</menu>"
-    "<separator/>"
+    "<section>"
+    MENU_ITEM_ELEM(ITEM_NAME_QUIT "(_C)", "image.Quit")
+    "</section>"
 
-    "<menuitem action='SaveAll'/>"
-    "<separator/>"
+    "<section>"
+    SUBMENU_ELEM("複数の画像を閉じる(_L)",
+    "<section>"
+    MENU_ITEM_ELEM("全ての画像(_A)", "image.CloseAll")
+    MENU_ITEM_ELEM("他の画像(_O)", "image.CloseOther")
+    MENU_ITEM_ELEM("左←の画像(_L)", "image.CloseLeft")
+    MENU_ITEM_ELEM("右→の画像(_R)", "image.CloseRight")
+    "</section>"
+    "<section>"
+    MENU_ITEM_ELEM("エラー画像(404,403のみ)(_E)", "image.CloseError404")
+    MENU_ITEM_ELEM("エラー画像(timeout,503以外)(_T)", "image.CloseError503")
+    MENU_ITEM_ELEM("エラー画像(読込み中含め全て)(_W)", "image.CloseErrorAll")
+    "</section>"
+    "<section>"
+    MENU_ITEM_ELEM("エラー以外の画像(_N)", "image.CloseNoError")
+    "</section>"
+    ) // SUBMENU_ELEM
+    "</section>"
 
-    "<menuitem action='OpenBrowser'/>"
-    "<menuitem action='OpenCacheBrowser'/>"
-    "<menuitem action='OpenRef'/>"
-    "<separator/>"
+    "<section>"
+    MENU_ITEM_ELEM("全ての画像を保存(_A)", "image.SaveAll")
+    "</section>"
 
-    "<menuitem action='CopyURL'/>"
-    "<separator/>"
+    "<section>"
+    MENU_ITEM_ELEM(ITEM_NAME_OPEN_BROWSER "(_W)", "image.OpenBrowser")
+    MENU_ITEM_ELEM(ITEM_NAME_OPEN_CACHE_BROWSER "(_X)", "image.OpenCacheBrowser")
+    MENU_ITEM_ELEM("参照元のレスを開く(_O)", "image.OpenRef")
+    "</section>"
 
-    "<menuitem action='AppendFavorite'/>"
-    "<menuitem action='Save'/>"
-    "<separator/>"
+    POPUPMENU_FOOTER1
+    POPUPMENU_FOOTER2
 
-    "<menuitem action='LoadStop'/>"
-    "<menuitem action='Reload'/>"
-    "<separator/>"
-
-    "<menuitem action='ProtectImage'/>"
-    "<menu action='DeleteMenu'>"
-    "<menuitem action='DeleteImage'/>"
-    "</menu>"
-    "<separator/>"
-
-    "<separator/>"
-    "<menuitem action='AboneImage'/>"
-
-    "<separator/>"
-    "<menuitem action='Preference'/>"
-
-    "</popup>";
+    "</menu>";
 
     // 画像ポップアップのメニュー
     const std::string menu_popup = 
 
-    "<popup name='popup_menu_popup'>"
+    R"(<menu id="popup_menu_popup">)"
 
-    "<menuitem action='CancelMosaic'/>"
-    "<separator/>"
+    "<section>"
+    MENU_ITEM_ELEM("モザイク解除(_M)", "image.CancelMosaic")
+    "</section>"
 
-    "<menuitem action='Quit'/>"
-    "<separator/>"
+    "<section>"
+    MENU_ITEM_ELEM(ITEM_NAME_QUIT "(_C)", "image.Quit")
+    "</section>"
 
-    "<menuitem action='CopyURL'/>"
-    "<separator/>"
+    "<section>"
+    MENU_ITEM_ELEM(ITEM_NAME_COPY_URL "(_U)", "image.CopyURL")
+    "</section>"
 
-    "<menuitem action='Save'/>"
-    "<separator/>"
+    "<section>"
+    MENU_ITEM_ELEM("名前を付けて保存(_S)...", "image.Save")
+    "</section>"
 
-    "<menuitem action='ProtectImage'/>"
-    "<menu action='DeleteMenu'>"
-    "<menuitem action='DeleteImage'/>"
-    "</menu>"
+    POPUPMENU_FOOTER2
 
-    "<separator/>"
-    "<menuitem action='AboneImage'/>"
+    "</menu>";
 
-    "<separator/>"
-
-    "<menuitem action='Preference'/>"
-
-    "</popup>"
-    ;
-
-
-    ui_manager()->add_ui_from_string(
-        "<ui>"
+    m_builder = Gtk::Builder::create_from_string(
+        "<interface>"
         + menu
         + menu_icon
         + menu_popup
-        + "</ui>"
+        + "</interface>"
         );
 
-    // ポップアップメニューにキーアクセレータやマウスジェスチャを表示
-    Gtk::Menu* popupmenu = dynamic_cast< Gtk::Menu* >( ui_manager()->get_widget( "/popup_menu" ) );
-    CONTROL::set_menu_motion( popupmenu );
+    // アクセラレーターキーやマウスジェスチャーの追加は行わない
+    // CONTROL::set_menu_motion() はGTK4で廃止されるGtk::MenuのAPIを使っている
 
-    popupmenu = dynamic_cast< Gtk::Menu* >( ui_manager()->get_widget( "/popup_menu_icon" ) );
-    CONTROL::set_menu_motion( popupmenu );
-
-    popupmenu = dynamic_cast< Gtk::Menu* >( ui_manager()->get_widget( "/popup_menu_popup" ) );
-    CONTROL::set_menu_motion( popupmenu );
+    // ユーザーコマンドのメニューを接続する
+    auto popup_menu = Glib::RefPtr<Gio::Menu>::cast_dynamic( m_builder->get_object( "popup_menu" ) );
+    if( popup_menu ) {
+        auto usrcmd_menu = CORE::get_usrcmd_manager()->get_usrcmd_menu();
+        popup_menu->insert_section( 4, usrcmd_menu );
+    }
 }
 
 
@@ -1187,44 +1168,38 @@ void ImageViewBase::activate_act_before_popupmenu( const std::string& url )
     // toggle　アクションを activeにするとスロット関数が呼ばれるので処理しないようにする
     m_enable_menuslot = false;
 
-    Glib::RefPtr< Gtk::Action > act;
+    Glib::RefPtr< Gio::SimpleAction > act;
 
     bool current_protect = m_img->is_protected();
 
     // ロック
-    act = action_group()->get_action( "LockTab" );
+    act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "LockTab" ) );
     if( act ){
 
-        auto tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
-        if( is_locked() ) tact->set_active( true );
-        else tact->set_active( false );
+        act->change_state( is_locked() );
     }
 
     // 閉じる
-    act = action_group()->get_action( "Quit" );
+    act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "Quit" ) );
     if( act ){
-        if( is_locked() ) act->set_sensitive( false );
-        else act->set_sensitive( true );
+        act->set_enabled( ! is_locked() );
     }
 
     // モザイク
-    act = action_group()->get_action( "CancelMosaic" );
+    act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "CancelMosaic" ) );
     if( act ){
-        if( m_img->is_cached() && m_img->get_mosaic() ) act->set_sensitive( true );
-        else act->set_sensitive( false );
+        act->set_enabled( m_img->is_cached() && m_img->get_mosaic() );
     }
 
     // サイズの大きい画像を表示
-    act = action_group()->get_action( "ShowLargeImg" );
+    act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "ShowLargeImg" ) );
     if( act ){
-        if( m_img->get_type() == DBIMG::T_LARGE ) act->set_sensitive( true );
-        else act->set_sensitive( false );
+        act->set_enabled( m_img->get_type() == DBIMG::T_LARGE );
     }
 
     // サイズ系メニュー、お気に入り、保存
     std::string sizemenus[] =
     {
-        "Size_Menu",
         "OrgSizeImage",
         "ZoomFitImage",
         "ZoomInImage",
@@ -1233,69 +1208,60 @@ void ImageViewBase::activate_act_before_popupmenu( const std::string& url )
         "Save"
     };
     for( const std::string& menu : sizemenus ) {
-        act = action_group()->get_action( menu );
+        act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( menu ) );
         if( act ){
-            if( m_img->is_cached() ) act->set_sensitive( true );
-            else act->set_sensitive( false );
+            act->set_enabled( m_img->is_cached() );
         }
     }
 
     // キャッシュをブラウザで開く
-    act = action_group()->get_action( "OpenCacheBrowser" );
+    act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "OpenCacheBrowser" ) );
     if( act ){
-        if( m_img->is_cached() ) act->set_sensitive( true );
-        else act->set_sensitive( false );
+        act->set_enabled( m_img->is_cached() );
     }
 
     // 参照元スレ
-    act = action_group()->get_action( "OpenRef" );
+    act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "OpenRef" ) );
     if( act ){
-        if( ! m_img->get_refurl().empty() ) act->set_sensitive( true );
-        else act->set_sensitive( false );
+        act->set_enabled( ! m_img->get_refurl().empty() );
     }
     
     // 保護
-    act = action_group()->get_action( "ProtectImage" );
+    act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "ProtectImage" ) );
     if( act ){
 
         if( m_img->is_cached() ){
 
-            act->set_sensitive( true );
-
-            auto tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
-            if( tact ){
-                if( current_protect ) tact->set_active( true );
-                else tact->set_active( false );
-            }
+            act->set_enabled( true );
+            act->change_state( current_protect );
         }
-        else act->set_sensitive( false );
+        else act->set_enabled( false );
     }
 
     // 削除
-    act = action_group()->get_action( "DeleteMenu" );
+    // GAction, GMenu ではサブメニューを無効化できないため
+    // サブメニュー内の項目に対して選択可能か設定する
+    act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "DeleteImage" ) );
     if( act ){
-        if(  m_img->get_code() != HTTP_INIT && ! m_img->is_protected() ) act->set_sensitive( true );
-        else act->set_sensitive( false );
+        act->set_enabled( m_img->get_code() != HTTP_INIT && ! m_img->is_protected() );
     }
 
     // ロード停止
-    act = action_group()->get_action( "LoadStop" );
+    act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "LoadStop" ) );
     if( act ){
-        if( m_img->is_loading() ) act->set_sensitive( true );
-        else act->set_sensitive( false );
+        act->set_enabled( m_img->is_loading() );
     }
 
     // あぼーん
-    act = action_group()->get_action( "AboneImage" );
+    act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "AboneImage" ) );
     if( act ){
-        if( ! m_img->is_protected() ) act->set_sensitive( true );
-        else act->set_sensitive( false );
+        act->set_enabled( ! m_img->is_protected() );
     }
 
-    // ユーザコマンド
+    // ユーザーコマンドの項目を更新する
     // 選択不可かどうか判断して visible か sensitive にする
     const std::string url_article = DBTREE::url_dat( m_img->get_refurl() );
-    CORE::get_usrcmd_manager()->toggle_sensitive( action_group(), url_article, get_url(), "" );
+    CORE::get_usrcmd_manager()->update_menu_items( m_action_group, url_article, get_url(), "", "image" );
 
     m_enable_menuslot = true;
 }

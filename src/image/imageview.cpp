@@ -408,8 +408,13 @@ void ImageViewMain::add_tab_number()
 //
 Gtk::Menu* ImageViewMain::get_popupmenu( const std::string& url )
 {
-    Gtk::Menu* popupmenu = dynamic_cast< Gtk::Menu* >( ui_manager()->get_widget( "/popup_menu" ) );
-    return popupmenu;
+    // 初回の呼び出し時にメニューモデルをバインドする
+    if( ! m_popup_menu.get_attach_widget() ) {
+        auto menumodel = Glib::RefPtr<Gio::MenuModel>::cast_dynamic( m_builder->get_object( "popup_menu" ) );
+        m_popup_menu.bind_model( menumodel, true );
+        m_popup_menu.attach_to_widget( *this );
+    }
+    return &m_popup_menu;
 }
 
 

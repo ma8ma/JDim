@@ -46,7 +46,11 @@ namespace IMAGE
 
         bool m_enable_menuslot;
 
+        Glib::RefPtr<Gio::SimpleActionGroup> m_action_group;
+
       protected:
+
+        Glib::RefPtr<Gtk::Builder> m_builder;
 
         // Viewが所属するAdminクラス
         SKELETON::Admin* get_admin() override;
