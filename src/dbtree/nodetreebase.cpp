@@ -2307,12 +2307,12 @@ void NodeTreeBase::parse_html( std::string_view str, const int color_text,
 
         ///////////////////////
         // リンク(http)のチェック
-        std::string link_url( LNG_LINK +16, '\0' );
+        std::string link_url;
+        link_url.reserve( LNG_LINK +16 );
         std::string tmpreplace; // Urlreplaceで変換した後のリンク文字列
-        int linktype = check_link( pos, (int)( pos_end - pos ), n_in, link_url.data(), LNG_LINK );
+        int linktype = check_link( pos, (int)( pos_end - pos ), n_in, link_url );
         if( linktype != MISC::SCHEME_NONE ){
             // リンクノードで実際にアクセスするURLの変換
-            link_url.resize( link_url.find( '\0' ) );
             remove_imenu( link_url ); // ime.nuなどの除去
             convert_amp( link_url ); // &amp; → &
             tmpreplace.assign( link_url );
@@ -2739,7 +2739,6 @@ bool NodeTreeBase::check_anchor( const int mode, const char* str_in,
 // 入力
 // str_in : 入力文字列の先頭アドレス
 // lng_str : str_inのバッファサイズ
-// lng_link : str_linkのバッファサイズ
 // linktype : is_url_scheme()のリタンコード
 // delim_pos : is_url_scheme()で得たスキーム文字列の長さ
 //
@@ -2751,8 +2750,7 @@ bool NodeTreeBase::check_anchor( const int mode, const char* str_in,
 //
 // 注意 : MISC::is_url_scheme() と MISC::is_url_char() の仕様に合わせる事
 //
-int NodeTreeBase::check_link( const char* str_in, const int lng_in, int& n_in, char* str_link,
-                              const int lng_link ) const
+int NodeTreeBase::check_link( const char* str_in, const int lng_in, int& n_in, std::string& str_link ) const
 {
     // http://, https://, ftp://, ttp(s)://, tp(s):// のチェック
     int delim_pos = 0;
@@ -2788,9 +2786,8 @@ int NodeTreeBase::check_link( const char* str_in, const int lng_in, int& n_in, c
     if( n_in - delim_pos < 4 ) return MISC::SCHEME_NONE;
 
     // URL出力バッファより長いときも除外する( 一般に256バイトを超えるとキャッシュをファイル名として扱えなくなる )
+    constexpr const int lng_link = 255;
     if( lng_link <= n_in ) return MISC::SCHEME_NONE;
-
-    char *pos = str_link;
 
     // URLスキームを修正
     int str_pos = 0;
@@ -2803,8 +2800,7 @@ int NodeTreeBase::check_link( const char* str_in, const int lng_in, int& n_in, c
             n_out += 1;
             if( n_out >= lng_link ) return MISC::SCHEME_NONE;
 
-            *pos = 'h';
-            pos++;
+            str_link.push_back( 'h' );
             break;
 
         // tp -> http
@@ -2813,27 +2809,22 @@ int NodeTreeBase::check_link( const char* str_in, const int lng_in, int& n_in, c
             n_out += 2;
             if( n_out >= lng_link ) return MISC::SCHEME_NONE;
 
-            *pos  = 'h';
-            *(++pos) = 't';
-            pos++;
+            str_link.append( "ht" );
             break;
 
         // sssp -> http
         case MISC::SCHEME_SSSP:
 
-            *pos = 'h';
-            *(++pos) = 't';
-            *(++pos) = 't';
-            pos++;
+            str_link.append( "htt" );
             str_pos = 3;
             break;
     }
 
-    // srr_inの文字列をstr_linkにコピー
+    // str_inの文字列をstr_linkにコピー
     int i = str_pos;
-    for( ; i < n_in; i++, pos++ ){
+    for( ; i < n_in; ++i ){
 
-        *pos = str_in[ i ];
+        str_link.push_back( str_in[i] );
 
         // loose_urlで含める"^"と"|"をエンコードする
         // "[]"はダウンローダに渡す用途のためにエンコードしないでおく
@@ -2845,9 +2836,7 @@ int NodeTreeBase::check_link( const char* str_in, const int lng_in, int& n_in, c
                 n_out += 2;
                 if( n_out >= lng_link ) return MISC::SCHEME_NONE;
 
-                *pos = '%';
-                *(++pos) = '5';
-                *(++pos) = 'E';
+                str_link.append( "%5E" );
             }
             else if( str_in[ i ] == '|' ){
 
@@ -2855,19 +2844,14 @@ int NodeTreeBase::check_link( const char* str_in, const int lng_in, int& n_in, c
                 n_out += 2;
                 if( n_out >= lng_link ) return MISC::SCHEME_NONE;
 
-                *pos = '%';
-                *(++pos) = '7';
-                *(++pos) = 'C';
+                str_link.append( "%7C" );
             }
         }
     }
 
-    // str_linkの終端
-    *pos = '\0';
-
 #ifdef _DEBUG
     std::cout << str_link << std::endl
-              << "len = " << strlen( str_link ) << " lng_link = " << lng_link << " n_in = " << n_in << std::endl;
+              << "len = " << str_link.size() << " lng_link = " << lng_link << " n_in = " << n_in << std::endl;
 #endif
 
     return linktype;
