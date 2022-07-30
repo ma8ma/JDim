@@ -2312,8 +2312,8 @@ void NodeTreeBase::parse_html( std::string_view str, const int color_text,
         int linktype = check_link( pos, (int)( pos_end - pos ), n_in, link_url.data(), LNG_LINK );
         if( linktype != MISC::SCHEME_NONE ){
             // リンクノードで実際にアクセスするURLの変換
-            while( remove_imenu( link_url.data() ) ); // ime.nuなどの除去
             link_url.resize( link_url.find( '\0' ) );
+            remove_imenu( link_url ); // ime.nuなどの除去
             convert_amp( link_url ); // &amp; → &
             tmpreplace.assign( link_url );
 
@@ -3630,29 +3630,46 @@ void NodeTreeBase::check_fontid( const int number )
 // http://jd4linux.sourceforge.jp/cgi-bin/bbs/test/read.cgi/support/1151836078/24
 //
 //static member
-bool NodeTreeBase::remove_imenu( char* str_link )
+void NodeTreeBase::remove_imenu( std::string& str_link )
 {
-    char *p = str_link;
+    while( str_link.compare( 0, 4, "http" ) == 0 ) {
 
-    if ( memcmp( p, "http", strlen( "http" ) ) != 0 ) return false;
-    p += strlen( "http" );
-    if ( *p == 's' ) p++;
-    if ( memcmp( p, "://", strlen( "://" ) ) != 0 ) return false;
-    p += strlen( "://" );
+        std::size_t cut_end = 4 + int( str_link[4] == 's' );
+        if( str_link.compare( cut_end, 3, "://" ) != 0 ) break;
 
-    const char *cut_sites[] = { "ime.nu/", "ime.st/", "nun.nu/", "pinktower.com/", nullptr };
-    const char **q = cut_sites;
-    while ( *q ) {
-        size_t cs_len = strlen( *q );
-        if ( memcmp( p, *q, cs_len ) == 0 ) {
-            // "http://ime.nu/"等、URLがそれだけだった場合は削除しない
-            if ( p[cs_len] == '\0' ) return false;
-            memmove( p, p + cs_len, strlen( p + cs_len ) + 1 );
-            return true;
+        const std::size_t host_start = cut_end + 3; // "://" を追加
+
+        if( str_link.compare( host_start, 14, "jump.5ch.net/?" ) == 0
+                || str_link.compare( host_start, 14, "pinktower.com/" ) == 0
+                || str_link.compare( host_start, 14, "jump.2ch.net/?" ) == 0
+        ) {
+            cut_end = host_start + 14;
         }
-        q ++;
+        else if( str_link.compare( host_start, 7, "ime.nu/" ) == 0
+                || str_link.compare( host_start, 7, "ime.st/" ) == 0
+                || str_link.compare( host_start, 7, "nun.nu/" ) == 0
+        ) {
+            cut_end = host_start + 7;
+        }
+        else {
+            break;
+        }
+
+        // "http://ime.nu/"等、URLがそれだけだった場合は削除しない
+        if( str_link.size() == cut_end ) break;
+
+        // "httpbin.org"のようなホストがあるのでスラッシュまでチェック
+        if( str_link.compare( cut_end, 8, "https://" ) == 0
+                || str_link.compare( cut_end, 7, "http://" ) == 0
+        ) {
+            // プロトコルが続く場合は頭から削る
+            str_link.erase( 0, cut_end );
+        }
+        else {
+            // 上記以外はプロトコルを残して削る
+            str_link.erase( host_start, cut_end - host_start );
+        }
     }
-    return false;
 }
 
 

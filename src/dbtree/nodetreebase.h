@@ -396,7 +396,7 @@ namespace DBTREE
 
 
         // http://ime.nu/ などをリンクから削除
-        static bool remove_imenu( char* str_link );
+        static void remove_imenu( std::string& str_link );
 
         // 文字列中の"&amp;"を"&"に変換する
         static void convert_amp( std::string& text );
