@@ -2307,23 +2307,25 @@ void NodeTreeBase::parse_html( std::string_view str, const int color_text,
 
         ///////////////////////
         // リンク(http)のチェック
+        std::string link_url( LNG_LINK +16, '\0' );
         std::string tmpreplace; // Urlreplaceで変換した後のリンク文字列
-        int linktype = check_link( pos, (int)( pos_end - pos ), n_in, tmplink, LNG_LINK );
+        int linktype = check_link( pos, (int)( pos_end - pos ), n_in, link_url.data(), LNG_LINK );
         if( linktype != MISC::SCHEME_NONE ){
             // リンクノードで実際にアクセスするURLの変換
-            while( remove_imenu( tmplink ) ); // ime.nuなどの除去
-            lng_link = convert_amp( tmplink, strlen( tmplink ) ); // &amp; → &
+            while( remove_imenu( link_url.data() ) ); // ime.nuなどの除去
+            link_url.resize( link_url.find( '\0' ) );
+            convert_amp( link_url ); // &amp; → &
+            tmpreplace.assign( link_url );
 
             // Urlreplaceによる正規表現変換
-            tmpreplace.assign( tmplink, lng_link );
             if( CORE::get_urlreplace_manager()->exec( tmpreplace ) ){
                 // 変換が行われた
 
                 if( tmpreplace.size() > LNG_LINK ){
-                    MISC::ERRMSG( std::string( "too long replaced url : " ) + tmplink );
+                    MISC::ERRMSG( std::string( "too long replaced url : " ) + link_url );
 
                     // 変換後のURLが長すぎるので、元のURLのままにする
-                    tmpreplace.assign( tmplink, lng_link );
+                    tmpreplace.assign( link_url );
                 } else {
                     // 正常に変換された
                     // 正規表現変換の結果、スキームだけの簡易チェックをする
@@ -2343,8 +2345,7 @@ void NodeTreeBase::parse_html( std::string_view str, const int color_text,
 
             // リンクノードの表示テキスト
             display_text.assign( pos, n_in );
-            const int lng_str = convert_amp( display_text.data(), n_in ); // &amp; → &
-            display_text.resize( lng_str );
+            convert_amp( display_text ); // &amp; → &
 
             // ssspアイコン
             if( linktype == MISC::SCHEME_SSSP ){
@@ -2358,8 +2359,7 @@ void NodeTreeBase::parse_html( std::string_view str, const int color_text,
 
                 // youtubeなどのサムネイル画像リンク
                 if( imgctrl & CORE::IMGCTRL_THUMBNAIL ){
-                    std::string_view view_tmplink( tmplink, lng_link );
-                    create_node_thumbnail( display_text, view_tmplink, tmpreplace, COLOR_CHAR_LINK, bold, fontid );
+                    create_node_thumbnail( display_text, link_url, tmpreplace, COLOR_CHAR_LINK, bold, fontid );
                 }
 
                 // 画像リンク
@@ -3658,30 +3658,13 @@ bool NodeTreeBase::remove_imenu( char* str_link )
 
 // 文字列中の"&amp;"を"&"に変換する
 //static member
-int NodeTreeBase::convert_amp( char* text, const int n )
+void NodeTreeBase::convert_amp( std::string& text )
 {
-    int m = n;
-
-    int i;
-    for( i = 0; i < m; i++ ){
-
-        if( text[ i ] == '&' &&
-            m > (i + 4) &&
-            text[i + 1] == 'a' &&
-            text[i + 2] == 'm' &&
-            text[i + 3] == 'p' &&
-            text[i + 4] == ';' ){
-
-            // &の次, &amp;の次, &amp;の次からの長さ
-            memmove( text + i + 1, text + i + 5, n - i - 5 );
-
-            // "amp;"の分減らす
-            m -= 4;
-        }
+    std::size_t i = text.find( "&amp;" );
+    while( i != std::string::npos ) {
+        text.erase( i + 1, 4 );
+        i = text.find( "&amp;", i + 1 );
     }
-
-    text[m] = '\0';
-    return m;
 }
 
 

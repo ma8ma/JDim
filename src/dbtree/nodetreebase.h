@@ -399,7 +399,7 @@ namespace DBTREE
         static bool remove_imenu( char* str_link );
 
         // 文字列中の"&amp;"を"&"に変換する
-        static int convert_amp( char* text, const int n );
+        static void convert_amp( std::string& text );
     };
 }
 
