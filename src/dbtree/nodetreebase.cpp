@@ -2024,7 +2024,11 @@ void NodeTreeBase::parse_html( std::string_view str, const int color_text,
             m_parsed_text.clear();
         }
     }
-   
+
+    // メモリの再確保を極力避けるためループの外側にローカル変数を定義する
+    std::string display_text; // 画面に表示する文字列
+    display_text.reserve( LNG_LINK +16 );
+
     for( ; pos < pos_end; ++pos, digitlink = false ){
 
 
@@ -2253,23 +2257,22 @@ void NodeTreeBase::parse_html( std::string_view str, const int color_text,
         ///////////////////////
         // アンカーのチェック
         int n_in = 0;
-        char tmpstr[ LNG_LINK +16 ]; // 画面に表示する文字列
         char tmplink[ LNG_LINK +16 ]; // 編集したリンク文字列
-        int lng_str = 0, lng_link = strlen( PROTO_ANCHORE );
+        int lng_link = strlen( PROTO_ANCHORE );
         ANCINFO ancinfo[ MAX_ANCINFO ];
         int lng_anc = 0;
 
         int mode = 0;
         if( digitlink ) mode = 2;
 
-        if( check_anchor( mode , pos, n_in, tmpstr + lng_str, tmplink + lng_link, LNG_LINK - lng_link, ancinfo + lng_anc ) ){
+        display_text.clear();
+        if( check_anchor( mode , pos, n_in, display_text, tmplink + lng_link, LNG_LINK - lng_link, ancinfo + lng_anc ) ){
 
             // フラッシュしてからアンカーノードをつくる
             create_node_text( m_parsed_text, color_text, bold, fontid );
             m_parsed_text.clear();
 
             memcpy( tmplink, PROTO_ANCHORE, strlen( PROTO_ANCHORE ) );
-            lng_str += strlen( tmpstr ) - lng_str;
             lng_link += strlen( tmplink ) - lng_link;
             ++lng_anc;
             pos += n_in; 
@@ -2278,18 +2281,16 @@ void NodeTreeBase::parse_html( std::string_view str, const int color_text,
             // MAX_ANCINFOを超えた部分はリンクに含めない
             mode = 1;
             while( lng_anc < static_cast<int>( MAX_ANCINFO ) &&
-                   check_anchor( mode, pos, n_in, tmpstr + lng_str, tmplink + lng_link ,
+                   check_anchor( mode, pos, n_in, display_text, tmplink + lng_link ,
                                  LNG_LINK - lng_link, ancinfo + lng_anc ) ){
 
-                lng_str += strlen( tmpstr ) - lng_str;
                 lng_link += strlen( tmplink ) - lng_link;
                 ++lng_anc;
                 pos += n_in; 
             }
 
-            std::string_view tmp_view( tmpstr, lng_str );
             std::string_view view_tmplink( tmplink, lng_link );
-            create_node_anc( tmp_view, view_tmplink, COLOR_CHAR_LINK, bold, ancinfo, lng_anc, fontid );
+            create_node_anc( display_text, view_tmplink, COLOR_CHAR_LINK, bold, ancinfo, lng_anc, fontid );
 
             // forのところで++されるので--しておく
             --pos;
@@ -2341,9 +2342,9 @@ void NodeTreeBase::parse_html( std::string_view str, const int color_text,
             m_parsed_text.clear();
 
             // リンクノードの表示テキスト
-            memcpy( tmpstr, pos, n_in );
-            tmpstr[ n_in ] = '\0';
-            lng_str = convert_amp( tmpstr, n_in ); // &amp; → &
+            display_text.assign( pos, n_in );
+            const int lng_str = convert_amp( display_text.data(), n_in ); // &amp; → &
+            display_text.resize( lng_str );
 
             // ssspアイコン
             if( linktype == MISC::SCHEME_SSSP ){
@@ -2352,25 +2353,23 @@ void NodeTreeBase::parse_html( std::string_view str, const int color_text,
             }
 
             else {
-                std::string_view tmp_view( tmpstr, lng_str );
-
                 // Urlreplaceによる画像コントロールを取得する
                 const int imgctrl = CORE::get_urlreplace_manager()->get_imgctrl( tmpreplace );
 
                 // youtubeなどのサムネイル画像リンク
                 if( imgctrl & CORE::IMGCTRL_THUMBNAIL ){
                     std::string_view view_tmplink( tmplink, lng_link );
-                    create_node_thumbnail( tmp_view, view_tmplink, tmpreplace, COLOR_CHAR_LINK, bold, fontid );
+                    create_node_thumbnail( display_text, view_tmplink, tmpreplace, COLOR_CHAR_LINK, bold, fontid );
                 }
 
                 // 画像リンク
                 else if( DBIMG::get_type_ext( tmpreplace ) != DBIMG::T_UNKNOWN ){
-                    node = create_node_img( tmp_view, tmpreplace, COLOR_IMG_NOCACHE, bold );
+                    node = create_node_img( display_text, tmpreplace, COLOR_IMG_NOCACHE, bold );
                     if ( fontid != FONT_MAIN ) node->fontid = fontid;
                 }
     
                 // 一般リンク
-                else create_node_link( tmp_view, tmpreplace, COLOR_CHAR_LINK, bold, fontid );
+                else create_node_link( display_text, tmpreplace, COLOR_CHAR_LINK, bold, fontid );
             }
 
             pos += n_in;
@@ -2593,7 +2592,7 @@ void NodeTreeBase::parse_write( std::string_view str, const std::size_t max_lng_
 // 戻り値 : アンカーが現れれば true
 //
 bool NodeTreeBase::check_anchor( const int mode, const char* str_in,
-                                 int& n_in, char* str_out, char* str_link, int lng_link, ANCINFO* ancinfo ) const
+                                 int& n_in, std::string& str_out, char* str_link, int lng_link, ANCINFO* ancinfo ) const
 {
     char tmp_out[ 64 ];
     int lng_out = 0;
@@ -2668,9 +2667,8 @@ bool NodeTreeBase::check_anchor( const int mode, const char* str_in,
     // アンカーが現れたのでとりあえず作成する
 
     // 画面に表示する文字
-    memcpy( str_out, tmp_out, lng_out );
-    memcpy( str_out + lng_out, pos, n );
-    str_out[ lng_out + n ] = '\0';
+    str_out.append( tmp_out, lng_out );
+    str_out.append( pos, n );
     pos += n;
     lng_out += n;    
 
@@ -2688,8 +2686,7 @@ bool NodeTreeBase::check_anchor( const int mode, const char* str_in,
             for( size_t i = 0; i < dig2; ++i ) num *= 10;
             num += num2;
 
-            memcpy( str_out + lng_out, pos, n2 );
-            str_out[ lng_out + n2 ] = '\0';
+            str_out.append( pos, n2 );
             pos += n2;
             lng_out += n2;
         }
@@ -2718,8 +2715,7 @@ bool NodeTreeBase::check_anchor( const int mode, const char* str_in,
         if( dig && dig <= MAX_RES_DIGIT && ancinfo->anc_to ){
 
             // 画面に表示する文字            
-            memcpy( str_out + lng_out, pos, offset + n );
-            str_out[ lng_out + offset + n ] = '\0';
+            str_out.append( pos, offset + n );
 
             // アンカー文字をもう一度作成
             snprintf( str_link, lng_link, "%d-%d", ancinfo->anc_from, ancinfo->anc_to );
