@@ -36,7 +36,10 @@ namespace DBTREE
 
     constexpr size_t RESUME_CHKSIZE = 64;
 
-    //ノードツリーのベースクラス
+    /** @brief ノードツリーのベースクラス
+     *
+     * @remarks 初期化や初期設定が必要なメンバー変数は`reset_tree()`に処理を追加する。
+     */
     class NodeTreeBase : public SKELETON::Loadable
     {
         typedef sigc::signal< void > SIG_UPDATED;
@@ -145,6 +148,9 @@ namespace DBTREE
 
         NodeTreeBase( const std::string& url, const std::string& date_modified );
         ~NodeTreeBase();
+
+        // 一部を除きNodeTreeを初期状態に戻す
+        virtual void reset_tree();
 
         bool empty() const noexcept { return m_url.empty(); }
         void update_url( const std::string& url );

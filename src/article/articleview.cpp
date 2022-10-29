@@ -696,7 +696,7 @@ void ArticleViewMain::do_relayout( const bool completely )
     int num_reserve = drawarea()->get_goto_num_reserve();
     int separator_new = drawarea()->get_separator_new();
 
-    if( completely ) DBTREE::article_clear_nodetree( url_article() );
+    if( completely ) DBTREE::article_reset_nodetree( url_article() );
 
     drawarea()->clear_screen();
     drawarea()->set_separator_new( separator_new );

@@ -129,6 +129,91 @@ NodeTreeBase::~NodeTreeBase()
 }
 
 
+/** @brief 一部を除きNodeTreeを初期状態に戻す
+ *
+ * @details
+ * - シグナルハンドラは切断しない
+ * - `SKELETON::Loadable::m_date_modified`の値は失われるためNodeTreeを再利用する前に設定が必要
+ *
+ * @remarks 初期化や初期設定が必要なメンバー変数はこの関数に処理を追加する。
+ */
+void NodeTreeBase::reset_tree()
+{
+    // HTTPコードなどの完全クリア
+    clear_load_data();
+
+    // 初期化
+    m_lng_dat = 0;           // コード変換前の生データのサイズ ( byte )
+    m_resume = RESUME_NO;    // レジュームのモード
+    m_resume_cached = false; // レジューム時のチェック用
+    m_resume_lng = 0;        // レジューム中にスキップした生データサイズ
+    m_broken = false;        // サーバー側であぼーんがあったりしてスレが壊れている
+    m_heap.clear();
+    m_vec_header.clear();    // レスのヘッダのポインタの配列
+    m_subject.clear();
+    m_list_abone_id.clear();    // あぼーんするID
+    m_list_abone_name.clear();  // あぼーんする名前
+    m_list_abone_word.clear();  // あぼーんする文字列
+    m_list_abone_regex.clear(); // あぼーんする正規表現
+    m_list_abone_id_board.clear();     // あぼーんするID(板レベル)
+    m_list_abone_name_board.clear();   // あぼーんする名前(板レベル)
+    m_list_abone_word_board.clear();   // あぼーんする文字列(板レベル)
+    m_list_abone_regex_board.clear();  // あぼーんする正規表現(板レベル)
+    m_list_abone_word_global.clear();  // あぼーんする文字列(全体)
+    m_list_abone_regex_global.clear(); // あぼーんする正規表現(全体)
+    m_abone_reses.clear();        // レスあぼーん情報
+    m_abone_transparent = false;  // 透明あぼーん
+    m_abone_chain = false;        // 連鎖あぼーん
+    m_abone_age = false;          // age ているレスはあぼーん
+    m_abone_default_name = false; // デフォルト名無しのレスはあぼーん
+    m_abone_noid = false;   // ID無しのレスはあぼーん
+    m_abone_board = false;  // 板レベルでのあぼーんを有効にする
+    m_abone_global = false; // 全体レベルでのあぼーんを有効にする
+    m_posts.clear();             // 自分が書き込んだレスか
+    m_refer_posts.clear();       // 自分の書き込みにレスしているか
+    m_map_future_refer.clear();  // 未来のレスに対するアンカーがある時に使用する
+    m_buffer_lines.clear();      // ロード用変数
+    m_parsed_text.clear();       // HTMLパーサに使うバッファ
+    m_buffer_write.clear();      // 書き込みチェック用バッファ
+    m_check_update = false;      // HEADによる更新チェックのみ
+    m_check_write = false;       // 自分の書き込みかチェックする
+    m_loading_newthread = false; // 新スレ読み込み中
+    if( m_fout ) std::fclose( m_fout ); // キャッシュ保存用ファイルハンドラ
+    m_fout = nullptr;
+    m_node_previous = nullptr; // パース用雑用変数
+    m_ext_err.clear();         // その他のエラーメッセージ
+    m_map_id_name_resnumber.clear(); // 各IDと発言数、レス番号のマッピング
+
+    // 初期設定
+    // ルートヘッダ作成。中は空。
+    m_id_header = -1; // ルートヘッダIDが 0 になるように -1
+    NODE* tmpnode = create_node_header();
+    assert( tmpnode );
+    assert( m_vec_header.size() == static_cast< decltype( m_vec_header.size() ) >( m_id_header ) );
+    m_vec_header.push_back( tmpnode );
+
+    m_default_noname = DBTREE::default_noname( m_url );
+
+    // 参照で色を変える回数
+    m_num_reference[ LINK_HIGH ] = CONFIG::get_num_reference_high();
+    m_num_reference[ LINK_LOW ] = CONFIG::get_num_reference_low();
+
+    // 発言数で色を変える回数
+    m_num_id[ LINK_HIGH ] = CONFIG::get_num_id_high();
+    m_num_id[ LINK_LOW ] = CONFIG::get_num_id_low();
+
+    // レスにアスキーアートがあると判定する正規表現
+    if( CONFIG::get_aafont_enabled() ){
+        constexpr bool icase = false;
+        constexpr bool newline = true;
+        m_aa_regex.set( CONFIG::get_regex_res_aa(), icase, newline );
+    }
+    else {
+        m_aa_regex.clear();
+    }
+}
+
+
 //
 // url の更新
 //

@@ -124,6 +124,17 @@ void Loadable::stop_load()
 
 
 
+/**
+ * @brief ロードを停止してスレッドが終了するまで待機する
+ */
+void Loadable::stop_load_sync()
+{
+    stop_load();
+    if( m_loader ) m_loader->wait();
+}
+
+
+
 // ローダーからコールバックされてコードなどを取得してから
 // receive_data() を呼び出す
 void Loadable::receive( const char* data, size_t size )

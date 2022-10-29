@@ -125,6 +125,8 @@ namespace SKELETON
 
         // ロード停止
         virtual void stop_load();
+        // ロードを停止してスレッドが終了するまで待機する
+        void stop_load_sync();
 
         // ロード強制停止
         // loadableを delete する前に terminate_load() を呼び出さないと

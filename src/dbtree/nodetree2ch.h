@@ -26,6 +26,8 @@ namespace DBTREE
                      const std::string& date_modified, time_t since_time );
         ~NodeTree2ch();
 
+        void reset_tree() override;
+
         int get_res_number_max() const noexcept override { return m_res_number_max; }
         std::size_t get_dat_volume_max() const noexcept override { return m_dat_volume_max; }
 

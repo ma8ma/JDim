@@ -1023,10 +1023,10 @@ void DBTREE::article_clear_post_history( const std::string& url )
 }
 
 
-// NodeTree削除
-void DBTREE::article_clear_nodetree( const std::string& url )
+// NodeTreeの初期化
+void DBTREE::article_reset_nodetree( const std::string& url )
 {
-    DBTREE::get_article( url )->unlock_impl();
+    DBTREE::get_article( url )->reset_nodetree();
 }
 
 

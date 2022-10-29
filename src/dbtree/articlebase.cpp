@@ -1058,7 +1058,26 @@ NodeTreeBase* ArticleBase::get_nodetree()
         m_number_load = 0; // 読み込み数リセット
         m_nodetree->load_cache();
     }
-    
+    else if( m_nodetree->get_res_number() <= 0 ) {
+        // 総レス数がゼロ、つまりスレのツリー情報がリセットされた状態なら
+        // NodeTree生成やシグナルハンドラ接続はスキップする
+
+        // reset_tree() で更新時刻が初期化されるのでセットし直す
+        m_nodetree->set_date_modified( get_date_modified() );
+
+        // あぼーん情報のコピー
+        m_nodetree->copy_abone_info( m_list_abone_id, m_list_abone_name, m_list_abone_word, m_list_abone_regex, m_abone_reses,
+                                     m_abone_transparent, m_abone_chain, m_abone_age, m_abone_default_name, m_abone_noid,
+                                     m_abone_board, m_abone_global );
+
+        // 書き込み情報のコピー
+        m_nodetree->copy_post_info( m_posts );
+
+        // キャッシュ読み込み
+        m_number_load = 0; // 読み込み数リセット
+        m_nodetree->load_cache();
+    }
+
     return m_nodetree.get();
 }
 
@@ -1083,6 +1102,29 @@ void ArticleBase::unlock_impl()
     save_info( false );
 
     m_nodetree.reset();
+}
+
+
+/**
+ * @brief NodeTreeの初期化
+ */
+void ArticleBase::reset_nodetree()
+{
+    if( ! m_nodetree ) return;
+
+#ifdef _DEBUG
+    std::cout << "ArticleBase::reset_nodetree  url = " << m_url << std::endl;
+#endif
+
+    // NodeTreeをリセットして再利用するにはロード中止したときのdispatch処理が必要
+    // terminate_load() を呼び出すとdispatchがキャンセルされて読み込み処理の整合性が壊れるため
+    // 新たに実装したロードの停止とスレッドの終了を待つ関数を呼び出す
+    m_nodetree->stop_load_sync();
+
+    // スレ情報保存
+    save_info( false );
+
+    m_nodetree->reset_tree();
 }
 
 

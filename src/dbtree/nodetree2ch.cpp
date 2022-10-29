@@ -56,6 +56,16 @@ NodeTree2ch::~NodeTree2ch()
 }
 
 
+/**
+ * @brief 一部を除きNodeTreeを初期状態に戻す
+ */
+void NodeTree2ch::reset_tree()
+{
+    NodeTreeBase::reset_tree();
+    m_mode = MODE_NORMAL;
+}
+
+
 //
 // キャッシュに保存する前の前処理
 //
