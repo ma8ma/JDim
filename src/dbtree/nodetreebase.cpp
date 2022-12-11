@@ -2189,7 +2189,7 @@ void NodeTreeBase::parse_html( std::string_view str, const int color_text,
                 ){
 
                 pos += 4;
-                m_parsed_text.append( u8"\u30FB" ); // KATAKANA MIDDLE DOT
+                m_parsed_text.append( "\u30FB" ); // KATAKANA MIDDLE DOT
             }
 
             // 水平線 <HR>

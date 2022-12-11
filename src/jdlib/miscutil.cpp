@@ -114,7 +114,7 @@ std::list< std::string > MISC::get_elisp_lists( const std::string& str )
 //
 std::list< std::string > MISC::split_line( const std::string& str )
 {
-    constexpr const char* str_space = u8"\u3000"; // "\xE3\x80\x80" 全角スペース
+    constexpr const char* str_space = "\u3000"; // "\xE3\x80\x80" 全角スペース
     constexpr size_t lng_space = 3;
 
     std::list< std::string > list_str;
@@ -312,7 +312,7 @@ std::string MISC::concat_with_suffix( const std::list<std::string>& list_in, cha
  */
 std::string MISC::utf8_trim( const std::string& str )
 {
-    constexpr const char* str_space = u8"\u3000"; // "\xE3\x80\x80" 全角スペース
+    constexpr const char* str_space = "\u3000"; // "\xE3\x80\x80" 全角スペース
     constexpr size_t lng_space = 3;
 
     size_t lng = str.length();
