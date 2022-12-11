@@ -180,7 +180,7 @@ const char* Iconv::convert( char* str_in, int size_in, int& size_out )
 
                         const std::string uni_str = std::to_string( unich );
 #ifdef _DEBUG
-                        std::cout << "utf32 = " << unich << " byte = " << byte << std::endl;
+                        std::cout << "utf32 = " << static_cast<unsigned>( unich ) << " byte = " << byte << std::endl;
 #endif
                         m_buf_in_tmp += byte;
                         m_byte_left_in -= byte;

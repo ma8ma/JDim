@@ -4114,7 +4114,7 @@ bool DrawAreaBase::set_carets_dclick( CARET_POSITION& caret_left, CARET_POSITION
                 const char32_t uch_pointer = MISC::utf8toutf32( layout->text + pos, byte_char_pointer );
                 const MISC::UnicodeBlock block_pointer = MISC::get_unicodeblock( uch_pointer );
 #ifdef _DEBUG
-                std::cout << "utf32 = " << std::hex << uch_pointer << std::dec
+                std::cout << "utf32 = " << std::hex << static_cast<unsigned>( uch_pointer ) << std::dec
                           << " type = " << static_cast<int>( block_pointer ) << " pos = " << pos << std::endl;
 #endif
 
