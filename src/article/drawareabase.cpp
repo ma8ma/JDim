@@ -1640,7 +1640,7 @@ int DrawAreaBase::get_width_of_one_char( const char* utfstr, int& byte, char& pr
 #ifdef _DEBUG
             std::cout << "DrawAreaBase::get_width_of_one_char "
                       << "byte = " << byte
-                      << " code = " << code
+                      << " code = " << static_cast<unsigned>( code )
                       << " [" << tmpchar << "]\n";
 #endif
 
@@ -1648,7 +1648,7 @@ int DrawAreaBase::get_width_of_one_char( const char* utfstr, int& byte, char& pr
                 && ( code < 0xF0000 || code > 0x10FFFF ) // 私用面ではない
               ){
                 std::stringstream ss_err;
-                ss_err << "unknown font byte = " << byte << " ucs = " << code << " width = " << width;
+                ss_err << "unknown font byte = " << byte << " ucs = " << static_cast<unsigned>( code ) << " width = " << width;
 
                 MISC::ERRMSG( ss_err.str() );
             }
