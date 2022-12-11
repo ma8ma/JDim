@@ -226,6 +226,10 @@ jobs:
       run: |
         sudo apt update
         sudo apt install libgnutls28-dev libgtest-dev libgtkmm-3.0-dev meson ninja-build zlib1g-dev ${{ matrix.sets.package }}
+    - name: prepare meson wrap gtest
+      run: |
+        mkdir subprojects
+        meson wrap install gtest
     - name: meson builddir -Dbuildtype=debugoptimized -Dcpp_args="-D_DEBUG" -Dcpp_std=c++2a
       run: meson builddir -Dbuildtype=debugoptimized -Dcpp_args="-D_DEBUG" -Dcpp_std=c++2a
     - name: ninja -C builddir

@@ -169,6 +169,7 @@ if not build_tests_opt.disabled()
   gtest_main_dep = dependency('gtest',
                               main : true,
                               fallback : ['gtest', 'gtest_main_dep'],
+                              version : '>= 1.11.0',
                               required : build_tests_opt)
   build_tests = gtest_main_dep.found()
 else
