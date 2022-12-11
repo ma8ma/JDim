@@ -19,7 +19,7 @@ AC_C_BIGENDIAN
 
 AC_LANG([C++])
 
-AX_CXX_COMPILE_STDCXX([17], [noext], [mandatory])
+AX_CXX_COMPILE_STDCXX([20], [noext], [mandatory])
 
 dnl
 dnl buildinfo.h
