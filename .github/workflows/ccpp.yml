@@ -137,97 +137,114 @@ jobs:
             cc: gcc-8
             cxx: g++-8
             package: g++-8
+            fallback: --wrap-mode=forcefallback
 
           - os: ubuntu-20.04
             cc: gcc-9
             cxx: g++-9
             package: g++-9
+            fallback: --wrap-mode=forcefallback
 
           - os: ubuntu-20.04
             cc: gcc-10
             cxx: g++-10
             package: g++-10
+            fallback: --wrap-mode=forcefallback
 
 
           - os: ubuntu-20.04
             cc: clang-7
             cxx: clang++-7
             package: clang-7
+            fallback: --wrap-mode=forcefallback
 
           - os: ubuntu-20.04
             cc: clang-8
             cxx: clang++-8
             package: clang-8
+            fallback: --wrap-mode=forcefallback
 
           - os: ubuntu-20.04
             cc: clang-9
             cxx: clang++-9
             package: clang-9
+            fallback: --wrap-mode=forcefallback
 
           - os: ubuntu-20.04
             cc: clang-10
             cxx: clang++-10
             package: clang-10
+            fallback: --wrap-mode=forcefallback
 
           - os: ubuntu-20.04
             cc: clang-11
             cxx: clang++-11
             package: clang-11
+            fallback: --wrap-mode=forcefallback
 
           - os: ubuntu-20.04
             cc: clang-12
             cxx: clang++-12
             package: clang-12
+            fallback: --wrap-mode=forcefallback
 
 
           - os: ubuntu-22.04
             cc: gcc-9
             cxx: g++-9
             package: g++-9
+            fallback:
 
           - os: ubuntu-22.04
             cc: gcc-10
             cxx: g++-10
             package: g++-10
+            fallback:
 
           - os: ubuntu-22.04
             cc: gcc-11
             cxx: g++-11
             package: g++-11
+            fallback:
 
           - os: ubuntu-22.04
             cc: gcc-12
             cxx: g++-12
             package: g++-12
+            fallback:
 
 
           - os: ubuntu-22.04
             cc: clang-11
             cxx: clang++-11
             package: clang-11
+            fallback:
 
           - os: ubuntu-22.04
             cc: clang-12
             cxx: clang++-12
             package: clang-12
+            fallback:
 
           - os: ubuntu-22.04
             cc: clang-13
             cxx: clang++-13
             package: clang-13
+            fallback:
 
           - os: ubuntu-22.04
             cc: clang-14
             cxx: clang++-14
             package: clang-14
+            fallback:
     steps:
     - uses: actions/checkout@v3
     - name: dependencies installation
       run: |
         sudo apt update
         sudo apt install libgnutls28-dev libgtest-dev libgtkmm-3.0-dev meson ninja-build zlib1g-dev ${{ matrix.sets.package }}
-    - name: meson builddir -Dbuildtype=debugoptimized -Dcpp_args="-D_DEBUG" -Dcpp_std=c++2a
-      run: meson builddir -Dbuildtype=debugoptimized -Dcpp_args="-D_DEBUG" -Dcpp_std=c++2a
+    - name: meson builddir -Dbuildtype=debugoptimized -Dcpp_args="-D_DEBUG" -Dcpp_std=c++2a ${{ matrix.sets.fallback }}
+      run: meson builddir -Dbuildtype=debugoptimized -Dcpp_args="-D_DEBUG" -Dcpp_std=c++2a ${{ matrix.sets.fallback }}
     - name: ninja -C builddir
       run: ninja -C builddir
     - name: meson test -C builddir
