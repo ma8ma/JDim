@@ -18,9 +18,10 @@
 #include <glib.h>
 
 #include <sstream>
-#include <cstring>
+#include <charconv>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 
 
 //
@@ -1602,18 +1603,18 @@ static char32_t transform_7f_9f( char32_t raw_point )
  */
 char32_t MISC::decode_spchar_number_raw( const char* in_char, const int offset, const int lng )
 {
-    char str_num[ 16 ];
-
-    std::memcpy( str_num, in_char + offset, lng );
-    str_num[ lng ] = '\0';
-
 #ifdef _DEBUG
     std::cout << "MISC::decode_spchar_number_raw offset = " << offset << " lng = " << lng
-              << " str = " << str_num << std::endl;
+              << " str = " << std::string_view( in_char + offset, lng ) << std::endl;
 #endif
 
+    const char* first = in_char + offset;
+    const char* last = first + lng;
+    std::uint32_t u32;
     const int base{ offset == 2 ? 10 : 16 };
-    return static_cast<char32_t>( std::strtoul( str_num, nullptr, base ) );
+    const auto result = std::from_chars( first, last, u32, base );
+
+    return static_cast<char32_t>( result.ec == std::errc{} ? u32 : 0 );
 }
 
 
