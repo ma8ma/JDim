@@ -54,7 +54,7 @@ ImageViewMain::ImageViewMain( const std::string& url )
     get_control().add_mode( CONTROL::MODE_IMAGEVIEW );
 
     // スクロールウィンドウを作ってEventBoxを貼る
-    m_scrwin = Gtk::manage( new Gtk::ScrolledWindow() );
+    m_scrwin = Gtk::make_managed<Gtk::ScrolledWindow>();
     assert( m_scrwin );
 
     m_scrwin->property_vscrollbar_policy() = Gtk::POLICY_AUTOMATIC;
@@ -307,7 +307,7 @@ void ImageViewMain::show_view()
         std::cout << "set image\n";
 #endif    
         // 表示はビューがアクティブになった時に clock_in()の中で行う
-        set_imagearea( Gtk::manage( new ImageAreaMain( get_url() ) ) );
+        set_imagearea( Gtk::make_managed<ImageAreaMain>( get_url() ) );
     }
 
     // エラー
