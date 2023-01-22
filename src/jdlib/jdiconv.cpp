@@ -8,9 +8,10 @@
 #include "misccharcode.h"
 #include "miscmsg.h"
 
+#include <charconv>
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
-#include <charconv>
 #include <errno.h>
 
 
@@ -195,7 +196,8 @@ const char* Iconv::convert( char* str_in, int size_in, int& size_out )
                         }
 
                         char uni_str[16];
-                        const auto result = std::to_chars( uni_str, uni_str + 15, unich, 10 );
+                        const auto result = std::to_chars( uni_str, uni_str + 15,
+                                                           static_cast<std::uint32_t>( unich ), 10 );
                         const auto uni_str_size = result.ptr - uni_str;
 #ifdef _DEBUG
                         std::cout << "utf32 = " << unich << " byte = " << byte << std::endl;
