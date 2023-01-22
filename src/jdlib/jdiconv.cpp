@@ -9,6 +9,8 @@
 #include "miscmsg.h"
 
 #include <cstdio>
+#include <cstring>
+#include <charconv>
 #include <errno.h>
 
 
@@ -192,23 +194,25 @@ const char* Iconv::convert( char* str_in, int size_in, int& size_out )
                             if ( unich > 917631 ) break; // U+E007F CANCEL TAG
                         }
 
-                        const std::string uni_str = std::to_string( unich );
+                        char uni_str[16];
+                        const auto result = std::to_chars( uni_str, uni_str + 15, unich, 10 );
+                        const auto uni_str_size = result.ptr - uni_str;
 #ifdef _DEBUG
                         std::cout << "utf32 = " << unich << " byte = " << byte << std::endl;
 #endif
                         buf_in_tmp += byte;
 
-                        if( ( buf_out_tmp + uni_str.size() + 3 ) >= buf_out_end ) {
+                        if( ( buf_out_tmp + uni_str_size + 3 ) >= buf_out_end ) {
                             grow();
                         }
 
                         *(buf_out_tmp++) = '&';
                         *(buf_out_tmp++) = '#';
-                        uni_str.copy( buf_out_tmp, uni_str.size() );
-                        buf_out_tmp += uni_str.size();
+                        std::memcpy( buf_out_tmp, uni_str, uni_str_size );
+                        buf_out_tmp += uni_str_size;
                         *(buf_out_tmp++) = ';';
 
-                        byte_left_out -= uni_str.size() + 3;
+                        byte_left_out -= uni_str_size + 3;
                         is_converted_to_ucs2 = true;  // 一度変換されたのでマーク
 
                         if ( ! is_handling_emoji_subdivision_flag ) {
