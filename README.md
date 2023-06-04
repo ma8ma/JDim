@@ -3,6 +3,13 @@
 ![GitHub Actions CI](https://github.com/JDimproved/JDim/workflows/CI/badge.svg)
 [![Snap Store](https://snapcraft.io/jdim/badge.svg)](https://snapcraft.io/jdim)
 
+## ma8ma/JDim のお知らせ (2023-06-04)
+JDimproved/JDim#76 の取り組みを行ってきましたが予定していた更新はmasterブランチにマージされました。
+マージ候補のコミットをスナップショットとして公開する役割は達成しましたので **minefieldブランチ** の更新は休止します。
+テストや検証、不具合の報告をしていただきありがとうございました。
+
+---
+
 ここに書かれていない詳細は [オンラインマニュアル][manual] を、
 開発に参加するための手順については [CONTRIBUTING][contrib] や [RFC][rfcs] を参照してください。
 
@@ -104,9 +111,12 @@ sudo apt install libgtkmm-3.0-dev libltdl-dev libgnutls28-dev
 
 ### ビルド
 
+開発者向けテスト版(**minefield**ブランチ)をビルドします。
+masterブランチのビルドは https://github.com/JDimproved/JDim を見てください。
+
 ```sh
-git clone -b master --depth 1 https://github.com/JDimproved/JDim.git jdim
-cd jdim
+git clone -b minefield --depth 1 https://github.com/ma8ma/JDim.git jdim-minefield
+cd jdim-minefield
 meson setup builddir
 ninja -C builddir
 ```
