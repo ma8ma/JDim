@@ -1054,7 +1054,7 @@ NODE* NodeTreeBase::append_html( const std::string& html )
 
     const bool digitlink = false;
     const bool bold = false;
-    parse_html( html.data(), html.size(), COLOR_CHAR, digitlink, bold );
+    parse_html( html, COLOR_CHAR, digitlink, bold );
 
     clear();
 
@@ -1631,7 +1631,7 @@ const char* NodeTreeBase::add_one_dat_line( const char* datline )
 
         constexpr bool digitlink = false;
         constexpr bool bold = false;
-        parse_html( str.data(), str.size(), COLOR_CHAR, digitlink, bold );
+        parse_html( str, COLOR_CHAR, digitlink, bold );
     }
 
     // 壊れている
@@ -1650,7 +1650,7 @@ const char* NodeTreeBase::add_one_dat_line( const char* datline )
         constexpr bool digitlink = false;
         constexpr bool bold = true;
         constexpr std::string_view message = "<br> <br> 壊れています<br>";
-        parse_html( message.data(), message.size(), COLOR_CHAR, digitlink, bold, FONT_MAIL );
+        parse_html( message, COLOR_CHAR, digitlink, bold, FONT_MAIL );
 
         constexpr const char str_broken[] = "ここ";
         create_node_link( str_broken, PROTO_BROKEN, COLOR_CHAR_LINK, COLOR_NONE, false );
@@ -1741,7 +1741,7 @@ void NodeTreeBase::parse_name( NODE* header, std::string_view str, const int col
     if( defaultname ){
         constexpr bool digitlink = false;
         constexpr bool bold = true;
-        parse_html( str.data(), str.size(), color_name, digitlink, bold, FONT_MAIL );
+        parse_html( str, color_name, digitlink, bold, FONT_MAIL );
     }
     else{
 
@@ -1767,7 +1767,7 @@ void NodeTreeBase::parse_name( NODE* header, std::string_view str, const int col
                 // デフォルト名無しと同じときはアンカーを作らない
                 const bool digitlink{ m_default_noname.rfind( str.substr( pos, i - pos ), 0 ) != 0 };
                 constexpr bool bold = true;
-                parse_html( str.data() + pos, i - pos, color_name, digitlink, bold, FONT_MAIL );
+                parse_html( str.substr( pos, i - pos ), color_name, digitlink, bold, FONT_MAIL );
             }
             if( i >= str.size() ) break;
             pos = i;
@@ -1793,7 +1793,7 @@ void NodeTreeBase::parse_name( NODE* header, std::string_view str, const int col
             constexpr bool digitlink = false; // 数字が入ってもリンクしない
             // NOTE: webブラウザでは bold 表示ではないが互換性のため既存の挙動を維持する
             constexpr bool bold = true;
-            parse_html( str.data() + pos, pos_end - pos, COLOR_CHAR_NAME_B, digitlink, bold, FONT_MAIL );
+            parse_html( str.substr( pos, pos_end - pos ), COLOR_CHAR_NAME_B, digitlink, bold, FONT_MAIL );
 
             pos = pos_end;
         }
@@ -1848,7 +1848,7 @@ void NodeTreeBase::parse_mail( NODE* header, std::string_view str )
         const bool bold = false;
 
         create_node_text( "[", color, false, FONT_MAIL );
-        parse_html( str.data(), str.size(), color, digitlink, bold, FONT_MAIL );
+        parse_html( str, color, digitlink, bold, FONT_MAIL );
         create_node_text( "]", color, false, FONT_MAIL );
     }
 }
@@ -1911,7 +1911,7 @@ void NodeTreeBase::parse_date_id( NODE* header, std::string_view str )
 
             // フラッシュ
             if( lng_text ){
-                parse_html( str.data(), lng_text, COLOR_CHAR, digitlink, bold, FONT_MAIL );
+                parse_html( str.substr( 0, lng_text ), COLOR_CHAR, digitlink, bold, FONT_MAIL );
             }
 
             std::size_t offset = 0;
@@ -1959,7 +1959,7 @@ void NodeTreeBase::parse_date_id( NODE* header, std::string_view str )
 
             // フラッシュ
             if( lng_text ) {
-                parse_html( str.data(), lng_text, COLOR_CHAR, digitlink, bold, FONT_MAIL );
+                parse_html( str.substr( 0, lng_text ), COLOR_CHAR, digitlink, bold, FONT_MAIL );
             }
 
             // id 取得
@@ -1996,7 +1996,7 @@ void NodeTreeBase::parse_date_id( NODE* header, std::string_view str )
 
             // フラッシュ
             if( lng_text ) {
-                parse_html( str.data(), lng_text, COLOR_CHAR, digitlink, bold, FONT_MAIL );
+                parse_html( str.substr( 0, lng_text ), COLOR_CHAR, digitlink, bold, FONT_MAIL );
             }
 
             // </a>までブロックの長さを伸ばす
@@ -2013,7 +2013,7 @@ void NodeTreeBase::parse_date_id( NODE* header, std::string_view str )
             }
             node->fontid = FONT_MAIL;
 
-            parse_html( str.data() + start_block, lng_block, COLOR_CHAR, digitlink, bold, FONT_MAIL );
+            parse_html( str.substr( start_block, lng_block ), COLOR_CHAR, digitlink, bold, FONT_MAIL );
 
             // 次のブロックへ移動
             str = str.substr( start_block + lng_block );
@@ -2034,7 +2034,7 @@ void NodeTreeBase::parse_date_id( NODE* header, std::string_view str )
             if( ( no_date || lng_block == 1 ) && ! header->headinfo->block[ BLOCK_ID_NAME ] ) {
                 if( lng_text ) {
                     // フラッシュ
-                    parse_html( str.data(), lng_text, COLOR_CHAR, digitlink, bold, FONT_MAIL );
+                    parse_html( str.substr( 0, lng_text ), COLOR_CHAR, digitlink, bold, FONT_MAIL );
                     lng_text = 0;
                 }
 
@@ -2054,7 +2054,7 @@ void NodeTreeBase::parse_date_id( NODE* header, std::string_view str )
     if( lng_text ) {
         // 末端の空白を削ってフラッシュ
         while( lng_text > 0 && str[ lng_text - 1 ] == ' ' ) --lng_text;
-        parse_html( str.data(), lng_text, COLOR_CHAR, digitlink, bold, FONT_MAIL );
+        parse_html( str.substr( 0, lng_text ), COLOR_CHAR, digitlink, bold, FONT_MAIL );
     }
 }
 
@@ -2065,7 +2065,6 @@ void NodeTreeBase::parse_date_id( NODE* header, std::string_view str )
  *          多重に呼び出したり、複数のスレッドから呼び出すと編集中のデータが壊れて正常に動作しない。
  *          この関数を呼び出す関数は同じく再入不可能になるので注意。
  * @param[in] str        DATやHTMLのデータ
- * @param[in] lng_str    DATやHTMLのデータの長さ
  * @param[in] color_text スレビューで使用する色のID (see colorid.h)
  * @param[in] digitlink  true の時は先頭に数字が現れたらアンカーにする( parse_name() などで使う )<br>
  *                       false なら数字の前に >> がついてるときだけアンカーにする
@@ -2078,11 +2077,11 @@ void NodeTreeBase::parse_date_id( NODE* header, std::string_view str )
 // Thanks to 「パッチ投稿スレ」の28氏
 // http://jd4linux.sourceforge.jp/cgi-bin/bbs/test/read.cgi/support/1151836078/28
 //
-void NodeTreeBase::parse_html( const char* str, std::size_t lng_str, const int color_text,
+void NodeTreeBase::parse_html( std::string_view str, const int color_text,
                                bool digitlink, const bool bold, char fontid )
 {
-    const char* pos = str;
-    const char* const pos_end = str + lng_str;
+    std::size_t pos = 0;
+    const std::size_t pos_end = str.size();
     int fgcolor = color_text;
     int fgcolor_bak = color_text;
     int bgcolor = COLOR_NONE;
@@ -2093,15 +2092,15 @@ void NodeTreeBase::parse_html( const char* str, std::size_t lng_str, const int c
 
     m_parsed_text.clear();
 
-    if( *pos == ' ' ){
+    if( str[pos] == ' ' ){
 
         pos++;  // 一文字だけなら取り除く
 
         // 連続半角空白
-        if( *pos == ' ' ){
+        if( str[pos] == ' ' ){
 
-            while( *pos == ' ' ) {
-                m_parsed_text.push_back( *(pos++) );
+            while( str[pos] == ' ' ) {
+                m_parsed_text.push_back( str[pos++] );
             }
             create_node_multispace( m_parsed_text, bgcolor, fontid );
             m_parsed_text.clear();
@@ -2112,7 +2111,7 @@ void NodeTreeBase::parse_html( const char* str, std::size_t lng_str, const int c
 
         ///////////////////////
         // 半角空白, LF(0x0A), CR(0x0D)
-        if( *pos == ' ' || *pos == 10 || *pos == 13 ) {
+        if( str[pos] == ' ' || str[pos] == 10 || str[pos] == 13 ) {
 
             // フラッシュしてから半角空白ノードを作る
             create_node_ntext( m_parsed_text.data(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
@@ -2126,8 +2125,8 @@ void NodeTreeBase::parse_html( const char* str, std::size_t lng_str, const int c
 
 create_multispace:
             // 連続スペースノードを作成
-            if( *pos == ' ' ) {
-                while( *pos == ' ' ) m_parsed_text.push_back( *pos++ );
+            if( str[pos] == ' ' ) {
+                while( str[pos] == ' ' ) m_parsed_text.push_back( str[pos++] );
                 if( pos < pos_end ) {
                     create_node_multispace( m_parsed_text, bgcolor, fontid );
                     m_parsed_text.clear();
@@ -2139,54 +2138,56 @@ create_multispace:
 
         ///////////////////////
         // HTMLタグ
-        else if( *pos == '<' ) {
+        else if( str[pos] == '<' ) {
 
             bool br = false;
 
             // 改行 <br>
-            if( ( *( pos + 1 ) == 'b' || *( pos + 1 ) == 'B' )
-                && ( *( pos + 2 ) == 'r' || *( pos + 2 ) == 'R' )
+            if( ( str[pos + 1] == 'b' || str[pos + 1] == 'B' )
+                && ( str[pos + 2] == 'r' || str[pos + 2] == 'R' )
                 ) br = true;
 
             // <a href=～></a>
-            else if( ( *( pos + 1 ) == 'a' || *( pos + 1 ) == 'A' ) && *( pos + 2 ) == ' ' ){
+            else if( ( str[pos + 1] == 'a' || str[pos + 1] == 'A' ) && str[pos + 2] == ' ' ){
 
                 // フラッシュ
                 create_node_ntext( m_parsed_text.data(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
                 m_parsed_text.clear();
 
-                while( pos < pos_end && *pos != '=' ) ++pos;
+                while( pos < pos_end && str[pos] != '=' ) ++pos;
                 ++pos;
 
-                if( *pos == ' ' ) ++pos;
+                if( str[pos] == ' ' ) ++pos;
                 if( pos >= pos_end ) continue;
 
                 char attr_separator = ' ';
-                if( *pos == '"' ) {
+                if( str[pos] == '"' ) {
                     attr_separator = '"';
                     ++pos;
                 }
 
-                std::string_view a_link = std::string_view( pos, pos_end - pos );
+                std::string_view a_link = str.substr( pos );
 
-                while( pos < pos_end && *pos != attr_separator && *pos != '>' ) { ++pos; }
+                pos = str.find( attr_separator, pos );
                 if( pos >= pos_end ) continue;
-                a_link = a_link.substr( 0, pos - a_link.data() );
+                a_link = a_link.substr( 0, ( str.data() + pos ) - a_link.data() );
 
-                while( pos < pos_end && *pos != '>' ) ++pos;
+                pos = str.find( '>', pos );
                 if( pos >= pos_end ) continue;
                 ++pos;
 
-                const char* const pos_str_start = pos;
+                const std::size_t pos_str_start = pos;
+                std::string_view a_str = str.substr( pos );
 
                 while( pos < pos_end
-                        && ( *pos != '<' || pos[1] != '/' || ( pos[2] != 'a' && pos[2] != 'A' ) || pos[3] != '>' ) ) {
+                        && ( str[pos] != '<' || str[pos + 1] != '/'
+                            || ( str[pos + 2] != 'a' && str[pos + 2] != 'A' ) || str[pos + 3] != '>' ) ) {
                     ++pos;
                 }
                 if( pos >= pos_end ) continue;
-                std::string_view a_str( pos_str_start, pos - pos_str_start );
+                a_str = a_str.substr( 0, ( str.data() + pos ) - a_str.data() );
 
-                while( pos < pos_end && *pos != '>' ) ++pos;
+                pos = str.find( '>', pos );
                 if( pos >= pos_end ) continue;
                 ++pos;
 
@@ -2311,71 +2312,71 @@ create_multispace:
             }
 
             // </a>
-            else if( *( pos + 1 ) == '/' && ( *( pos + 2 ) == 'a' || *( pos + 2 ) == 'A' ) && *( pos + 3 ) == '>' ) pos += 4;
+            else if( str[pos + 1] == '/' && ( str[pos + 2] == 'a' || str[pos + 2] == 'A' ) && str[pos + 3] == '>' ) pos += 4;
 
             // 改行にするタグ
             else if(
                 // <p>
                 (
-                    ( *( pos + 1 ) == 'p' || *( pos + 1 ) == 'P' )
-                    && *( pos + 2 ) == '>'
+                    ( str[pos + 1] == 'p' || str[pos + 1] == 'P' )
+                    && str[pos + 2] == '>'
                     )
 
                 // </p>
                 || (
-                    ( *( pos + 2 ) == 'p' || *( pos + 2 ) == 'P' )
-                    && *( pos + 3 ) == '>'
-                    && *( pos + 1 ) == '/'
+                    ( str[pos + 2] == 'p' || str[pos + 2] == 'P' )
+                    && str[pos + 3] == '>'
+                    && str[pos + 1] == '/'
                     )
 
                 // <dd>
                 || (
-                    ( *( pos + 1 ) == 'd' || *( pos + 1 ) == 'D' )
-                    && ( *( pos + 2 ) == 'd' || *( pos + 2 ) == 'D' )
+                    ( str[pos + 1] == 'd' || str[pos + 1] == 'D' )
+                    && ( str[pos + 2] == 'd' || str[pos + 2] == 'D' )
                     )
 
                 // </dl>
                 || (
-                    ( *( pos + 2 ) == 'd' || *( pos + 2 ) == 'D' )
-                    && ( *( pos + 3 ) == 'l' || *( pos + 3 ) == 'L' )
-                    && *( pos + 1 ) == '/'
+                    ( str[pos + 2] == 'd' || str[pos + 2] == 'D' )
+                    && ( str[pos + 3] == 'l' || str[pos + 3] == 'L' )
+                    && str[pos + 1] == '/'
                     )
 
                 // <ul>
                 || (
-                    ( pos[1] == 'u' || pos[1] == 'U' )
-                    && ( pos[2] == 'l' || pos[2] == 'L' )
+                    ( str[pos + 1] == 'u' || str[pos + 1] == 'U' )
+                    && ( str[pos + 2] == 'l' || str[pos + 2] == 'L' )
                     )
 
                 // </ul>
                 || (
-                    ( *( pos + 2 ) == 'u' || *( pos + 2 ) == 'U' )
-                    && ( *( pos + 3 ) == 'l' || *( pos + 3 ) == 'L' )
-                    && *( pos + 1 ) == '/'
+                    ( str[pos + 2] == 'u' || str[pos + 2] == 'U' )
+                    && ( str[pos + 3] == 'l' || str[pos + 3] == 'L' )
+                    && str[pos + 1] == '/'
                     )
 
                 // </li>
                 || (
-                    ( *( pos + 2 ) == 'l' || *( pos + 2 ) == 'L' )
-                    && ( *( pos + 3 ) == 'i' || *( pos + 3 ) == 'I' )
-                    && *( pos + 1 ) == '/'
+                    ( str[pos + 2] == 'l' || str[pos + 2] == 'L' )
+                    && ( str[pos + 3] == 'i' || str[pos + 3] == 'I' )
+                    && str[pos + 1] == '/'
                     )
 
                 // </title>
                 || (
-                    ( *( pos + 2 ) == 't' || *( pos + 2 ) == 'T' )
-                    && ( *( pos + 3 ) == 'i' || *( pos + 3 ) == 'I' )
-                    && ( *( pos + 4 ) == 't' || *( pos + 4 ) == 'T' )
-                    && ( *( pos + 5 ) == 'l' || *( pos + 5 ) == 'L' )
-                    && ( *( pos + 6 ) == 'e' || *( pos + 6 ) == 'E' )
-                    && *( pos + 1 ) == '/'
+                    ( str[pos + 2] == 't' || str[pos + 2] == 'T' )
+                    && ( str[pos + 3] == 'i' || str[pos + 3] == 'I' )
+                    && ( str[pos + 4] == 't' || str[pos + 4] == 'T' )
+                    && ( str[pos + 5] == 'l' || str[pos + 5] == 'L' )
+                    && ( str[pos + 6] == 'e' || str[pos + 6] == 'E' )
+                    && str[pos + 1] == '/'
                     )
 
                 ) br = true;
 
             // <li>はBULLET (•)にする
-            else if( ( *( pos + 1 ) == 'l' || *( pos + 1 ) == 'L' )
-                     && ( *( pos + 2 ) == 'i' || *( pos + 2 ) == 'I' )
+            else if( ( str[pos + 1] == 'l' || str[pos + 1] == 'L' )
+                     && ( str[pos + 2] == 'i' || str[pos + 2] == 'I' )
                 ){
 
                 pos += 4;
@@ -2383,8 +2384,8 @@ create_multispace:
             }
 
             // 水平線 <HR>
-            else if( ( *( pos + 1 ) == 'h' || *( pos + 1 ) == 'H' )
-                     && ( *( pos + 2 ) == 'r' || *( pos + 2 ) == 'R' ) ){
+            else if( ( str[pos + 1] == 'h' || str[pos + 1] == 'H' )
+                     && ( str[pos + 2] == 'r' || str[pos + 2] == 'R' ) ){
 
                 // フラッシュ
                 create_node_ntext( m_parsed_text.data(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
@@ -2398,7 +2399,7 @@ create_multispace:
             }
 
             // ボールド <B>
-            else if( ( pos[1] == 'b' || pos[1] == 'B' ) && pos[2] == '>' ) {
+            else if( ( str[pos + 1] == 'b' || str[pos + 1] == 'B' ) && str[pos + 2] == '>' ) {
 
                 // フラッシュ
                 create_node_ntext( m_parsed_text.data(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
@@ -2408,7 +2409,7 @@ create_multispace:
             }
 
             // </B>
-            else if( pos[1] == '/' && ( pos[2] == 'b' || pos[2] == 'B' ) && pos[3] == '>' ) {
+            else if( str[pos + 1] == '/' && ( str[pos + 2] == 'b' || str[pos + 2] == 'B' ) && str[pos + 3] == '>' ) {
 
                 // フラッシュ
                 create_node_ntext( m_parsed_text.data(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
@@ -2418,7 +2419,7 @@ create_multispace:
             }
 
             // 閉じるタグの時は文字色を戻す
-            else if( pos[1] == '/' ) {
+            else if( str[pos + 1] == '/' ) {
                 // フラッシュ
                 create_node_ntext( m_parsed_text.data(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
                 m_parsed_text.clear();
@@ -2428,7 +2429,7 @@ create_multispace:
                 bgcolor = bgcolor_bak;
                 bgcolor_bak = COLOR_NONE;
 
-                while( pos < pos_end && *pos != '>' ) ++pos;
+                while( pos < pos_end && str[pos] != '>' ) ++pos;
                 ++pos;
             }
 
@@ -2440,20 +2441,20 @@ create_multispace:
                 m_parsed_text.clear();
 
                 // <span
-                if( ( pos[1] == 's' || pos[1] == 'S' )
-                    && ( pos[2] == 'p' || pos[2] == 'P' )
-                    && ( pos[3] == 'a' || pos[3] == 'A' )
-                    && ( pos[4] == 'n' || pos[4] == 'N' ) ) {
+                if( ( str[pos + 1] == 's' || str[pos + 1] == 'S' )
+                    && ( str[pos + 2] == 'p' || str[pos + 2] == 'P' )
+                    && ( str[pos + 3] == 'a' || str[pos + 3] == 'A' )
+                    && ( str[pos + 4] == 'n' || str[pos + 4] == 'N' ) ) {
 
                     pos += 5;
 
                     // class属性を取り出す
                     std::string classname;
-                    if( g_ascii_strncasecmp( pos, " class=\"", 8 ) == 0 ) {
+                    if( g_ascii_strncasecmp( str.data() + pos, " class=\"", 8 ) == 0 ) {
                         pos += 8;
-                        const char* pos_name = pos;
-                        while( pos < pos_end && *pos != '"' ) ++pos;
-                        classname = std::string( pos_name, pos - pos_name );
+                        const auto pos_name = pos;
+                        while( pos < pos_end && str[pos] != '"' ) ++pos;
+                        classname = str.substr( pos_name, pos - pos_name );
                     }
 
                     // 文字色を保存
@@ -2476,10 +2477,10 @@ create_multispace:
                 }
 
                 // <mark
-                else if( ( pos[1] == 'm' || pos[1] == 'M' )
-                         && ( pos[2] == 'a' || pos[2] == 'A' )
-                         && ( pos[3] == 'r' || pos[3] == 'R' )
-                         && ( pos[4] == 'k' || pos[4] == 'K' ) ) {
+                else if( ( str[pos + 1] == 'm' || str[pos + 1] == 'M' )
+                         && ( str[pos + 2] == 'a' || str[pos + 2] == 'A' )
+                         && ( str[pos + 3] == 'r' || str[pos + 3] == 'R' )
+                         && ( str[pos + 4] == 'k' || str[pos + 4] == 'K' ) ) {
 
                     const CORE::Css_Manager* mgr = CORE::get_css_manager();
                     const CORE::CSS_PROPERTY& css = mgr->get_property( mgr->get_classid( "mark" ) );
@@ -2492,19 +2493,19 @@ create_multispace:
                 if( CONFIG::get_use_color_html() ) {
                     // タグで指定された色を使う場合
 
-                    while( pos < pos_end && *pos != '>' ) {
+                    while( pos < pos_end && str[pos] != '>' ) {
                         bool background = false;
 
-                        while( pos < pos_end && *pos != '>' && *pos != ' '
-                                && *pos != '"' && *pos != '\'' ) ++pos;
+                        while( pos < pos_end && str[pos] != '>' && str[pos] != ' '
+                               && str[pos] != '"' && str[pos] != '\'' ) ++pos;
 
-                        if( *pos == '>' ) break;
+                        if( pos >= pos_end || str[pos] == '>' ) break;
 
-                        const bool pre_char{ *pos == ' ' || *pos == '"' || *pos == '\'' };
+                        const bool pre_char{ str[pos] == ' ' || str[pos] == '"' || str[pos] == '\'' };
                         ++pos;
                         if( ! pre_char ) continue;
 
-                        std::string_view attr_str( pos, pos_end - pos );
+                        std::string_view attr_str = str.substr( pos );
                         std::size_t attr_pos = 0;
 
                         if( attr_str.rfind( "color", 0 ) == 0 ) {
@@ -2532,8 +2533,8 @@ create_multispace:
                             continue;
                         }
 
-                        if( pos[attr_pos] == '=' || pos[attr_pos] == ':' ) ++attr_pos;
-                        if( pos[attr_pos] == ' ' || pos[attr_pos] == '"' ) ++attr_pos;
+                        if( attr_str[attr_pos] == '=' || attr_str[attr_pos] == ':' ) ++attr_pos;
+                        if( attr_str[attr_pos] == ' ' || attr_str[attr_pos] == '"' ) ++attr_pos;
                         pos += attr_pos;
 
                         const auto prop_end = attr_str.find_first_of( " \"';>", attr_pos );
@@ -2567,7 +2568,7 @@ create_multispace:
                     }
                 }
 
-                while( pos < pos_end && *pos != '>' ) ++pos;
+                while( pos < pos_end && str[pos] != '>' ) ++pos;
                 ++pos;
             }
 
@@ -2582,20 +2583,20 @@ create_multispace:
                 node = create_node_br();
                 if (fontid != FONT_MAIN) node->fontid = fontid;
 
-                while( *pos != '>' ) {
+                while( str[pos] != '>' ) {
                     ++pos;
                 }
                 ++pos;
 
-                if( *pos == ' ' ){
+                if( str[pos] == ' ' ){
 
                     pos++;  // 一文字だけなら取り除く
 
                     // 連続半角空白
-                    if( *pos == ' ' ){
+                    if( str[pos] == ' ' ){
 
-                        while( *pos == ' ' ) {
-                            m_parsed_text.push_back( *(pos++) );
+                        while( str[pos] == ' ' ) {
+                            m_parsed_text.push_back( str[pos++] );
                         }
                         create_node_multispace( m_parsed_text, bgcolor, fontid );
                         m_parsed_text.clear();
@@ -2619,7 +2620,7 @@ create_multispace:
         int mode = 0;
         if( digitlink ) mode = 2;
 
-        if( check_anchor( mode, pos, n_in, m_buf_text, m_buf_link, ancinfo ) ) {
+        if( check_anchor( mode, str.data() + pos, n_in, m_buf_text, m_buf_link, ancinfo ) ) {
 
             // フラッシュしてからアンカーノードをつくる
             create_node_ntext( m_parsed_text.data(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
@@ -2633,7 +2634,7 @@ create_multispace:
             // MAX_ANCINFOを超えた部分はリンクに含めない
             mode = 1;
             while( lng_anc < MAX_ANCINFO &&
-                   check_anchor( mode, pos, n_in, m_buf_text, m_buf_link, ancinfo + lng_anc ) ) {
+                   check_anchor( mode, str.data() + pos, n_in, m_buf_text, m_buf_link, ancinfo + lng_anc ) ) {
 
                 ++lng_anc;
                 pos += n_in; 
@@ -2648,7 +2649,7 @@ create_multispace:
         if( digitlink ){
             --n_in;
             while( n_in-- > 0 ) {
-                m_parsed_text.push_back( *(pos++) );
+                m_parsed_text.push_back( str[pos++] );
             }
         }
 
@@ -2657,7 +2658,7 @@ create_multispace:
         m_buf_link.clear();
         std::string tmpreplace; // Urlreplaceで変換した後のリンク文字列
         n_in = pos_end - pos;
-        const int linktype = check_link( pos, n_in, m_buf_text, m_buf_link );
+        const int linktype = check_link( str.data() + pos, n_in, m_buf_text, m_buf_link );
 
         if( linktype != MISC::SCHEME_NONE ){
             // リンクノードで実際にアクセスするURLの変換
@@ -2719,11 +2720,11 @@ create_multispace:
 
         ///////////////////////
         // 特殊文字デコード
-        if( *pos == '&' ){
+        if( str[pos] == '&' ){
 
             int n_out = 0;
             char out_char[kMaxBytesOfUTF8Char]{};
-            const int ret_decode = DBTREE::decode_char( pos, n_in, out_char, n_out );
+            const int ret_decode = DBTREE::decode_char( str.data() + pos, n_in, out_char, n_out );
 
             if( ret_decode != NODE_NONE ){
 
@@ -2750,7 +2751,7 @@ create_multispace:
 
         ///////////////////////
         // 水平タブ(0x09)
-        else if( *pos == '\t' ) {
+        else if( str[pos] == '\t' ) {
 
             // フラッシュしてからタブノードをつくる
             create_node_ntext( m_parsed_text.data(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
@@ -2764,7 +2765,7 @@ create_multispace:
 
         ///////////////////////
         // フォームフィード(0x0C)
-        else if( *pos == '\f' ) {
+        else if( str[pos] == '\f' ) {
 
             // フラッシュしてからZWSPノードをつくる
             create_node_ntext( m_parsed_text.data(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
@@ -2778,7 +2779,7 @@ create_multispace:
 
         ///////////////////////
         // NBSP(0xC2 0xA0)
-        else if( *pos == '\xC2' && pos[1] == '\xA0' ) {
+        else if( str[pos] == '\xC2' && str[pos + 1] == '\xA0' ) {
             // 空白に置き換える
             m_parsed_text.push_back( ' ' );
             pos += 2;
@@ -2788,19 +2789,19 @@ create_multispace:
 
         ///////////////////////
         // その他のASCIIおよびマルチバイト文字
-        switch( MISC::utf8bytes( pos ) ) {
-            case 4: m_parsed_text.push_back( *pos++ );
+        switch( MISC::utf8bytes( str.data() + pos ) ) {
+            case 4: m_parsed_text.push_back( str[pos++] );
                     [[fallthrough]];
-            case 3: m_parsed_text.push_back( *pos++ );
+            case 3: m_parsed_text.push_back( str[pos++] );
                     [[fallthrough]];
-            case 2: m_parsed_text.push_back( *pos++ );
+            case 2: m_parsed_text.push_back( str[pos++] );
                     [[fallthrough]];
-            case 1: m_parsed_text.push_back( *pos++ );
+            case 1: m_parsed_text.push_back( str[pos++] );
                     break;
             default:
                 // Iconvでエンコード変換済みなので不正な文字が
                 // ここで検出されるのは何かがおかしい
-                MISC::ERRMSG( "invalid char = " + std::to_string( static_cast<unsigned char>( *pos ) ) );
+                MISC::ERRMSG( "invalid char = " + std::to_string( static_cast<unsigned char>( str[pos] ) ) );
 
                 // U+FFFD (REPLACEMENT CHARACTER) に置き換える
                 m_parsed_text.append( "\xEF\xBF\xBD" );
