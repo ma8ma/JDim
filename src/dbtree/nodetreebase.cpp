@@ -2092,18 +2092,16 @@ void NodeTreeBase::parse_html( std::string_view str, const int color_text,
 
     m_parsed_text.clear();
 
-    if( str[pos] == ' ' ){
+    if( pos < pos_end && str[pos] == ' ' ) {
 
         pos++;  // 一文字だけなら取り除く
 
         // 連続半角空白
-        if( str[pos] == ' ' ){
+        if( pos < pos_end && str[pos] == ' ' ) {
 
-            while( str[pos] == ' ' ) {
-                m_parsed_text.push_back( str[pos++] );
-            }
-            create_node_multispace( m_parsed_text, bgcolor, fontid );
-            m_parsed_text.clear();
+            const auto begin = pos;
+            while( pos < pos_end && str[pos] == ' ' ) ++pos;
+            create_node_multispace( str.substr( begin, pos - begin ), bgcolor, fontid );
         }
     }
 
@@ -2118,15 +2116,14 @@ void NodeTreeBase::parse_html( std::string_view str, const int color_text,
             m_parsed_text.clear();
 
             ++pos;
-            if( pos < pos_end ) {
-                node = create_node_space( NODE_SP, bgcolor );
-                if( fontid != FONT_MAIN ) node->fontid = fontid;
-            }
+            if( pos >= pos_end ) continue;
+            node = create_node_space( NODE_SP, bgcolor );
+            if( fontid != FONT_MAIN ) node->fontid = fontid;
 
 create_multispace:
             // 連続スペースノードを作成
             if( str[pos] == ' ' ) {
-                while( str[pos] == ' ' ) m_parsed_text.push_back( str[pos++] );
+                while( pos < pos_end && str[pos] == ' ' ) m_parsed_text.push_back( str[pos++] );
                 if( pos < pos_end ) {
                     create_node_multispace( m_parsed_text, bgcolor, fontid );
                     m_parsed_text.clear();
@@ -2142,23 +2139,29 @@ create_multispace:
 
             bool br = false;
 
+            std::string lower_tagname;
+            // NOTE: tag_length はチェックするタグの長さ, タグを追加するときは長さを確認して更新する
+            constexpr std::size_t tag_length = 6;
+            const auto tagname = str.substr( pos + 1, tag_length );
+            std::transform( tagname.begin(), tagname.end(), std::back_inserter( lower_tagname ),
+                            []( char c ) { return g_ascii_tolower( c ); } );
+
             // 改行 <br>
-            if( ( str[pos + 1] == 'b' || str[pos + 1] == 'B' )
-                && ( str[pos + 2] == 'r' || str[pos + 2] == 'R' )
-                ) br = true;
+            if( lower_tagname.compare( 0, 2, "br" ) == 0 ) br = true;
 
             // <a href=～></a>
-            else if( ( str[pos + 1] == 'a' || str[pos + 1] == 'A' ) && str[pos + 2] == ' ' ){
+            else if( lower_tagname.compare( 0, 2, "a " ) == 0 ) {
 
                 // フラッシュ
                 create_node_ntext( m_parsed_text.data(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
                 m_parsed_text.clear();
 
-                while( pos < pos_end && str[pos] != '=' ) ++pos;
+                pos = str.find( '=', pos );
+                if( pos >= pos_end - 2 ) break;
                 ++pos;
 
                 if( str[pos] == ' ' ) ++pos;
-                if( pos >= pos_end ) continue;
+                if( pos >= pos_end - 1 ) break;
 
                 char attr_separator = ' ';
                 if( str[pos] == '"' ) {
@@ -2172,24 +2175,34 @@ create_multispace:
                 if( pos >= pos_end ) continue;
                 a_link = a_link.substr( 0, ( str.data() + pos ) - a_link.data() );
 
-                pos = str.find( '>', pos );
-                if( pos >= pos_end ) continue;
+                while( pos < pos_end && str[pos] != '>' ) ++pos;
                 ++pos;
+                if( pos >= pos_end ) continue;
 
                 const std::size_t pos_str_start = pos;
                 std::string_view a_str = str.substr( pos );
 
-                while( pos < pos_end
-                        && ( str[pos] != '<' || str[pos + 1] != '/'
-                            || ( str[pos + 2] != 'a' && str[pos + 2] != 'A' ) || str[pos + 3] != '>' ) ) {
-                    ++pos;
+                // 終了タグ </a> の開始位置まで pos を進める
+                while( pos < pos_end ) {
+                    pos = str.find( "</", pos );
+                    if( pos == std::string_view::npos ) {
+                        pos = pos_end;
+                        break;
+                    }
+                    if( const auto t = str.substr( pos + 2 ); t.size() < 2 ) {
+                        pos = pos_end;
+                        break;
+                    }
+                    else if( ( t[0] == 'a' || t[0] == 'A' ) && t[1] == '>' ) break;
+
+                    pos += 2;
                 }
                 if( pos >= pos_end ) continue;
                 a_str = a_str.substr( 0, ( str.data() + pos ) - a_str.data() );
 
-                pos = str.find( '>', pos );
-                if( pos >= pos_end ) continue;
+                while( pos < pos_end && str[pos] != '>' ) ++pos;
                 ++pos;
+                if( pos >= pos_end ) continue;
 
                 if( ! a_link.empty() && ! a_str.empty() ) {
 
@@ -2312,80 +2325,45 @@ create_multispace:
             }
 
             // </a>
-            else if( str[pos + 1] == '/' && ( str[pos + 2] == 'a' || str[pos + 2] == 'A' ) && str[pos + 3] == '>' ) pos += 4;
+            else if( lower_tagname.compare( 0, 3, "/a>" ) == 0 ) pos += 4;
 
             // 改行にするタグ
             else if(
                 // <p>
-                (
-                    ( str[pos + 1] == 'p' || str[pos + 1] == 'P' )
-                    && str[pos + 2] == '>'
-                    )
+                lower_tagname.compare( 0, 2, "p>" ) == 0
 
                 // </p>
-                || (
-                    ( str[pos + 2] == 'p' || str[pos + 2] == 'P' )
-                    && str[pos + 3] == '>'
-                    && str[pos + 1] == '/'
-                    )
+                || lower_tagname.compare( 0, 3, "/p>" ) == 0
 
                 // <dd>
-                || (
-                    ( str[pos + 1] == 'd' || str[pos + 1] == 'D' )
-                    && ( str[pos + 2] == 'd' || str[pos + 2] == 'D' )
-                    )
+                || lower_tagname.compare( 0, 2, "dd" ) == 0
 
                 // </dl>
-                || (
-                    ( str[pos + 2] == 'd' || str[pos + 2] == 'D' )
-                    && ( str[pos + 3] == 'l' || str[pos + 3] == 'L' )
-                    && str[pos + 1] == '/'
-                    )
+                || lower_tagname.compare( 0, 3, "/dl" ) == 0
 
                 // <ul>
-                || (
-                    ( str[pos + 1] == 'u' || str[pos + 1] == 'U' )
-                    && ( str[pos + 2] == 'l' || str[pos + 2] == 'L' )
-                    )
+                || lower_tagname.compare( 0, 2, "ul" ) == 0
 
                 // </ul>
-                || (
-                    ( str[pos + 2] == 'u' || str[pos + 2] == 'U' )
-                    && ( str[pos + 3] == 'l' || str[pos + 3] == 'L' )
-                    && str[pos + 1] == '/'
-                    )
+                || lower_tagname.compare( 0, 3, "/ul" ) == 0
 
                 // </li>
-                || (
-                    ( str[pos + 2] == 'l' || str[pos + 2] == 'L' )
-                    && ( str[pos + 3] == 'i' || str[pos + 3] == 'I' )
-                    && str[pos + 1] == '/'
-                    )
+                || lower_tagname.compare( 0, 3, "/li" ) == 0
 
                 // </title>
-                || (
-                    ( str[pos + 2] == 't' || str[pos + 2] == 'T' )
-                    && ( str[pos + 3] == 'i' || str[pos + 3] == 'I' )
-                    && ( str[pos + 4] == 't' || str[pos + 4] == 'T' )
-                    && ( str[pos + 5] == 'l' || str[pos + 5] == 'L' )
-                    && ( str[pos + 6] == 'e' || str[pos + 6] == 'E' )
-                    && str[pos + 1] == '/'
-                    )
+                || lower_tagname.compare( 0, 6, "/title" ) == 0
 
                 ) br = true;
 
             // <li>はBULLET (•)にする
-            else if( ( str[pos + 1] == 'l' || str[pos + 1] == 'L' )
-                     && ( str[pos + 2] == 'i' || str[pos + 2] == 'I' )
-                ){
+            else if( lower_tagname.compare( 0, 2, "li" ) == 0 ) {
 
                 pos += 4;
                 m_parsed_text.append( u8"\u30FB" ); // KATAKANA MIDDLE DOT
             }
 
             // 水平線 <HR>
-            else if( ( str[pos + 1] == 'h' || str[pos + 1] == 'H' )
-                     && ( str[pos + 2] == 'r' || str[pos + 2] == 'R' ) ){
+            else if( lower_tagname.compare( 0, 2, "hr" ) == 0 ) {
 
                 // フラッシュ
                 create_node_ntext( m_parsed_text.data(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
@@ -2399,7 +2377,7 @@ create_multispace:
             }
 
             // ボールド <B>
-            else if( ( str[pos + 1] == 'b' || str[pos + 1] == 'B' ) && str[pos + 2] == '>' ) {
+            else if( lower_tagname.compare( 0, 2, "b>" ) == 0 ) {
 
                 // フラッシュ
                 create_node_ntext( m_parsed_text.data(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
@@ -2409,7 +2387,7 @@ create_multispace:
             }
 
             // </B>
-            else if( str[pos + 1] == '/' && ( str[pos + 2] == 'b' || str[pos + 2] == 'B' ) && str[pos + 3] == '>' ) {
+            else if( lower_tagname.compare( 0, 3, "/b>" ) == 0 ) {
 
                 // フラッシュ
                 create_node_ntext( m_parsed_text.data(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
@@ -2419,7 +2397,7 @@ create_multispace:
             }
 
             // 閉じるタグの時は文字色を戻す
-            else if( str[pos + 1] == '/' ) {
+            else if( lower_tagname.compare( 0, 1, "/" ) == 0 ) {
                 // フラッシュ
                 create_node_ntext( m_parsed_text.data(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
                 m_parsed_text.clear();
@@ -2441,10 +2419,7 @@ create_multispace:
                 m_parsed_text.clear();
 
                 // <span
-                if( ( str[pos + 1] == 's' || str[pos + 1] == 'S' )
-                    && ( str[pos + 2] == 'p' || str[pos + 2] == 'P' )
-                    && ( str[pos + 3] == 'a' || str[pos + 3] == 'A' )
-                    && ( str[pos + 4] == 'n' || str[pos + 4] == 'N' ) ) {
+                if( lower_tagname.compare( 0, 4, "span" ) == 0 ) {
 
                     pos += 5;
 
@@ -2453,7 +2428,7 @@ create_multispace:
                     if( g_ascii_strncasecmp( str.data() + pos, " class=\"", 8 ) == 0 ) {
                         pos += 8;
                         const auto pos_name = pos;
-                        while( pos < pos_end && str[pos] != '"' ) ++pos;
+                        pos = str.find( '"', pos );
                         classname = str.substr( pos_name, pos - pos_name );
                     }
 
@@ -2477,10 +2452,7 @@ create_multispace:
                 }
 
                 // <mark
-                else if( ( str[pos + 1] == 'm' || str[pos + 1] == 'M' )
-                         && ( str[pos + 2] == 'a' || str[pos + 2] == 'A' )
-                         && ( str[pos + 3] == 'r' || str[pos + 3] == 'R' )
-                         && ( str[pos + 4] == 'k' || str[pos + 4] == 'K' ) ) {
+                if( lower_tagname.compare( 0, 4, "mark" ) == 0 ) {
 
                     const CORE::Css_Manager* mgr = CORE::get_css_manager();
                     const CORE::CSS_PROPERTY& css = mgr->get_property( mgr->get_classid( "mark" ) );
@@ -2496,14 +2468,11 @@ create_multispace:
                     while( pos < pos_end && str[pos] != '>' ) {
                         bool background = false;
 
-                        while( pos < pos_end && str[pos] != '>' && str[pos] != ' '
-                               && str[pos] != '"' && str[pos] != '\'' ) ++pos;
+                        pos = str.find_first_of( "> \"'", pos );
 
-                        if( pos >= pos_end || str[pos] == '>' ) break;
+                        if( pos >= ( pos_end - 1 ) || str[pos] == '>' ) break;
 
-                        const bool pre_char{ str[pos] == ' ' || str[pos] == '"' || str[pos] == '\'' };
                         ++pos;
-                        if( ! pre_char ) continue;
 
                         std::string_view attr_str = str.substr( pos );
                         std::size_t attr_pos = 0;
@@ -2583,22 +2552,19 @@ create_multispace:
                 node = create_node_br();
                 if (fontid != FONT_MAIN) node->fontid = fontid;
 
-                while( str[pos] != '>' ) {
-                    ++pos;
-                }
+                while( pos < pos_end && str[pos] != '>' ) ++pos;
                 ++pos;
 
-                if( str[pos] == ' ' ){
+                if( pos < pos_end && str[pos] == ' ' ){
 
                     pos++;  // 一文字だけなら取り除く
 
                     // 連続半角空白
-                    if( str[pos] == ' ' ){
+                    if( pos < pos_end && str[pos] == ' ' ) {
 
-                        while( str[pos] == ' ' ) {
-                            m_parsed_text.push_back( str[pos++] );
-                        }
-                        create_node_multispace( m_parsed_text, bgcolor, fontid );
+                        const auto begin = pos;
+                        while( pos < pos_end && str[pos] == ' ' ) ++pos;
+                        create_node_multispace( str.substr( begin, pos - begin ), bgcolor, fontid );
                         m_parsed_text.clear();
                     }
                 }
@@ -2718,6 +2684,8 @@ create_multispace:
             continue;
         }
 
+        if( pos >= pos_end ) continue;
+
         ///////////////////////
         // 特殊文字デコード
         if( str[pos] == '&' ){
@@ -2779,7 +2747,7 @@ create_multispace:
 
         ///////////////////////
         // NBSP(0xC2 0xA0)
-        else if( str[pos] == '\xC2' && str[pos + 1] == '\xA0' ) {
+        else if( str.compare( pos, 2, "\xC2\xA0" ) == 0 ) {
             // 空白に置き換える
             m_parsed_text.push_back( ' ' );
             pos += 2;
@@ -2789,24 +2757,18 @@ create_multispace:
 
         ///////////////////////
         // その他のASCIIおよびマルチバイト文字
-        switch( MISC::utf8bytes( str.data() + pos ) ) {
-            case 4: m_parsed_text.push_back( str[pos++] );
-                    [[fallthrough]];
-            case 3: m_parsed_text.push_back( str[pos++] );
-                    [[fallthrough]];
-            case 2: m_parsed_text.push_back( str[pos++] );
-                    [[fallthrough]];
-            case 1: m_parsed_text.push_back( str[pos++] );
-                    break;
-            default:
-                // Iconvでエンコード変換済みなので不正な文字が
-                // ここで検出されるのは何かがおかしい
-                MISC::ERRMSG( "invalid char = " + std::to_string( static_cast<unsigned char>( str[pos] ) ) );
+        if( const int n = MISC::utf8bytes( str.data() + pos ); n > 0 ) {
+            m_parsed_text.append( str.substr( pos, n ) );
+            pos += n;
+        }
+        else {
+            // Iconvでエンコード変換済みなので不正な文字が
+            // ここで検出されるのは何かがおかしい
+            MISC::ERRMSG( "invalid char = " + std::to_string( static_cast<unsigned char>( str[pos] ) ) );
 
-                // U+FFFD (REPLACEMENT CHARACTER) に置き換える
-                m_parsed_text.append( "\xEF\xBF\xBD" );
-                ++pos;
-                break;
+            // U+FFFD (REPLACEMENT CHARACTER) に置き換える
+            m_parsed_text.append( "\xEF\xBF\xBD" );
+            ++pos;
         }
     }
 
