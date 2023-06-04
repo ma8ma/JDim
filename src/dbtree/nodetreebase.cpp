@@ -2092,17 +2092,16 @@ void NodeTreeBase::parse_html( std::string_view str, const int color_text,
 
     m_parsed_text.clear();
 
-    if( pos[0] == ' ' ){
+    if( ! pos.empty() && pos[0] == ' ' ) {
 
         pos.remove_prefix( 1 ); // 一文字だけなら取り除く
 
         // 連続半角空白
-        if( pos[0] == ' ' ) {
+        if( ! pos.empty() && pos[0] == ' ' ) {
 
-            while( pos[0] == ' ' ) {
-                m_parsed_text.push_back( pos[0] );
-                pos.remove_prefix( 1 );
-            }
+            const auto i = pos.find_first_not_of( ' ' );
+            m_parsed_text.append( pos.substr( 0, i ) );
+            pos.remove_prefix( std::min( i, pos.size() ) );
             create_node_multispace( m_parsed_text, bgcolor, fontid );
             m_parsed_text.clear();
         }
@@ -2119,18 +2118,16 @@ void NodeTreeBase::parse_html( std::string_view str, const int color_text,
             m_parsed_text.clear();
 
             pos.remove_prefix( 1 );
-            if( ! pos.empty() ) {
-                node = create_node_space( NODE_SP, bgcolor );
-                if( fontid != FONT_MAIN ) node->fontid = fontid;
-            }
+            if( pos.empty() ) continue;
+            node = create_node_space( NODE_SP, bgcolor );
+            if( fontid != FONT_MAIN ) node->fontid = fontid;
 
 create_multispace:
             // 連続スペースノードを作成
             if( pos[0] == ' ' ) {
-                while( pos[0] == ' ' ) {
-                    m_parsed_text.push_back( pos[0] );
-                    pos.remove_prefix( 1 );
-                }
+                const auto i = pos.find_first_not_of( ' ' );
+                m_parsed_text.append( pos.substr( 0, i ) );
+                pos.remove_prefix( std::min( i, pos.size() ) );
                 if( ! pos.empty() ) {
                     create_node_multispace( m_parsed_text, bgcolor, fontid );
                     m_parsed_text.clear();
@@ -2158,10 +2155,10 @@ create_multispace:
                 create_node_ntext( m_parsed_text.data(), m_parsed_text.size(), fgcolor, bgcolor, in_bold, fontid );
                 m_parsed_text.clear();
 
-                while( ! pos.empty() && pos[0] != '=' ) pos.remove_prefix( 1 );
-                pos.remove_prefix( 1 );
+                if( const auto i = pos.find( '=' ); i < pos.size() ) pos.remove_prefix( i + 1 );
+                else pos.remove_prefix( pos.size() );
 
-                if( pos[0] == ' ' ) pos.remove_prefix( 1 );
+                if( ! pos.empty() && pos[0] == ' ' ) pos.remove_prefix( 1 );
                 if( pos.empty() ) continue;
 
                 char attr_separator = ' ';
@@ -2176,7 +2173,7 @@ create_multispace:
                 if( pos.empty() ) continue;
                 a_link = a_link.substr( 0, pos.data() - a_link.data() );
 
-                while( ! pos.empty() && pos[0] != '>' ) pos.remove_prefix( 1 );
+                pos.remove_prefix( std::min( pos.find( '>' ), pos.size() ) );
                 if( pos.empty() ) continue;
                 pos.remove_prefix( 1 );
 
@@ -2190,7 +2187,7 @@ create_multispace:
                 if( pos.empty() ) continue;
                 a_str = a_str.substr( 0, pos.data() - a_str.data() );
 
-                while( ! pos.empty() && pos[0] != '>' ) pos.remove_prefix( 1 );
+                pos.remove_prefix( std::min( pos.find( '>' ), pos.size() ) );
                 if( pos.empty() ) continue;
                 pos.remove_prefix( 1 );
 
@@ -2382,7 +2379,7 @@ create_multispace:
                      && ( pos[2] == 'i' || pos[2] == 'I' )
                 ){
 
-                pos.remove_prefix( 4 );
+                pos.remove_prefix( std::min<std::size_t>( 4, pos.size() ) );
                 m_parsed_text.append( u8"\u30FB" ); // KATAKANA MIDDLE DOT
             }
 
@@ -2398,7 +2395,7 @@ create_multispace:
                 node = create_node_hr();
                 if (fontid != FONT_MAIN) node->fontid = fontid;
 
-                pos.remove_prefix( 4 );
+                pos.remove_prefix( std::min<std::size_t>( 4, pos.size() ) );
             }
 
             // ボールド <B>
@@ -2432,8 +2429,8 @@ create_multispace:
                 bgcolor = bgcolor_bak;
                 bgcolor_bak = COLOR_NONE;
 
-                while( ! pos.empty() && pos[0] != '>' ) pos.remove_prefix( 1 );
-                pos.remove_prefix( 1 );
+                pos.remove_prefix( std::min( pos.find( '>' ), pos.size() ) );
+                if( ! pos.empty() ) pos.remove_prefix( 1 );
             }
 
             // その他のタグはタグを取り除いて中身だけを見る
@@ -2456,7 +2453,7 @@ create_multispace:
                     if( g_ascii_strncasecmp( pos.data(), " class=\"", 8 ) == 0 ) {
                         pos.remove_prefix( 8 );
                         const char* pos_name = pos.data();
-                        while( ! pos.empty() && pos[0] != '"' ) pos.remove_prefix( 1 );
+                        pos.remove_prefix( std::min( pos.find( '"' ), pos.size() ) );
                         classname = std::string( pos_name, pos.data() - pos_name );
                     }
 
@@ -2499,10 +2496,8 @@ create_multispace:
                     while( ! pos.empty() && pos[0] != '>' ) {
                         bool background = false;
 
-                        while( ! pos.empty() && pos[0] != '>' && pos[0] != ' '
-                                && pos[0] != '"' && pos[0] != '\'' ) pos.remove_prefix( 1 );
-
-                        if( pos[0] == '>' ) break;
+                        pos.remove_prefix( std::min( pos.find_first_of( "> \"'" ), pos.size() ) );
+                        if( pos.empty() || pos[0] == '>' ) break;
 
                         const bool pre_char{ pos[0] == ' ' || pos[0] == '"' || pos[0] == '\'' };
                         pos.remove_prefix( 1 );
@@ -2571,8 +2566,8 @@ create_multispace:
                     }
                 }
 
-                while( ! pos.empty() && pos[0] != '>' ) pos.remove_prefix( 1 );
-                pos.remove_prefix( 1 );
+                pos.remove_prefix( std::min( pos.find( '>' ), pos.size() ) );
+                if( ! pos.empty() ) pos.remove_prefix( 1 );
             }
 
             // 改行実行
@@ -2586,22 +2581,20 @@ create_multispace:
                 node = create_node_br();
                 if (fontid != FONT_MAIN) node->fontid = fontid;
 
-                while( pos[0] != '>' ) {
-                    pos.remove_prefix( 1 );
-                }
+                pos.remove_prefix( std::min( pos.find( '>' ), pos.size() ) );
+                if( pos.empty() ) continue;
                 pos.remove_prefix( 1 );
 
-                if( pos[0] == ' ' ){
+                if( ! pos.empty() && pos[0] == ' ' ){
 
                     pos.remove_prefix( 1 ); // 一文字だけなら取り除く
 
                     // 連続半角空白
-                    if( pos[0] == ' ' ){
+                    if( ! pos.empty() && pos[0] == ' ' ){
 
-                        while( pos[0] == ' ' ) {
-                            m_parsed_text.push_back( pos[0] );
-                            pos.remove_prefix( 1 );
-                        }
+                        const auto i = pos.find_first_not_of( ' ' );
+                        m_parsed_text.append( pos.substr( 0, i ) );
+                        pos.remove_prefix( std::min( i, pos.size() ) );
                         create_node_multispace( m_parsed_text, bgcolor, fontid );
                         m_parsed_text.clear();
                     }
@@ -2652,9 +2645,9 @@ create_multispace:
         // digitlink = true の時は数字が長すぎるときは飛ばす( 例えば　名前: 12345678 みたいなとき )
         if( digitlink ){
             --n_in;
-            while( n_in-- > 0 ) {
-                m_parsed_text.push_back( pos[0] );
-                pos.remove_prefix( 1 );
+            if( n_in > 0 ) {
+                m_parsed_text.append( pos.substr( 0, n_in ) );
+                pos.remove_prefix( n_in );
             }
         }
 
