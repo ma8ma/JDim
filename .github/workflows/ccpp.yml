@@ -35,6 +35,46 @@ jobs:
       - name: ./builddir/src/jdim -V
         run: ./builddir/src/jdim -V
 
+  Unity-build-22:
+    runs-on: ubuntu-22.04
+    env:
+      CC: gcc-11
+      CXX: g++-11
+    steps:
+      - uses: actions/checkout@v3
+      - name: dependencies installation
+        run: |
+          sudo apt update
+          sudo apt install libgnutls28-dev libgtest-dev libgtkmm-3.0-dev meson zlib1g-dev g++-11
+      - name: meson setup builddir -Dunity=on -Dbuildtype=debug -Dcpp_args="-D_DEBUG" -Dwerror=true
+        run: meson setup builddir -Dunity=on -Dbuildtype=debug -Dcpp_args="-D_DEBUG" -Dwerror=true
+      - name: ninja -C builddir -k0
+        run: ninja -C builddir -k0
+      - name: meson test -v -C builddir
+        run: meson test -v -C builddir
+      - name: ./builddir/src/jdim -V
+        run: ./builddir/src/jdim -V
+
+  Unity-build-22-size1000:
+    runs-on: ubuntu-22.04
+    env:
+      CC: gcc-11
+      CXX: g++-11
+    steps:
+      - uses: actions/checkout@v3
+      - name: dependencies installation
+        run: |
+          sudo apt update
+          sudo apt install libgnutls28-dev libgtest-dev libgtkmm-3.0-dev meson zlib1g-dev g++-11
+      - name: meson setup builddir -Dunity=on -Duniti_size=1000 -Dbuildtype=debug -Dcpp_args="-D_DEBUG" -Dwerror=true
+        run: meson setup builddir -Dunity=on -Duniti_size=1000 --Dbuildtype=debug -Dcpp_args="-D_DEBUG" -Dwerror=true
+      - name: ninja -C builddir -k0
+        run: ninja -C builddir -k0
+      - name: meson test -v -C builddir
+        run: meson test -v -C builddir
+      - name: ./builddir/src/jdim -V
+        run: ./builddir/src/jdim -V
+
   compiler-20:
     runs-on: ubuntu-20.04
     env:
@@ -43,9 +83,6 @@ jobs:
     strategy:
       matrix:
         sets:
-          - cc: gcc-8
-            cxx: g++-8
-            package: g++-8
           - cc: gcc-9
             cxx: g++-9
             package: g++-9
@@ -115,37 +152,6 @@ jobs:
         run: meson test -v -C builddir
       - name: ./builddir/src/jdim -V
         run: ./builddir/src/jdim -V
-
-  autotools:
-    runs-on: ${{ matrix.sets.os }}
-    env:
-      CC: ${{ matrix.sets.cc }}
-      CXX: ${{ matrix.sets.cxx }}
-      CXXFLAGS: -Og -pipe
-      GTEST_SRCDIR: /usr/src/googletest
-    strategy:
-      matrix:
-        sets:
-          - os: ubuntu-22.04
-            cc: gcc-11
-            cxx: g++-11
-            package: g++-11
-    steps:
-      - uses: actions/checkout@v3
-      - name: dependencies installation
-        run: |
-          sudo apt update
-          sudo apt install autoconf-archive libgnutls28-dev libgtest-dev libgtkmm-3.0-dev libltdl-dev libtool zlib1g-dev ${{ matrix.sets.package }}
-      - name: autoreconf -i
-        run: autoreconf -i
-      - name: ./configure
-        run: ./configure
-      - name: make -j$(nproc)
-        run: make -j$(nproc)
-      - name: make check -j$(nproc)
-        run: make check -j$(nproc)
-      - name: ./src/jdim -V
-        run: ./src/jdim -V
 
   library-20:
 
