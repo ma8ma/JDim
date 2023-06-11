@@ -66,8 +66,8 @@ jobs:
         run: |
           sudo apt update
           sudo apt install libgnutls28-dev libgtest-dev libgtkmm-3.0-dev meson zlib1g-dev g++-11
-      - name: meson setup builddir -Dunity=on -Duniti_size=1000 -Dbuildtype=debug -Dcpp_args="-D_DEBUG" -Dwerror=true
-        run: meson setup builddir -Dunity=on -Duniti_size=1000 -Dbuildtype=debug -Dcpp_args="-D_DEBUG" -Dwerror=true
+      - name: meson setup builddir -Dunity=on -Dunity_size=1000 -Dbuildtype=debug -Dcpp_args="-D_DEBUG" -Dwerror=true
+        run: meson setup builddir -Dunity=on -Dunity_size=1000 -Dbuildtype=debug -Dcpp_args="-D_DEBUG" -Dwerror=true
       - name: ninja -C builddir -k0
         run: ninja -C builddir -k0
       - name: meson test -v -C builddir
