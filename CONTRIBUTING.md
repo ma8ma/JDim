@@ -97,3 +97,30 @@ C++17で追加された標準ライブラリのうちg++ 8またはclang++ 7が[
 [cpp17sets]: https://en.cppreference.com/w/cpp/container/set/merge
 [cpp17conv]: https://en.cppreference.com/w/cpp/header/charconv
 [cpp17fspathhash]: https://en.cppreference.com/w/cpp/filesystem/path/hash
+
+#### :chains: Unity buildの注意
+ビルドツールMesonは複数のソースコードを1つのファイルに結合してコンパイルする
+Unity buildという機能があります(デフォルトは無効)。
+機能を有効に設定してソースファイルを結合するとマクロや変数などの名前が衝突してコンパイルに失敗することがあります。
+
+今のところCIのジョブでUnity buildのチェックは行っていませんが
+ビルドの問題を見つけたときは報告や修正のPull requestをいただければ幸いです。
+
+* 名前が衝突したときは名称を変更したり入れ子の名前空間の中に入れるなどで衝突を回避できます。
+  ```cpp
+  // 入れ子の名前空間の例
+  namespace Outer::priv { constexpr int kBufferSize = 1024; }
+
+  using namespace Outer;
+  use_value( priv::kBufferSize );
+  ```
+* `#define`マクロによる意図しない定義変更(上書き)に注意してください。
+  コンパイラーがマクロの警告を出したときはマクロ以外の方法が使えないかチェックしてみてください。
+
+##### Unity buildの使い方
+setupサブコマンドで`-Dunity=on`を指定します。
+ビルドオプション`-Dunity_size=N`で1つに結合するファイル数を変更できます。
+```sh
+meson setup builddir -Dunity=on -Dunity_size=10
+ninja -C builddir
+```
