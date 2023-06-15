@@ -12,19 +12,19 @@ on:
 
 jobs:
 
-  compiler-22:
+  Unity-build-22-size1000-gcc12-Werror:
     runs-on: ubuntu-22.04
     env:
-      CC: gcc-11
-      CXX: g++-11
+      CC: gcc-12
+      CXX: g++-12
     steps:
       - uses: actions/checkout@v3
       - name: dependencies installation
         run: |
           sudo apt update
-          sudo apt install libgnutls28-dev libgtest-dev libgtkmm-3.0-dev meson zlib1g-dev g++-11
-      - name: meson setup builddir -Dbuildtype=debug -Dcpp_args="-D_DEBUG" -Dwerror=true
-        run: meson setup builddir -Dbuildtype=debug -Dcpp_args="-D_DEBUG" -Dwerror=true
+          sudo apt install libgnutls28-dev libgtest-dev libgtkmm-3.0-dev meson zlib1g-dev g++-12
+      - name: meson setup builddir -Dunity=on -Dunity_size=1000 -Dbuildtype=debug -Dcpp_args="-D_DEBUG" -Dwerror=true
+        run: meson setup builddir -Dunity=on -Dunity_size=1000 -Dbuildtype=debug -Dcpp_args="-D_DEBUG" -Dwerror=true
       - name: ninja -C builddir -k0
         run: ninja -C builddir -k0
       - name: meson test -v -C builddir
@@ -32,54 +32,71 @@ jobs:
       - name: ./builddir/src/jdim -V
         run: ./builddir/src/jdim -V
 
-  Unity-build-22-sizeN:
+  Unity-build-22-size1000-gcc12-Weverything:
     runs-on: ubuntu-22.04
     env:
-      CC: gcc-11
-      CXX: g++-11
-    strategy:
-      matrix:
-        unity_size:
-          - 2
-          - 4
-          - 6
-          - 8
-          - 10
-          - 12
-          - 14
-          - 16
-          - 18
-          - 20
-          - 22
-          - 24
-          - 26
-          - 28
-          - 30
-          - 32
-          - 34
-          - 36
-          - 38
-          - 40
-          - 42
-          - 44
-          - 46
-          - 48
-          - 50
-          - 52
-          - 54
-          - 56
-          - 58
-          - 60
-          - 62
-          - 64
+      CC: gcc-12
+      CXX: g++-12
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - name: pip install meson>=1.0.0
+        run: |
+          pip install meson>=1.0.0
+      - name: dependencies installation
+        run: |
+          sudo apt update
+          sudo apt install libgnutls28-dev libgtest-dev libgtkmm-3.0-dev zlib1g-dev g++-12
+      - name: meson setup builddir -Dunity=on -Dunity_size=1000 -Dbuildtype=debug -Dcpp_args="-D_DEBUG -Wno-abi-tag -Wunused-const-variable=1" -Dwarning_level=everything
+        run: meson setup builddir -Dunity=on -Dunity_size=1000 -Dbuildtype=debug -Dcpp_args="-D_DEBUG -Wno-abi-tag -Wunused-const-variable=1" -Dwarning_level=everything
+      - name: ninja -C builddir -k0
+        run: ninja -C builddir -k0
+      - name: meson test -v -C builddir
+        run: meson test -v -C builddir
+      - name: ./builddir/src/jdim -V
+        run: ./builddir/src/jdim -V
+
+  Unity-build-22-size1000-clang15-Werror:
+    runs-on: ubuntu-22.04
+    env:
+      CC: clang-15
+      CXX: clang++-15
     steps:
       - uses: actions/checkout@v3
       - name: dependencies installation
         run: |
           sudo apt update
-          sudo apt install libgnutls28-dev libgtest-dev libgtkmm-3.0-dev meson zlib1g-dev g++-11
-      - name: meson setup builddir -Dunity=on -Dunity_size=${{ matrix.unity_size }} -Dbuildtype=debug -Dcpp_args="-D_DEBUG" -Dwerror=true
-        run: meson setup builddir -Dunity=on -Dunity_size=${{ matrix.unity_size }} -Dbuildtype=debug -Dcpp_args="-D_DEBUG" -Dwerror=true
+          sudo apt install libgnutls28-dev libgtest-dev libgtkmm-3.0-dev meson zlib1g-dev clang-15
+      - name: meson setup builddir -Dunity=on -Dunity_size=1000 -Dbuildtype=debug -Dcpp_args="-D_DEBUG" -Dwerror=true
+        run: meson setup builddir -Dunity=on -Dunity_size=1000 -Dbuildtype=debug -Dcpp_args="-D_DEBUG" -Dwerror=true
+      - name: ninja -C builddir -k0
+        run: ninja -C builddir -k0
+      - name: meson test -v -C builddir
+        run: meson test -v -C builddir
+      - name: ./builddir/src/jdim -V
+        run: ./builddir/src/jdim -V
+
+  Unity-build-22-size1000-clang15-Weverything:
+    runs-on: ubuntu-22.04
+    env:
+      CC: clang-15
+      CXX: clang++-15
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - name: pip install meson>=1.0.0
+        run: |
+          pip install meson>=1.0.0
+      - name: dependencies installation
+        run: |
+          sudo apt update
+          sudo apt install libgnutls28-dev libgtest-dev libgtkmm-3.0-dev zlib1g-dev clang-15
+      - name: meson setup builddir -Dunity=on -Dunity_size=1000 -Dbuildtype=debug -Dcpp_args="-D_DEBUG -Wno-c++98-compat -Wno-c++98-compat-pedantic" -Dwarning_level=everything
+        run: meson setup builddir -Dunity=on -Dunity_size=1000 -Dbuildtype=debug -Dcpp_args="-D_DEBUG -Wno-c++98-compat -Wno-c++98-compat-pedantic" -Dwarning_level=everything
       - name: ninja -C builddir -k0
         run: ninja -C builddir -k0
       - name: meson test -v -C builddir
