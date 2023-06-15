@@ -62,7 +62,7 @@ endif
 #
 # 必須パッケージのチェック
 #
-gtkmm_dep = dependency('gtkmm-3.0', version : '>= 3.24.0')
+gtkmm_dep = dependency('gtkmm-3.0', version : '>= 3.24.0', include_type : 'system')
 gtkmm_dep = declare_dependency(compile_args : '-DGTK_DOMAIN="gtk30"',
                                dependencies : gtkmm_dep)
 threads_dep = dependency('threads')
