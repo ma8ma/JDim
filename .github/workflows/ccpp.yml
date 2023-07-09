@@ -231,12 +231,12 @@ jobs:
         run: |
           meson setup -Ddocs=disabled -Dlibarchive=disabled -Dlibcurl=disabled -Dlibpkgconf=enabled muon-build muon-src
           ninja -C muon-build
+      - name: muon version
+        run: ./muon-build/muon version
       - name: muon setup builddir
         run: ./muon-build/muon setup -Dcompat_cache_dir=disabled jdim-build
       - name: ninja -C jdim-build -k0
         run: ninja -C jdim-build -k0
-      - name: muon version
-        run: ../muon-build/muon version
       - name: muon test
         run: |
           cd jdim-build
