@@ -33,6 +33,8 @@ layout: default
 <a name="requirement"></a>
 ### makeに必要なツール、ライブラリ
 
+**Autotools(./configure)のサポートはv0.10.0(2023年7月)のリリースをもって廃止されました。([RFC 0012][rfc0012])**
+
 #### 必須
 - meson 0.53.0 以上
 - g++ 8 以上、または clang++ 7 以上
@@ -56,7 +58,6 @@ WebPやAVIF形式の画像を表示する方法は [#737][dis737] を参照。
 
 OSやディストリビューション別の解説は [#592][dis592] を参照。
 
-**Autotools(./configure)のサポートは2023年7月のリリースをもって廃止されます。([RFC 0012][rfc0012])**
 
 
 <a name="build-meson"></a>
