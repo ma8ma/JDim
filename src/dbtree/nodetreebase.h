@@ -341,6 +341,9 @@ namespace DBTREE
         void parse_html( const char* str, std::size_t lng_str, const int color_text,
                          bool digitlink, const bool bold, const char fontid = FONT_MAIN );
 
+        bool parse_a( const char*& pos, const char* pos_end, int bgcolor, bool bold, char fontid );
+        bool parse_img( const char*& pos, const char* pos_end, bool bold, char fontid );
+
         // 書き込みログ比較用文字列作成
         // m_buffer_write に作成した文字列をセットする
         void parse_write( std::string_view str, const std::size_t max_lng_write );
