@@ -3263,7 +3263,8 @@ void NodeTreeBase::copy_abone_info( const std::list< std::string >& list_abone_i
                                     const std::unordered_set< int >& abone_reses,
                                     const bool abone_transparent, const bool abone_chain, const bool abone_age,
                                     const bool abone_default_name, const bool abone_noid,
-                                    const bool abone_board, const bool abone_global )
+                                    const bool abone_board, const bool abone_global,
+                                    const bool abone_word_add_abone_id, const bool abone_regex_add_abone_id )
 {
     m_list_abone_id = list_abone_id;
     m_list_abone_name = list_abone_name;
@@ -3310,6 +3311,8 @@ void NodeTreeBase::copy_abone_info( const std::list< std::string >& list_abone_i
     m_abone_noid = abone_noid;
     m_abone_board = abone_board;
     m_abone_global = abone_global;
+    m_abone_word_add_abone_id = abone_word_add_abone_id;
+    m_abone_regex_add_abone_id = abone_regex_add_abone_id;
 }
 
 
@@ -3543,12 +3546,31 @@ bool NodeTreeBase::check_abone_word( const int number )
     JDLIB::Regex regex;
     const size_t offset = 0;
 
+    const char* abone_word_add_idlink = nullptr; // ワードであぼーんした投稿者をNG IDに追加する
+    const char* abone_regex_add_idlink = nullptr; // 正規表現であぼーんした投稿者をNG IDに追加する
+    if( const NODE* idnode = head->headinfo->block[ BLOCK_ID_NAME ]; idnode ) {
+        if( idnode = idnode->next_node; idnode && idnode->linkinfo ) {
+            abone_word_add_idlink = idnode->linkinfo->link;
+        }
+
+        if( m_abone_regex_add_abone_id ) {
+            abone_regex_add_idlink = abone_word_add_idlink;
+        }
+        if( ! m_abone_word_add_abone_id ) {
+            abone_word_add_idlink = nullptr;
+        }
+    }
+
     // ローカル NG word
     if( check_word ){
 
         for( const std::string& word : m_list_abone_word ) {
             if( res_str.find( word ) != std::string::npos ) {
                 head->headinfo->abone = true;
+
+                if( abone_word_add_idlink ) {
+                    DBTREE::add_abone_id( m_url, abone_word_add_idlink );
+                }
                 return true;
             }
         }
@@ -3560,6 +3582,10 @@ bool NodeTreeBase::check_abone_word( const int number )
         for( const JDLIB::RegexPattern& pattern : m_list_abone_regex ) {
             if( regex.match( pattern, res_str, offset ) ){
                 head->headinfo->abone = true;
+
+                if( abone_regex_add_idlink ) {
+                    DBTREE::add_abone_id( m_url, abone_regex_add_idlink );
+                }
                 return true;
             }
         }
@@ -3571,6 +3597,10 @@ bool NodeTreeBase::check_abone_word( const int number )
         for( const std::string& word : m_list_abone_word_board ) {
             if( res_str.find( word ) != std::string::npos ) {
                 head->headinfo->abone = true;
+
+                if( abone_word_add_idlink ) {
+                    DBTREE::add_abone_id( m_url, abone_word_add_idlink );
+                }
                 return true;
             }
         }
@@ -3582,6 +3612,10 @@ bool NodeTreeBase::check_abone_word( const int number )
         for( const JDLIB::RegexPattern& pattern : m_list_abone_regex_board ) {
             if( regex.match( pattern, res_str, offset ) ){
                 head->headinfo->abone = true;
+
+                if( abone_regex_add_idlink ) {
+                    DBTREE::add_abone_id( m_url, abone_regex_add_idlink );
+                }
                 return true;
             }
         }
@@ -3593,6 +3627,10 @@ bool NodeTreeBase::check_abone_word( const int number )
         for( const std::string& word : m_list_abone_word_global ) {
             if( res_str.find( word ) != std::string::npos ) {
                 head->headinfo->abone = true;
+
+                if( abone_word_add_idlink ) {
+                    DBTREE::add_abone_id( m_url, abone_word_add_idlink );
+                }
                 return true;
             }
         }
@@ -3604,6 +3642,10 @@ bool NodeTreeBase::check_abone_word( const int number )
         for( const JDLIB::RegexPattern& pattern : m_list_abone_regex_global ) {
             if( regex.match( pattern, res_str, offset ) ){
                 head->headinfo->abone = true;
+
+                if( abone_regex_add_idlink ) {
+                    DBTREE::add_abone_id( m_url, abone_regex_add_idlink );
+                }
                 return true;
             }
         }

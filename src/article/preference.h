@@ -32,13 +32,14 @@ namespace ARTICLE
         Gtk::ComboBoxText m_combo_charset;
 
         // あぼーん
-        Gtk::VBox m_vbox_abone;
+        Gtk::Grid m_grid_abone;
         Gtk::Notebook m_notebook_abone;
         Gtk::VBox m_vbox_abone_id;
         Gtk::Label m_label_abone_id;
         SKELETON::EditView m_edit_id, m_edit_res, m_edit_name, m_edit_word, m_edit_regex;
 
         Gtk::Label m_label_abone;
+        Gtk::Label m_label_abone_add_abone_id;
 
         // 透明あぼーん
         Gtk::CheckButton m_check_transpabone;
@@ -60,6 +61,12 @@ namespace ARTICLE
 
         // 全体レベルでのあぼーん
         Gtk::CheckButton m_check_globalabone;
+
+        /// ワードであぼーんした投稿者をNG IDに追加する
+        Gtk::CheckButton m_check_abone_word_add_abone_id;
+
+        /// 正規表現であぼーんした投稿者をNG IDに追加する
+        Gtk::CheckButton m_check_abone_regex_add_abone_id;
 
         Gtk::Box m_hbox_since;
         SKELETON::LabelEntry m_label_since;

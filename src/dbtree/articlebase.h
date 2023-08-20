@@ -87,6 +87,8 @@ namespace DBTREE
         bool m_abone_noid{}; // ID無しをあぼーん
         bool m_abone_board; // 板レベルでのあぼーんを有効にする
         bool m_abone_global; // 全体レベルでのあぼーんを有効にする
+        bool m_abone_word_add_abone_id{}; ///< ワードであぼーんした投稿者をNG IDに追加する
+        bool m_abone_regex_add_abone_id{}; ///< 正規表現であぼーんした投稿者をNG IDに追加する
 
         // 「スレ」がスレ一覧でブックマークされているか
         bool m_bookmarked_thread{};
@@ -355,6 +357,12 @@ namespace DBTREE
         // 全体レベルでのあぼーん
         bool get_abone_global() const { return m_abone_global; }
 
+        /// ワードであぼーんした投稿者をNG IDに追加する
+        bool get_abone_word_add_abone_id() const noexcept { return m_abone_word_add_abone_id; }
+
+        /// 正規表現であぼーんした投稿者をNG IDに追加する
+        bool get_abone_regex_add_abone_id() const noexcept { return m_abone_regex_add_abone_id; }
+
         // number番のレスがあぼーんされているか
         bool get_abone( int number );
 
@@ -369,7 +377,8 @@ namespace DBTREE
                           const std::vector< char >& vec_abone_res,
                           const bool transparent, const bool chain, const bool age,
                           const bool default_name, const bool noid,
-                          const bool board, const bool global
+                          const bool board, const bool global,
+                          const bool abone_word_add_abone_id, const bool abone_regex_add_abone_id
             );
 
         // あぼ〜ん状態更新(reset_abone()と違って各項目ごと個別におこなう)
@@ -384,6 +393,8 @@ namespace DBTREE
         void set_abone_noid( const bool set ); // ID無し
         void set_abone_board( const bool set ); // 板レベルでのあぼーん
         void set_abone_global( const bool set ); // 全体レベルでのあぼーん
+        void set_abone_word_add_abone_id( const bool set ); // ワードであぼーんした投稿者をNG IDに追加する
+        void set_abone_regex_add_abone_id( const bool set ); // 正規表現であぼーんした投稿者をNG IDに追加する
 
 
         // 「スレ」のブックマーク

@@ -37,6 +37,8 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     , m_check_noidabone( "ID無しをあぼ〜ん" )
     , m_check_boardabone( "板レベルでのあぼ〜んを有効にする" )
     , m_check_globalabone( "全体レベルでのあぼ〜んを有効にする" )
+    , m_check_abone_word_add_abone_id{ "ワードであぼ〜んした投稿者をNG IDに追加する" }
+    , m_check_abone_regex_add_abone_id{ "正規表現であぼ〜んした投稿者をNG IDに追加する" }
     , m_hbox_since{ Gtk::ORIENTATION_HORIZONTAL, 0 }
     , m_label_since( false, "スレ立て日時 : ", std::string() )
     , m_label_modified( false, "最終更新日時 : ", std::string() )
@@ -129,8 +131,8 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
 
     // あぼーん設定
 
-    m_vbox_abone.set_border_width( 16 );
-    m_vbox_abone.set_spacing( 8 );
+    m_grid_abone.set_border_width( 16 );
+    m_grid_abone.set_row_spacing( 8 );
 
     // 透明あぼーん
     m_check_transpabone.set_active( DBTREE::get_abone_transparent( get_url() ) );
@@ -153,21 +155,34 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     // 全体レベルあぼーん
     m_check_globalabone.set_active( DBTREE::get_abone_global( get_url() ) );
 
+    // ワードであぼーんした投稿者をNG IDに追加する
+    m_check_abone_word_add_abone_id.set_active( DBTREE::get_abone_word_add_abone_id( get_url() ) );
+
+    // 正規表現であぼーんした投稿者をNG IDに追加する
+    m_check_abone_regex_add_abone_id.set_active( DBTREE::get_abone_regex_add_abone_id( get_url() ) );
+
     if( CONFIG::get_abone_transparent() ) m_check_transpabone.set_sensitive( false );
     if( CONFIG::get_abone_chain() ) m_check_chainabone.set_sensitive( false );
 
-    m_vbox_abone.pack_start( m_check_transpabone, Gtk::PACK_SHRINK );
-    m_vbox_abone.pack_start( m_check_chainabone, Gtk::PACK_SHRINK );
-    m_vbox_abone.pack_start( m_check_ageabone, Gtk::PACK_SHRINK );
-    m_vbox_abone.pack_start( m_check_defnameabone, Gtk::PACK_SHRINK );
-    m_vbox_abone.pack_start( m_check_noidabone, Gtk::PACK_SHRINK );
-    m_vbox_abone.pack_start( m_check_boardabone, Gtk::PACK_SHRINK );
-    m_vbox_abone.pack_start( m_check_globalabone, Gtk::PACK_SHRINK );
+    m_grid_abone.attach( m_check_transpabone, 0, 0, 1, 1 );
+    m_grid_abone.attach( m_check_chainabone, 0, 1, 1, 1 );
+    m_grid_abone.attach( m_check_ageabone, 0, 2, 1, 1 );
+    m_grid_abone.attach( m_check_defnameabone, 0, 3, 1, 1 );
+    m_grid_abone.attach( m_check_noidabone, 0, 4, 1, 1 );
+    m_grid_abone.attach( m_check_boardabone, 0, 5, 1, 1 );
+    m_grid_abone.attach( m_check_globalabone, 0, 6, 1, 1 );
+    m_grid_abone.attach( m_label_abone_add_abone_id, 0, 7, 2, 1 );
+
+    m_grid_abone.attach( m_check_abone_word_add_abone_id, 1, 0, 1, 1 );
+    m_grid_abone.attach( m_check_abone_regex_add_abone_id, 1, 1, 1, 1 );
+
+    m_label_abone_add_abone_id.set_text(
+        "ワードや正規表現であぼ〜んした投稿者をNG IDに追加する場合はIDを削除しても再度追加されます" );
 
     if( CONFIG::get_abone_transparent() || CONFIG::get_abone_chain() ){
         m_label_abone.set_text( "チェック出来ない場合は設定メニューから「デフォルトで透明/連鎖あぼ〜ん」を解除して下さい" );
         m_label_abone.set_xalign( 0 );
-        m_vbox_abone.pack_start( m_label_abone, Gtk::PACK_SHRINK );
+        m_grid_abone.attach_next_to( m_label_abone, Gtk::POS_BOTTOM, 2, 1 );
     }
 
     if( DBTREE::article_is_cached( get_url() ) ){ 
@@ -225,11 +240,10 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     }
 
     m_label_abone_id.set_text( "ここでIDを削除してもレスが表示されない場合は板全体に対してIDがあぼーん指定されている可能性があります。\n板のプロパティのあぼーん設定も確認してください。" );
-    m_vbox_abone.set_spacing( 8 );
     m_vbox_abone_id.pack_start( m_label_abone_id, Gtk::PACK_SHRINK );
     m_vbox_abone_id.pack_start( m_edit_id );
 
-    m_notebook_abone.append_page( m_vbox_abone, "一般" );
+    m_notebook_abone.append_page( m_grid_abone, "一般" );
     m_notebook_abone.append_page( m_vbox_abone_id, "NG ID" );
     m_notebook_abone.append_page( m_edit_res, "NG レス番号" );
     m_notebook_abone.append_page( m_edit_name, "NG 名前" );
@@ -280,7 +294,8 @@ void Preferences::slot_ok_clicked()
     DBTREE::reset_abone( get_url(), list_id, list_name, list_word, list_regex, vec_abone_res
                          , m_check_transpabone.get_active(), m_check_chainabone.get_active(), m_check_ageabone.get_active(),
                          m_check_defnameabone.get_active(), m_check_noidabone.get_active(),
-                         m_check_boardabone.get_active(), m_check_globalabone.get_active() );
+                         m_check_boardabone.get_active(), m_check_globalabone.get_active(),
+                         m_check_abone_word_add_abone_id.get_active(), m_check_abone_regex_add_abone_id.get_active() );
 
     // 最大レス数
     DBTREE::article_set_number_max( get_url(), m_spin_maxres.get_value_as_int() );

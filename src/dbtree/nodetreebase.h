@@ -101,6 +101,8 @@ namespace DBTREE
         bool m_abone_noid{}; // ID無しのレスはあぼーん
         bool m_abone_board{}; // 板レベルでのあぼーんを有効にする
         bool m_abone_global{}; // 全体レベルでのあぼーんを有効にする
+        bool m_abone_word_add_abone_id{}; ///< ワードであぼーんした投稿者をNG IDに追加する
+        bool m_abone_regex_add_abone_id{}; ///< 正規表現であぼーんした投稿者をNG IDに追加する
 
         // 自分が書き込んだレスか
         std::unordered_set< int > m_posts;
@@ -257,7 +259,8 @@ namespace DBTREE
                               const std::unordered_set< int >& abone_reses,
                               const bool abone_transparent, const bool abone_chain, const bool abone_age,
                               const bool abone_default_name, const bool abone_noid,
-                              const bool abone_board, const bool abone_global );
+                              const bool abone_board, const bool abone_global,
+                              const bool abone_word_add_abone_id, const bool abone_regex_add_abone_id );
 
         // 全レスのあぼーん状態の更新
         // 発言数や参照数も更新する

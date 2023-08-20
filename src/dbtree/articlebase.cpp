@@ -658,7 +658,7 @@ void ArticleBase::update_abone()
 
     get_nodetree()->copy_abone_info( m_list_abone_id, m_list_abone_name, m_list_abone_word, m_list_abone_regex, m_abone_reses,
                                      m_abone_transparent, m_abone_chain, m_abone_age, m_abone_default_name, m_abone_noid,
-                                     m_abone_board, m_abone_global );
+                                     m_abone_board, m_abone_global, m_abone_word_add_abone_id, m_abone_regex_add_abone_id );
 
     get_nodetree()->update_abone_all();
 }
@@ -675,7 +675,8 @@ void ArticleBase::reset_abone( const std::list< std::string >& ids,
                                const std::vector< char >& vec_abone_res,
                                const bool transparent, const bool chain, const bool age,
                                const bool default_name, const bool noid,
-                               const bool board, const bool global
+                               const bool board, const bool global,
+                               const bool abone_word_add_abone_id, const bool abone_regex_add_abone_id
     )
 {
     if( empty() ) return;
@@ -717,6 +718,8 @@ void ArticleBase::reset_abone( const std::list< std::string >& ids,
     m_abone_noid = noid;
     m_abone_board = board;
     m_abone_global = global;
+    m_abone_word_add_abone_id = abone_word_add_abone_id;
+    m_abone_regex_add_abone_id = abone_regex_add_abone_id;
 
     update_abone();
 
@@ -920,6 +923,38 @@ void ArticleBase::set_abone_global( const bool set )
 } 
 
 
+/** @brief ワードであぼーんした投稿者をNG IDに追加する動作の有効無効を設定する
+ *
+ * @param[in] set trueなら動作を有効にする
+ */
+void ArticleBase::set_abone_word_add_abone_id( const bool set )
+{
+    if( empty() ) return;
+
+    m_abone_word_add_abone_id = set;
+
+    update_abone();
+
+    m_save_info = true;
+}
+
+
+/** @brief 正規表現であぼーんした投稿者をNG IDに追加する動作の有効無効を設定する
+ *
+ * @param[in] set trueなら動作を有効にする
+ */
+void ArticleBase::set_abone_regex_add_abone_id( const bool set )
+{
+    if( empty() ) return;
+
+    m_abone_regex_add_abone_id = set;
+
+    update_abone();
+
+    m_save_info = true;
+}
+
+
 //
 // ブックマークされているか
 //
@@ -1048,7 +1083,7 @@ NodeTreeBase* ArticleBase::get_nodetree()
         // あぼーん情報のコピー
         m_nodetree->copy_abone_info( m_list_abone_id, m_list_abone_name, m_list_abone_word, m_list_abone_regex, m_abone_reses,
                                      m_abone_transparent, m_abone_chain, m_abone_age, m_abone_default_name, m_abone_noid,
-                                     m_abone_board, m_abone_global );
+                                     m_abone_board, m_abone_global, m_abone_word_add_abone_id, m_abone_regex_add_abone_id );
 
         // 書き込み情報のコピー
         m_nodetree->copy_post_info( m_posts );
@@ -1279,8 +1314,11 @@ void ArticleBase::copy_article_info( const std::string& url_src )
     const bool noid = DBTREE::get_abone_noid( url_src );
     const bool board = DBTREE::get_abone_board( url_src );
     const bool global = DBTREE::get_abone_global( url_src );
+    const bool abone_word_add_abone_id = DBTREE::get_abone_word_add_abone_id( url_src );
+    const bool abone_regex_add_abone_id = DBTREE::get_abone_regex_add_abone_id( url_src );
 
-    reset_abone( ids, names ,words, regexs, vec_abone_res, transparent, chain, age, default_name, noid, board, global );
+    reset_abone( ids, names ,words, regexs, vec_abone_res, transparent, chain, age, default_name, noid, board, global,
+                 abone_word_add_abone_id, abone_regex_add_abone_id );
 }
 
 
@@ -1759,6 +1797,8 @@ void ArticleBase::delete_cache( const bool cache_only )
         m_abone_noid = false;
         m_abone_board = true;
         m_abone_global = true;
+        m_abone_word_add_abone_id = false;
+        m_abone_regex_add_abone_id = false;
         m_read_info = false;
         m_save_info = false;
         m_bookmarked_thread = false;
@@ -2040,6 +2080,16 @@ void ArticleBase::read_info()
         m_abone_global = true;
         GET_INFOVALUE( str_tmp, "aboneglobal = " );
         if( ! str_tmp.empty() ) m_abone_global = atoi( str_tmp.c_str() );
+
+        // ワードであぼーんした投稿者をNG IDに追加する
+        m_abone_word_add_abone_id = false;
+        GET_INFOVALUE( str_tmp, "abonewordaddaboneid = " );
+        if( ! str_tmp.empty() ) m_abone_word_add_abone_id = std::atoi( str_tmp.c_str() );
+
+        // 正規表現であぼーんした投稿者をNG IDに追加する
+        m_abone_regex_add_abone_id = false;
+        GET_INFOVALUE( str_tmp, "aboneregexaddaboneid = " );
+        if( ! str_tmp.empty() ) m_abone_regex_add_abone_id = std::atoi( str_tmp.c_str() );
     }
 
     // キャッシュはあるけど情報ファイルが無い場合
@@ -2246,6 +2296,8 @@ void ArticleBase::save_info( const bool force )
          << "checktime = " << ss_check.str() << std::endl
          << "aboneboard = " << m_abone_board << std::endl
          << "aboneglobal = " << m_abone_global << std::endl
+         << "abonewordaddaboneid = " << m_abone_word_add_abone_id << std::endl
+         << "aboneregexaddaboneid = " << m_abone_regex_add_abone_id << std::endl
     ;
 
 #ifdef _DEBUG

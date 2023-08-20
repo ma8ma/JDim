@@ -1287,11 +1287,13 @@ void DBTREE::reset_abone( const std::string& url,
                           const std::vector< char >& vec_abone_res,
                           const bool transparent, const bool chain, const bool age,
                           const bool default_name, const bool noid,
-                          const bool board, const bool global
+                          const bool board, const bool global,
+                          const bool abone_word_add_abone_id, const bool abone_regex_add_abone_id
     )
 {
     DBTREE::get_article( url )->reset_abone( ids, names, words, regexs, vec_abone_res, transparent, chain, age,
-                                             default_name, noid, board, global );
+                                             default_name, noid, board, global,
+                                             abone_word_add_abone_id, abone_regex_add_abone_id );
 }
 
 
@@ -1406,6 +1408,32 @@ bool DBTREE::get_abone_global( const std::string& url )
 void DBTREE::set_abone_global( const std::string& url, const bool set )
 {
     DBTREE::get_article( url )->set_abone_global( set );
+}
+
+
+// ワードであぼーんした投稿者をNG IDに追加する
+bool DBTREE::get_abone_word_add_abone_id( const std::string& url )
+{
+    return DBTREE::get_article( url )->get_abone_word_add_abone_id();
+}
+
+
+void DBTREE::set_abone_word_add_abone_id( const std::string& url, const bool set )
+{
+    DBTREE::get_article( url )->set_abone_word_add_abone_id( set );
+}
+
+
+// 正規表現であぼーんした投稿者をNG IDに追加する
+bool DBTREE::get_abone_regex_add_abone_id( const std::string& url )
+{
+    return DBTREE::get_article( url )->get_abone_regex_add_abone_id();
+}
+
+
+void DBTREE::set_abone_regex_add_abone_id( const std::string& url, const bool set )
+{
+    DBTREE::get_article( url )->set_abone_regex_add_abone_id( set );
 }
 
 
