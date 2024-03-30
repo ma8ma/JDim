@@ -2761,6 +2761,44 @@ create_multispace:
                     // &nbsp; は空白に置き換える
                     m_parsed_text.push_back( ' ' );
                 }
+                else if( auto uch = g_utf8_get_char( out_char ); 0x600 <= uch && uch < 0x700 ) {
+
+                    // アラビア文字をまとめ右横書き(右から左に書く、RTL)に指定する
+                    // U+202B Right-to-left embedding (RLE)
+                    m_parsed_text.append( "\xE2\x80\xAB" );
+                    m_parsed_text.append( out_char, n_out );
+                    pos += n_in;
+                    do {
+                        if( *pos == '&' ) {
+                            DBTREE::decode_char( pos, n_in, out_char, n_out );
+
+                            uch = g_utf8_get_char( out_char );
+                            if( 0x0600 <= uch && uch < 0x0700 ) {
+                                m_parsed_text.append( out_char, n_out );
+                                pos += n_in;
+                            }
+                            else {
+                                // U+202C Pop directional formatting (PDF)
+                                m_parsed_text.append( "\xE2\x80\xAC" );
+
+                                m_parsed_text.append( out_char, n_out );
+                                pos += n_in;
+                                break;
+                            }
+                        }
+                        else if( *pos == ' ' ) {
+                            m_parsed_text.push_back( ' ' );
+                            pos += 1;
+                        }
+                        else {
+                            // U+202C Pop directional formatting (PDF)
+                            m_parsed_text.append( "\xE2\x80\xAC" );
+                            break;
+                        }
+                    } while( pos < pos_end );
+
+                    continue;
+                }
                 else {
                     m_parsed_text.append( out_char, n_out );
                 }
