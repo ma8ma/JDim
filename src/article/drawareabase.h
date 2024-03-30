@@ -181,6 +181,7 @@ namespace ARTICLE
         int m_defaultfontid{};
         int m_mailfontid{};
         int m_defaultmailfontid{};
+        int m_hiragana_baseline{};
         FONTINFO *m_font{};       // カレントフォント情報
         FONTINFO m_defaultfont{}; // デフォルトフォント情報
         FONTINFO m_aafont{};      // AA用フォント情報

@@ -413,6 +413,7 @@ void DrawAreaBase::init_fontinfo( FONTINFO& fi, std::string& fontname )
                                        - pango_font_metrics_get_underline_position( metrics ) )
                                      * CONFIG::get_adjust_underline_pos() );
     pango_font_metrics_unref( metrics );
+    m_hiragana_baseline = PANGO_PIXELS( m_pango_layout->get_baseline() );
 
     // 左右padding取得
     // マージン幅は真面目にやると大変そうなので文字列 wstr の平均を取る
@@ -2888,12 +2889,13 @@ void DrawAreaBase::render_text_pangolayout( RenderTextArguments& args )
     auto background = PA::create_attr_background( bg.get_red_u(), bg.get_green_u(), bg.get_blue_u() );
 
     m_pango_layout->set_text( Glib::ustring( args.text, args.n_ustr ) );
+    const int baseline_diff = PANGO_PIXELS( m_pango_layout->get_baseline() ) - m_hiragana_baseline;
 
     Pango::AttrList attr;
     attr.insert( foreground );
     attr.insert( background );
     m_pango_layout->set_attributes( attr );
-    cairo_move_to( args.text_cr, args.x, args.y );
+    cairo_move_to( args.text_cr, args.x, args.y - baseline_diff );
     pango_cairo_show_layout( args.text_cr, m_pango_layout->gobj() );
 
     // Pango::Weight属性を使うと文字幅が変わりレイアウトが乱れる
@@ -2902,7 +2904,7 @@ void DrawAreaBase::render_text_pangolayout( RenderTextArguments& args )
         Pango::AttrList overlapping;
         overlapping.insert( foreground );
         m_pango_layout->set_attributes( overlapping );
-        cairo_move_to( args.text_cr, args.x + 1.0, args.y );
+        cairo_move_to( args.text_cr, args.x + 1.0, args.y - baseline_diff );
         pango_cairo_show_layout( args.text_cr, m_pango_layout->gobj() );
     }
 }
