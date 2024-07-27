@@ -45,15 +45,15 @@ parts:
       - LDFLAGS: "$(dpkg-buildflags --get LDFLAGS)"
     override-build: |
       set -eu
-      snapcraftctl build
-      VER="$(${SNAPCRAFT_PART_INSTALL}/bin/jdim -V | sed -n -e '1s%^[^0-9]*\([^-]\+\)-\([^(]\+\)(git:\([0-9a-f]\+\).*$%\1-\2-\3%p')"
+      craftctl default
+      VER="$(${CRAFT_PART_INSTALL}/bin/jdim -V | sed -n -e '1s%^[^0-9]*\([^-]\+\)-\([^(]\+\)(git:\([0-9a-f]\+\).*$%\1-\2-\3%p')"
       echo "version ${VER}"
-      snapcraftctl set-version "${VER}"
+      craftctl set version="${VER}"
     override-prime: |
       set -eu
-      snapcraftctl prime
+      craftctl default
       sed --in-place -e 's|^Icon=.*|Icon=\${SNAP}/share/icons/hicolor/48x48/apps/jdim.png|' \
-      ${SNAPCRAFT_PRIME}/share/applications/jdim.desktop
+      ${CRAFT_PRIME}/share/applications/jdim.desktop
     parse-info: [share/metainfo/jdim.metainfo.xml]
 
 apps:

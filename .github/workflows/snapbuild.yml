@@ -19,7 +19,7 @@ jobs:
         sudo snap install --dangerous ${{ steps.build-snap.outputs.snap }}
     - run: |
         jdim --version
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: jdim
         path: ${{ steps.build-snap.outputs.snap }}
