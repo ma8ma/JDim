@@ -1,0 +1,25 @@
+# SPDX-License-Identifier: FSFAP
+name: Snap Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      snap-file: ${{ steps.build-snap.outputs.snap }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: snapcore/action-build@v1
+      id: build-snap
+
+    - run: |
+        sudo snap install --dangerous ${{ steps.build-snap.outputs.snap }}
+    - run: |
+        jdim --version
+    - uses: actions/upload-artifact@v3
+      with:
+        name: jdim
+        path: ${{ steps.build-snap.outputs.snap }}
