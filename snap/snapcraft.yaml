@@ -22,9 +22,9 @@ architectures:
 parts:
   jdim:
     plugin: meson
-    source: https://github.com/JDimproved/JDim.git
+    source: https://github.com/ma8ma/JDim.git
     source-type: git
-    source-branch: master
+    source-branch: minefield
     source-depth: 1
     meson-parameters:
       # Use dpkg-buildflags to set compiler flags instead of meson options
