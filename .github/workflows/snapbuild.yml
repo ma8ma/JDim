@@ -12,6 +12,8 @@ jobs:
       snap-file: ${{ steps.build-snap.outputs.snap }}
     steps:
     - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
     - uses: snapcore/action-build@v1
       id: build-snap
 
