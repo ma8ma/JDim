@@ -100,6 +100,10 @@ std::vector<std::string> ICON::get_installed_gtk_theme_names()
         if( ! Glib::file_test( themes_dir, Glib::FILE_TEST_IS_DIR ) ) return;
 
         for( auto dir_name : Glib::Dir( themes_dir ) ) {
+            if( std::find( gtk_theme_names.cbegin(), gtk_theme_names.cend(), dir_name ) != gtk_theme_names.cend() ) {
+                continue;
+            }
+
             for( int i = 0; i < minor; i += 2 ) {
                 auto file_path = Glib::ustring::compose( "%1/%2/gtk-3.%3/gtk.css", themes_dir, dir_name, i );
                 if( Glib::file_test( file_path, Glib::FILE_TEST_IS_REGULAR ) ) {
