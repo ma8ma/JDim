@@ -52,6 +52,8 @@
 #include "link.h"
 #include "info.h"
 
+#include <algorithm>
+
 
 static ICON::ICON_Manager* instance_icon_manager = nullptr;
 
@@ -94,20 +96,17 @@ Glib::RefPtr< Gdk::Pixbuf > ICON::get_icon( int id )
 std::vector<std::string> ICON::get_installed_gtk_theme_names()
 {
     constexpr int minor = GTK_MINOR_VERSION + 1;
-    std::vector<std::string> gtk_theme_names;
+    std::vector<std::string> names;
 
     auto fill_gtk = [&]( const auto& themes_dir ) {
         if( ! Glib::file_test( themes_dir, Glib::FILE_TEST_IS_DIR ) ) return;
 
         for( auto dir_name : Glib::Dir( themes_dir ) ) {
-            if( std::find( gtk_theme_names.cbegin(), gtk_theme_names.cend(), dir_name ) != gtk_theme_names.cend() ) {
-                continue;
-            }
 
             for( int i = 0; i < minor; i += 2 ) {
                 auto file_path = Glib::ustring::compose( "%1/%2/gtk-3.%3/gtk.css", themes_dir, dir_name, i );
                 if( Glib::file_test( file_path, Glib::FILE_TEST_IS_REGULAR ) ) {
-                    gtk_theme_names.push_back( std::move( dir_name ) );
+                    names.push_back( std::move( dir_name ) );
                     break;
                 }
             }
@@ -115,7 +114,6 @@ std::vector<std::string> ICON::get_installed_gtk_theme_names()
     };
 
     fill_gtk( Glib::get_user_data_dir() + "/themes" );
-
     fill_gtk( Glib::get_home_dir() + "/.themes" );
 
     auto data_dirs = Glib::get_system_data_dirs();
@@ -124,8 +122,11 @@ std::vector<std::string> ICON::get_installed_gtk_theme_names()
         fill_gtk( data_dir );
     }
 
-    std::sort( gtk_theme_names.begin(), gtk_theme_names.end() );
-    return gtk_theme_names;
+    // ソートして重複した名前を削除する
+    std::sort( names.begin(), names.end() );
+    names.erase( std::unique( names.begin(), names.end() ), names.end() );
+
+    return names;
 }
 
 
