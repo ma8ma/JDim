@@ -176,7 +176,10 @@ std::vector<std::string> ICON::get_installed_icon_theme_names()
 
         for( auto dir_name : Glib::Dir( themes_dir ) ) {
 
-            std::ifstream index( themes_dir + "/" + dir_name + "/index.theme" );
+            auto file_path = themes_dir + "/" + dir_name + "/index.theme";
+            if( ! Glib::file_test( file_path, Glib::FILE_TEST_IS_REGULAR ) ) continue;
+
+            std::ifstream index( file_path );
             if( ! index ) continue;
 
             std::string line;
