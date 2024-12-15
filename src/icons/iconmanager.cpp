@@ -170,21 +170,13 @@ std::vector<std::string> ICON::get_installed_gtk_theme_names()
 std::vector<std::string> ICON::get_installed_icon_theme_names()
 {
     std::vector<std::string> names;
-    const bool running_on_snap{ ! Glib::getenv( "SNAP_DESKTOP_RUNTIME" ).empty()
-                                && Glib::getenv( "GTK_USE_PORTAL" ) == "1" };
 
     auto fill_icon = [&]( const auto& themes_dir ) {
         if( ! Glib::file_test( themes_dir, Glib::FILE_TEST_IS_DIR ) ) return;
 
         for( auto dir_name : Glib::Dir( themes_dir ) ) {
 
-            auto file_path = themes_dir + "/" + dir_name + "/index.theme";
-            if( ! Glib::file_test( file_path, Glib::FILE_TEST_IS_REGULAR ) ) continue;
-
-            // Snapで実行しているときは以下のファイルにアクセスすると Permission denied が発生する
-            if( running_on_snap && themes_dir == "/var/lib/snapd/desktop/icons" ) continue;
-
-            std::ifstream index( file_path );
+            std::ifstream index( themes_dir + "/" + dir_name + "/index.theme" );
             if( ! index ) continue;
 
             std::string line;
@@ -205,9 +197,16 @@ std::vector<std::string> ICON::get_installed_icon_theme_names()
     fill_icon( Glib::get_user_data_dir() + "/icons" );
     fill_icon( Glib::get_home_dir() + "/.icons" );
 
+    const bool running_on_snap{ ! Glib::getenv( "SNAP_DESKTOP_RUNTIME" ).empty()
+                                && Glib::getenv( "GTK_USE_PORTAL" ) == "1" };
+
     auto data_dirs = Glib::get_system_data_dirs();
     for( auto& data_dir : data_dirs ) {
         data_dir += "/icons";
+
+        // Snapで実行しているときは以下のディレクトリにアクセスすると Permission denied が発生する
+        if( running_on_snap && data_dir == "/var/lib/snapd/desktop/icons" ) continue;
+
         fill_icon( data_dir );
     }
 
