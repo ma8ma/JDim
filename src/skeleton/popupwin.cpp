@@ -51,12 +51,15 @@ void PopupWin::slot_resize_popup()
 {
     if( ! m_view ) return;
 
+    move_resize_wayland();
+#if 0
     if( m_running_on_wayland ) {
         move_resize_wayland();
     }
     else {
         move_resize_conventional();
     }
+#endif
     show_all();
 }
 
@@ -70,12 +73,15 @@ void PopupWin::slot_realize()
 {
     if( ! m_view ) return;
 
+    move_resize_wayland();
+#if 0
     if( m_running_on_wayland ) {
         move_resize_wayland();
     }
     else {
         move_resize_conventional();
     }
+#endif
 }
 
 
@@ -247,6 +253,11 @@ void PopupWin::move_resize_wayland()
         // ウインドウを非表示にして呼び出さないと期待通り動作しない環境がある
         // https://gitlab.gnome.org/GNOME/gtk/-/issues/1986
         hide();
+    }
+    else if( ! m_running_on_wayland ) {
+        // X11環境では、viewの自然なサイズからウインドウの幅と高さを計算すると、
+        // 高さが大きい場合に期待通り動作しないことがあるため、幅と高さを明示的に指定します。
+        set_default_size( width_client, height_popup );
     }
     gdk_window_move_to_rect( get_window()->gobj(), &rect_dest, rect_anchor, window_anchor, anchor_hints,
                              rect_anchor_dx, rect_anchor_dy );
