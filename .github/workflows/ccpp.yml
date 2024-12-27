@@ -1,0 +1,128 @@
+# SPDX-License-Identifier: FSFAP
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+
+  ubuntu-22.04:
+    runs-on: ubuntu-22.04
+    env:
+      CC: ${{ matrix.sets.cc }}
+      CXX: ${{ matrix.sets.cxx }}
+    strategy:
+      fail-fast: false
+      matrix:
+        sets:
+          - cc: gcc-10
+            cxx: g++-10
+            package: g++-10
+
+          - cc: gcc-11
+            cxx: g++-11
+            package: g++-11
+
+          - cc: gcc-12
+            cxx: g++-12
+            package: g++-12
+
+          - cc: clang-11
+            cxx: clang++-11
+            package: clang-11
+
+          - cc: clang-12
+            cxx: clang++-12
+            package: clang-12
+
+          - cc: clang-13
+            cxx: clang++-13
+            package: clang-13
+
+          - cc: clang-14
+            cxx: clang++-14
+            package: clang-14
+
+          - cc: clang-15
+            cxx: clang++-15
+            package: clang-15
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: dependencies installation
+      run: |
+        sudo apt update
+        sudo apt install libgnutls28-dev libgtest-dev libgtkmm-3.0-dev meson ninja-build zlib1g-dev ${{ matrix.sets.package }}
+    - run: meson setup builddir -Dbuildtype=debugoptimized -Dcpp_args="-D_DEBUG"
+    - run: ninja -C builddir
+    - run: meson test -v -C builddir
+    - run: ./builddir/src/jdim -V
+
+  ubuntu-24.04:
+    runs-on: ubuntu-24.04
+    env:
+      CC: ${{ matrix.sets.cc }}
+      CXX: ${{ matrix.sets.cxx }}
+    strategy:
+      fail-fast: false
+      matrix:
+        sets:
+          - cc: gcc-10
+            cxx: g++-10
+            package: g++-10
+
+          - cc: gcc-11
+            cxx: g++-11
+            package: g++-11
+
+          - cc: gcc-12
+            cxx: g++-12
+            package: g++-12
+
+          - cc: gcc-13
+            cxx: g++-13
+            package: g++-13
+
+          - cc: gcc-14
+            cxx: g++-14
+            package: g++-14
+
+          - cc: clang-14
+            cxx: clang++-14
+            package: clang-14
+
+          - cc: clang-15
+            cxx: clang++-15
+            package: clang-15
+
+          - cc: clang-16
+            cxx: clang++-16
+            package: clang-16
+
+          - cc: clang-17
+            cxx: clang++-17
+            package: clang-17
+
+          - cc: clang-18
+            cxx: clang++-18
+            package: clang-18
+
+          - cc: clang-19
+            cxx: clang++-19
+            package: clang-19
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: dependencies installation
+      run: |
+        sudo apt update
+        sudo apt install libgnutls28-dev libgtest-dev libgtkmm-3.0-dev meson ninja-build zlib1g-dev ${{ matrix.sets.package }}
+    - run: meson setup builddir -Dbuildtype=debugoptimized -Dcpp_args="-D_DEBUG"
+    - run: ninja -C builddir
+    - run: meson test -v -C builddir
+    - run: ./builddir/src/jdim -V
