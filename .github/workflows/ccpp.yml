@@ -11,7 +11,7 @@ on:
 
 jobs:
 
-  ubuntu-22.04:
+  ubuntu-22-04:
     runs-on: ubuntu-22.04
     env:
       CC: ${{ matrix.sets.cc }}
@@ -63,7 +63,7 @@ jobs:
     - run: meson test -v -C builddir
     - run: ./builddir/src/jdim -V
 
-  ubuntu-24.04:
+  ubuntu-24-04:
     runs-on: ubuntu-24.04
     env:
       CC: ${{ matrix.sets.cc }}
