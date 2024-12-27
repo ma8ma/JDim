@@ -112,10 +112,6 @@ jobs:
             cxx: clang++-18
             package: clang-18
 
-          - cc: clang-19
-            cxx: clang++-19
-            package: clang-19
-
     steps:
     - uses: actions/checkout@v4
     - name: dependencies installation
