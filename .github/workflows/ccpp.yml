@@ -58,7 +58,7 @@ jobs:
       run: |
         sudo apt update
         sudo apt install libgnutls28-dev libgtest-dev libgtkmm-3.0-dev meson ninja-build zlib1g-dev ${{ matrix.sets.package }}
-    - run: meson setup builddir -Dbuildtype=debugoptimized -Dcpp_args="-D_DEBUG"
+    - run: meson setup builddir -Dbuildtype=debugoptimized -Dcpp_args="-D_DEBUG" -Dcpp_std=c++20
     - run: ninja -C builddir
     - run: meson test -v -C builddir
     - run: ./builddir/src/jdim -V
@@ -122,7 +122,7 @@ jobs:
       run: |
         sudo apt update
         sudo apt install libgnutls28-dev libgtest-dev libgtkmm-3.0-dev meson ninja-build zlib1g-dev ${{ matrix.sets.package }}
-    - run: meson setup builddir -Dbuildtype=debugoptimized -Dcpp_args="-D_DEBUG"
+    - run: meson setup builddir -Dbuildtype=debugoptimized -Dcpp_args="-D_DEBUG" -Dcpp_std=c++20
     - run: ninja -C builddir
     - run: meson test -v -C builddir
     - run: ./builddir/src/jdim -V
