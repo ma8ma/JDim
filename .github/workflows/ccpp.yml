@@ -57,7 +57,11 @@ jobs:
     - name: dependencies installation
       run: |
         sudo apt update
-        sudo apt install libgnutls28-dev libgtest-dev libgtkmm-3.0-dev meson ninja-build zlib1g-dev ${{ matrix.sets.package }}
+        sudo apt install libgnutls28-dev libgtest-dev libgtkmm-3.0-dev zlib1g-dev ${{ matrix.sets.package }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: pip install meson==1.3.0 ninja
     - run: meson setup builddir -Dbuildtype=debugoptimized -Dcpp_args="-D_DEBUG" -Dcpp_std=c++23
     - run: ninja -C builddir
     - run: meson test -v -C builddir
