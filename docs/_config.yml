@@ -1,7 +1,11 @@
 # SPDX-License-Identifier: FSFAP OR GPL-2.0-or-later
+#repository: JDimproved/JDim
 theme: jekyll-theme-cayman
+markdown: GFM
 plugins:
   - jekyll-redirect-from
+  - jekyll-gfm-admonitions
+  - jekyll-optional-front-matter
 exclude:
   - Gemfile*
   - Makefile

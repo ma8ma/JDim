@@ -1,5 +1,10 @@
 # SPDX-License-Identifier: FSFAP OR GPL-2.0-or-later
 source 'https://rubygems.org'
-gem 'github-pages', group: :jekyll_plugins
+gem 'jekyll'
+group :jekyll_plugins do
+  gem 'jekyll-gfm-admonitions'
+  gem 'jekyll-optional-front-matter'
+  gem 'github-pages'
+end
 gem 'jekyll-redirect-from'
-gem 'jekyll-theme-cayman', '~> 0.1.1'
+gem 'jekyll-theme-cayman'
