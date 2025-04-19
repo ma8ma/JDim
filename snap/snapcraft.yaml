@@ -12,11 +12,12 @@ icon: jdim.png
 # Snap Store does not provide gnome-42-2204 package for i386, ppc64el and s390x
 architectures:
   - build-on: amd64
-    build-for: amd64
+    build-for: [amd64, riscv64]
   - build-on: arm64
     build-for: arm64
   - build-on: armhf
-    build-for: armhf
+  - build-on: riscv64
+    build-for: riscv64
 
 # https://snapcraft.io/docs/gnome-extension
 parts:
