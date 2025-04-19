@@ -13,11 +13,6 @@ icon: jdim.png
 architectures:
   - build-on: amd64
     build-for: riscv64
-  - build-on: arm64
-    build-for: arm64
-  - build-on: armhf
-  - build-on: riscv64
-    build-for: riscv64
 
 # https://snapcraft.io/docs/gnome-extension
 parts:
