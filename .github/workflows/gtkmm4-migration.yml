@@ -5,10 +5,13 @@ on:
   push:
     branches:
       - gtkmm4-migration
-  pull_request:
-    branches:
-      - gtkmm4-migration
+      - 'gtkmm4-migration/**' # 派生ブランチを作った場合もカバー
   workflow_dispatch:
+
+# 連投 Push 時に古い CI ジョブを自動キャンセルしてキューの詰まりを防ぐ
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 # * 移行作業の修正が既存のビルド構成を壊していないかチェックする。
 # * use_gtkmm4=true をつけて移行作業の修正をビルドしてチェックする。
