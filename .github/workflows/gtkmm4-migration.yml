@@ -1,0 +1,251 @@
+# SPDX-License-Identifier: FSFAP
+name: GTKMM4 migration
+
+on:
+  push:
+    branches:
+      - gtkmm4-migration
+  pull_request:
+    branches:
+      - gtkmm4-migration
+  workflow_dispatch:
+
+# * 移行作業の修正が既存のビルド構成を壊していないかチェックする。
+# * use_gtkmm4=true をつけて移行作業の修正をビルドしてチェックする。
+jobs:
+
+  ASan-24:
+    runs-on: ubuntu-24.04
+    env:
+      CC: gcc-13
+      CXX: g++-13
+      # Avoid crash for calling crypt_r() that is pointing invalid address.
+      # https://github.com/JDimproved/JDim/issues/943
+      AVOID_CRASH: -Wl,--push-state,--no-as-needed -lcrypt -Wl,--pop-state
+    steps:
+      - uses: actions/checkout@v7
+      - name: dependencies installation
+        run: |
+          sudo apt update
+          sudo apt install libcrypt-dev libgnutls28-dev libgtest-dev libgtkmm-3.0-dev meson zlib1g-dev g++-13
+      - run: meson setup builddir -Duse_gtkmm4=false -Db_sanitize=address,undefined -Dbuildtype=debug -Dcpp_args="-D_DEBUG" -Dcpp_link_args="${AVOID_CRASH}"
+        # `compile` subcommand requires Meson 0.54 or later.
+      - run: ninja -C builddir
+        # Since Meson 0.57, `test` subcommand will only rebuild test program.
+      - run: meson test -v -C builddir
+      - run: ./builddir/src/jdim -V
+
+  compiler-22:
+    runs-on: ubuntu-22.04
+    env:
+      CC: ${{ matrix.sets.cc }}
+      CXX: ${{ matrix.sets.cxx }}
+    strategy:
+      matrix:
+        sets:
+          - cc: gcc-11
+            cxx: g++-11
+            package: g++-11
+    steps:
+      - uses: actions/checkout@v7
+      - name: dependencies installation
+        run: |
+          sudo apt update
+          sudo apt install libcrypt-dev libgnutls28-dev libgtest-dev libgtkmm-3.0-dev meson zlib1g-dev ${{ matrix.sets.package }}
+      - run: meson setup builddir -Duse_gtkmm4=false -Dbuildtype=debug -Dcpp_args="-D_DEBUG"
+      - run: ninja -C builddir
+      - run: meson test -v -C builddir
+      - run: ./builddir/src/jdim -V
+
+  compiler-24:
+    runs-on: ubuntu-24.04
+    env:
+      CC: ${{ matrix.sets.cc }}
+      CXX: ${{ matrix.sets.cxx }}
+    strategy:
+      matrix:
+        sets:
+          - cc: gcc-13
+            cxx: g++-13
+            package: g++-13
+          - cc: clang-18
+            cxx: clang++-18
+            package: clang-18
+    steps:
+      - uses: actions/checkout@v7
+      - name: dependencies installation
+        run: |
+          sudo apt update
+          sudo apt install libcrypt-dev libgnutls28-dev libgtest-dev libgtkmm-3.0-dev meson zlib1g-dev ${{ matrix.sets.package }}
+      - run: meson setup builddir -Duse_gtkmm4=false -Dbuildtype=debug -Dcpp_args="-D_DEBUG"
+      - run: ninja -C builddir
+      - run: meson test -v -C builddir
+      - run: ./builddir/src/jdim -V
+
+  library-22:
+    runs-on: ubuntu-22.04
+    env:
+      CC: gcc-11
+      CXX: g++-11
+    strategy:
+      matrix:
+        deps:
+          - config_args: -Dtls=gnutls -Dsessionlib=xsmp -Dmigemo=enabled -Dalsa=enabled -Dpangolayout=enabled
+            packages: libgnutls28-dev libmigemo-dev libasound2-dev
+          - config_args: -Dtls=openssl -Dsessionlib=no -Dmigemo=enabled -Dcompat_cache_dir=disabled
+            packages: libssl-dev libmigemo-dev
+          - config_args: -Dtls=openssl -Dsessionlib=xsmp -Dalsa=enabled -Dpangolayout=enabled
+            packages: libssl-dev libasound2-dev
+    steps:
+      - uses: actions/checkout@v7
+      - name: dependencies installation (${{ matrix.deps.packages }})
+        run: |
+          sudo apt update
+          sudo apt install libcrypt-dev meson libgtest-dev libgtkmm-3.0-dev ${{ matrix.deps.packages }} g++-11
+      - run: meson setup builddir -Duse_gtkmm4=false -Dbuildtype=debug -Dcpp_args="-D_DEBUG" ${{ matrix.deps.config_args }}
+      - run: ninja -C builddir
+      - run: meson test -v -C builddir
+      - run: ./builddir/src/jdim -V
+
+  library-24:
+    runs-on: ubuntu-24.04
+    env:
+      CC: gcc-13
+      CXX: g++-13
+    strategy:
+      matrix:
+        deps:
+          - config_args: -Dtls=gnutls -Dsessionlib=xsmp -Dmigemo=enabled -Dalsa=enabled -Dpangolayout=enabled
+            packages: libgnutls28-dev libmigemo-dev libasound2-dev
+          - config_args: -Dtls=openssl -Dsessionlib=no -Dmigemo=enabled -Dcompat_cache_dir=disabled
+            packages: libssl-dev libmigemo-dev
+          - config_args: -Dtls=openssl -Dsessionlib=xsmp -Dalsa=enabled -Dpangolayout=enabled
+            packages: libssl-dev libasound2-dev
+    steps:
+      - uses: actions/checkout@v7
+      - name: dependencies installation (${{ matrix.deps.packages }})
+        run: |
+          sudo apt update
+          sudo apt install libcrypt-dev meson libgtest-dev libgtkmm-3.0-dev ${{ matrix.deps.packages }} g++-13
+      - run: meson setup builddir -Duse_gtkmm4=false -Dbuildtype=debug -Dcpp_args="-D_DEBUG" ${{ matrix.deps.config_args }}
+      - run: ninja -C builddir
+      - run: meson test -v -C builddir
+      - run: ./builddir/src/jdim -V
+
+  manual-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./docs
+          destination: ./docs/_site
+
+  Unity-build-gcc14-Werror:
+    runs-on: ubuntu-24.04
+    env:
+      CC: gcc-14
+      CXX: g++-14
+    steps:
+      - uses: actions/checkout@v7
+      - name: dependencies installation
+        run: |
+          sudo apt update
+          sudo apt install libcrypt-dev libgnutls28-dev libgtest-dev libgtkmm-3.0-dev meson zlib1g-dev g++-14
+      - run: meson setup builddir -Duse_gtkmm4=false -Dunity=on -Dunity_size=1000 -Dbuildtype=debug -Dcpp_args="-D_DEBUG" -Dwerror=true
+      - run: ninja -C builddir -k0
+      - run: meson test -v -C builddir
+      - run: ./builddir/src/jdim -V
+
+  gtkmm4-migration:
+    runs-on: ubuntu-24.04
+    env:
+      CC: ${{ matrix.sets.cc }}
+      CXX: ${{ matrix.sets.cxx }}
+    strategy:
+      fail-fast: false
+      matrix:
+        sets:
+          - cc: gcc-13
+            cxx: g++-13
+            package: g++-13
+          - cc: clang-18
+            cxx: clang++-18
+            package: clang-18
+    steps:
+      - uses: actions/checkout@v7
+      - name: dependencies installation
+        run: |
+          sudo apt update
+          sudo apt install libcrypt-dev libgnutls28-dev libgtest-dev libgtkmm-3.0-dev meson zlib1g-dev ${{ matrix.sets.package }}
+      - run: meson setup builddir -Duse_gtkmm4=true -Dbuildtype=debug -Dcpp_args="-D_DEBUG"
+      - name: Build with GTKMM4 migration
+        # GTKMM4移行初期ではビルド失敗は意図したものなので、
+        # ビルドに失敗してもJobを成功扱いとして後続処理を続行する。
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          ninja -C builddir -k0 2>&1 | tee build.log
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: gtkmm4-build-log-${{ matrix.sets.package || 'default' }}
+          path: build.log
+          retention-days: 7
+
+  gtkmm4-gcc13-json:
+    runs-on: ubuntu-24.04
+    env:
+      CC: ${{ matrix.sets.cc }}
+      CXX: ${{ matrix.sets.cxx }}
+    strategy:
+      matrix:
+        sets:
+          - cc: gcc-13
+            cxx: g++-13
+            package: g++-13
+    steps:
+      - uses: actions/checkout@v7
+      - name: dependencies installation
+        run: |
+          sudo apt update
+          sudo apt install libcrypt-dev libgnutls28-dev libgtest-dev libgtkmm-3.0-dev meson zlib1g-dev ${{ matrix.sets.package }}
+      - run: meson setup builddir -Duse_gtkmm4=true -Dbuildtype=debug -Dcpp_args="-fdiagnostics-format=json-file -D_DEBUG"
+      - name: Build with GTKMM4 migration
+        # GTKMM4移行初期ではビルド失敗は意図したものなので、
+        # ビルドに失敗してもJobを成功扱いとして後続処理を続行する。
+        continue-on-error: true
+        run: ninja -C builddir -k0
+      - name: Collect JSON diagnostics
+        if: always()
+        run: |
+          find builddir -type f -name "*.gcc.json" -print0 | tar czf diagnostics-json.tar.gz --null -T -
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: gcc-json-diagnostics
+          path: diagnostics-json.tar.gz
+          retention-days: 7
+
+  analyze-gcc13-diagnostics:
+    if: ${{ always() }}
+    runs-on: ubuntu-24.04
+    needs: gtkmm4-gcc13-json
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v7
+        with:
+          name: gcc-json-diagnostics
+      - name: Analyze diagnostics
+        run: |
+          tar xzf diagnostics-json.tar.gz
+          python3 .github/scripts/analyze_gcc_json.py . > summary.md
+          cat summary.md
+          cat summary.md >> $GITHUB_STEP_SUMMARY
+      - name: Upload summary
+        uses: actions/upload-artifact@v7
+        with:
+          name: diagnostics-summary
+          path: summary.md
+          retention-days: 7
