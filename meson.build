@@ -217,6 +217,24 @@ endif
 
 
 #
+# GTKMM4移行準備: 廃止予定APIをエラーにする
+#
+if get_option('use_gtkmm4')
+  conf.set('USE_GTKMM4', 1)
+  # 廃止予定機能が使われていたらコンパイルエラーにするマクロを定義する
+  add_project_arguments(
+    '-DGDKMM_DISABLE_DEPRECATED',
+    '-DGDK_DISABLE_DEPRECATED',
+    '-DGIOMM_DISABLE_DEPRECATED',
+    '-DGLIBMM_DISABLE_DEPRECATED',
+    '-DGTKMM_DISABLE_DEPRECATED',
+    '-DGTK_DISABLE_DEPRECATED',
+    language: 'cpp',
+  )
+endif
+
+
+#
 # ビルドの情報
 #
 conf.set('HAVE_BUILDINFO_H', 1)
