@@ -46,13 +46,16 @@ ToolMenuButton::ToolMenuButton( SKELETON::MenuButton* button, const std::string&
     Gtk::Image* image = dynamic_cast< Gtk::Image* >( label_widget );
     if( image ){
         const Gtk::ImageType type = image->get_storage_type();
+#ifndef USE_GTKMM4
         if( type == Gtk::IMAGE_STOCK ) {
             Gtk::StockID id;
             Gtk::IconSize size;
             image->get_stock( id, size );
             item = Gtk::manage( new Gtk::ImageMenuItem( *Gtk::manage( new Gtk::Image( id, size ) ), label ) );
         }
-        else if( type == Gtk::IMAGE_PIXBUF ) {
+        else
+#endif
+        if( type == Gtk::IMAGE_PIXBUF ) {
             auto pixbuf = image->get_pixbuf();
             item = Gtk::manage( new Gtk::ImageMenuItem( *Gtk::manage( new Gtk::Image( pixbuf ) ), label ) );
         }

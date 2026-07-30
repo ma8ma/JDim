@@ -220,9 +220,10 @@ endif
 # GTKMM4移行準備: 廃止予定APIをエラーにする
 #
 if get_option('use_gtkmm4')
-  conf.set('USE_GTKMM4', 1)
+  # GTKMM4移行ビルドは USE_GTKMM4 を定義する
   # 廃止予定機能が使われていたらコンパイルエラーにするマクロを定義する
   add_project_arguments(
+    '-DUSE_GTKMM4',
     '-DGDKMM_DISABLE_DEPRECATED',
     '-DGDK_DISABLE_DEPRECATED',
     '-DGIOMM_DISABLE_DEPRECATED',
