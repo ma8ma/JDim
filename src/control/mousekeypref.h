@@ -98,7 +98,11 @@ namespace CONTROL
         Gtk::Button m_button_delete;
         Gtk::Button m_button_add;
         Gtk::Button m_button_reset;
+#ifdef USE_GTKMM4
+        Gtk::Box m_vbuttonbox;
+#else
         Gtk::VButtonBox m_vbuttonbox;
+#endif
 
         Gtk::HBox m_hbox;
 
