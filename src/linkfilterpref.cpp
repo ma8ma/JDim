@@ -77,6 +77,9 @@ LinkFilterPref::LinkFilterPref( Gtk::Window* parent, const std::string& url )
     , m_button_bottom( g_dpgettext( GTK_DOMAIN, "Stock label, navigation\x04_Bottom", 24 ), true )
     , m_button_delete( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Delete", 12 ), true )
     , m_button_add( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Add", 12 ), true )
+#ifdef USE_GTKMM4
+    , m_vbuttonbox{ Gtk::ORIENTATION_VERTICAL, 4 }
+#endif
     , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
 {
     const bool use_symbolic = CONFIG::get_use_symbolic_icon();
@@ -119,8 +122,12 @@ LinkFilterPref::LinkFilterPref( Gtk::Window* parent, const std::string& url )
     JDLIB::compat::box_append_shrink( m_vbuttonbox, m_button_bottom );
     JDLIB::compat::box_append_shrink( m_vbuttonbox, m_button_delete );
     JDLIB::compat::box_append_shrink( m_vbuttonbox, m_button_add );
+#ifdef USE_GTKMM4
+    m_vbuttonbox.set_valign( Gtk::ALIGN_START );
+#else
     m_vbuttonbox.set_layout( Gtk::BUTTONBOX_START );
     m_vbuttonbox.set_spacing( 4 );
+#endif
 
     JDLIB::compat::box_append_expand( m_hbox, m_scrollwin );
     JDLIB::compat::box_append_shrink( m_hbox, m_vbuttonbox );

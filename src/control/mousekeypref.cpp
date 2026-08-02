@@ -275,6 +275,9 @@ MouseKeyDiag::MouseKeyDiag( Gtk::Window* parent, const std::string& url,
     , m_button_delete( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Delete", 12 ), true )
     , m_button_add( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Add", 12 ), true )
     , m_button_reset( "デフォルト" )
+#ifdef USE_GTKMM4
+    , m_vbuttonbox{ Gtk::ORIENTATION_VERTICAL, 4 }
+#endif
     , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
 {
     m_liststore = Gtk::ListStore::create( m_columns );
@@ -296,8 +299,12 @@ MouseKeyDiag::MouseKeyDiag( Gtk::Window* parent, const std::string& url,
     JDLIB::compat::box_append_shrink( m_vbuttonbox, m_button_delete );
     JDLIB::compat::box_append_shrink( m_vbuttonbox, m_button_add );
     JDLIB::compat::box_append_shrink( m_vbuttonbox, m_button_reset );
+#ifdef USE_GTKMM4
+    m_vbuttonbox.set_valign( Gtk::ALIGN_START );
+#else
     m_vbuttonbox.set_layout( Gtk::BUTTONBOX_START );
     m_vbuttonbox.set_spacing( 4 );
+#endif
 
     JDLIB::compat::box_append_expand( m_hbox, m_scrollwin );
     JDLIB::compat::box_append_shrink( m_hbox, m_vbuttonbox );
