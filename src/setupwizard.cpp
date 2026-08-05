@@ -341,9 +341,21 @@ SetupWizard::SetupWizard()
     set_position( Gtk::WIN_POS_CENTER ); // 配置はデスクトップ環境次第
 
     // ボタン
+#ifdef USE_GTKMM4
+    // TODO: GTK4では Gtk::Dialog::get_action_area() が削除されている。
+    // 現時点ではコンパイル可能にすることを優先し、
+    // ボタンは content_area に配置する。
+    // ボタン配置の最終調整は GTK4 UI 移行時に行う。
+    auto hbox = Gtk::make_managed<Gtk::Box>( Gtk::ORIENTATION_HORIZONTAL, SPACING_SIZE / 2 );
+    hbox->set_halign( Gtk::ALIGN_END );
+    hbox->pack_start( m_back );
+    hbox->pack_start( m_next );
+    get_content_area()->pack_end( *hbox );
+#else
     get_action_area()->set_spacing( SPACING_SIZE / 2 );
     get_action_area()->pack_start( m_back, Gtk::PACK_SHRINK );
     get_action_area()->pack_start( m_next, Gtk::PACK_SHRINK );
+#endif
     m_fin = add_button( "完了(_C)", Gtk::RESPONSE_OK );
 
     m_back.set_sensitive( false );
