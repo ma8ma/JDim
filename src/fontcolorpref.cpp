@@ -657,11 +657,21 @@ void FontColorPref::slot_change_color()
         if( colorid == COLOR_NONE ) return;
     }
 
+#ifdef USE_GTKMM4
+    // TODO: GTK4 - ColorChooserDialog も GTK 4.10 以降 deprecated になる。 Gtk::ColorDialog へ移行する。
+    // ColorChooserDialog ではKDE環境のスポイトが利用できない
+    Gtk::ColorChooserDialog colordiag;
+    colordiag.set_use_alpha( false );
+    if( colorid != COLOR_NONE ) {
+        colordiag.set_rgba( Gdk::RGBA( CONFIG::get_color( colorid ) ) );
+    }
+#else
     Gtk::ColorSelectionDialog colordiag;
     if( colorid != COLOR_NONE ) {
         Gtk::ColorSelection* sel = colordiag.get_color_selection();
         sel->set_current_rgba( Gdk::RGBA( CONFIG::get_color( colorid ) ) );
     }
+#endif
     colordiag.set_transient_for( *CORE::get_mainwindow() );
     const int ret = colordiag.run();
 
@@ -674,8 +684,13 @@ void FontColorPref::slot_change_color()
 
             colorid = row[ m_columns_color.m_col_colorid ];
             if( colorid != COLOR_NONE ) {
+#ifdef USE_GTKMM4
+                const Gdk::RGBA rgba = colordiag.get_rgba();
+                CONFIG::set_color( colorid, MISC::color_to_str( rgba ) );
+#else
                 Gtk::ColorSelection* sel = colordiag.get_color_selection();
                 CONFIG::set_color( colorid, MISC::color_to_str( sel->get_current_rgba() ) );
+#endif
             }
         }
     }
