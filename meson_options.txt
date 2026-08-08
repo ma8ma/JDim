@@ -10,3 +10,4 @@ option('packager', type : 'string', value : '', description : 'String identifyin
 option('pangolayout', type : 'feature', value : 'disabled', description : 'Render text by PangoLayout')
 option('sessionlib', type : 'combo', choices : ['xsmp', 'no'], value : 'xsmp', description : 'Use Session Management Protocol')
 option('tls', type : 'combo', choices : ['gnutls', 'openssl'], value : 'gnutls', description : 'SSL/TLS library to use')
+option('use_gtkmm4', type : 'boolean', value : false, description : 'Use GTKMM4 for GUI library (WIP)')

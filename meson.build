@@ -35,7 +35,7 @@
 #   - 生成された実行ファイルの場所は builddir/src/jdim
 
 project('jdim', 'cpp',
-        version : '0.17.1-alpha',
+        version : '0.17.90-alpha',
         license : 'GPL2',
         meson_version : '>= 0.61.0',
         default_options : ['warning_level=3', 'cpp_std=c++20'])
@@ -213,6 +213,25 @@ if native
     error('not support -march=native')
   endif
   message('Optimize to your machine: YES')
+endif
+
+
+#
+# GTKMM4移行準備: 廃止予定APIをエラーにする
+#
+if get_option('use_gtkmm4')
+  # GTKMM4移行ビルドは USE_GTKMM4 を定義する
+  # 廃止予定機能が使われていたらコンパイルエラーにするマクロを定義する
+  add_project_arguments(
+    '-DUSE_GTKMM4',
+    '-DGDKMM_DISABLE_DEPRECATED',
+    '-DGDK_DISABLE_DEPRECATED',
+    '-DGIOMM_DISABLE_DEPRECATED',
+    '-DGLIBMM_DISABLE_DEPRECATED',
+    '-DGTKMM_DISABLE_DEPRECATED',
+    '-DGTK_DISABLE_DEPRECATED',
+    language: 'cpp',
+  )
 endif
 
 
