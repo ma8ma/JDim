@@ -24,11 +24,15 @@ AAMenu::AAMenu( Gtk::Window& parent )
 
     Pango::FontDescription pfd( CONFIG::get_fontname( FONT_MESSAGE ) );
     pfd.set_weight( Pango::WEIGHT_NORMAL );
+#ifndef USE_GTKMM4
+    // GTK4ではoverride_*()が廃止されているため、フェーズ1では省略する。
+    // TODO: GTK4 StyleContext/CssProvider等を利用したスタイル設定に移行する。
     m_textview.override_font( pfd );
     m_textview.override_color( Gdk::RGBA( CONFIG::get_color( COLOR_CHAR_SELECTION ) ),
                                Gtk::STATE_FLAG_NORMAL );
     m_textview.override_background_color( Gdk::RGBA( CONFIG::get_color( COLOR_BACK_SELECTION ) ),
                                           Gtk::STATE_FLAG_NORMAL );
+#endif
 
     m_popup.set_transient_for( m_parent );
     m_popup.sig_configured().connect( sigc::mem_fun( *this, &AAMenu::slot_configured_popup ) );
