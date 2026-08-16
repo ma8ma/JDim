@@ -248,7 +248,21 @@ bool AAMenu::on_key_press_event( GdkEventKey* event )
 //
 void AAMenu::slot_configured_popup( int width, int height )
 {
+#ifdef USE_GTKMM4
+    // TODO: GTK4 GtkPopoverベースで再設計予定。
+    // Wayland と X11 で挙動が一致していない。
+    // GTK4移行のため最低限動作する実装としている。
+    Gdk::Rectangle rect;
+    {
+        const auto toplevel = get_toplevel();
+        const auto display = Gdk::Display::get_default();
+        const auto monitor = display->get_monitor_at_window( toplevel->get_window() );
+        monitor->get_geometry( rect );
+    }
+    int sw = rect.get_width();
+#else
     int sw = get_screen()->get_width();
+#endif
     int x, y;
     get_window()->get_root_coords( 0, 0, x, y );
 
@@ -262,7 +276,11 @@ void AAMenu::slot_configured_popup( int width, int height )
     y -= height;
     if( x + width > sw  ) x = sw -  width;
 
+#ifdef USE_GTKMM4
+    m_popup.move( x - 5, y - 7 ); // XXX: GTK4 Wayland 向けに応急処置の調整
+#else
     m_popup.move( x, y );
+#endif
 }
 
 
