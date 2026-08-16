@@ -140,6 +140,9 @@ jdim_resources_lib = static_library(
   override_options : ['unity=off'],
 )
 
+# Generated resource source must be linked into the final executable.
+# Linking it only into a static library prevents the constructor from
+# registering the resource at startup.
 jdim_exe = executable(
   'jdim', [sources, buildinfo_h],
   dependencies : [config_h_dep, jdim_deps],
