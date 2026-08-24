@@ -77,9 +77,15 @@ core_sources = [
   'winmain.cpp',
 ]
 
-core_sources += [
-  'core_menubar_gtk3.cpp',
-]
+if use_gtkmm4
+  core_sources += [
+    'core_menubar_gtk4.cpp',
+  ]
+else
+  core_sources += [
+    'core_menubar_gtk3.cpp',
+  ]
+endif
 
 # テストプログラムのビルドで利用するためライブラリにまとめる
 core_lib = static_library(
