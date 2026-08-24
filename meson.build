@@ -219,7 +219,8 @@ endif
 #
 # GTKMM4移行準備: 廃止予定APIをエラーにする
 #
-if get_option('use_gtkmm4')
+use_gtkmm4 = get_option('use_gtkmm4')
+if use_gtkmm4
   # GTKMM4移行ビルドは USE_GTKMM4 を定義する
   # 廃止予定機能が使われていたらコンパイルエラーにするマクロを定義する
   add_project_arguments(
