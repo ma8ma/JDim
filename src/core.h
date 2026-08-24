@@ -145,6 +145,7 @@ namespace CORE
 
         void pack_widget( bool unpack );
         void create_toolbar();
+        void setup_menubar();
 
         // 初回起動時のセットアップ
         void first_setup();

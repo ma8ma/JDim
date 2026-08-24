@@ -78,6 +78,10 @@ core_sources = [
   'winmain.cpp',
 ]
 
+core_sources += [
+  'core_menubar_gtk3.cpp',
+]
+
 # テストプログラムのビルドで利用するためライブラリにまとめる
 core_lib = static_library(
   'core', core_sources,
