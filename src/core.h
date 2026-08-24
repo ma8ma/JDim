@@ -107,7 +107,9 @@ namespace CORE
         Gtk::MenuBar* m_menubar{};
 
         Glib::RefPtr< Gtk::ActionGroup > m_action_group;
+#ifndef USE_GTKMM4
         Glib::RefPtr< Gtk::UIManager > m_ui_manager;
+#endif
         bool m_enable_menuslot;
 
         // 初期設定中
@@ -145,6 +147,14 @@ namespace CORE
         void pack_widget( bool unpack );
         void create_toolbar();
         void setup_menubar();
+#ifdef USE_GTKMM4
+        Gtk::MenuItem* create_file_menu();
+        Gtk::MenuItem* create_view_menu();
+        Gtk::MenuItem* create_history_menu();
+        Gtk::MenuItem* create_tool_menu();
+        Gtk::MenuItem* create_setting_menu();
+        Gtk::MenuItem* create_help_menu();
+#endif
 
         // 初回起動時のセットアップ
         void first_setup();
