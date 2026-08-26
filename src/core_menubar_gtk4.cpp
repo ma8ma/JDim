@@ -63,9 +63,54 @@
 
 Gtk::MenuItem* CORE::Core::create_file_menu()
 {
-    auto menu = Gtk::make_managed<Gtk::MenuItem>( "ファイル(_F)", true );
-    menu->set_sensitive( false );
-    return menu;
+    auto top_item = Gtk::make_managed<Gtk::MenuItem>( "ファイル(_F)", true );
+    auto submenu = Gtk::make_managed<Gtk::Menu>();
+
+    auto item = Gtk::make_managed<Gtk::MenuItem>( "URLを開く(_U)...", true );
+    item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_openurl ) );
+    submenu->append( *item );
+
+    submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+    // FIXME: GTK4 CheckMenuItem の active 状態の切り替えは Core::slot_activate_menubar() の中で設定を参照して行う。
+    // 現状では CheckMenuItem とアプリケーションの状態は同期していない。
+    auto check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "2chにログイン(_L)", true );
+    check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_login2ch ) );
+    submenu->append( *check_item );
+
+    check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "BEにログイン(_B)", true );
+    check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_loginbe ) );
+    submenu->append( *check_item );
+
+    check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "どんぐりシステムにGmail警備員●でログイン(_G)", true );
+    check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_loginacorn ) );
+    submenu->append( *check_item );
+
+    submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+    item = Gtk::make_managed<Gtk::MenuItem>( "セッション保存(_S)", true );
+    item->signal_activate().connect( sigc::mem_fun( *this, &Core::save_session ) );
+    submenu->append( *item );
+
+    submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+    item = Gtk::make_managed<Gtk::MenuItem>( "板一覧再読込(_R)", true );
+    item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_reload_list ) );
+    submenu->append( *item );
+
+    submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+    check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "オフライン作業(_W)", true );
+    check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_online ) );
+    submenu->append( *check_item );
+
+    // TODO: GTK4 CONTROL::JDExit に紐づけされている Gtk::AccelKey を取得してショートカットキーの登録を行う。
+    item = Gtk::make_managed<Gtk::MenuItem>( "終了(_Q)", true );
+    item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_quit ) );
+    submenu->append( *item );
+
+    top_item->set_submenu( *submenu );
+    return top_item;
 }
 
 Gtk::MenuItem* CORE::Core::create_view_menu()
