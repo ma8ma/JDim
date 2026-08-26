@@ -129,9 +129,108 @@ Gtk::MenuItem* CORE::Core::create_history_menu()
 
 Gtk::MenuItem* CORE::Core::create_tool_menu()
 {
-    auto menu = Gtk::make_managed<Gtk::MenuItem>( "ツール(_T)", true );
-    menu->set_sensitive( false );
-    return menu;
+    auto top_menu = Gtk::make_managed<Gtk::MenuItem>( "ツール(_T)", true );
+    auto submenu = Gtk::make_managed<Gtk::Menu>();
+
+    auto item = Gtk::make_managed<Gtk::MenuItem>( "実況開始／停止(_L)", true );
+    item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_live_start_stop ) );
+    submenu->append( *item );
+
+    submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+    // FIXME: GTK4 スレタイ検索用のメニュー項目は変更可能だが現時点では固定する。
+    item = Gtk::make_managed<Gtk::MenuItem>( "スレタイ検索 (ff5ch.syoboi.jp)(_T)", true );
+    item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_search_title ) );
+    submenu->append( *item );
+
+    submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+    {
+        auto cache_search_item = Gtk::make_managed<Gtk::MenuItem>( "キャッシュ内ログ検索(_C)", true );
+        auto cache_search_submenu = Gtk::make_managed<Gtk::Menu>();
+
+        item = Gtk::make_managed<Gtk::MenuItem>( "表示中の板のログを検索(_B)", true );
+        item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_search_cache_board ) );
+        cache_search_submenu->append( *item );
+
+        item = Gtk::make_managed<Gtk::MenuItem>( "キャッシュ内の全ログを検索(_A)", true );
+        item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_search_cache ) );
+        cache_search_submenu->append( *item );
+
+        cache_search_item->set_submenu( *cache_search_submenu );
+        submenu->append( *cache_search_item );
+    }
+
+    submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+    {
+        auto cache_list_item = Gtk::make_managed<Gtk::MenuItem>( "キャッシュ内ログ一覧(_H)", true );
+        auto cache_list_submenu = Gtk::make_managed<Gtk::Menu>();
+
+        item = Gtk::make_managed<Gtk::MenuItem>( "表示中の板のログをスレ一覧に表示(_B)", true );
+        item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_show_cache_board ) );
+        cache_list_submenu->append( *item );
+
+        item = Gtk::make_managed<Gtk::MenuItem>( "キャッシュ内の全ログをスレ一覧に表示(_A)", true );
+        item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_show_cache ) );
+        cache_list_submenu->append( *item );
+
+        cache_list_item->set_submenu( *cache_list_submenu );
+        submenu->append( *cache_list_item );
+    }
+
+    submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+    {
+        auto update_check_item = Gtk::make_managed<Gtk::MenuItem>( "サイドバーの更新チェック(_U)", true );
+        auto update_check_submenu = Gtk::make_managed<Gtk::Menu>();
+
+        item = Gtk::make_managed<Gtk::MenuItem>( "更新チェックのみ(_R)", true );
+        item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_check_update_root ) );
+        update_check_submenu->append( *item );
+
+        item = Gtk::make_managed<Gtk::MenuItem>( "更新されたスレをタブで開く(_T)", true );
+        item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_check_update_open_root ) );
+        update_check_submenu->append( *item );
+
+        update_check_submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+        item = Gtk::make_managed<Gtk::MenuItem>( "キャンセル(_C)", true );
+        item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_cancel_check_update ) );
+        update_check_submenu->append( *item );
+
+        update_check_item->set_submenu( *update_check_submenu );
+        submenu->append( *update_check_item );
+    }
+
+    item = Gtk::make_managed<Gtk::MenuItem>( "サイドバーをスレ一覧に表示(_B)", true );
+    item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_show_sidebarboard ) );
+    submenu->append( *item );
+
+    item = Gtk::make_managed<Gtk::MenuItem>( "サイドバーの仮想板を作成(_V)", true );
+    item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_create_vboard ) );
+    submenu->append( *item );
+
+    submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+    item = Gtk::make_managed<Gtk::MenuItem>( "お気に入りの編集(_E)", true );
+    item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_edit_favorite ) );
+    submenu->append( *item );
+
+    submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+    item = Gtk::make_managed<Gtk::MenuItem>( "書き込みログの表示(_P)", true );
+    item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_show_postlog ) );
+    submenu->append( *item );
+
+    submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+    item = Gtk::make_managed<Gtk::MenuItem>( "表示中の板にdatをインポート(_I)", true );
+    item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_import_dat ) );
+    submenu->append( *item );
+
+    top_menu->set_submenu( *submenu );
+    return top_menu;
 }
 
 Gtk::MenuItem* CORE::Core::create_setting_menu()
