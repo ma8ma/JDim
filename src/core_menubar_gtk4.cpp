@@ -98,9 +98,31 @@ Gtk::MenuItem* CORE::Core::create_setting_menu()
 
 Gtk::MenuItem* CORE::Core::create_help_menu()
 {
-    auto menu = Gtk::make_managed<Gtk::MenuItem>( "ヘルプ(_H)", true );
-    menu->set_sensitive( false );
-    return menu;
+    auto top_item = Gtk::make_managed<Gtk::MenuItem>( "ヘルプ(_H)", true );
+    auto submenu = Gtk::make_managed<Gtk::Menu>();
+
+    auto item = Gtk::make_managed<Gtk::MenuItem>( "オンラインマニュアル(_M)...", true );
+    item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_show_manual ) );
+    submenu->append( *item );
+
+    submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+    item = Gtk::make_managed<Gtk::MenuItem>( "JD サポート掲示板(_B)", true );
+    item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_show_bbs ) );
+    submenu->append( *item );
+
+    item = Gtk::make_managed<Gtk::MenuItem>( "2chスレ過去ログ(_L)", true );
+    item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_show_old2ch ) );
+    submenu->append( *item );
+
+    submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+    item = Gtk::make_managed<Gtk::MenuItem>( "JDimについて(_A)...", true );
+    item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_show_about ) );
+    submenu->append( *item );
+
+    top_item->set_submenu( *submenu );
+    return top_item;
 }
 
 
