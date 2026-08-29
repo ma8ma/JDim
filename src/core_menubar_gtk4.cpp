@@ -122,9 +122,19 @@ Gtk::MenuItem* CORE::Core::create_view_menu()
 
 Gtk::MenuItem* CORE::Core::create_history_menu()
 {
-    auto menu = Gtk::make_managed<Gtk::MenuItem>( "履歴(_S)", true );
-    menu->set_sensitive( false );
-    return menu;
+    auto top_menu = Gtk::make_managed<Gtk::MenuItem>( "履歴(_S)", true );
+    auto submenu = Gtk::make_managed<Gtk::Menu>();
+
+    auto item = Gtk::make_managed<Gtk::MenuItem>( "前へ戻る(_P)", true );
+    item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_prevview ) );
+    submenu->append( *item );
+
+    item = Gtk::make_managed<Gtk::MenuItem>( "次へ進む(_N)", true );
+    item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_nextview ) );
+    submenu->append( *item );
+
+    top_menu->set_submenu( *submenu );
+    return top_menu;
 }
 
 Gtk::MenuItem* CORE::Core::create_tool_menu()
@@ -563,4 +573,7 @@ void CORE::Core::setup_menubar()
     m_menubar->append( *create_tool_menu() );
     m_menubar->append( *create_setting_menu() );
     m_menubar->append( *create_help_menu() );
+
+    // FIXME: GTK4 動的な履歴メニューは Gtk::ActionGroup に依存しているため
+    // フェーズ1では未実装とする。
 }
