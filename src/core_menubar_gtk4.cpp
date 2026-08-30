@@ -235,6 +235,8 @@ Gtk::MenuItem* CORE::Core::create_view_menu()
             check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::toggle_post_mark ) );
             general_submenu->append( *check_item );
 
+            general_submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
             {
                 auto since_item = Gtk::make_managed<Gtk::MenuItem>( "スレ一覧の since 表示(_N)", true );
                 auto since_submenu = Gtk::make_managed<Gtk::Menu>();
@@ -276,13 +278,203 @@ Gtk::MenuItem* CORE::Core::create_view_menu()
                 general_submenu->append( *since_item );
             }
 
+            {
+                auto write_item = Gtk::make_managed<Gtk::MenuItem>( "スレ一覧の最終書込表示(_N)", true );
+                auto write_submenu = Gtk::make_managed<Gtk::Menu>();
+
+                // 最終書き込み
+                Gtk::RadioButtonGroup radiogroup_write;
+                auto raction_write0 = Gtk::make_managed<Gtk::RadioMenuItem>( radiogroup_write, "年/月/日 時:分", true );
+                auto raction_write1 = Gtk::make_managed<Gtk::RadioMenuItem>( radiogroup_write, "月/日 時:分", true );
+                auto raction_write2 = Gtk::make_managed<Gtk::RadioMenuItem>( radiogroup_write, "年/月/日(曜日) 時:分:秒", true );
+                auto raction_write3 = Gtk::make_managed<Gtk::RadioMenuItem>( radiogroup_write, "年/月/日 時:分:秒", true );
+                auto raction_write4 = Gtk::make_managed<Gtk::RadioMenuItem>( radiogroup_write, "～前", true );
+
+                switch( SESSION::get_col_write_time() ){
+                    case MISC::TIME_NORMAL: raction_write0->set_active( true );break;
+                    case MISC::TIME_NO_YEAR: raction_write1->set_active( true );break;
+                    case MISC::TIME_WEEK: raction_write2->set_active( true );break;
+                    case MISC::TIME_SECOND: raction_write3->set_active( true );break;
+                    case MISC::TIME_PASSED: raction_write4->set_active( true );break;
+                }
+
+                raction_write0->signal_activate().connect(
+                        sigc::bind< int >( sigc::mem_fun( *this, &Core::slot_toggle_write ), MISC::TIME_NORMAL ) );
+                raction_write1->signal_activate().connect(
+                        sigc::bind< int >( sigc::mem_fun( *this, &Core::slot_toggle_write ), MISC::TIME_NO_YEAR ) );
+                raction_write2->signal_activate().connect(
+                        sigc::bind< int >( sigc::mem_fun( *this, &Core::slot_toggle_write ), MISC::TIME_WEEK ) );
+                raction_write3->signal_activate().connect(
+                        sigc::bind< int >( sigc::mem_fun( *this, &Core::slot_toggle_write ), MISC::TIME_SECOND ) );
+                raction_write4->signal_activate().connect(
+                        sigc::bind< int >( sigc::mem_fun( *this, &Core::slot_toggle_write ), MISC::TIME_PASSED ) );
+
+                write_submenu->append( *raction_write0 );
+                write_submenu->append( *raction_write1 );
+                write_submenu->append( *raction_write2 );
+                write_submenu->append( *raction_write3 );
+                write_submenu->append( *raction_write4 );
+
+                write_item->set_submenu( *write_submenu );
+                general_submenu->append( *write_item );
+            }
+
+            {
+                auto access_item = Gtk::make_managed<Gtk::MenuItem>( "スレ一覧の最終取得表示(_N)", true );
+                auto access_submenu = Gtk::make_managed<Gtk::Menu>();
+
+                // 最終アクセス
+                Gtk::RadioButtonGroup radiogroup_access;
+                auto raction_access0 = Gtk::make_managed<Gtk::RadioMenuItem>( radiogroup_access, "年/月/日 時:分", true );
+                auto raction_access1 = Gtk::make_managed<Gtk::RadioMenuItem>( radiogroup_access, "月/日 時:分", true );
+                auto raction_access2 = Gtk::make_managed<Gtk::RadioMenuItem>( radiogroup_access, "年/月/日(曜日) 時:分:秒", true );
+                auto raction_access3 = Gtk::make_managed<Gtk::RadioMenuItem>( radiogroup_access, "年/月/日 時:分:秒", true );
+                auto raction_access4 = Gtk::make_managed<Gtk::RadioMenuItem>( radiogroup_access, "～前", true );
+
+                switch( SESSION::get_col_access_time() ){
+                    case MISC::TIME_NORMAL: raction_access0->set_active( true );break;
+                    case MISC::TIME_NO_YEAR: raction_access1->set_active( true );break;
+                    case MISC::TIME_WEEK: raction_access2->set_active( true );break;
+                    case MISC::TIME_SECOND: raction_access3->set_active( true );break;
+                    case MISC::TIME_PASSED: raction_access4->set_active( true );break;
+                }
+
+                raction_access0->signal_activate().connect(
+                        sigc::bind< int >( sigc::mem_fun( *this, &Core::slot_toggle_access ), MISC::TIME_NORMAL ) );
+                raction_access1->signal_activate().connect(
+                        sigc::bind< int >( sigc::mem_fun( *this, &Core::slot_toggle_access ), MISC::TIME_NO_YEAR ) );
+                raction_access2->signal_activate().connect(
+                        sigc::bind< int >( sigc::mem_fun( *this, &Core::slot_toggle_access ), MISC::TIME_WEEK ) );
+                raction_access3->signal_activate().connect(
+                        sigc::bind< int >( sigc::mem_fun( *this, &Core::slot_toggle_access ), MISC::TIME_SECOND ) );
+                raction_access4->signal_activate().connect(
+                        sigc::bind< int >( sigc::mem_fun( *this, &Core::slot_toggle_access ), MISC::TIME_PASSED ) );
+
+                access_submenu->append( *raction_access0 );
+                access_submenu->append( *raction_access1 );
+                access_submenu->append( *raction_access2 );
+                access_submenu->append( *raction_access3 );
+                access_submenu->append( *raction_access4 );
+
+                access_item->set_submenu( *access_submenu );
+                general_submenu->append( *access_item );
+            }
+
             general_item->set_submenu(*general_submenu );
             view_submenu->append( *general_item );
         }
 
-        // TODO: タブ表示
-        // TODO: ツールバー表示
-        // TODO: ツールバー項目設定
+        view_submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+        {
+            auto tab_item = Gtk::make_managed<Gtk::MenuItem>( "タブ表示(_B)", true );
+            auto tab_submenu = Gtk::make_managed<Gtk::Menu>();
+
+            // タブ表示
+            auto check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "スレ一覧(_B)", true );
+            check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_tabboard ) );
+            tab_submenu->append( *check_item );
+
+            check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "スレビュー(_A)", true );
+            check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_tabarticle ) );
+            tab_submenu->append( *check_item );
+
+            tab_item->set_submenu( *tab_submenu );
+            view_submenu->append( *tab_item );
+        }
+
+        view_submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+        {
+            auto toolbar_item = Gtk::make_managed<Gtk::MenuItem>( "ツールバー表示(_T)", true );
+            auto toolbar_submenu = Gtk::make_managed<Gtk::Menu>();
+
+            // ツールバー表示
+
+            // メインツールバー
+            auto check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "メインツールバー表示(_M)", true );
+            check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_toolbarmain ) );
+            toolbar_submenu->append( *check_item );
+
+            // 各ビューのツールバー
+            check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "サイドバーのツールバー表示(_S)", true );
+            check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_toolbarbbslist ) );
+            toolbar_submenu->append( *check_item );
+
+            check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "スレ一覧のツールバー表示(_B)", true );
+            check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_toolbarboard ) );
+            toolbar_submenu->append( *check_item );
+
+            check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "スレビューのツールバー表示(_A)", true );
+            check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_toolbararticle ) );
+            toolbar_submenu->append( *check_item );
+
+            toolbar_submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+            {
+                auto toolbarpos_item = Gtk::make_managed<Gtk::MenuItem>( "メインツールバーの位置(_P)", true );
+                auto toolbarpos_submenu = Gtk::make_managed<Gtk::Menu>();
+
+                Gtk::RadioButtonGroup radiogroup_toolbar;
+                auto raction_toolbarpos0 = Gtk::make_managed<Gtk::RadioMenuItem>( radiogroup_toolbar, "メニューバーの下に表示する(_U)", true );
+                auto raction_toolbarpos1 = Gtk::make_managed<Gtk::RadioMenuItem>( radiogroup_toolbar, "サイドバーの右に表示する(_R)", true );
+
+                switch( SESSION::get_toolbar_pos() ){
+                    case SESSION::TOOLBAR_POS_NORMAL: raction_toolbarpos0->set_active( true );break;
+                    case SESSION::TOOLBAR_POS_RIGHT: raction_toolbarpos1->set_active( true );break;
+                }
+
+                raction_toolbarpos0->signal_activate().connect(
+                        sigc::bind< int >( sigc::mem_fun( *this, &Core::slot_toggle_toolbarpos ), SESSION::TOOLBAR_POS_NORMAL ) );
+                raction_toolbarpos1->signal_activate().connect(
+                        sigc::bind< int >( sigc::mem_fun( *this, &Core::slot_toggle_toolbarpos ), SESSION::TOOLBAR_POS_RIGHT ) );
+
+                toolbarpos_submenu->append( *raction_toolbarpos0 );
+                toolbarpos_submenu->append( *raction_toolbarpos1 );
+
+                toolbarpos_item->set_submenu( *toolbarpos_submenu );
+                toolbar_submenu->append( *toolbarpos_item );
+            }
+
+            toolbar_item->set_submenu( *toolbar_submenu );
+            view_submenu->append( *toolbar_item );
+        }
+
+        view_submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+        {
+            auto toolbarconf_item = Gtk::make_managed<Gtk::MenuItem>( "ツールバー項目設定(_I)", true );
+            auto toolbarconf_submenu = Gtk::make_managed<Gtk::Menu>();
+
+            // ツールバー項目設定
+            auto item = Gtk::make_managed<Gtk::MenuItem>( "メイン(_M)...", true );
+            item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_setup_mainitem ) );
+            toolbarconf_submenu->append( *item );
+
+            item = Gtk::make_managed<Gtk::MenuItem>( "サイドバー(_S)...", true );
+            item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_setup_sidebaritem ) );
+            toolbarconf_submenu->append( *item );
+
+            item = Gtk::make_managed<Gtk::MenuItem>( "スレ一覧(_B)...", true );
+            item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_setup_boarditem ) );
+            toolbarconf_submenu->append( *item );
+
+            item = Gtk::make_managed<Gtk::MenuItem>( "スレビュー(_A)...", true );
+            item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_setup_articleitem ) );
+            toolbarconf_submenu->append( *item );
+
+            item = Gtk::make_managed<Gtk::MenuItem>( "ログ/スレタイ検索(_L)...", true );
+            item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_setup_searchitem ) );
+            toolbarconf_submenu->append( *item );
+
+            item = Gtk::make_managed<Gtk::MenuItem>( "書き込みビュー(_W)...", true );
+            item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_setup_msgitem ) );
+            toolbarconf_submenu->append( *item );
+
+            toolbarconf_item->set_submenu( *toolbarconf_submenu );
+            view_submenu->append( *toolbarconf_item );
+        }
+
         // TODO: リスト項目設定
         // TODO: コンテキストメニュー項目設定
         // TODO: フォントと色
