@@ -475,11 +475,181 @@ Gtk::MenuItem* CORE::Core::create_view_menu()
             view_submenu->append( *toolbarconf_item );
         }
 
-        // TODO: リスト項目設定
-        // TODO: コンテキストメニュー項目設定
-        // TODO: フォントと色
-        // TODO: 画像表示設定
-        // TODO: 書き込み設定
+        view_submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+        {
+            auto listitem_item = Gtk::make_managed<Gtk::MenuItem>( "リスト項目設定(_L)", true );
+            auto listitem_submenu = Gtk::make_managed<Gtk::Menu>();
+
+            // リスト表示項目設定
+            auto item = Gtk::make_managed<Gtk::MenuItem>( "スレ一覧(_T)...", true );
+            item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_setup_boarditem_column ) );
+            listitem_submenu->append( *item );
+
+            listitem_item->set_submenu( *listitem_submenu );
+            view_submenu->append( *listitem_item );
+        }
+
+        view_submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+        {
+            auto menuitem_item = Gtk::make_managed<Gtk::MenuItem>( "コンテキストメニュー項目設定(_C)", true );
+            auto menuitem_submenu = Gtk::make_managed<Gtk::Menu>();
+
+            // コンテキストメニュー項目設定
+            auto item = Gtk::make_managed<Gtk::MenuItem>( "スレ一覧(_B)...", true );
+            item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_setup_boarditem_menu ) );
+            menuitem_submenu->append( *item );
+
+            item = Gtk::make_managed<Gtk::MenuItem>( "スレビュー(_A)...", true );
+            item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_setup_articleitem_menu ) );
+            menuitem_submenu->append( *item );
+
+            menuitem_item->set_submenu( *menuitem_submenu );
+            view_submenu->append( *menuitem_item );
+        }
+
+        view_submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+        {
+            auto font_color_item = Gtk::make_managed<Gtk::MenuItem>( "フォントと色(_F)", true );
+            auto font_color_submenu = Gtk::make_managed<Gtk::Menu>();
+
+            auto item = Gtk::make_managed<Gtk::MenuItem>( "スレビューフォント(_T)...", true );
+            item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_changefont_main ) );
+            font_color_submenu->append( *item );
+
+            item = Gtk::make_managed<Gtk::MenuItem>( "メール欄フォント(_U)...", true );
+            item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_changefont_mail ) );
+            font_color_submenu->append( *item );
+
+            item = Gtk::make_managed<Gtk::MenuItem>( "ポップアップフォント(_P)...", true );
+            item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_changefont_popup ) );
+            font_color_submenu->append( *item );
+
+            item = Gtk::make_managed<Gtk::MenuItem>( "板／スレ一覧フォント(_B)...", true );
+            item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_changefont_tree ) );
+            font_color_submenu->append( *item );
+
+            font_color_submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+            item = Gtk::make_managed<Gtk::MenuItem>( "スレビュー文字色(_C)...", true );
+            item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_changecolor_char ) );
+            font_color_submenu->append( *item );
+
+            item = Gtk::make_managed<Gtk::MenuItem>( "スレビュー背景色(_A)...", true );
+            item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_changecolor_back ) );
+            font_color_submenu->append( *item );
+
+            item = Gtk::make_managed<Gtk::MenuItem>( "板／スレ一覧文字色(_H)...", true );
+            item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_changecolor_char_tree ) );
+            font_color_submenu->append( *item );
+
+            item = Gtk::make_managed<Gtk::MenuItem>( "板／スレ一覧背景色(_K)...", true );
+            item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_changecolor_back_tree ) );
+            font_color_submenu->append( *item );
+
+            font_color_submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+            item = Gtk::make_managed<Gtk::MenuItem>( "詳細設定(_R)...", true );
+            item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_setup_fontcolor ) );
+            font_color_submenu->append( *item );
+
+            font_color_item->set_submenu( *font_color_submenu );
+            view_submenu->append( *font_color_item );
+        }
+
+        view_submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+        {
+            auto imgview_item = Gtk::make_managed<Gtk::MenuItem>( "画像表示設定(_G)", true );
+            auto imgview_submenu = Gtk::make_managed<Gtk::Menu>();
+
+            // 画像表示設定
+            {
+                auto img_item = Gtk::make_managed<Gtk::MenuItem>( "画像ビュー(_V)", true );
+                auto img_submenu = Gtk::make_managed<Gtk::Menu>();
+
+                Gtk::RadioButtonGroup radiogroup_img;
+                auto raction_img0 = Gtk::make_managed<Gtk::RadioMenuItem>( radiogroup_img, "ウィンドウ表示する(_W)", true );
+                auto raction_img1 = Gtk::make_managed<Gtk::RadioMenuItem>( radiogroup_img, "埋め込み表示する(_E)", true );
+                auto raction_img2 = Gtk::make_managed<Gtk::RadioMenuItem>( radiogroup_img, "表示しない(_D)", true );
+
+                if( CONFIG::get_use_image_view() ){
+                    if( ! SESSION::get_embedded_img() ) raction_img0->set_active( true );
+                    else raction_img1->set_active( true );
+                }
+                else {
+                    raction_img2->set_active( true );
+                }
+
+                raction_img0->signal_activate().connect( sigc::bind< int >( sigc::mem_fun( *this, &Core::slot_toggle_imgview ), IMGVIEW_WINDOW ) );
+                raction_img1->signal_activate().connect( sigc::bind< int >( sigc::mem_fun( *this, &Core::slot_toggle_imgview ), IMGVIEW_EMB ) );
+                raction_img2->signal_activate().connect( sigc::bind< int >( sigc::mem_fun( *this, &Core::slot_toggle_imgview ), IMGVIEW_NO ) );
+
+                img_submenu->append( *raction_img0 );
+                img_submenu->append( *raction_img1 );
+                img_submenu->append( *raction_img2 );
+
+                img_item->set_submenu( *img_submenu );
+                imgview_submenu->append( *img_item );
+            }
+
+            auto check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "画像にモザイクをかける(_M)", true );
+            check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_use_mosaic ) );
+            imgview_submenu->append( *check_item );
+
+            check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "画像ポップアップを表示する(_P)", true );
+            check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_use_imgpopup ) );
+            imgview_submenu->append( *check_item );
+
+            check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "インライン画像を表示する(_I)", true );
+            check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_use_inlineimg ) );
+            imgview_submenu->append( *check_item );
+
+            check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "BEアイコン/エモティコンを表示する(_B)", true );
+            check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_show_ssspicon ) );
+            imgview_submenu->append( *check_item );
+
+            imgview_item->set_submenu( *imgview_submenu );
+            view_submenu->append( *imgview_item );
+        }
+
+        view_submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+        {
+            auto msgview_item = Gtk::make_managed<Gtk::MenuItem>( "書き込み設定(_M)", true );
+            auto msgview_submenu = Gtk::make_managed<Gtk::Menu>();
+
+            // 書き込みビュー
+            {
+                auto msg_item = Gtk::make_managed<Gtk::MenuItem>( "書き込みビュー(_M)", true );
+                auto msg_submenu = Gtk::make_managed<Gtk::Menu>();
+
+                Gtk::RadioButtonGroup radiogroup_msg;
+                auto raction_msg0 = Gtk::make_managed<Gtk::RadioMenuItem>( radiogroup_msg, "ウィンドウ表示する(_W)", true );
+                auto raction_msg1 = Gtk::make_managed<Gtk::RadioMenuItem>( radiogroup_msg, "埋め込み表示する(_E)", true );
+
+                if( ! SESSION::get_embedded_mes() ) raction_msg0->set_active( true );
+                else raction_msg1->set_active( true );
+
+                raction_msg0->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_winmsg ) );
+                raction_msg1->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_embmsg ) );
+
+                msg_submenu->append( *raction_msg0 );
+                msg_submenu->append( *raction_msg1 );
+
+                msg_item->set_submenu( *msg_submenu );
+                msgview_submenu->append( *msg_item );
+            }
+
+            auto check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "テキストを折り返し表示する(_W)", true );
+            check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_msg_wrap ) );
+            msgview_submenu->append( *check_item );
+
+            msgview_item->set_submenu( *msgview_submenu );
+            view_submenu->append( *msgview_item );
+        }
 
         view_item->set_submenu( *view_submenu );
         submenu->append( *view_item );
