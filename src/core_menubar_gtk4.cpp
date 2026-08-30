@@ -115,9 +115,186 @@ Gtk::MenuItem* CORE::Core::create_file_menu()
 
 Gtk::MenuItem* CORE::Core::create_view_menu()
 {
-    auto menu = Gtk::make_managed<Gtk::MenuItem>( "表示(_V)", true );
-    menu->set_sensitive( false );
-    return menu;
+    auto top_menu = Gtk::make_managed<Gtk::MenuItem>( "表示(_V)", true );
+    auto submenu = Gtk::make_managed<Gtk::Menu>();
+
+    // サイドバー
+    {
+        auto sidebar_item = Gtk::make_managed<Gtk::MenuItem>( "サイドバー(_S)", true );
+        auto sidebar_submenu = Gtk::make_managed<Gtk::Menu>();
+
+        auto check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "板一覧(_B)", true );
+        check_item->signal_activate().connect(
+                sigc::bind< std::string, bool >( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_BBSLISTVIEW, false ) );
+        sidebar_submenu->append( *check_item );
+
+        check_item = Gtk::make_managed<Gtk::CheckMenuItem>( std::string( ITEM_NAME_FAVORITEVIEW ) + "(_F)", true );
+        check_item->signal_activate().connect(
+                sigc::bind< std::string, bool >( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_FAVORITEVIEW, false ) );
+        sidebar_submenu->append( *check_item );
+
+        check_item = Gtk::make_managed<Gtk::CheckMenuItem>( std::string( ITEM_NAME_HISTVIEW ) + "(_T)", true );
+        check_item->signal_activate().connect(
+                sigc::bind< std::string, bool >( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_HISTTHREADVIEW, false ) );
+        sidebar_submenu->append( *check_item );
+
+        check_item = Gtk::make_managed<Gtk::CheckMenuItem>( std::string( ITEM_NAME_HIST_BOARDVIEW ) + "(_B)", true );
+        check_item->signal_activate().connect(
+                sigc::bind< std::string, bool >( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_HISTBOARDVIEW, false ) );
+        sidebar_submenu->append( *check_item );
+
+        check_item = Gtk::make_managed<Gtk::CheckMenuItem>( std::string( ITEM_NAME_HIST_CLOSEVIEW ) + "(_M)", true );
+        check_item->signal_activate().connect(
+                sigc::bind< std::string, bool >( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_HISTCLOSEVIEW, false ) );
+        sidebar_submenu->append( *check_item );
+
+        check_item = Gtk::make_managed<Gtk::CheckMenuItem>( std::string( ITEM_NAME_HIST_CLOSEBOARDVIEW ) + "(_N)", true );
+        check_item->signal_activate().connect(
+                sigc::bind< std::string, bool >( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_HISTCLOSEBOARDVIEW, false ) );
+        sidebar_submenu->append( *check_item );
+
+        check_item = Gtk::make_managed<Gtk::CheckMenuItem>( std::string( ITEM_NAME_HIST_CLOSEIMGVIEW ) + "(_I)", true );
+        check_item->signal_activate().connect(
+                sigc::bind< std::string, bool >( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_HISTCLOSEIMGVIEW, false ) );
+        sidebar_submenu->append( *check_item );
+
+        sidebar_item->set_submenu( *sidebar_submenu );
+        submenu->append( *sidebar_item );
+    }
+
+    submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+    auto item = Gtk::make_managed<Gtk::MenuItem>( "スレ一覧(_B)", true );
+    item->signal_activate().connect( sigc::bind< bool >( sigc::mem_fun(*this, &Core::switch_board ), false ) );
+    submenu->append( *item );
+
+    item = Gtk::make_managed<Gtk::MenuItem>( "スレビュー(_T)", true );
+    item->signal_activate().connect( sigc::bind< bool >( sigc::mem_fun(*this, &Core::switch_article ), false ) );
+    submenu->append( *item );
+
+    item = Gtk::make_managed<Gtk::MenuItem>( "画像ビュー(_I)", true );
+    item->signal_activate().connect( sigc::bind< bool >( sigc::mem_fun(*this, &Core::switch_image ), false ) );
+    submenu->append( *item );
+
+    submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+    // pane 設定
+    Gtk::RadioButtonGroup radiogroup;
+    auto raction0 = Gtk::make_managed<Gtk::RadioMenuItem>( radiogroup, "２ペイン表示(_2)", true );
+    auto raction1 = Gtk::make_managed<Gtk::RadioMenuItem>( radiogroup, "３ペイン表示(_3)", true );
+    auto raction2 = Gtk::make_managed<Gtk::RadioMenuItem>( radiogroup, "縦３ペイン表示(_V)", true );
+
+    switch( SESSION::get_mode_pane() ){
+        case SESSION::MODE_2PANE: raction0->set_active( true );break;
+        case SESSION::MODE_3PANE: raction1->set_active( true );break;
+        case SESSION::MODE_V3PANE: raction2->set_active( true );break;
+    }
+
+    raction0->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_2pane ) );
+    raction1->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_3pane ) );
+    raction2->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_v3pane ) );
+
+    submenu->append( *raction0 );
+    submenu->append( *raction1 );
+    submenu->append( *raction2 );
+
+    submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+    // フルスクリーン
+    auto check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "全画面表示(_F)", true );
+    check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_fullscreen ) );
+    submenu->append( *check_item );
+
+    submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
+
+    {
+        auto view_item = Gtk::make_managed<Gtk::MenuItem>( "詳細設定(_D)", true );
+        auto view_submenu = Gtk::make_managed<Gtk::Menu>();
+
+        {
+            auto general_item = Gtk::make_managed<Gtk::MenuItem>( "一般(_G)", true );
+            auto general_submenu = Gtk::make_managed<Gtk::Menu>();
+
+            check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "メニューバー表示(_M)", true );
+            check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::toggle_menubar ) );
+            general_submenu->append( *check_item );
+
+            check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "ステータスバー表示(_S)", true );
+            check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::toggle_statbar ) );
+            general_submenu->append( *check_item );
+
+            check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "ボタンをフラット表示(_F)", true );
+            check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::toggle_flat_button ) );
+            general_submenu->append( *check_item );
+
+            check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "ツールバーの背景を描画する(_T)", true );
+            check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::toggle_draw_toolbarback ) );
+            general_submenu->append( *check_item );
+
+            check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "自分が書き込んだレスにマークをつける(_W)", true );
+            check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::toggle_post_mark ) );
+            general_submenu->append( *check_item );
+
+            {
+                auto since_item = Gtk::make_managed<Gtk::MenuItem>( "スレ一覧の since 表示(_N)", true );
+                auto since_submenu = Gtk::make_managed<Gtk::Menu>();
+
+                // since
+                Gtk::RadioButtonGroup radiogroup_since;
+                auto raction_since0 = Gtk::make_managed<Gtk::RadioMenuItem>( radiogroup_since, "年/月/日 時:分", true );
+                auto raction_since1 = Gtk::make_managed<Gtk::RadioMenuItem>( radiogroup_since, "月/日 時:分", true );
+                auto raction_since2 = Gtk::make_managed<Gtk::RadioMenuItem>( radiogroup_since, "年/月/日(曜日) 時:分:秒", true );
+                auto raction_since3 = Gtk::make_managed<Gtk::RadioMenuItem>( radiogroup_since, "年/月/日 時:分:秒", true );
+                auto raction_since4 = Gtk::make_managed<Gtk::RadioMenuItem>( radiogroup_since, "～前", true );
+
+                switch( SESSION::get_col_since_time() ){
+                    case MISC::TIME_NORMAL: raction_since0->set_active( true );break;
+                    case MISC::TIME_NO_YEAR: raction_since1->set_active( true );break;
+                    case MISC::TIME_WEEK: raction_since2->set_active( true );break;
+                    case MISC::TIME_SECOND: raction_since3->set_active( true );break;
+                    case MISC::TIME_PASSED: raction_since4->set_active( true );break;
+                }
+
+                raction_since0->signal_activate().connect(
+                        sigc::bind< int >( sigc::mem_fun( *this, &Core::slot_toggle_since ), MISC::TIME_NORMAL ) );
+                raction_since1->signal_activate().connect(
+                        sigc::bind< int >( sigc::mem_fun( *this, &Core::slot_toggle_since ), MISC::TIME_NO_YEAR ) );
+                raction_since2->signal_activate().connect(
+                        sigc::bind< int >( sigc::mem_fun( *this, &Core::slot_toggle_since ), MISC::TIME_WEEK ) );
+                raction_since3->signal_activate().connect(
+                        sigc::bind< int >( sigc::mem_fun( *this, &Core::slot_toggle_since ), MISC::TIME_SECOND ) );
+                raction_since4->signal_activate().connect(
+                        sigc::bind< int >( sigc::mem_fun( *this, &Core::slot_toggle_since ), MISC::TIME_PASSED ) );
+
+                since_submenu->append( *raction_since0 );
+                since_submenu->append( *raction_since1 );
+                since_submenu->append( *raction_since2 );
+                since_submenu->append( *raction_since3 );
+                since_submenu->append( *raction_since4 );
+
+                since_item->set_submenu( *since_submenu );
+                general_submenu->append( *since_item );
+            }
+
+            general_item->set_submenu(*general_submenu );
+            view_submenu->append( *general_item );
+        }
+
+        // TODO: タブ表示
+        // TODO: ツールバー表示
+        // TODO: ツールバー項目設定
+        // TODO: リスト項目設定
+        // TODO: コンテキストメニュー項目設定
+        // TODO: フォントと色
+        // TODO: 画像表示設定
+        // TODO: 書き込み設定
+
+        view_item->set_submenu( *view_submenu );
+        submenu->append( *view_item );
+    }
+
+    top_menu->set_submenu( *submenu );
+    return top_menu;
 }
 
 Gtk::MenuItem* CORE::Core::create_history_menu()
