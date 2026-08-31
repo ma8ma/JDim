@@ -1116,3 +1116,52 @@ void CORE::Core::setup_menubar()
     // FIXME: GTK4 動的な履歴メニューは Gtk::ActionGroup に依存しているため
     // フェーズ1では未実装とする。
 }
+
+
+/**
+ * @brief メニューバーがアクティブになったときに呼ばれるスロット
+ */
+void CORE::Core::slot_activate_menubar()
+{
+    // toggle　アクションを activeにするとスロット関数が呼ばれるので処理しないようにする
+    m_enable_menuslot = false;
+
+    // TODO: Gtk::MenuItem, Gtk::CheckMenuItem を使って set_active, set_sensitive を切り替える
+
+    m_enable_menuslot = true;
+}
+
+
+/**
+ * @brief 履歴メニューがアクティブになった
+ */
+void CORE::Core::slot_activate_historymenu()
+{
+    m_enable_menuslot = false;
+
+    std::string view_url;
+    switch( SESSION::focused_admin() ){
+
+        case SESSION::FOCUS_BOARD: view_url = BOARD::get_admin()->get_current_url(); break;
+        case SESSION::FOCUS_ARTICLE: view_url = ARTICLE::get_admin()->get_current_url(); break;
+    }
+
+    bool enable_prev = false;
+    bool enable_next = false;
+    if( ! view_url.empty() ){
+
+        enable_prev = HISTORY::get_history_manager()->can_back_viewhistory( view_url, 1 );
+        enable_next = HISTORY::get_history_manager()->can_forward_viewhistory( view_url, 1 );
+    }
+
+#ifdef _DEBUG
+    std::cout << "Core::slot_activate_historymenu\n"
+              << "view_url = " << view_url
+              << " prev = " << enable_prev << " next = " << enable_next
+              << std::endl;
+#endif
+
+    // TODO: Gtk::MenuItem, Gtk::CheckMenuItem を使って set_active, set_sensitive を切り替える
+
+    m_enable_menuslot = true;
+}
