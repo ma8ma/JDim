@@ -875,3 +875,265 @@ void CORE::Core::setup_menubar()
         menu_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_activate_menubar ) );
     }
 }
+
+
+/**
+ * @brief サイドバーの ToggleAction の状態変更するヘルパー関数
+ */
+static inline void toggle_sidebar_action( Glib::RefPtr< Gtk::ActionGroup >& group,
+                                          const std::string& action, const std::string& url )
+{
+    Glib::RefPtr< Gtk::Action > act;
+    Glib::RefPtr< Gtk::ToggleAction > tact;
+
+    act = group->get_action( action );
+    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    if( tact ){
+
+        if( SESSION::show_sidebar() && SESSION::get_sidebar_current_url() == url ) tact->set_active( true );
+        else tact->set_active( false );
+    }
+}
+
+
+/**
+ * @brief メニューバーがアクティブになったときに呼ばれるスロット
+ */
+void CORE::Core::slot_activate_menubar()
+{
+    // toggle　アクションを activeにするとスロット関数が呼ばれるので処理しないようにする
+    m_enable_menuslot = false;
+
+    Glib::RefPtr< Gtk::Action > act;
+    Glib::RefPtr< Gtk::ToggleAction > tact;
+
+    // サイドバー
+    toggle_sidebar_action( m_action_group, "Show_BBS", URL_BBSLISTVIEW );
+    toggle_sidebar_action( m_action_group, "Show_FAVORITE", URL_FAVORITEVIEW );
+    toggle_sidebar_action( m_action_group, "Show_HISTTHREAD", URL_HISTTHREADVIEW );
+    toggle_sidebar_action( m_action_group, "Show_HISTBOARD", URL_HISTBOARDVIEW );
+    toggle_sidebar_action( m_action_group, "Show_HISTCLOSE", URL_HISTCLOSEVIEW );
+    toggle_sidebar_action( m_action_group, "Show_HISTCLOSEBOARD", URL_HISTCLOSEBOARDVIEW );
+    toggle_sidebar_action( m_action_group, "Show_HISTCLOSEIMG", URL_HISTCLOSEIMGVIEW );
+
+    // メニューバー
+    act = m_action_group->get_action( "ShowMenuBar" );
+    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    if( tact ){
+        if( SESSION::show_menubar() ) tact->set_active( true );
+        else tact->set_active( false );
+    }
+
+    // ボタンのrelief切り替え
+    act = m_action_group->get_action( "ToggleFlatButton" );
+    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    if( tact ){
+        if( CONFIG::get_flat_button() ) tact->set_active( true );
+        else tact->set_active( false );
+    }
+
+    // ツールバー背景描画
+    act = m_action_group->get_action( "ToggleDrawToolbarback" );
+    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    if( tact ){
+        if( CONFIG::get_draw_toolbarback() ) tact->set_active( true );
+        else tact->set_active( false );
+    }
+
+    // ツールバー
+    act = m_action_group->get_action( "ShowToolBarMain" );
+    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    if( tact ){
+        if( SESSION::get_show_main_toolbar() ) tact->set_active( true );
+        else tact->set_active( false );
+    }
+    act = m_action_group->get_action( "ShowToolBarBbslist" );
+    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    if( tact ){
+        if( SESSION::get_show_bbslist_toolbar() ) tact->set_active( true );
+        else tact->set_active( false );
+    }
+    act = m_action_group->get_action( "ShowToolBarBoard" );
+    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    if( tact ){
+        if( SESSION::get_show_board_toolbar() ) tact->set_active( true );
+        else tact->set_active( false );
+    }
+    act = m_action_group->get_action( "ShowToolBarArticle" );
+    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    if( tact ){
+        if( SESSION::get_show_article_toolbar() ) tact->set_active( true );
+        else tact->set_active( false );
+    }
+
+    // タブ
+    act = m_action_group->get_action( "TabBoard" );
+    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    if( tact ){
+        if( SESSION::get_show_board_tab() ) tact->set_active( true );
+        else tact->set_active( false );
+    }
+    act = m_action_group->get_action( "TabArticle" );
+    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    if( tact ){
+        if( SESSION::get_show_article_tab() ) tact->set_active( true );
+        else tact->set_active( false );
+    }
+
+    // フルスクリーン
+    act = m_action_group->get_action( "FullScreen" );
+    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    if( tact ){
+        if( SESSION::is_full_win_main() ) tact->set_active( true );
+        else tact->set_active( false );
+    }
+
+    // ステータスバー
+    act = m_action_group->get_action( "ShowStatBar" );
+    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    if( tact ){
+        if( SESSION::get_show_main_statbar() ) tact->set_active( true );
+        else tact->set_active( false );
+    }
+
+    // 2chログイン
+    act = m_action_group->get_action( "Login2ch" );
+    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    if( tact ){
+
+        if( CORE::get_login2ch()->login_now() ) tact->set_active( true );
+        else tact->set_active( false );
+    }
+
+    // BEログイン
+    act = m_action_group->get_action( "LoginBe" );
+    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    if( tact ){
+
+        if( CORE::get_loginbe()->login_now() ) tact->set_active( true );
+        else tact->set_active( false );
+    }
+
+    // どんぐりシステム メールアドレス登録警備員のログイン
+    act = m_action_group->get_action( "LoginAcorn" );
+    tact = Glib::RefPtr<Gtk::ToggleAction>::cast_dynamic( act );
+    if( tact ) {
+        tact->set_active( CORE::get_loginacorn()->login_now() );
+    }
+
+    // 表示->スレ一覧に切替 (アクティブ状態を切り替える)
+    act = m_action_group->get_action( "Show_Board" );
+    if( BOARD::get_admin()->empty() ) act->set_sensitive( false );
+    else act->set_sensitive( true );
+
+    // 表示->スレビューに切替 (アクティブ状態を切り替える)
+    act = m_action_group->get_action( "Show_Thread" );
+    if( ARTICLE::get_admin()->empty() ) act->set_sensitive( false );
+    else act->set_sensitive( true );
+
+    // 表示->画像ビューに切替 (アクティブ状態を切り替える)
+    act = m_action_group->get_action( "Show_Image" );
+    if( CONFIG::get_use_image_view() && ! IMAGE::get_admin()->empty() ) act->set_sensitive( true );
+    else act->set_sensitive( false );
+
+    // 開いている板のログ検索
+    act = m_action_group->get_action( "SearchCacheBoard" );
+    if( BOARD::get_admin()->empty() || DBTREE::url_boardbase( BOARD::get_admin()->get_current_url() ).empty() ) act->set_sensitive( false );
+    else act->set_sensitive( true );
+
+    // 開いている板のログ一覧表示
+    act = m_action_group->get_action( "ShowCacheBoard" );
+    if( BOARD::get_admin()->empty() || DBTREE::url_boardbase( BOARD::get_admin()->get_current_url() ).empty() ) act->set_sensitive( false );
+    else act->set_sensitive( true );
+
+    // スレ一覧のプロパティ
+    act = m_action_group->get_action( "BoardPref" );
+    if( BOARD::get_admin()->empty() || DBTREE::url_boardbase( BOARD::get_admin()->get_current_url() ).empty() ) act->set_sensitive( false );
+    else act->set_sensitive( true );
+
+    // スレのプロパティ
+    act = m_action_group->get_action( "ArticlePref" );
+    if( ! ARTICLE::get_admin()->empty() ) act->set_sensitive( true );
+    else act->set_sensitive( false );
+
+    // 画像のプロパティ
+    act = m_action_group->get_action( "ImagePref" );
+    if( ! IMAGE::get_admin()->empty() ) act->set_sensitive( true );
+    else act->set_sensitive( false );
+
+    // 実況
+    act = m_action_group->get_action( "LiveStartStop" );
+    if( ! ARTICLE::get_admin()->empty() ) act->set_sensitive( true );
+    else act->set_sensitive( false );
+
+    // emacsモード
+    act = m_action_group->get_action( "ToggleEmacsMode" );
+    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    if( tact ){
+        if( CONTROL::is_emacs_mode() ) tact->set_active( true );
+        else tact->set_active( false );
+    }
+
+    // datのインポート
+    act = m_action_group->get_action( "ImportDat" );
+    if( ! BOARD::get_admin()->empty() ) act->set_sensitive( true );
+    else act->set_sensitive( false );
+
+    // スレッド関連以外のサイドバーはタブを開いても何も表示されないため無効にする
+    const std::string sidebar = SESSION::get_sidebar_current_url();
+    const bool can_opening_view{
+        sidebar != URL_BBSLISTVIEW
+        && sidebar != URL_HISTBOARDVIEW
+        && sidebar != URL_HISTCLOSEBOARDVIEW
+        && sidebar != URL_HISTCLOSEIMGVIEW
+    };
+
+    // サイドバーのスレ一覧表示
+    act = m_action_group->get_action( "ShowSidebarBoard" );
+    act->set_sensitive( can_opening_view );
+
+    // 仮想板作成
+    act = m_action_group->get_action( "CreateVBoard" );
+    act->set_sensitive( can_opening_view );
+
+    m_enable_menuslot = true;
+}
+
+
+/**
+ * @brief 履歴メニューがアクティブになった
+ */
+void CORE::Core::slot_activate_historymenu()
+{
+    m_enable_menuslot = false;
+
+    std::string view_url;
+    switch( SESSION::focused_admin() ){
+
+        case SESSION::FOCUS_BOARD: view_url = BOARD::get_admin()->get_current_url();break;
+        case SESSION::FOCUS_ARTICLE: view_url = ARTICLE::get_admin()->get_current_url();break;
+    }
+
+    bool enable_prev = false;
+    bool enable_next = false;
+    if( ! view_url.empty() ){
+
+        enable_prev = HISTORY::get_history_manager()->can_back_viewhistory( view_url, 1 );
+        enable_next = HISTORY::get_history_manager()->can_forward_viewhistory( view_url, 1 );
+    }
+
+#ifdef _DEBUG
+    std::cout << "Core::slot_activate_historymenu\n"
+              << "view_url = " << view_url
+              << " prev = " << enable_prev << " next = " << enable_next
+              << std::endl;
+#endif
+
+    Glib::RefPtr< Gtk::Action > act;
+    act = m_action_group->get_action( "PrevView" );
+    if( act ) act->set_sensitive( enable_prev );
+    act = m_action_group->get_action( "NextView" );
+    if( act ) act->set_sensitive( enable_next );
+
+    m_enable_menuslot = true;
+}
