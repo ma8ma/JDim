@@ -667,10 +667,12 @@ Gtk::MenuItem* CORE::Core::create_history_menu()
     auto item = Gtk::make_managed<Gtk::MenuItem>( "前へ戻る(_P)", true );
     item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_prevview ) );
     submenu->append( *item );
+    m_action_group.try_emplace( "PrevView", item );
 
     item = Gtk::make_managed<Gtk::MenuItem>( "次へ進む(_N)", true );
     item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_nextview ) );
     submenu->append( *item );
+    m_action_group.try_emplace( "NextView", item );
 
     top_menu->set_submenu( *submenu );
     return top_menu;
@@ -1113,6 +1115,11 @@ void CORE::Core::setup_menubar()
     m_menubar->append( *create_setting_menu() );
     m_menubar->append( *create_help_menu() );
 
+    // 履歴メニューに前へ戻る、次へ進むの sensitive を切り替えるシグナルハンドラを接続する。
+    const auto items = m_menubar->get_children();
+    auto item = dynamic_cast< Gtk::MenuItem* >( *std::next( items.begin(), 2 ) );
+    item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_activate_historymenu ) );
+
     // FIXME: GTK4 動的な履歴メニューは Gtk::ActionGroup に依存しているため
     // フェーズ1では未実装とする。
 }
@@ -1161,7 +1168,12 @@ void CORE::Core::slot_activate_historymenu()
               << std::endl;
 #endif
 
-    // TODO: Gtk::MenuItem, Gtk::CheckMenuItem を使って set_active, set_sensitive を切り替える
+    if( auto it = m_action_group.find( "PrevView" ); it != m_action_group.end() ) {
+        it->second->set_sensitive( enable_prev );
+    }
+    if( auto it = m_action_group.find( "NextView" ); it != m_action_group.end() ) {
+        it->second->set_sensitive( enable_next );
+    }
 
     m_enable_menuslot = true;
 }

@@ -20,6 +20,7 @@
 #include <gtkmm.h>
 
 #include <list>
+#include <map>
 #include <memory>
 #include <string>
 
@@ -106,8 +107,12 @@ namespace CORE
 
         Gtk::MenuBar* m_menubar{};
 
+#ifdef USE_GTKMM4
+        // 暫定: 旧 Action 名 → MenuItem*（状態更新用）。
+        // 将来: Gio::SimpleActionGroup に置き換える可能性あり。
+        std::map<std::string, Gtk::MenuItem*> m_action_group;
+#else
         Glib::RefPtr< Gtk::ActionGroup > m_action_group;
-#ifndef USE_GTKMM4
         Glib::RefPtr< Gtk::UIManager > m_ui_manager;
 #endif
         bool m_enable_menuslot;
