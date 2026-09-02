@@ -127,36 +127,43 @@ Gtk::MenuItem* CORE::Core::create_view_menu()
         check_item->signal_activate().connect(
                 sigc::bind< std::string, bool >( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_BBSLISTVIEW, false ) );
         sidebar_submenu->append( *check_item );
+        m_action_group.try_emplace( "Show_BBS", check_item );
 
         check_item = Gtk::make_managed<Gtk::CheckMenuItem>( std::string( ITEM_NAME_FAVORITEVIEW ) + "(_F)", true );
         check_item->signal_activate().connect(
                 sigc::bind< std::string, bool >( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_FAVORITEVIEW, false ) );
         sidebar_submenu->append( *check_item );
+        m_action_group.try_emplace( "Show_FAVORITE", check_item );
 
         check_item = Gtk::make_managed<Gtk::CheckMenuItem>( std::string( ITEM_NAME_HISTVIEW ) + "(_T)", true );
         check_item->signal_activate().connect(
                 sigc::bind< std::string, bool >( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_HISTTHREADVIEW, false ) );
         sidebar_submenu->append( *check_item );
+        m_action_group.try_emplace( "Show_HISTTHREAD", check_item );
 
         check_item = Gtk::make_managed<Gtk::CheckMenuItem>( std::string( ITEM_NAME_HIST_BOARDVIEW ) + "(_B)", true );
         check_item->signal_activate().connect(
                 sigc::bind< std::string, bool >( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_HISTBOARDVIEW, false ) );
         sidebar_submenu->append( *check_item );
+        m_action_group.try_emplace( "Show_HISTBOARD", check_item );
 
         check_item = Gtk::make_managed<Gtk::CheckMenuItem>( std::string( ITEM_NAME_HIST_CLOSEVIEW ) + "(_M)", true );
         check_item->signal_activate().connect(
                 sigc::bind< std::string, bool >( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_HISTCLOSEVIEW, false ) );
         sidebar_submenu->append( *check_item );
+        m_action_group.try_emplace( "Show_HISTCLOSE", check_item );
 
         check_item = Gtk::make_managed<Gtk::CheckMenuItem>( std::string( ITEM_NAME_HIST_CLOSEBOARDVIEW ) + "(_N)", true );
         check_item->signal_activate().connect(
                 sigc::bind< std::string, bool >( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_HISTCLOSEBOARDVIEW, false ) );
         sidebar_submenu->append( *check_item );
+        m_action_group.try_emplace( "Show_HISTCLOSEBOARD", check_item );
 
         check_item = Gtk::make_managed<Gtk::CheckMenuItem>( std::string( ITEM_NAME_HIST_CLOSEIMGVIEW ) + "(_I)", true );
         check_item->signal_activate().connect(
                 sigc::bind< std::string, bool >( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_HISTCLOSEIMGVIEW, false ) );
         sidebar_submenu->append( *check_item );
+        m_action_group.try_emplace( "Show_HISTCLOSEIMG", check_item );
 
         sidebar_item->set_submenu( *sidebar_submenu );
         submenu->append( *sidebar_item );
@@ -1122,6 +1129,26 @@ void CORE::Core::setup_menubar()
 
     // FIXME: GTK4 動的な履歴メニューは Gtk::ActionGroup に依存しているため
     // フェーズ1では未実装とする。
+
+    // トップレベルのメニュー項目にシグナルハンドラを接続する。
+    for( auto&& widget : items ) {
+        auto menu_item = dynamic_cast< Gtk::MenuItem* >( widget );
+        menu_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_activate_menubar ) );
+    }
+}
+
+
+/**
+ * @brief サイドバーの ToggleAction の状態変更するヘルパー関数
+ */
+static inline void toggle_sidebar_action( std::map<std::string, Gtk::MenuItem*>& group,
+                                          const std::string& action, const std::string& url )
+{
+    if( auto it = group.find( action ); it != group.end() ) {
+        if( auto check_item = dynamic_cast<Gtk::CheckMenuItem*>( it->second ); check_item ) {
+            check_item->set_active( SESSION::show_sidebar() && SESSION::get_sidebar_current_url() == url );
+        }
+    }
 }
 
 
@@ -1132,6 +1159,15 @@ void CORE::Core::slot_activate_menubar()
 {
     // toggle　アクションを activeにするとスロット関数が呼ばれるので処理しないようにする
     m_enable_menuslot = false;
+
+    // サイドバー
+    toggle_sidebar_action( m_action_group, "Show_BBS", URL_BBSLISTVIEW );
+    toggle_sidebar_action( m_action_group, "Show_FAVORITE", URL_FAVORITEVIEW );
+    toggle_sidebar_action( m_action_group, "Show_HISTTHREAD", URL_HISTTHREADVIEW );
+    toggle_sidebar_action( m_action_group, "Show_HISTBOARD", URL_HISTBOARDVIEW );
+    toggle_sidebar_action( m_action_group, "Show_HISTCLOSE", URL_HISTCLOSEVIEW );
+    toggle_sidebar_action( m_action_group, "Show_HISTCLOSEBOARD", URL_HISTCLOSEBOARDVIEW );
+    toggle_sidebar_action( m_action_group, "Show_HISTCLOSEIMG", URL_HISTCLOSEIMGVIEW );
 
     // TODO: Gtk::MenuItem, Gtk::CheckMenuItem を使って set_active, set_sensitive を切り替える
 
