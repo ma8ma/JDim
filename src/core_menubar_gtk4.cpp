@@ -77,14 +77,17 @@ Gtk::MenuItem* CORE::Core::create_file_menu()
     auto check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "2chにログイン(_L)", true );
     check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_login2ch ) );
     submenu->append( *check_item );
+    m_action_group.try_emplace( "Login2ch", check_item );
 
     check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "BEにログイン(_B)", true );
     check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_loginbe ) );
     submenu->append( *check_item );
+    m_action_group.try_emplace( "LoginBe", check_item );
 
     check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "どんぐりシステムにGmail警備員●でログイン(_G)", true );
     check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_loginacorn ) );
     submenu->append( *check_item );
+    m_action_group.try_emplace( "LoginAcorn", check_item );
 
     submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
 
@@ -211,6 +214,7 @@ Gtk::MenuItem* CORE::Core::create_view_menu()
     auto check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "全画面表示(_F)", true );
     check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_fullscreen ) );
     submenu->append( *check_item );
+    m_action_group.try_emplace( "FullScreen", check_item );
 
     submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
 
@@ -225,18 +229,22 @@ Gtk::MenuItem* CORE::Core::create_view_menu()
             check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "メニューバー表示(_M)", true );
             check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::toggle_menubar ) );
             general_submenu->append( *check_item );
+            m_action_group.try_emplace( "ShowMenuBar", check_item );
 
             check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "ステータスバー表示(_S)", true );
             check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::toggle_statbar ) );
             general_submenu->append( *check_item );
+            m_action_group.try_emplace( "ShowStatBar", check_item );
 
             check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "ボタンをフラット表示(_F)", true );
             check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::toggle_flat_button ) );
             general_submenu->append( *check_item );
+            m_action_group.try_emplace( "ToggleFlatButton", check_item );
 
             check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "ツールバーの背景を描画する(_T)", true );
             check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::toggle_draw_toolbarback ) );
             general_submenu->append( *check_item );
+            m_action_group.try_emplace( "ToggleDrawToolbarback", check_item );
 
             check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "自分が書き込んだレスにマークをつける(_W)", true );
             check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::toggle_post_mark ) );
@@ -381,10 +389,12 @@ Gtk::MenuItem* CORE::Core::create_view_menu()
             auto check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "スレ一覧(_B)", true );
             check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_tabboard ) );
             tab_submenu->append( *check_item );
+            m_action_group.try_emplace( "TabBoard", check_item );
 
             check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "スレビュー(_A)", true );
             check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_tabarticle ) );
             tab_submenu->append( *check_item );
+            m_action_group.try_emplace( "TabArticle", check_item );
 
             tab_item->set_submenu( *tab_submenu );
             view_submenu->append( *tab_item );
@@ -402,19 +412,23 @@ Gtk::MenuItem* CORE::Core::create_view_menu()
             auto check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "メインツールバー表示(_M)", true );
             check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_toolbarmain ) );
             toolbar_submenu->append( *check_item );
+            m_action_group.try_emplace( "ShowToolBarMain", check_item );
 
             // 各ビューのツールバー
             check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "サイドバーのツールバー表示(_S)", true );
             check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_toolbarbbslist ) );
             toolbar_submenu->append( *check_item );
+            m_action_group.try_emplace( "ShowToolBarBbslist", check_item );
 
             check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "スレ一覧のツールバー表示(_B)", true );
             check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_toolbarboard ) );
             toolbar_submenu->append( *check_item );
+            m_action_group.try_emplace( "ShowToolBarBoard", check_item );
 
             check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "スレビューのツールバー表示(_A)", true );
             check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_toolbararticle ) );
             toolbar_submenu->append( *check_item );
+            m_action_group.try_emplace( "ShowToolBarArticle", check_item );
 
             toolbar_submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
 
@@ -883,6 +897,8 @@ Gtk::MenuItem* CORE::Core::create_setting_menu()
         check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "書き込みビューのショートカットキーをEmacs風にする(_E)", true );
         check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_emacsmode ) );
         mouse_submenu->append( *check_item );
+        m_action_group.try_emplace( "ToggleEmacsMode", check_item );
+        check_item->set_active( CONTROL::is_emacs_mode() );
 
         mouse_submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
 
@@ -1153,6 +1169,20 @@ static inline void toggle_sidebar_action( std::map<std::string, Gtk::MenuItem*>&
 
 
 /**
+ * @brief CheckMenuItem の active 状態変更するヘルパー関数
+ */
+static void set_check_item_active( std::map<std::string, Gtk::MenuItem*>& group,
+                                   const std::string& action, bool flag )
+{
+    if( auto it = group.find( action ); it != group.end() ) {
+        if( auto* check_item = dynamic_cast<Gtk::CheckMenuItem*>( it->second ) ) {
+            check_item->set_active( flag );
+        }
+    }
+}
+
+
+/**
  * @brief メニューバーがアクティブになったときに呼ばれるスロット
  */
 void CORE::Core::slot_activate_menubar()
@@ -1169,7 +1199,46 @@ void CORE::Core::slot_activate_menubar()
     toggle_sidebar_action( m_action_group, "Show_HISTCLOSEBOARD", URL_HISTCLOSEBOARDVIEW );
     toggle_sidebar_action( m_action_group, "Show_HISTCLOSEIMG", URL_HISTCLOSEIMGVIEW );
 
-    // TODO: Gtk::MenuItem, Gtk::CheckMenuItem を使って set_active, set_sensitive を切り替える
+    // メニューバー
+    set_check_item_active( m_action_group, "ShowMenuBar", SESSION::show_menubar() );
+
+    // ボタンのrelief切り替え
+    set_check_item_active( m_action_group, "ToggleFlatButton", CONFIG::get_flat_button() );
+
+    // ツールバー背景描画
+    set_check_item_active( m_action_group, "ToggleDrawToolbarback", CONFIG::get_draw_toolbarback() );
+
+    // ツールバー
+    set_check_item_active( m_action_group, "ShowToolBarMain", SESSION::get_show_main_toolbar() );
+    set_check_item_active( m_action_group, "ShowToolBarBbslist", SESSION::get_show_bbslist_toolbar() );
+    set_check_item_active( m_action_group, "ShowToolBarBoard", SESSION::get_show_board_toolbar() );
+    set_check_item_active( m_action_group, "ShowToolBarArticle", SESSION::get_show_article_toolbar() );
+
+    // タブ
+    set_check_item_active( m_action_group, "TabBoard", SESSION::get_show_board_tab() );
+    set_check_item_active( m_action_group, "TabArticle", SESSION::get_show_article_tab() );
+
+    // フルスクリーン
+    set_check_item_active( m_action_group, "FullScreen", SESSION::is_full_win_main() );
+
+    // ステータスバー
+    set_check_item_active( m_action_group, "ShowStatBar", SESSION::get_show_main_statbar() );
+
+    // 2chログイン
+    set_check_item_active( m_action_group, "Login2ch", CORE::get_login2ch()->login_now() );
+
+    // BEログイン
+    set_check_item_active( m_action_group, "LoginBe", CORE::get_loginbe()->login_now() );
+
+    // どんぐりシステム メールアドレス登録警備員のログイン
+    set_check_item_active( m_action_group, "LoginAcorn", CORE::get_loginacorn()->login_now() );
+
+    // TODO: Gtk::MenuItem, Gtk::CheckMenuItem を使って set_sensitive を切り替える
+
+    // emacsモード
+    set_check_item_active( m_action_group, "ToggleEmacsMode", CONTROL::is_emacs_mode() );
+
+    // TODO: Gtk::MenuItem, Gtk::CheckMenuItem を使って set_sensitive を切り替える
 
     m_enable_menuslot = true;
 }
