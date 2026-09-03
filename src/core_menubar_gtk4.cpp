@@ -72,8 +72,6 @@ Gtk::MenuItem* CORE::Core::create_file_menu()
 
     submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
 
-    // FIXME: GTK4 CheckMenuItem の active 状態の切り替えは Core::slot_activate_menubar() の中で設定を参照して行う。
-    // 現状では CheckMenuItem とアプリケーションの状態は同期していない。
     auto check_item = Gtk::make_managed<Gtk::CheckMenuItem>( "2chにログイン(_L)", true );
     check_item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_toggle_login2ch ) );
     submenu->append( *check_item );
@@ -177,14 +175,17 @@ Gtk::MenuItem* CORE::Core::create_view_menu()
     auto item = Gtk::make_managed<Gtk::MenuItem>( "スレ一覧(_B)", true );
     item->signal_activate().connect( sigc::bind< bool >( sigc::mem_fun(*this, &Core::switch_board ), false ) );
     submenu->append( *item );
+    m_action_group.try_emplace( "Show_Board", item );
 
     item = Gtk::make_managed<Gtk::MenuItem>( "スレビュー(_T)", true );
     item->signal_activate().connect( sigc::bind< bool >( sigc::mem_fun(*this, &Core::switch_article ), false ) );
     submenu->append( *item );
+    m_action_group.try_emplace( "Show_Thread", item );
 
     item = Gtk::make_managed<Gtk::MenuItem>( "画像ビュー(_I)", true );
     item->signal_activate().connect( sigc::bind< bool >( sigc::mem_fun(*this, &Core::switch_image ), false ) );
     submenu->append( *item );
+    m_action_group.try_emplace( "Show_Image", item );
 
     submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
 
@@ -707,6 +708,7 @@ Gtk::MenuItem* CORE::Core::create_tool_menu()
     auto item = Gtk::make_managed<Gtk::MenuItem>( "実況開始／停止(_L)", true );
     item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_live_start_stop ) );
     submenu->append( *item );
+    m_action_group.try_emplace( "LiveStartStop", item );
 
     submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
 
@@ -724,6 +726,7 @@ Gtk::MenuItem* CORE::Core::create_tool_menu()
         item = Gtk::make_managed<Gtk::MenuItem>( "表示中の板のログを検索(_B)", true );
         item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_search_cache_board ) );
         cache_search_submenu->append( *item );
+        m_action_group.try_emplace( "SearchCacheBoard", item );
 
         item = Gtk::make_managed<Gtk::MenuItem>( "キャッシュ内の全ログを検索(_A)", true );
         item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_search_cache ) );
@@ -742,6 +745,7 @@ Gtk::MenuItem* CORE::Core::create_tool_menu()
         item = Gtk::make_managed<Gtk::MenuItem>( "表示中の板のログをスレ一覧に表示(_B)", true );
         item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_show_cache_board ) );
         cache_list_submenu->append( *item );
+        m_action_group.try_emplace( "ShowCacheBoard", item );
 
         item = Gtk::make_managed<Gtk::MenuItem>( "キャッシュ内の全ログをスレ一覧に表示(_A)", true );
         item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_show_cache ) );
@@ -778,10 +782,12 @@ Gtk::MenuItem* CORE::Core::create_tool_menu()
     item = Gtk::make_managed<Gtk::MenuItem>( "サイドバーをスレ一覧に表示(_B)", true );
     item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_show_sidebarboard ) );
     submenu->append( *item );
+    m_action_group.try_emplace( "ShowSidebarBoard", item );
 
     item = Gtk::make_managed<Gtk::MenuItem>( "サイドバーの仮想板を作成(_V)", true );
     item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_create_vboard ) );
     submenu->append( *item );
+    m_action_group.try_emplace( "CreateVBoard", item );
 
     submenu->append( *Gtk::make_managed<Gtk::SeparatorMenuItem>() );
 
@@ -800,6 +806,7 @@ Gtk::MenuItem* CORE::Core::create_tool_menu()
     item = Gtk::make_managed<Gtk::MenuItem>( "表示中の板にdatをインポート(_I)", true );
     item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_import_dat ) );
     submenu->append( *item );
+    m_action_group.try_emplace( "ImportDat", item );
 
     top_menu->set_submenu( *submenu );
     return top_menu;
@@ -821,14 +828,17 @@ Gtk::MenuItem* CORE::Core::create_setting_menu()
         item = Gtk::make_managed<Gtk::MenuItem>( "表示中の板のプロパティ(_B)...", true );
         item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_board_pref ) );
         property_submenu->append( *item );
+        m_action_group.try_emplace( "BoardPref", item );
 
         item = Gtk::make_managed<Gtk::MenuItem>( "表示中のスレのプロパティ(_T)...", true );
         item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_article_pref ) );
         property_submenu->append( *item );
+        m_action_group.try_emplace( "ArticlePref", item );
 
         item = Gtk::make_managed<Gtk::MenuItem>( "表示中の画像のプロパティ(_I)...", true );
         item->signal_activate().connect( sigc::mem_fun( *this, &Core::slot_image_pref ) );
         property_submenu->append( *item );
+        m_action_group.try_emplace( "ImagePref", item );
 
         property_item->set_submenu( *property_submenu );
         submenu->append( *property_item );
@@ -1183,6 +1193,20 @@ static void set_check_item_active( std::map<std::string, Gtk::MenuItem*>& group,
 
 
 /**
+ * @brief MenuItem の sensitive 状態変更するヘルパー関数
+ */
+static void set_item_sensitive( std::map<std::string, Gtk::MenuItem*>& group,
+                                const std::string& action, bool flag )
+{
+    if( auto it = group.find( action ); it != group.end() ) {
+        if( auto* item = it->second ) {
+            item->set_sensitive( flag );
+        }
+    }
+}
+
+
+/**
  * @brief メニューバーがアクティブになったときに呼ばれるスロット
  */
 void CORE::Core::slot_activate_menubar()
@@ -1233,12 +1257,53 @@ void CORE::Core::slot_activate_menubar()
     // どんぐりシステム メールアドレス登録警備員のログイン
     set_check_item_active( m_action_group, "LoginAcorn", CORE::get_loginacorn()->login_now() );
 
-    // TODO: Gtk::MenuItem, Gtk::CheckMenuItem を使って set_sensitive を切り替える
+    // 表示->スレ一覧に切替 (アクティブ状態を切り替える)
+    set_item_sensitive( m_action_group, "Show_Board", ! BOARD::get_admin()->empty() );
+
+    // 表示->スレビューに切替 (アクティブ状態を切り替える)
+    set_item_sensitive( m_action_group, "Show_Thread", ! ARTICLE::get_admin()->empty() );
+
+    // 表示->画像ビューに切替 (アクティブ状態を切り替える)
+    set_item_sensitive( m_action_group, "Show_Image", CONFIG::get_use_image_view() && ! IMAGE::get_admin()->empty() );
+
+    // 開いている板のログ検索
+    set_item_sensitive( m_action_group, "SearchCacheBoard", ! ( BOARD::get_admin()->empty() || DBTREE::url_boardbase( BOARD::get_admin()->get_current_url() ).empty() ) );
+
+    // 開いている板のログ一覧表示
+    set_item_sensitive( m_action_group, "ShowCacheBoard", ! ( BOARD::get_admin()->empty() || DBTREE::url_boardbase( BOARD::get_admin()->get_current_url() ).empty() ) );
+
+    // スレ一覧のプロパティ
+    set_item_sensitive( m_action_group, "BoardPref", ! ( BOARD::get_admin()->empty() || DBTREE::url_boardbase( BOARD::get_admin()->get_current_url() ).empty() ) );
+
+    // スレのプロパティ
+    set_item_sensitive( m_action_group, "ArticlePref", ! ARTICLE::get_admin()->empty() );
+
+    // 画像のプロパティ
+    set_item_sensitive( m_action_group, "ImagePref", ! IMAGE::get_admin()->empty() );
+
+    // 実況
+    set_item_sensitive( m_action_group, "LiveStartStop", ! ARTICLE::get_admin()->empty() );
 
     // emacsモード
     set_check_item_active( m_action_group, "ToggleEmacsMode", CONTROL::is_emacs_mode() );
 
-    // TODO: Gtk::MenuItem, Gtk::CheckMenuItem を使って set_sensitive を切り替える
+    // datのインポート
+    set_item_sensitive( m_action_group, "ImportDat", ! BOARD::get_admin()->empty() );
+
+    // スレッド関連以外のサイドバーはタブを開いても何も表示されないため無効にする
+    const std::string sidebar = SESSION::get_sidebar_current_url();
+    const bool can_opening_view{
+        sidebar != URL_BBSLISTVIEW
+        && sidebar != URL_HISTBOARDVIEW
+        && sidebar != URL_HISTCLOSEBOARDVIEW
+        && sidebar != URL_HISTCLOSEIMGVIEW
+    };
+
+    // サイドバーのスレ一覧表示
+    set_item_sensitive( m_action_group, "ShowSidebarBoard", can_opening_view );
+
+    // 仮想板作成
+    set_item_sensitive( m_action_group, "CreateVBoard", can_opening_view );
 
     m_enable_menuslot = true;
 }
