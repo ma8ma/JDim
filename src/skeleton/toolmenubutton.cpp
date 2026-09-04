@@ -37,6 +37,13 @@ ToolMenuButton::ToolMenuButton( SKELETON::MenuButton* button, const std::string&
 {
     assert( m_button != nullptr );
 
+#ifdef USE_GTKMM4
+    // TODO: GTK4では ToolMenuButton のアイコンは named icon へ移行済みのため、
+    // Gtk::ImageMenuItem を用いる経路は使用しません。
+    // フェーズ1ではラベルのみの MenuItem を生成します。
+    // Gtk::Toolbar / Gtk::ToolItem の置き換えは後続で対応します。
+    Gtk::MenuItem* item = Gtk::manage( new Gtk::MenuItem( label ) );
+#else
     Gtk::Widget* label_widget = m_button->get_label_widget();
     assert( label_widget );
 
@@ -46,16 +53,13 @@ ToolMenuButton::ToolMenuButton( SKELETON::MenuButton* button, const std::string&
     Gtk::Image* image = dynamic_cast< Gtk::Image* >( label_widget );
     if( image ){
         const Gtk::ImageType type = image->get_storage_type();
-#ifndef USE_GTKMM4
         if( type == Gtk::IMAGE_STOCK ) {
             Gtk::StockID id;
             Gtk::IconSize size;
             image->get_stock( id, size );
             item = Gtk::manage( new Gtk::ImageMenuItem( *Gtk::manage( new Gtk::Image( id, size ) ), label ) );
         }
-        else
-#endif
-        if( type == Gtk::IMAGE_PIXBUF ) {
+        else if( type == Gtk::IMAGE_PIXBUF ) {
             auto pixbuf = image->get_pixbuf();
             item = Gtk::manage( new Gtk::ImageMenuItem( *Gtk::manage( new Gtk::Image( pixbuf ) ), label ) );
         }
@@ -63,6 +67,7 @@ ToolMenuButton::ToolMenuButton( SKELETON::MenuButton* button, const std::string&
     if( !item ) {
         item = Gtk::manage( new Gtk::MenuItem( label ) );
     }
+#endif
 
     if( item ){
         item->signal_activate().connect( sigc::mem_fun( *m_button, &MenuButton::on_clicked ) );
