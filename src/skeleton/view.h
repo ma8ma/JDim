@@ -44,8 +44,10 @@ namespace SKELETON
         CONTROL::Control m_control;
 
         // ポップアップメニュー
+#ifndef USE_GTKMM4
         Glib::RefPtr< Gtk::ActionGroup > m_action_group;
         Glib::RefPtr< Gtk::UIManager > m_ui_manager;
+#endif
         std::set< std::string > m_url_popup;
 
         // ツールバーに表示する文字列
@@ -106,8 +108,11 @@ namespace SKELETON
         virtual Admin* get_admin() = 0;
 
         // UI
+#ifndef USE_GTKMM4
+        // GTK3専用 (GTK4ではPopupMenu再実装後に削除予定)
         Glib::RefPtr< Gtk::ActionGroup >& action_group(){ return m_action_group; }
         Glib::RefPtr< Gtk::UIManager >& ui_manager(){ return m_ui_manager; }
+#endif
 
         // コントローラ
         CONTROL::Control& get_control(){ return m_control; }
