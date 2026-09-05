@@ -77,6 +77,16 @@ core_sources = [
   'winmain.cpp',
 ]
 
+if use_gtkmm4
+  core_sources += [
+    'core_menubar_gtk4.cpp',
+  ]
+else
+  core_sources += [
+    'core_menubar_gtk3.cpp',
+  ]
+endif
+
 # テストプログラムのビルドで利用するためライブラリにまとめる
 core_lib = static_library(
   'core', core_sources,
@@ -125,8 +135,11 @@ jdim_libs = [
 ]
 
 
+# Generated resource source must be linked into the final executable.
+# Linking it only into a static library prevents the constructor from
+# registering the resource at startup.
 jdim_exe = executable(
-  'jdim', [sources, buildinfo_h],
+  'jdim', [sources, buildinfo_h, icons_gresource_cpp],
   dependencies : [config_h_dep, jdim_deps],
   include_directories : jdim_incs,
   link_with : jdim_libs,
