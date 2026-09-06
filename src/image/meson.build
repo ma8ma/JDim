@@ -14,6 +14,10 @@ sources = [
   'preference.cpp',
 ]
 
+sources += [
+  'imageviewbase_menu_gtk3.cpp',
+]
+
 
 image_lib = static_library(
   'image', sources,

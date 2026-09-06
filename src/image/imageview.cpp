@@ -409,7 +409,7 @@ void ImageViewMain::add_tab_number()
 //
 Gtk::Menu* ImageViewMain::get_popupmenu( const std::string& url )
 {
-    Gtk::Menu* popupmenu = dynamic_cast< Gtk::Menu* >( ui_manager()->get_widget( "/popup_menu" ) );
+    Gtk::Menu* popupmenu = get_popupmenu_impl( "/popup_menu" );
     return popupmenu;
 }
 
