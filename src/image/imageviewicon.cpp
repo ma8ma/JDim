@@ -175,7 +175,7 @@ void ImageViewIcon::switch_icon()
 //
 Gtk::Menu* ImageViewIcon::get_popupmenu( const std::string& url )
 {
-    Gtk::Menu* menu = dynamic_cast< Gtk::Menu* >( ui_manager()->get_widget( "/popup_menu_icon" ) );
+    Gtk::Menu* menu = get_popupmenu_impl( "/popup_menu_icon" );
 
     // タブ情報セット
     if( menu ){

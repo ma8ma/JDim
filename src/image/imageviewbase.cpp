@@ -351,13 +351,13 @@ void ImageViewBase::setup_common()
         );
 
     // ポップアップメニューにキーアクセレータやマウスジェスチャを表示
-    Gtk::Menu* popupmenu = dynamic_cast< Gtk::Menu* >( ui_manager()->get_widget( "/popup_menu" ) );
+    Gtk::Menu* popupmenu = get_popupmenu_impl( "/popup_menu" );
     CONTROL::set_menu_motion( popupmenu );
 
-    popupmenu = dynamic_cast< Gtk::Menu* >( ui_manager()->get_widget( "/popup_menu_icon" ) );
+    popupmenu = get_popupmenu_impl( "/popup_menu_icon" );
     CONTROL::set_menu_motion( popupmenu );
 
-    popupmenu = dynamic_cast< Gtk::Menu* >( ui_manager()->get_widget( "/popup_menu_popup" ) );
+    popupmenu = get_popupmenu_impl( "/popup_menu_popup" );
     CONTROL::set_menu_motion( popupmenu );
 }
 

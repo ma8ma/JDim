@@ -351,7 +351,7 @@ void ImageViewPopup::clicked()
 //
 Gtk::Menu* ImageViewPopup::get_popupmenu( const std::string& url )
 {
-    Gtk::Menu* popupmenu = dynamic_cast< Gtk::Menu* >( ui_manager()->get_widget( "/popup_menu_popup" ) );
+    Gtk::Menu* popupmenu = get_popupmenu_impl( "/popup_menu_popup" );
     return popupmenu;
 }
 

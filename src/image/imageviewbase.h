@@ -103,6 +103,7 @@ namespace IMAGE
         void set_image_to_buffer();
 
         void activate_act_before_popupmenu( const std::string& url ) override;
+        Gtk::Menu* get_popupmenu_impl( const Glib::ustring& menu_name );
 
         void delete_view_impl( const bool show_diag );
         void slot_cancel_mosaic();
