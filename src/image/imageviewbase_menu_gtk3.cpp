@@ -305,6 +305,136 @@ void IMAGE::ImageViewBase::setup_popupmenu()
 
 
 /**
+ * @brief ポップアップメニューを表示する直前にメニュー項目（アクション）のアクティブ状態を更新する。
+ *
+ * ポップアップメニューを表示する直前に呼び出され、
+ * 現在の画像状態に応じて ToggleAction や Action の状態を切り替える。
+ *
+ * @note SKELETON::View::show_popupmenu() から呼び出されます。
+ * @param[in] url 対象の画像URL
+ */
+void IMAGE::ImageViewBase::activate_act_before_popupmenu( const std::string& url )
+{
+    if( !m_img ) return;
+
+    // toggle　アクションを activeにするとスロット関数が呼ばれるので処理しないようにする
+    m_enable_menuslot = false;
+
+    Glib::RefPtr< Gtk::Action > act;
+
+    bool current_protect = m_img->is_protected();
+
+    // ロック
+    act = action_group()->get_action( "LockTab" );
+    if( act ){
+
+        auto tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+        if( is_locked() ) tact->set_active( true );
+        else tact->set_active( false );
+    }
+
+    // 閉じる
+    act = action_group()->get_action( "Quit" );
+    if( act ){
+        if( is_locked() ) act->set_sensitive( false );
+        else act->set_sensitive( true );
+    }
+
+    // モザイク
+    act = action_group()->get_action( "CancelMosaic" );
+    if( act ){
+        if( m_img->is_cached() && m_img->get_mosaic() ) act->set_sensitive( true );
+        else act->set_sensitive( false );
+    }
+
+    // サイズの大きい画像を表示
+    act = action_group()->get_action( "ShowLargeImg" );
+    if( act ){
+        if( m_img->get_type() == DBIMG::T_LARGE ) act->set_sensitive( true );
+        else act->set_sensitive( false );
+    }
+
+    // サイズ系メニュー、お気に入り、保存
+    constexpr const char* sizemenus[] =
+    {
+        "Size_Menu",
+        "OrgSizeImage",
+        "ZoomFitImage",
+        "ZoomInImage",
+        "ZoomOutImage",
+        "AppendFavorite",
+        "Save"
+    };
+    for( const char* menu : sizemenus ) {
+        act = action_group()->get_action( menu );
+        if( act ){
+            if( m_img->is_cached() ) act->set_sensitive( true );
+            else act->set_sensitive( false );
+        }
+    }
+
+    // キャッシュをブラウザで開く
+    act = action_group()->get_action( "OpenCacheBrowser" );
+    if( act ){
+        if( m_img->is_cached() ) act->set_sensitive( true );
+        else act->set_sensitive( false );
+    }
+
+    // 参照元スレ
+    act = action_group()->get_action( "OpenRef" );
+    if( act ){
+        if( ! m_img->get_refurl().empty() ) act->set_sensitive( true );
+        else act->set_sensitive( false );
+    }
+
+    // 保護
+    act = action_group()->get_action( "ProtectImage" );
+    if( act ){
+
+        if( m_img->is_cached() ){
+
+            act->set_sensitive( true );
+
+            auto tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+            if( tact ){
+                if( current_protect ) tact->set_active( true );
+                else tact->set_active( false );
+            }
+        }
+        else act->set_sensitive( false );
+    }
+
+    // 削除
+    act = action_group()->get_action( "DeleteMenu" );
+    if( act ){
+        if(  m_img->get_code() != HTTP_INIT && ! m_img->is_protected() ) act->set_sensitive( true );
+        else act->set_sensitive( false );
+    }
+
+    // ロード停止
+    act = action_group()->get_action( "LoadStop" );
+    if( act ){
+        if( m_img->is_loading() ) act->set_sensitive( true );
+        else act->set_sensitive( false );
+    }
+
+    // あぼーん
+    act = action_group()->get_action( "AboneImage" );
+    if( act ){
+        if( ! m_img->is_protected() ) act->set_sensitive( true );
+        else act->set_sensitive( false );
+    }
+
+    // ユーザコマンド
+    // 選択不可かどうか判断して visible か sensitive にする
+    const std::string url_article = DBTREE::url_dat( m_img->get_refurl() );
+    CORE::get_usrcmd_manager()->toggle_sensitive( action_group(), url_article, get_url(), "" );
+
+    m_enable_menuslot = true;
+}
+
+
+/**
  * @brief メニューのパス文字列から Gtk::Menu* を取得する。
  *
  * @param[in] menu_name ポップアップメニューの識別パス (例: "/popup_menu")
