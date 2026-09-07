@@ -14,9 +14,15 @@ sources = [
   'preference.cpp',
 ]
 
-sources += [
-  'imageviewbase_menu_gtk3.cpp',
-]
+if use_gtkmm4
+  sources += [
+    'imageviewbase_menu_gtk4.cpp',
+  ]
+else
+  sources += [
+    'imageviewbase_menu_gtk3.cpp',
+  ]
+endif
 
 
 image_lib = static_library(
