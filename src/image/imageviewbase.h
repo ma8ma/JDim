@@ -100,6 +100,7 @@ namespace IMAGE
       protected:
 
         void setup_common();
+        void setup_popupmenu();
         void set_image_to_buffer();
 
         void activate_act_before_popupmenu( const std::string& url ) override;
