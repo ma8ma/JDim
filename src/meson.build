@@ -140,6 +140,13 @@ gresource_sources = [
   jdim_ui_common_gresource_cpp, # GTKのバージョンに関係なく使用するUI
 ]
 
+if use_gtkmm4
+  # GTK3 では使用しないので隔離する
+  gresource_sources += [
+    jdim_ui_gresource_cpp,
+  ]
+endif
+
 # meson の unity build で GResource 由来の識別子が衝突するため、
 # 生成ソースを unity=off の静的ライブラリに分け、実行ファイルへ
 # link_whole します。constructor によるリソース登録は維持します。
