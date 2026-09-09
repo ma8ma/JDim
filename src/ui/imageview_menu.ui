@@ -1,0 +1,54 @@
+<interface>
+  <menu id="popup_menu_popup">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">モザイク解除(_M)</attribute>
+        <attribute name="action">image.CancelMosaic</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">閉じる(_C)</attribute>
+        <attribute name="action">image.Quit</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">URLをコピー(_U)</attribute>
+        <attribute name="action">image.CopyURL</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">名前を付けて保存(_S)...</attribute>
+        <attribute name="action">image.Save</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">キャッシュを保護する(_H)</attribute>
+        <attribute name="action">image.ProtectImage</attribute>
+      </item>
+      <submenu>
+        <attribute name="label" translatable="yes">削除(_D)</attribute>
+        <attribute name="action">image.DeleteMenu</attribute>
+        <item>
+          <attribute name="label" translatable="yes">削除する(_D)</attribute>
+          <attribute name="action">image.DeleteImage</attribute>
+        </item>
+      </submenu>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">画像をあぼ〜んする(_B)</attribute>
+        <attribute name="action">image.AboneImage</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">プロパティ(_P)...</attribute>
+        <attribute name="action">image.Preference</attribute>
+      </item>
+    </section>
+  </menu>
+</interface>

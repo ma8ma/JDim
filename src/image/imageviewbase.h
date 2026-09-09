@@ -46,6 +46,12 @@ namespace IMAGE
 
         bool m_enable_menuslot;
 
+#ifdef USE_GTKMM4
+        Glib::RefPtr<Gio::SimpleActionGroup> m_action_group;
+
+        Gtk::Menu m_popup_menu_popup;
+#endif
+
       protected:
 
         // Viewが所属するAdminクラス

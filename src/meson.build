@@ -28,6 +28,7 @@ subdir('jdlib')
 subdir('message')
 subdir('skeleton')
 subdir('sound')
+subdir('ui')
 subdir('xml')
 
 
@@ -139,7 +140,7 @@ jdim_libs = [
 # Linking it only into a static library prevents the constructor from
 # registering the resource at startup.
 jdim_exe = executable(
-  'jdim', [sources, buildinfo_h, icons_gresource_cpp],
+  'jdim', [sources, buildinfo_h, icons_gresource_cpp, jdim_ui_gresource_cpp],
   dependencies : [config_h_dep, jdim_deps],
   include_directories : jdim_incs,
   link_with : jdim_libs,
