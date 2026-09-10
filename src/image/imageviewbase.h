@@ -49,6 +49,7 @@ namespace IMAGE
 #ifdef USE_GTKMM4
         Glib::RefPtr<Gio::SimpleActionGroup> m_action_group;
 
+        Gtk::Menu m_popup_menu_icon;
         Gtk::Menu m_popup_menu_popup;
 #endif
 

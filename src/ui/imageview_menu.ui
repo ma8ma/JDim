@@ -1,4 +1,149 @@
 <interface>
+  <menu id="popup_menu_icon">
+    <section>
+      <submenu>
+        <attribute name="label" translatable="yes">移動(_M)</attribute>
+        <attribute name="action">image.Move_Menu</attribute>
+        <item>
+          <attribute name="label" translatable="yes">先頭に移動(_H)</attribute>
+          <attribute name="action">image.MoveHead</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">最後に移動(_T)</attribute>
+          <attribute name="action">image.MoveTail</attribute>
+        </item>
+      </submenu>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">タブをロックする(_K)</attribute>
+        <attribute name="action">image.LockTab</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">閉じる(_C)</attribute>
+        <attribute name="action">image.Quit</attribute>
+      </item>
+    </section>
+    <section>
+      <submenu>
+        <attribute name="label" translatable="yes">複数の画像を閉じる(_L)</attribute>
+        <attribute name="action">image.Close_Menu</attribute>
+        <section>
+          <item>
+            <attribute name="label" translatable="yes">全ての画像(_A)</attribute>
+            <attribute name="action">image.CloseAll</attribute>
+          </item>
+          <item>
+            <attribute name="label" translatable="yes">他の画像(_O)</attribute>
+            <attribute name="action">image.CloseOther</attribute>
+          </item>
+          <item>
+            <attribute name="label" translatable="yes">左←の画像(_L)</attribute>
+            <attribute name="action">image.CloseLeft</attribute>
+          </item>
+          <item>
+            <attribute name="label" translatable="yes">右→の画像(_R)</attribute>
+            <attribute name="action">image.CloseRight</attribute>
+          </item>
+        </section>
+        <section>
+          <item>
+            <attribute name="label" translatable="yes">エラー画像(404,403のみ)(_E)</attribute>
+            <attribute name="action">image.CloseError404</attribute>
+          </item>
+          <item>
+            <attribute name="label" translatable="yes">エラー画像(timeout,503以外)(_T)</attribute>
+            <attribute name="action">image.CloseError503</attribute>
+          </item>
+          <item>
+            <attribute name="label" translatable="yes">エラー画像(読込み中含め全て)(_W)</attribute>
+            <attribute name="action">image.CloseErrorAll</attribute>
+          </item>
+        </section>
+        <section>
+          <item>
+            <attribute name="label" translatable="yes">エラー以外の画像(_N)</attribute>
+            <attribute name="action">image.CloseNoError</attribute>
+          </item>
+        </section>
+      </submenu>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">全ての画像を保存(_A)...</attribute>
+        <attribute name="action">image.SaveAll</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">ブラウザで開く(_W)</attribute>
+        <attribute name="action">image.OpenBrowser</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">キャッシュをブラウザで開く(_X)</attribute>
+        <attribute name="action">image.OpenCacheBrowser</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">参照元のレスを開く(_O)</attribute>
+        <attribute name="action">image.OpenRef</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">URLをコピー(_U)</attribute>
+        <attribute name="action">image.CopyURL</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">お気に入りに追加(_F)...</attribute>
+        <attribute name="action">image.AppendFavorite</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">名前を付けて保存(_S)...</attribute>
+        <attribute name="action">image.Save</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">読み込み中止(_T)</attribute>
+        <attribute name="action">image.LoadStop</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">強制再読み込み(_E)</attribute>
+        <attribute name="action">image.Reload</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">キャッシュを保護する(_H)</attribute>
+        <attribute name="action">image.ProtectImage</attribute>
+      </item>
+      <submenu>
+        <attribute name="label" translatable="yes">削除(_D)</attribute>
+        <attribute name="action">image.DeleteMenu</attribute>
+        <item>
+          <attribute name="label" translatable="yes">削除する(_D)</attribute>
+          <attribute name="action">image.DeleteImage</attribute>
+        </item>
+      </submenu>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">画像をあぼ〜んする(_B)</attribute>
+        <attribute name="action">image.AboneImage</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">プロパティ(_P)...</attribute>
+        <attribute name="action">image.Preference</attribute>
+      </item>
+    </section>
+  </menu>
+
   <menu id="popup_menu_popup">
     <section>
       <item>
