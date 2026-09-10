@@ -45,6 +45,28 @@ void IMAGE::ImageViewBase::setup_popupmenu()
     // TODO: Action を構築する
     m_action_group = Gio::SimpleActionGroup::create();
 
+    // popup_menu_icon
+    m_action_group->add_action( "Move_Menu" );
+    m_action_group->add_action( "MoveHead", sigc::mem_fun( *this, &ImageViewBase::slot_move_head ) );
+    m_action_group->add_action( "MoveTail", sigc::mem_fun( *this, &ImageViewBase::slot_move_tail ) );
+    m_action_group->add_action_bool( "LockTab", sigc::mem_fun( *this, &ImageViewBase::slot_lock ), false );
+    m_action_group->add_action( "AppendFavorite", sigc::mem_fun( *this, &ImageViewBase::slot_favorite ) );
+    m_action_group->add_action( "Close_Menu" );
+    m_action_group->add_action( "CloseOther", sigc::mem_fun( *this, &ImageViewBase::slot_close_other_views ) );
+    m_action_group->add_action( "CloseLeft", sigc::mem_fun( *this, &ImageViewBase::slot_close_left_views ) );
+    m_action_group->add_action( "CloseRight", sigc::mem_fun( *this, &ImageViewBase::slot_close_right_views ) );
+    m_action_group->add_action( "CloseError404", sigc::mem_fun( *this, &ImageViewBase::slot_close_error_views ) );
+    m_action_group->add_action( "CloseError503", sigc::mem_fun( *this, &ImageViewBase::slot_close_notimeout_error_views ) );
+    m_action_group->add_action( "CloseErrorAll", sigc::mem_fun( *this, &ImageViewBase::slot_close_all_error_views ) );
+    m_action_group->add_action( "CloseNoError", sigc::mem_fun( *this, &ImageViewBase::slot_close_noerror_views ) );
+    m_action_group->add_action( "CloseAll", sigc::mem_fun( *this, &ImageViewBase::slot_close_all_views ) );
+    m_action_group->add_action( "SaveAll", sigc::mem_fun( *this, &ImageViewBase::slot_save_all ) );
+    m_action_group->add_action( "OpenBrowser", sigc::mem_fun( *this, &ImageViewBase::slot_open_browser ) );
+    m_action_group->add_action( "OpenCacheBrowser", sigc::mem_fun( *this, &ImageViewBase::slot_open_cache_browser ) );
+    m_action_group->add_action( "OpenRef", sigc::mem_fun( *this, &ImageViewBase::slot_open_ref ) );
+    m_action_group->add_action( "LoadStop", sigc::mem_fun( *this, &ImageViewBase::stop ) );
+    m_action_group->add_action( "Reload", sigc::mem_fun( *this, &ImageViewBase::slot_reload_force ) );
+
     // popup_menu_popup
     m_action_group->add_action( "CancelMosaic", sigc::mem_fun( *this, &ImageViewBase::slot_cancel_mosaic ) );
     m_action_group->add_action( "Quit", sigc::mem_fun( *this, &ImageViewBase::close_view ) );
@@ -64,7 +86,12 @@ void IMAGE::ImageViewBase::setup_popupmenu()
     // リソース URI: /com/github/jdimproved/JDim/imageview_menu.ui (src/ui/jdim-ui.gresource.xml)
     auto builder = Gtk::Builder::create_from_resource( "/com/github/jdimproved/JDim/imageview_menu.ui" );
 
-    auto menumodel = Glib::RefPtr<Gio::MenuModel>::cast_dynamic( builder->get_object( "popup_menu_popup" ) );
+    auto menumodel = Glib::RefPtr<Gio::MenuModel>::cast_dynamic( builder->get_object( "popup_menu_icon" ) );
+    assert( menumodel );
+    m_popup_menu_icon.bind_model( menumodel, true );
+    m_popup_menu_icon.attach_to_widget( *this );
+
+    menumodel = Glib::RefPtr<Gio::MenuModel>::cast_dynamic( builder->get_object( "popup_menu_popup" ) );
     assert( menumodel );
     m_popup_menu_popup.bind_model( menumodel, true );
     m_popup_menu_popup.attach_to_widget( *this );
@@ -82,7 +109,6 @@ void IMAGE::ImageViewBase::setup_popupmenu()
  */
 void IMAGE::ImageViewBase::activate_act_before_popupmenu( [[maybe_unused]] const std::string& url )
 {
-    // TODO: maybe_unused は url を使うコードを実装したら取り除く
     if( !m_img ) return;
 
     // toggle　アクションを activeにするとスロット関数が呼ばれるので処理しないようにする
@@ -90,7 +116,10 @@ void IMAGE::ImageViewBase::activate_act_before_popupmenu( [[maybe_unused]] const
 
     const bool current_protect = m_img->is_protected();
 
-    // TODO: Action の状態を切り替える
+    // ロック
+    if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "LockTab" ) ) ) {
+        act->set_state( Glib::Variant<bool>::create( is_locked() ) );
+    }
 
     // 閉じる
     if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "Quit" ) ) ) {
@@ -103,6 +132,18 @@ void IMAGE::ImageViewBase::activate_act_before_popupmenu( [[maybe_unused]] const
     }
 
     // TODO: Action の状態を切り替える
+    // サイズの大きい画像を表示
+    // サイズ系メニュー、お気に入り、保存
+
+    // キャッシュをブラウザで開く
+    if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "OpenCacheBrowser" ) ) ) {
+        act->set_enabled( m_img->is_cached() );
+    }
+
+    // 参照元スレ
+    if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "OpenRef" ) ) ) {
+        act->set_enabled( ! m_img->get_refurl().empty() );
+    }
 
     // 保護
     if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "ProtectImage" ) ) ) {
@@ -123,7 +164,10 @@ void IMAGE::ImageViewBase::activate_act_before_popupmenu( [[maybe_unused]] const
         act->set_enabled(  m_img->get_code() != HTTP_INIT && ! m_img->is_protected() );
     }
 
-    // TODO: Action の状態を切り替える
+    // ロード停止
+    if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "LoadStop" ) ) ) {
+        act->set_enabled( m_img->is_loading() );
+    }
 
     // あぼーん
     if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "AboneImage" ) ) ) {
@@ -131,6 +175,8 @@ void IMAGE::ImageViewBase::activate_act_before_popupmenu( [[maybe_unused]] const
     }
 
     // TODO: Action の状態を切り替える
+    // ユーザコマンド
+    // 選択不可かどうか判断して visible か sensitive にする
 
     m_enable_menuslot = true;
 }
@@ -145,6 +191,9 @@ void IMAGE::ImageViewBase::activate_act_before_popupmenu( [[maybe_unused]] const
 Gtk::Menu* IMAGE::ImageViewBase::get_popupmenu_impl( const Glib::ustring& menu_name )
 {
     // TODO: 構築したメニューを返す
+    if( menu_name == "/popup_menu_icon" ) {
+        return &m_popup_menu_icon;
+    }
     if( menu_name == "/popup_menu_popup" ) {
         return &m_popup_menu_popup;
     }
