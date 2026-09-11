@@ -1,4 +1,147 @@
 <interface>
+  <menu id="popup_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">モザイク解除(_M)</attribute>
+        <attribute name="action">image.CancelMosaic</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">サイズが大きい画像を表示(_G)</attribute>
+        <attribute name="action">image.ShowLargeImg</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">閉じる(_C)</attribute>
+        <attribute name="action">image.Quit</attribute>
+      </item>
+    </section>
+    <section>
+      <submenu>
+        <attribute name="label" translatable="yes">サイズ変更(_R)</attribute>
+        <attribute name="action">image.Size_Menu</attribute>
+        <item>
+          <attribute name="label" translatable="yes">25%(_1)</attribute>
+          <attribute name="action">image.Size</attribute>
+          <attribute name="target" type="i">25</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">50%(_2)</attribute>
+          <attribute name="action">image.Size</attribute>
+          <attribute name="target" type="i">50</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">75%(_3)</attribute>
+          <attribute name="action">image.Size</attribute>
+          <attribute name="target" type="i">75</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">100%(_4)</attribute>
+          <attribute name="action">image.Size</attribute>
+          <attribute name="target" type="i">100</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">150%(_5)</attribute>
+          <attribute name="action">image.Size</attribute>
+          <attribute name="target" type="i">150</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">200%(_6)</attribute>
+          <attribute name="action">image.Size</attribute>
+          <attribute name="target" type="i">200</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">400%(_7)</attribute>
+          <attribute name="action">image.Size</attribute>
+          <attribute name="target" type="i">400</attribute>
+        </item>
+      </submenu>
+      <item>
+        <attribute name="label" translatable="yes">元の画像サイズ(_N)</attribute>
+        <attribute name="action">image.OrgSizeImage</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">画面に画像サイズを合わせる(_A)</attribute>
+        <attribute name="action">image.ZoomFitImage</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">ズームイン(_I)</attribute>
+        <attribute name="action">image.ZoomInImage</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">ズームアウト(_Z)</attribute>
+        <attribute name="action">image.ZoomOutImage</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">ブラウザで開く(_W)</attribute>
+        <attribute name="action">image.OpenBrowser</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">キャッシュをブラウザで開く(_X)</attribute>
+        <attribute name="action">image.OpenCacheBrowser</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">参照元のレスを開く(_O)</attribute>
+        <attribute name="action">image.OpenRef</attribute>
+      </item>
+    </section>
+    <!-- TODO: ユーザーコマンドの挿入位置 -->
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">URLをコピー(_U)</attribute>
+        <attribute name="action">image.CopyURL</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">お気に入りに追加(_F)...</attribute>
+        <attribute name="action">image.AppendFavorite</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">名前を付けて保存(_S)...</attribute>
+        <attribute name="action">image.Save</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">読み込み中止(_T)</attribute>
+        <attribute name="action">image.LoadStop</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">強制再読み込み(_E)</attribute>
+        <attribute name="action">image.Reload</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">キャッシュを保護する(_H)</attribute>
+        <attribute name="action">image.ProtectImage</attribute>
+      </item>
+      <submenu>
+        <attribute name="label" translatable="yes">削除(_D)</attribute>
+        <attribute name="action">image.DeleteMenu</attribute>
+        <item>
+          <attribute name="label" translatable="yes">削除する(_D)</attribute>
+          <attribute name="action">image.DeleteImage</attribute>
+        </item>
+      </submenu>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">画像をあぼ〜んする(_B)</attribute>
+        <attribute name="action">image.AboneImage</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">画像のプロパティ(_M)...</attribute>
+        <attribute name="action">image.PreferenceImage</attribute>
+      </item>
+    </section>
+  </menu>
+
   <menu id="popup_menu_icon">
     <section>
       <submenu>

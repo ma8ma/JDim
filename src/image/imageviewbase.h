@@ -49,6 +49,7 @@ namespace IMAGE
 #ifdef USE_GTKMM4
         Glib::RefPtr<Gio::SimpleActionGroup> m_action_group;
 
+        Gtk::Menu m_popup_menu;
         Gtk::Menu m_popup_menu_icon;
         Gtk::Menu m_popup_menu_popup;
 #endif
@@ -144,6 +145,9 @@ namespace IMAGE
         void slot_zoom_in();
         void slot_zoom_out();
         void slot_resize_image( int size );
+#ifdef USE_GTKMM4
+        void slot_resize_image_action( const Glib::VariantBase& parameter );
+#endif
         void slot_lock();
         void slot_open_browser();
         void slot_open_cache_browser();

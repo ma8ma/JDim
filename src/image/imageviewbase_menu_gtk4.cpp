@@ -42,8 +42,23 @@
  */
 void IMAGE::ImageViewBase::setup_popupmenu()
 {
-    // TODO: Action を構築する
+    // Action を構築する
     m_action_group = Gio::SimpleActionGroup::create();
+
+    // popup_menu
+    m_action_group->add_action( "ShowLargeImg", sigc::mem_fun( *this, &ImageViewBase::slot_show_large_img ) );
+    m_action_group->add_action( "Size_Menu" );
+
+    // サイズ
+    auto action = Gio::SimpleAction::create( "Size", Glib::VariantType( "i" ) );
+    action->signal_activate().connect( sigc::mem_fun( *this, &ImageViewBase::slot_resize_image_action ) );
+    m_action_group->add_action( action );
+
+    m_action_group->add_action( "OrgSizeImage", sigc::bind<int>( sigc::mem_fun( *this, &ImageViewBase::slot_resize_image ), 100 ) );
+    m_action_group->add_action( "ZoomFitImage", sigc::mem_fun( *this, &ImageViewBase::slot_fit_win ) );
+    m_action_group->add_action( "ZoomInImage", sigc::mem_fun( *this, &ImageViewBase::slot_zoom_in ) );
+    m_action_group->add_action( "ZoomOutImage", sigc::mem_fun( *this, &ImageViewBase::slot_zoom_out ) );
+    m_action_group->add_action( "PreferenceImage", sigc::mem_fun( *this, &ImageViewBase::show_preference ) );
 
     // popup_menu_icon
     m_action_group->add_action( "Move_Menu" );
@@ -80,21 +95,21 @@ void IMAGE::ImageViewBase::setup_popupmenu()
 
     insert_action_group( "image", m_action_group );
 
-    // TODO: メニューを構築する
+    // メニューを構築する
 
     // UI 定義: src/ui/imageview_menu.ui
     // リソース URI: /com/github/jdimproved/JDim/imageview_menu.ui (src/ui/jdim-ui.gresource.xml)
     auto builder = Gtk::Builder::create_from_resource( "/com/github/jdimproved/JDim/imageview_menu.ui" );
 
-    auto menumodel = Glib::RefPtr<Gio::MenuModel>::cast_dynamic( builder->get_object( "popup_menu_icon" ) );
-    assert( menumodel );
-    m_popup_menu_icon.bind_model( menumodel, true );
-    m_popup_menu_icon.attach_to_widget( *this );
+    auto bind_menumodel = [this]( Gtk::Menu& menu, const Glib::RefPtr<Glib::Object>& menumodel ) {
+        assert( menumodel );
+        menu.bind_model( Glib::RefPtr<Gio::MenuModel>::cast_dynamic( menumodel ), true );
+        menu.attach_to_widget( *this );
+    };
 
-    menumodel = Glib::RefPtr<Gio::MenuModel>::cast_dynamic( builder->get_object( "popup_menu_popup" ) );
-    assert( menumodel );
-    m_popup_menu_popup.bind_model( menumodel, true );
-    m_popup_menu_popup.attach_to_widget( *this );
+    bind_menumodel( m_popup_menu, builder->get_object( "popup_menu" ) );
+    bind_menumodel( m_popup_menu_icon, builder->get_object( "popup_menu_icon" ) );
+    bind_menumodel( m_popup_menu_popup, builder->get_object( "popup_menu_popup" ) );
 }
 
 
@@ -102,10 +117,10 @@ void IMAGE::ImageViewBase::setup_popupmenu()
  * @brief ポップアップメニューを表示する直前にメニュー項目（アクション）のアクティブ状態を更新する。
  *
  * ポップアップメニューを表示する直前に呼び出され、
- * 現在の画像状態に応じて ToggleAction や Action の状態を切り替える。
+ * 現在の画像状態に応じて Action の状態を切り替える。
  *
  * @note SKELETON::View::show_popupmenu() から呼び出されます。
- * @param[in] url 対象の画像URL
+ * @param[in] url 対象の画像URL（未使用）
  */
 void IMAGE::ImageViewBase::activate_act_before_popupmenu( [[maybe_unused]] const std::string& url )
 {
@@ -131,9 +146,30 @@ void IMAGE::ImageViewBase::activate_act_before_popupmenu( [[maybe_unused]] const
         act->set_enabled( m_img->is_cached() && m_img->get_mosaic() );
     }
 
-    // TODO: Action の状態を切り替える
     // サイズの大きい画像を表示
+    if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "ShowLargeImg" ) ) ) {
+        act->set_enabled( m_img->get_type() == DBIMG::T_LARGE );
+    }
+
     // サイズ系メニュー、お気に入り、保存
+    constexpr const char* sizemenus[] =
+    {
+        "OrgSizeImage",
+        "ZoomFitImage",
+        "ZoomInImage",
+        "ZoomOutImage",
+        "AppendFavorite",
+        "Save",
+        // TODO: GTK4 GMenu ではサブメニュー親の sensitive が Action に連動しないため、
+        // 「サイズ変更」サブメニュー自体は無効化せず、子の Size だけ enabled を落とします。
+        // サブメニュー親の無効化をどうするかは後続のフェーズで決めます。
+        "Size"
+    };
+    for( const char* menu : sizemenus ) {
+        if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( menu ) ) ) {
+            act->set_enabled( m_img->is_cached() );
+        }
+    }
 
     // キャッシュをブラウザで開く
     if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "OpenCacheBrowser" ) ) ) {
@@ -174,9 +210,7 @@ void IMAGE::ImageViewBase::activate_act_before_popupmenu( [[maybe_unused]] const
         act->set_enabled( ! m_img->is_protected() );
     }
 
-    // TODO: Action の状態を切り替える
-    // ユーザコマンド
-    // 選択不可かどうか判断して visible か sensitive にする
+    // TODO: GTK4 ユーザーコマンドは現段階ではオミットします。GTKMM4 版をマージ完了後に対応します。
 
     m_enable_menuslot = true;
 }
@@ -190,7 +224,10 @@ void IMAGE::ImageViewBase::activate_act_before_popupmenu( [[maybe_unused]] const
  */
 Gtk::Menu* IMAGE::ImageViewBase::get_popupmenu_impl( const Glib::ustring& menu_name )
 {
-    // TODO: 構築したメニューを返す
+    // 構築したメニューを返す
+    if( menu_name == "/popup_menu" ) {
+        return &m_popup_menu;
+    }
     if( menu_name == "/popup_menu_icon" ) {
         return &m_popup_menu_icon;
     }
@@ -198,4 +235,19 @@ Gtk::Menu* IMAGE::ImageViewBase::get_popupmenu_impl( const Glib::ustring& menu_n
         return &m_popup_menu_popup;
     }
     return nullptr;
+}
+
+
+/**
+ * @brief 画像サイズの変更を行う
+ *
+ * @details Gio::Menu のパラメータからサイズを取得し、slot_resize_image() を呼び出します。
+ *
+ * @param[in] parameter Gio::Menu から渡されたサイズの値
+ */
+void IMAGE::ImageViewBase::slot_resize_image_action( const Glib::VariantBase& parameter )
+{
+    const auto size = Glib::VariantBase::cast_dynamic<Glib::Variant<gint32>>( parameter ).get();
+
+    slot_resize_image( size );
 }
