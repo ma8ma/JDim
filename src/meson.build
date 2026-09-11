@@ -28,7 +28,10 @@ subdir('jdlib')
 subdir('message')
 subdir('skeleton')
 subdir('sound')
-subdir('ui')
+if use_gtkmm4
+  # GTK3 では使用しないので隔離する
+  subdir('ui')
+endif
 subdir('xml')
 
 
@@ -135,12 +138,23 @@ jdim_libs = [
   xml_lib,
 ]
 
+gresource_sources = [
+  icons_gresource_cpp,
+]
+
+if use_gtkmm4
+  # FIXME: フェーズ1の最後に static_library + unity=off + link_whole で use_gtkmm4=true の unity build を直す。
+  # gnome.compile_resources で生成した複数のソースファイルを unity build にすると名前が衝突してエラーが発生する。
+  gresource_sources += [
+    jdim_ui_gresource_cpp,
+  ]
+endif
 
 # Generated resource source must be linked into the final executable.
 # Linking it only into a static library prevents the constructor from
 # registering the resource at startup.
 jdim_exe = executable(
-  'jdim', [sources, buildinfo_h, icons_gresource_cpp, jdim_ui_gresource_cpp],
+  'jdim', [sources, buildinfo_h, gresource_sources],
   dependencies : [config_h_dep, jdim_deps],
   include_directories : jdim_incs,
   link_with : jdim_libs,
