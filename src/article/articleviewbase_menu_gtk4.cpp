@@ -60,7 +60,11 @@
  */
 void ARTICLE::ArticleViewBase::setup_action()
 {
-    // TODO: アクショングループを作って登録
+    // アクショングループを作って登録
+    m_action_group = Gio::SimpleActionGroup::create();
+
+    m_action_group->add_action( "Delete", sigc::mem_fun( *this, &ArticleViewBase::exec_delete ) );
+    m_action_group->add_action( "DeleteOpen", sigc::mem_fun( *this, &ArticleViewBase::delete_open_view ) );
 
     // 検索
 
@@ -76,9 +80,22 @@ void ARTICLE::ArticleViewBase::setup_action()
 
     // TODO: GTK4 ユーザーコマンドは現段階では省略します。GTKMM4 版をマージ完了後に対応します。
 
-    // TODO: Gio::Menu を Gtk::Menu にバインドする
+    insert_action_group( "article", m_action_group );
+
+    // Gio::Menu を Gtk::Menu にバインドする
+    // UI 定義: src/ui/articleview_menu.ui
+    // リソース URI: /com/github/jdimproved/JDim/articleview_menu.ui (src/ui/jdim-ui.gresource.xml)
+    auto builder = Gtk::Builder::create_from_resource( "/com/github/jdimproved/JDim/articleview_menu.ui" );
+
+    auto bind_menumodel = [this, &builder]( Gtk::Menu& menu, const Glib::ustring& menu_id ) {
+        auto menumodel = builder->get_object( menu_id );
+        assert( menumodel );
+        menu.bind_model( Glib::RefPtr<Gio::MenuModel>::cast_dynamic( menumodel ), true );
+        menu.attach_to_widget( *this );
+    };
 
     // 削除ボタン押したときのポップアップ
+    bind_menumodel( m_popup_menu_delete, "popup_menu_delete" );
 
     // 壊れていますをクリックしたときのポップアップ
 
@@ -187,6 +204,9 @@ Gtk::Menu* ARTICLE::ArticleViewBase::get_popupmenu( const std::string& url )
     Gtk::Menu* popupmenu = nullptr;
 
     // 削除サブメニュー
+    if( url == "popup_menu_delete" ) {
+        popupmenu = &m_popup_menu_delete;
+    }
 
     // レス番号ポップアップメニュー
 

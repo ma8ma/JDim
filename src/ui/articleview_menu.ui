@@ -1,0 +1,16 @@
+<interface>
+  <menu id="popup_menu_delete">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">削除(_D)</attribute>
+        <attribute name="action">article.Delete</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">スレ情報を消さずにスレ再取得(_R)</attribute>
+        <attribute name="action">article.DeleteOpen</attribute>
+      </item>
+    </section>
+  </menu>
+</interface>

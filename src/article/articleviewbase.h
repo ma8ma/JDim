@@ -91,6 +91,12 @@ namespace ARTICLE
         // メニューのユーザコマンド、 create_usrcmd_menu() で作成
         std::string m_usrcmd;
 
+#ifdef USE_GTKMM4
+        Glib::RefPtr<Gio::SimpleActionGroup> m_action_group;
+
+        Gtk::Menu m_popup_menu_delete;
+#endif
+
     public:
 
         ArticleViewBase( const std::string& url, const std::string& url_article );
