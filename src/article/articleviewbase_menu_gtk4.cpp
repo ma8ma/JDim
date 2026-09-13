@@ -63,16 +63,31 @@ void ARTICLE::ArticleViewBase::setup_action()
     // アクショングループを作って登録
     m_action_group = Gio::SimpleActionGroup::create();
 
+    m_action_group->add_action( "BookMark", sigc::mem_fun( *this, &ArticleViewBase::slot_bookmark ) );
+    m_action_group->add_action( "PostedMark", sigc::mem_fun( *this, &ArticleViewBase::slot_postedmark ) );
+    m_action_group->add_action( "OpenBrowserRes",  // レスをクリックした時のメニュー用
+                                sigc::mem_fun( *this, &ArticleViewBase::slot_open_browser ) );
+    m_action_group->add_action( "CopyURL", sigc::mem_fun( *this, &ArticleViewBase::slot_copy_current_url ) );
+    m_action_group->add_action( "WriteRes",sigc::mem_fun( *this, &ArticleViewBase::slot_write_res ) );
+    m_action_group->add_action( "QuoteRes",sigc::mem_fun( *this, &ArticleViewBase::slot_quote_res ) );
+    m_action_group->add_action( "CopyRes", sigc::bind<bool>( sigc::mem_fun( *this, &ArticleViewBase::slot_copy_res ), false ) );
+    m_action_group->add_action( "CopyResRef", sigc::bind<bool>( sigc::mem_fun( *this, &ArticleViewBase::slot_copy_res ), true ) );
     m_action_group->add_action( "Delete", sigc::mem_fun( *this, &ArticleViewBase::exec_delete ) );
     m_action_group->add_action( "DeleteOpen", sigc::mem_fun( *this, &ArticleViewBase::delete_open_view ) );
 
     // 検索
 
     // 抽出系
+    m_action_group->add_action( "Drawout_Menu" );
+    m_action_group->add_action( "DrawoutRes", sigc::mem_fun( *this, &ArticleViewBase::slot_drawout_res ) );
+    m_action_group->add_action( "DrawoutRefer", sigc::mem_fun( *this, &ArticleViewBase::slot_drawout_refer ) );
+    m_action_group->add_action( "DrawoutAround", sigc::mem_fun( *this, &ArticleViewBase::slot_drawout_around ) );
 
     // あぼーん系
+    m_action_group->add_action( "AboneRes", sigc::mem_fun( *this, &ArticleViewBase::slot_abone_res ) );
 
     // 移動系
+    m_action_group->add_action( "Jump", sigc::mem_fun( *this, &ArticleViewBase::slot_jump ) );
 
     // 画像系
 
@@ -98,8 +113,10 @@ void ARTICLE::ArticleViewBase::setup_action()
     bind_menumodel( m_popup_menu_delete, "popup_menu_delete" );
 
     // 壊れていますをクリックしたときのポップアップ
+    bind_menumodel( m_popup_menu_broken, "popup_menu_broken" );
 
     // レス番号をクリックしたときのメニュー
+    bind_menumodel( m_popup_menu_res, "popup_menu_res" );
 
     // レスアンカーをクリックしたときのメニュー
 
@@ -145,24 +162,63 @@ const char* ARTICLE::ArticleViewBase::get_menu_item( [[maybe_unused]] const int 
  *
  * @see SKELETON::View::show_popupmenu()
  */
-void ARTICLE::ArticleViewBase::activate_act_before_popupmenu( [[maybe_unused]] const std::string& url )
+void ARTICLE::ArticleViewBase::activate_act_before_popupmenu( const std::string& url )
 {
-    // TODO: maybe_unused は url を使うコードを実装したら取り除く
 #ifdef _DEBUG
     std::cout << "ArticleViewBase::activate_act_before_popupmenu url = " << url << std::endl;
 #endif
     // toggle　アクションを activeにするとスロット関数が呼ばれるので処理しないようにする
     m_enable_menuslot = false;
 
-    // TODO: Action の状態を切り替える
-
     // 子ポップアップが表示されていて、かつポインタがその上だったら表示しない
+    ArticleViewBase* popup_article = nullptr;
+    if( is_popup_shown() ) popup_article = dynamic_cast<ArticleViewBase*>( m_popup_win->view() );
+    if( popup_article && popup_article->is_mouse_on_view() ) {
+        m_enable_menuslot = true;
+        return;
+    }
+    hide_popup();
+
+    // Action の状態を切り替える
+
+    auto copy_url_act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "CopyURL" ) );
 
     // url がセットされてない
+    if( url.empty() ) {
+        if( copy_url_act ) {
+            copy_url_act->set_enabled( false );
+        }
+        m_url_tmp.clear();
+    }
 
     // url がセットされている
+    else {
+
+        if( copy_url_act ) {
+            copy_url_act->set_enabled( true );
+        }
+
+        // レス番号クリックの場合
+        if( url.starts_with( PROTO_RES ) ) {
+            m_url_tmp = DBTREE::url_readcgi( m_url_article, atoi( url.substr( strlen( PROTO_RES ) ).c_str() ), 0 );
+        }
+
+        // アンカークリックの場合
+        else if( url.starts_with( PROTO_ANCHORE ) ) {
+            m_url_tmp = DBTREE::url_readcgi( m_url_article, atoi( url.substr( strlen( PROTO_ANCHORE ) ).c_str() ), 0 );
+        }
+
+        else {
+            m_url_tmp = url;
+        }
+    }
 
     // 検索ビューや書き込みログ表示などの場合
+    const bool nourl = DBTREE::url_readcgi( m_url_article, 0, 0 ).empty();
+
+    if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "QuoteRes" ) ) ) {
+        act->set_enabled( ! nourl );
+    }
 
     // 範囲選択されてない
 
@@ -209,6 +265,9 @@ Gtk::Menu* ARTICLE::ArticleViewBase::get_popupmenu( const std::string& url )
     }
 
     // レス番号ポップアップメニュー
+    else if( url.starts_with( PROTO_RES ) ) {
+        popupmenu = &m_popup_menu_res;
+    }
 
     //　アンカーポップアップメニュー
 
@@ -219,6 +278,9 @@ Gtk::Menu* ARTICLE::ArticleViewBase::get_popupmenu( const std::string& url )
     // あぼーんポップアップメニュー
 
     // 壊れていますポップアップメニュー
+    else if( url.starts_with( PROTO_BROKEN ) ) {
+        popupmenu = &m_popup_menu_broken;
+    }
 
     // 画像ポップアップメニュー
 

@@ -13,4 +13,82 @@
       </item>
     </section>
   </menu>
+
+  <menu id="popup_menu_broken">
+    <item>
+      <attribute name="label" translatable="yes">スレ情報を消さずにスレ再取得(_R)</attribute>
+      <attribute name="action">article.DeleteOpen</attribute>
+    </item>
+  </menu>
+
+  <menu id="popup_menu_res">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">しおりを設定/解除(_B)</attribute>
+        <attribute name="action">article.BookMark</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">書き込みマークを設定/解除(_P)</attribute>
+        <attribute name="action">article.PostedMark</attribute>
+      </item>
+    </section>
+    <section>
+      <submenu>
+        <attribute name="label" translatable="yes">抽出(_E)</attribute>
+        <attribute name="action">article.Drawout_Menu</attribute>
+        <item>
+          <attribute name="label" translatable="yes">ジャンプ(_J)</attribute>
+          <attribute name="action">article.Jump</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">参照抽出(_E)</attribute>
+          <attribute name="action">article.DrawoutRefer</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">周辺抽出(_A)</attribute>
+          <attribute name="action">article.DrawoutAround</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">レス抽出(_R)</attribute>
+          <attribute name="action">article.DrawoutRes</attribute>
+        </item>
+      </submenu>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">レスする(_W)</attribute>
+        <attribute name="action">article.WriteRes</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">引用してレスする(_Q)</attribute>
+        <attribute name="action">article.QuoteRes</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">ブラウザで開く(_S)</attribute>
+        <attribute name="action">article.OpenBrowserRes</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">URLをコピー(_U)</attribute>
+        <attribute name="action">article.CopyURL</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">レスをコピー(_R)</attribute>
+        <attribute name="action">article.CopyRes</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">引用コピー(_F)</attribute>
+        <attribute name="action">article.CopyResRef</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">レスをあぼ〜んする(_A)</attribute>
+        <attribute name="action">article.AboneRes</attribute>
+      </item>
+    </section>
+  </menu>
 </interface>
