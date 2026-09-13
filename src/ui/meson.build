@@ -8,20 +8,8 @@
 
 gnome = import('gnome')
 
-icons_gresource_cpp = gnome.compile_resources(
-  'icons',
-  'icons.gresource.xml',
+jdim_ui_gresource_cpp = gnome.compile_resources(
+  'jdim_ui',
+  'jdim-ui.gresource.xml',
   source_dir: '.',
-)
-
-
-sources = [
-  'iconmanager.cpp',
-]
-
-
-icon_lib = static_library(
-  'icon', [sources],
-  dependencies : gtkmm_dep,
-  include_directories : include_directories('..'),
 )

@@ -62,7 +62,9 @@ namespace SKELETON
 
         void modify_font( const Pango::FontDescription& pfd )
         {
+#ifndef USE_GTKMM4
             m_entry.override_font( pfd );
+#endif
         }
 
       private:

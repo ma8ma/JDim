@@ -33,7 +33,11 @@ namespace SKELETON
         // 動作環境タブ
         Gtk::Label m_label_tab_environment;
         Gtk::VBox m_vbox_environment;
+#ifdef USE_GTKMM4
+        Gtk::Box m_hbuttonbox_environment;
+#else
         Gtk::HButtonBox m_hbuttonbox_environment;
+#endif
 		Gtk::Button m_button_copy_environment;
         Gtk::ScrolledWindow m_scrollwindow_environment;
         Gtk::TreeView m_treeview_environment;
