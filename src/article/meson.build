@@ -22,9 +22,15 @@ sources = [
   'toolbarsimple.cpp',
 ]
 
-sources += [
-  'articleviewbase_menu_gtk3.cpp',
-]
+if use_gtkmm4
+  sources += [
+    'articleviewbase_menu_gtk4.cpp',
+  ]
+else
+  sources += [
+    'articleviewbase_menu_gtk3.cpp',
+  ]
+endif
 
 article_lib = static_library(
   'article', sources,
