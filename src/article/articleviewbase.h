@@ -95,6 +95,8 @@ namespace ARTICLE
         Glib::RefPtr<Gio::SimpleActionGroup> m_action_group;
 
         Gtk::Menu m_popup_menu_delete;
+        Gtk::Menu m_popup_menu_broken;
+        Gtk::Menu m_popup_menu_res;
 #endif
 
     public:
