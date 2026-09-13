@@ -68,6 +68,8 @@ void ARTICLE::ArticleViewBase::setup_action()
     m_action_group->add_action( "OpenBrowserRes",  // レスをクリックした時のメニュー用
                                 sigc::mem_fun( *this, &ArticleViewBase::slot_open_browser ) );
     m_action_group->add_action( "CopyURL", sigc::mem_fun( *this, &ArticleViewBase::slot_copy_current_url ) );
+    m_action_group->add_action( "CopyNAME", sigc::mem_fun( *this, &ArticleViewBase::slot_copy_name ) );
+    m_action_group->add_action( "CopyID", sigc::mem_fun( *this, &ArticleViewBase::slot_copy_id ) );
     m_action_group->add_action( "WriteRes",sigc::mem_fun( *this, &ArticleViewBase::slot_write_res ) );
     m_action_group->add_action( "QuoteRes",sigc::mem_fun( *this, &ArticleViewBase::slot_quote_res ) );
     m_action_group->add_action( "CopyRes", sigc::bind<bool>( sigc::mem_fun( *this, &ArticleViewBase::slot_copy_res ), false ) );
@@ -80,11 +82,28 @@ void ARTICLE::ArticleViewBase::setup_action()
     // 抽出系
     m_action_group->add_action( "Drawout_Menu" );
     m_action_group->add_action( "DrawoutRes", sigc::mem_fun( *this, &ArticleViewBase::slot_drawout_res ) );
+    m_action_group->add_action( "DrawoutNAME", sigc::mem_fun( *this, &ArticleViewBase::slot_drawout_name ) );
+    m_action_group->add_action( "DrawoutID", sigc::mem_fun( *this, &ArticleViewBase::slot_drawout_id ) );
     m_action_group->add_action( "DrawoutRefer", sigc::mem_fun( *this, &ArticleViewBase::slot_drawout_refer ) );
     m_action_group->add_action( "DrawoutAround", sigc::mem_fun( *this, &ArticleViewBase::slot_drawout_around ) );
 
     // あぼーん系
     m_action_group->add_action( "AboneRes", sigc::mem_fun( *this, &ArticleViewBase::slot_abone_res ) );
+    m_action_group->add_action( "AboneID", sigc::mem_fun( *this, &ArticleViewBase::slot_abone_id ) );
+    m_action_group->add_action( "AboneName", sigc::mem_fun( *this, &ArticleViewBase::slot_abone_name ) );
+
+    m_action_group->add_action( "AboneNameBoard" );
+    m_action_group->add_action( "SetAboneNameBoard", sigc::mem_fun( *this, &ArticleViewBase::slot_abone_name_board ) );
+
+    m_action_group->add_action( "GlobalAboneName" );
+    m_action_group->add_action( "SetGlobalAboneName", sigc::mem_fun( *this, &ArticleViewBase::slot_global_abone_name ) );
+
+    m_action_group->add_action_bool( "TranspAbone", sigc::mem_fun( *this, &ArticleViewBase::slot_toggle_abone_transp ), false );
+    m_action_group->add_action_bool( "TranspChainAbone", sigc::mem_fun( *this, &ArticleViewBase::slot_toggle_abone_transp_chain ), false );
+
+    m_action_group->add_action( "SetupAbone", sigc::mem_fun( *this, &ArticleViewBase::slot_setup_abone ) );
+    m_action_group->add_action( "SetupAboneBoard", sigc::mem_fun( *this, &ArticleViewBase::slot_setup_abone_board ) );
+    m_action_group->add_action( "SetupAboneAll", sigc::mem_fun( *this, &ArticleViewBase::slot_setup_abone_all ) );
 
     // 移動系
     m_action_group->add_action( "Jump", sigc::mem_fun( *this, &ArticleViewBase::slot_jump ) );
@@ -119,12 +138,16 @@ void ARTICLE::ArticleViewBase::setup_action()
     bind_menumodel( m_popup_menu_res, "popup_menu_res" );
 
     // レスアンカーをクリックしたときのメニュー
+    bind_menumodel( m_popup_menu_anc, "popup_menu_anc" );
 
     // IDをクリックしたときのメニュー
+    bind_menumodel( m_popup_menu_id, "popup_menu_id" );
 
     // 名前をクリックしたときのメニュー
+    bind_menumodel( m_popup_menu_name, "popup_menu_name" );
 
     // あぼーんをクリックしたときのメニュー
+    bind_menumodel( m_popup_menu_abone, "popup_menu_abone" );
 
     // 画像メニュー
 
@@ -237,8 +260,15 @@ void ARTICLE::ArticleViewBase::activate_act_before_popupmenu( const std::string&
     // 進む、戻る
 
     // 透明あぼーん
+    if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "TranspAbone" ) ) ) {
+        act->set_state( Glib::Variant<bool>::create( m_article->get_abone_transparent() ) );
+    }
 
     // 透明/連鎖あぼーん
+    if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "TranspChainAbone" ) ) ) {
+        act->set_state( Glib::Variant<bool>::create(
+                    m_article->get_abone_transparent() && m_article->get_abone_chain() ) );
+    }
 
     // 画像
 
@@ -270,12 +300,24 @@ Gtk::Menu* ARTICLE::ArticleViewBase::get_popupmenu( const std::string& url )
     }
 
     //　アンカーポップアップメニュー
+    else if( url.starts_with( PROTO_ANCHORE ) ) {
+        popupmenu = &m_popup_menu_anc;
+    }
 
     // IDポップアップメニュー
+    else if( url.starts_with( PROTO_ID ) ) {
+        popupmenu = &m_popup_menu_id;
+    }
 
     // 名前ポップアップメニュー
+    else if( url.starts_with( PROTO_NAME ) ) {
+        popupmenu = &m_popup_menu_name;
+    }
 
     // あぼーんポップアップメニュー
+    else if( url.starts_with( PROTO_ABONE ) ) {
+        popupmenu = &m_popup_menu_abone;
+    }
 
     // 壊れていますポップアップメニュー
     else if( url.starts_with( PROTO_BROKEN ) ) {

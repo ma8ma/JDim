@@ -97,6 +97,10 @@ namespace ARTICLE
         Gtk::Menu m_popup_menu_delete;
         Gtk::Menu m_popup_menu_broken;
         Gtk::Menu m_popup_menu_res;
+        Gtk::Menu m_popup_menu_anc;
+        Gtk::Menu m_popup_menu_id;
+        Gtk::Menu m_popup_menu_name;
+        Gtk::Menu m_popup_menu_abone;
 #endif
 
     public:
