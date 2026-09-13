@@ -22,6 +22,9 @@ sources = [
   'toolbarsimple.cpp',
 ]
 
+sources += [
+  'articleviewbase_menu_gtk3.cpp',
+]
 
 article_lib = static_library(
   'article', sources,
