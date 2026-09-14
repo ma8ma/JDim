@@ -164,31 +164,291 @@ void ARTICLE::ArticleViewBase::setup_action()
     bind_menumodel( m_popup_menu_img, "popup_menu_img" );
 
     // 通常メニュー
+    m_popup_menu.bind_model( create_context_menu(), true );
+    m_popup_menu.attach_to_widget( *this );
 
     // ポップアップメニューにショートカットキーやマウスジェスチャを表示
 }
 
 
 /**
- * @brief 通常の右クリックメニューを作成する
+ * @brief 通常の右クリックメニューを作成して返す
+ *
+ * @return セッション情報から作成した Gio::Menu
  */
-std::string ARTICLE::ArticleViewBase::create_context_menu() const
+Glib::RefPtr<Gio::Menu> ARTICLE::ArticleViewBase::create_context_menu() const
 {
-    // TODO: GTK4 メニュー項目のカスタマイズは現段階では省略します。GTKMM4 版をマージ完了後に対応します。
-    return std::string{};
+    std::list<int> etc_menu_items = {
+        ITEM_DRAWOUT,
+        ITEM_GO,
+        ITEM_SEARCH,
+        ITEM_NGWORD,
+        ITEM_QUOTE_SELECTION,
+        ITEM_OPEN_BROWSER,
+        ITEM_USER_COMMAND,
+        ITEM_COPY_URL,
+        ITEM_COPY,
+        ITEM_RELOAD,
+        ITEM_DELETE,
+        ITEM_COPY_TITLE_URL_THREAD,
+        ITEM_SAVE_DAT,
+        ITEM_COPY_THREAD_INFO,
+        ITEM_APPENDFAVORITE,
+        ITEM_ABONE_SELECTION,
+        ITEM_SELECTIMG,
+        ITEM_SELECTDELIMG,
+        ITEM_SELECTABONEIMG,
+        ITEM_PREF_THREAD,
+    };
+
+    // メニューに含まれる項目を取り除いて「その他」サブメニューに含める項目を残す
+    int pos = 0;
+    for(;; ++pos ) {
+        const int item = SESSION::get_item_article_menu( pos );
+        if( item == ITEM_END ) break;
+
+        etc_menu_items.remove( item );
+    }
+
+    auto menumodel = Gio::Menu::create();
+    auto section = Gio::Menu::create();
+    pos = 0;
+    for(;; ++pos ) {
+
+        const int item = SESSION::get_item_article_menu( pos );
+
+        if( item == ITEM_END ) break;
+
+        else if( item == ITEM_ETC && ! etc_menu_items.empty() ){
+            // 「その他」サブメニューを追加する
+            auto submenu = Gio::Menu::create();
+            for( const int i : etc_menu_items ) {
+                add_menu_item( i, submenu );
+            }
+            section->append_submenu( "その他(_O)", submenu );
+        }
+        else {
+            // item がセパレーターだったらセクションを区切る
+            if( add_menu_item( item, section ) ) {
+                menumodel->append_section( section );
+                section = Gio::Menu::create();
+            }
+        }
+    }
+
+    if( section->get_n_items() > 0 ) {
+        menumodel->append_section( section );
+    }
+
+    return menumodel;
 }
 
 
 /**
- * @brief メニュー項目に対応するXMLを取得する
+ * @brief メニュー項目に対応する Gio::Menu を追加する
  *
  * @param item メニュー項目
- * @return メニュー項目のXML, 未実装のため nullptr
+ * @param section item に対応するメニューを追加するセクション
+ * @return セクションの区切りなら true を返す
  */
-const char* ARTICLE::ArticleViewBase::get_menu_item( [[maybe_unused]] const int item ) const
+bool ARTICLE::ArticleViewBase::add_menu_item( const int item, const Glib::RefPtr<Gio::Menu>& section ) const
 {
-    // TODO: GTK4 メニュー項目のカスタマイズは現段階では省略します。GTKMM4 版をマージ完了後に対応します。
-    return nullptr;
+    switch( item ) {
+
+        // 抽出
+        case ITEM_DRAWOUT:
+            {
+                auto submenu = Gio::Menu::create();
+                submenu->append( "キーワード抽出(_K)", "article.DrawoutWord" );
+                submenu->append( "しおり抽出(_B)", "article.DrawoutBM" );
+                submenu->append( "書き込み抽出(_W)", "article.DrawoutPost" );
+                submenu->append( "高参照レス抽出(_H)", "article.DrawoutHighRefRes" );
+                submenu->append( "URL抽出(_U)", "article.DrawoutURL" );
+                submenu->append( "テンプレート抽出(_T)", "article.DrawoutTmp" );
+                section->append_submenu( "抽出(_E)", submenu );
+            }
+            return false;
+
+            // 移動
+        case ITEM_GO:
+            {
+                auto submenu = Gio::Menu::create();
+
+                auto subsection = Gio::Menu::create();
+                subsection->append( "前へ戻る(_P)", "article.PrevView" );
+                subsection->append( "次へ進む(_N)", "article.NextView" );
+                submenu->append_section( subsection );
+
+                subsection = Gio::Menu::create();
+                subsection->append( "先頭へ移動(_H)", "article.Home" );
+                subsection->append( "最後へ移動(_E)", "article.End" );
+                submenu->append_section( subsection );
+
+                subsection = Gio::Menu::create();
+                subsection->append( "新着へ移動(_W)", "article.GotoNew" );
+                submenu->append_section( subsection );
+
+                subsection = Gio::Menu::create();
+                subsection->append( "前のしおりヘ移動(_R)", "article.PreBookMark" );
+                subsection->append( "次のしおりヘ移動(_X)", "article.NextBookMark" );
+                submenu->append_section( subsection );
+
+                subsection = Gio::Menu::create();
+                subsection->append( "前の書き込みヘ移動", "article.PrePost" );
+                subsection->append( "次の書き込みヘ移動", "article.NextPost" );
+                submenu->append_section( subsection );
+
+                section->append_submenu( "移動(_M)", submenu );
+            }
+            return false;
+
+            // 検索
+        case ITEM_SEARCH:
+            {
+                auto submenu = Gio::Menu::create();
+
+                auto subsection = Gio::Menu::create();
+                // TODO: CONFIG::get_menu_search_web() の設定で項目名を変更できるがフェーズ1では省略します。
+                subsection->append( "WEB検索(_W)", "article.SearchWeb" );
+                submenu->append_section( subsection );
+
+                subsection = Gio::Menu::create();
+                subsection->append( "次スレ検索(_N)", "article.SearchNextArticle" );
+                submenu->append_section( subsection );
+
+                subsection = Gio::Menu::create();
+                // TODO: CONFIG::get_menu_search_title() の設定で項目名を変更できるがフェーズ1では省略します。
+                subsection->append( "スレタイ検索(_T)", "article.SearchTitle" );
+                submenu->append_section( subsection );
+
+                subsection = Gio::Menu::create();
+                subsection->append( "ログ検索(対象: 板)(_L)", "article.SearchCacheLocal" );
+                auto nest_menu = Gio::Menu::create();
+                nest_menu->append( "検索する(_E)", "article.ExecSearchCacheAll" );
+                subsection->append_submenu( "ログ検索(対象: 全ログ)(_A)", nest_menu );
+                submenu->append_section( subsection );
+
+                section->append_submenu( "検索(_H)", submenu );
+            }
+            return false;
+
+            // NGワード
+        case ITEM_NGWORD:
+            {
+                auto submenu = Gio::Menu::create();
+                submenu->append( "NG ワードに追加 (対象: ローカル)(_L)", "article.AboneWord" );
+
+                auto nest_menu = Gio::Menu::create();
+                nest_menu->append( "追加する(_A)", "article.SetAboneWordBoard" );
+                submenu->append_submenu( "NG ワードに追加 (対象: 板)(_B)", nest_menu );
+
+                nest_menu = Gio::Menu::create();
+                nest_menu->append( "追加する(_A)", "article.SetGlobalAboneWord" );
+                submenu->append_submenu( "NG ワードに追加 (対象: 全体)(_A)", nest_menu );
+
+                section->append_submenu( "NGワード(_N)", submenu );
+            }
+            return false;
+
+            // 選択範囲のレスをあぼーん
+        case ITEM_ABONE_SELECTION:
+            section->append( "選択範囲のレスをあぼ〜ん(_A)", "article.AboneSelectionRes" );
+            return false;
+
+            // 引用してレス
+        case ITEM_QUOTE_SELECTION:
+            section->append( "引用してレスする(_Q)", "article.QuoteSelectionRes" );
+            return false;
+
+            // リンクをブラウザで開く
+        case ITEM_OPEN_BROWSER:
+            section->append( "ブラウザで開く(_W)", "article.OpenBrowser" );
+            return false;
+
+            // ユーザコマンド
+        case ITEM_USER_COMMAND:
+            // TODO: GTK4 ユーザーコマンドは現段階では省略します。GTKMM4 版をマージ完了後に対応します。
+            return false;
+
+            // リンクのURLをコピー
+        case ITEM_COPY_URL:
+            section->append( "URLをコピー(_U)", "article.CopyURL" );
+            return false;
+
+            // スレのタイトルとURLをコピー
+        case ITEM_COPY_TITLE_URL_THREAD:
+            section->append( "スレのタイトルとURLをコピー(_L)", "article.CopyTitleURL" );
+            return false;
+
+            // コピー
+        case ITEM_COPY:
+            section->append( "コピー(_C)", "article.Copy" );
+            return false;
+
+            // 再読み込み
+        case ITEM_RELOAD:
+            section->append( "再読み込み(_R)", "article.Reload");
+            return false;
+
+            // dat 保存
+        case ITEM_SAVE_DAT:
+            section->append( "datを保存(_S)...", "article.SaveDat" );
+            return false;
+
+            // スレ情報の引き継ぎ
+        case ITEM_COPY_THREAD_INFO:
+            section->append( "スレ情報を引き継ぐ(_I)...", "article.CopyInfo" );
+            return false;
+
+            // お気に入り
+        case ITEM_APPENDFAVORITE:
+            section->append( "お気に入りに追加(_F)...", "article.AppendFavorite" );
+            return false;
+
+            // プロパティ
+        case ITEM_PREF_THREAD:
+            section->append( "スレのプロパティ(_P)...", "article.PreferenceArticle" );
+            return false;
+
+            // 選択範囲の画像を開く
+        case ITEM_SELECTIMG:
+            section->append( "選択範囲の画像を開く(_G)", "article.ShowSelectImage" );
+            return false;
+
+            // 選択範囲の画像を削除
+        case ITEM_SELECTDELIMG:
+            {
+                auto submenu = Gio::Menu::create();
+                submenu->append( "削除する(_D)", "article.DeleteSelectImage" );
+                section->append_submenu( "選択範囲の画像を削除(_T)", submenu );
+            }
+            return false;
+
+            // 選択範囲の画像をあぼーん
+        case ITEM_SELECTABONEIMG:
+            {
+                auto submenu = Gio::Menu::create();
+                submenu->append( "あぼ〜んする(_A)", "article.AboneSelectImage" );
+                section->append_submenu( "選択範囲の画像をあぼ〜ん(_B)", submenu );
+            }
+            return false;
+
+            // 区切り
+        case ITEM_SEPARATOR:
+            return true;
+
+            // 削除
+        case ITEM_DELETE:
+            {
+                auto submenu = Gio::Menu::create();
+                submenu->append( "削除(_D)", "article.Delete" );
+                submenu->append( "スレ情報を消さずにスレ再取得(_R)", "article.DeleteOpen" );
+                section->append_submenu( "削除(_D)", submenu );
+            }
+            return false;
+    }
+
+    return false;
 }
 
 
@@ -403,6 +663,9 @@ Gtk::Menu* ARTICLE::ArticleViewBase::get_popupmenu( const std::string& url )
     }
 
     // 通常メニュー
+    else {
+        popupmenu = &m_popup_menu;
+    }
 
     return popupmenu;
 }
