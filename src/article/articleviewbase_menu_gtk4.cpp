@@ -65,8 +65,10 @@ void ARTICLE::ArticleViewBase::setup_action()
 
     m_action_group->add_action( "BookMark", sigc::mem_fun( *this, &ArticleViewBase::slot_bookmark ) );
     m_action_group->add_action( "PostedMark", sigc::mem_fun( *this, &ArticleViewBase::slot_postedmark ) );
+    m_action_group->add_action( "OpenBrowser", sigc::mem_fun( *this, &ArticleViewBase::slot_open_browser ) );
     m_action_group->add_action( "OpenBrowserRes",  // レスをクリックした時のメニュー用
                                 sigc::mem_fun( *this, &ArticleViewBase::slot_open_browser ) );
+    m_action_group->add_action( "OpenCacheBrowser", sigc::mem_fun( *this, &ArticleViewBase::slot_open_cache_browser ) );
     m_action_group->add_action( "CopyURL", sigc::mem_fun( *this, &ArticleViewBase::slot_copy_current_url ) );
     m_action_group->add_action( "CopyNAME", sigc::mem_fun( *this, &ArticleViewBase::slot_copy_name ) );
     m_action_group->add_action( "CopyID", sigc::mem_fun( *this, &ArticleViewBase::slot_copy_id ) );
@@ -76,6 +78,7 @@ void ARTICLE::ArticleViewBase::setup_action()
     m_action_group->add_action( "CopyResRef", sigc::bind<bool>( sigc::mem_fun( *this, &ArticleViewBase::slot_copy_res ), true ) );
     m_action_group->add_action( "Delete", sigc::mem_fun( *this, &ArticleViewBase::exec_delete ) );
     m_action_group->add_action( "DeleteOpen", sigc::mem_fun( *this, &ArticleViewBase::delete_open_view ) );
+    m_action_group->add_action( "PreferenceImage", sigc::mem_fun( *this, &ArticleViewBase::slot_preferences_image ) );
 
     // 検索
 
@@ -109,6 +112,14 @@ void ARTICLE::ArticleViewBase::setup_action()
     m_action_group->add_action( "Jump", sigc::mem_fun( *this, &ArticleViewBase::slot_jump ) );
 
     // 画像系
+    m_action_group->add_action( "Cancel_Mosaic", sigc::mem_fun( *this, &ArticleViewBase::slot_cancel_mosaic ) );
+    m_action_group->add_action( "Show_Mosaic", sigc::mem_fun( *this, &ArticleViewBase::slot_show_image_with_mosaic ) );
+    m_action_group->add_action( "ShowLargeImg", sigc::mem_fun( *this, &ArticleViewBase::slot_show_large_img ) );
+    m_action_group->add_action_bool( "ProtectImage", sigc::mem_fun( *this, &ArticleViewBase::slot_toggle_protectimage ), false );
+    m_action_group->add_action( "DeleteImage_Menu" );
+    m_action_group->add_action( "DeleteImage", sigc::mem_fun( *this, &ArticleViewBase::slot_deleteimage ) );
+    m_action_group->add_action( "SaveImage", sigc::mem_fun( *this, &ArticleViewBase::slot_saveimage ) );
+    m_action_group->add_action_bool( "AboneImage", sigc::mem_fun( *this, &ArticleViewBase::slot_abone_img ), false );
 
     // その他
 
@@ -150,6 +161,7 @@ void ARTICLE::ArticleViewBase::setup_action()
     bind_menumodel( m_popup_menu_abone, "popup_menu_abone" );
 
     // 画像メニュー
+    bind_menumodel( m_popup_menu_img, "popup_menu_img" );
 
     // 通常メニュー
 
@@ -205,11 +217,15 @@ void ARTICLE::ArticleViewBase::activate_act_before_popupmenu( const std::string&
     // Action の状態を切り替える
 
     auto copy_url_act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "CopyURL" ) );
+    auto open_browser_act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "OpenBrowser" ) );
 
     // url がセットされてない
     if( url.empty() ) {
         if( copy_url_act ) {
             copy_url_act->set_enabled( false );
+        }
+        if( open_browser_act ) {
+            open_browser_act->set_enabled( false );
         }
         m_url_tmp.clear();
     }
@@ -219,6 +235,9 @@ void ARTICLE::ArticleViewBase::activate_act_before_popupmenu( const std::string&
 
         if( copy_url_act ) {
             copy_url_act->set_enabled( true );
+        }
+        if( open_browser_act ) {
+            open_browser_act->set_enabled( true );
         }
 
         // レス番号クリックの場合
@@ -239,9 +258,14 @@ void ARTICLE::ArticleViewBase::activate_act_before_popupmenu( const std::string&
     // 検索ビューや書き込みログ表示などの場合
     const bool nourl = DBTREE::url_readcgi( m_url_article, 0, 0 ).empty();
 
-    if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "QuoteRes" ) ) ) {
-        act->set_enabled( ! nourl );
-    }
+    // Actionの設定を行うヘルパー関数
+    auto set_action_enabled = [this]( const char* action_name, bool enabled ) {
+        if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( action_name ) ) ) {
+            act->set_enabled( enabled );
+        }
+    };
+
+    set_action_enabled( "QuoteRes", ! nourl );
 
     // 範囲選択されてない
 
@@ -271,6 +295,55 @@ void ARTICLE::ArticleViewBase::activate_act_before_popupmenu( const std::string&
     }
 
     // 画像
+    if( ! url.empty() && DBIMG::get_type_ext( url ) != DBIMG::T_UNKNOWN ) {
+
+        const bool has_cache = DBIMG::is_cached( url );
+
+        // モザイク解除
+        set_action_enabled( "Cancel_Mosaic", has_cache && DBIMG::get_mosaic( url ) );
+
+        // モザイクで開く
+        set_action_enabled( "Show_Mosaic", ! has_cache );
+
+        // サイズの大きい画像を表示
+        set_action_enabled( "ShowLargeImg", DBIMG::get_type_real( url ) == DBIMG::T_LARGE );
+
+        // 保護のトグル切替え
+        if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "ProtectImage" ) ) ) {
+            if( DBIMG::is_cached( url ) ) {
+
+                act->set_enabled( true );
+                act->set_state( Glib::Variant<bool>::create( DBIMG::is_protected( url ) ) );
+            }
+            else act->set_enabled( false );
+        }
+
+        // 削除
+        // TODO: GTK4 GMenu ではサブメニュー親の sensitive が Action に連動しないため、
+        // 「削除」サブメニュー自体は無効化せず、子の DeleteImage だけ enabled を落とします。
+        // サブメニュー親の無効化をどうするかは後続のフェーズで決めます。
+        set_action_enabled( "DeleteImage", DBIMG::get_code( url ) != HTTP_INIT && ! DBIMG::is_protected( url ) );
+
+        // 保存
+        set_action_enabled( "SaveImage", has_cache );
+
+        // プロパティ
+        set_action_enabled( "PreferenceImage", has_cache );
+
+        // あぼーん
+        if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "AboneImage" ) ) ) {
+            if( DBIMG::is_protected( url ) ) {
+                act->set_enabled( false );
+            }
+            else {
+                act->set_enabled( true );
+                act->set_state( Glib::Variant<bool>::create( DBIMG::get_abone( url ) ) );
+            }
+        }
+
+        // キャッシュをブラウザで開く
+        set_action_enabled( "OpenCacheBrowser", has_cache );
+    }
 
     // スレ情報の引き継ぎ
 
@@ -325,6 +398,9 @@ Gtk::Menu* ARTICLE::ArticleViewBase::get_popupmenu( const std::string& url )
     }
 
     // 画像ポップアップメニュー
+    else if( DBIMG::get_type_ext( url ) != DBIMG::T_UNKNOWN ) {
+        popupmenu = &m_popup_menu_img;
+    }
 
     // 通常メニュー
 

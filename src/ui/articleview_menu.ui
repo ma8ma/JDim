@@ -187,4 +187,70 @@
       </item>
     </section>
   </menu>
+
+  <menu id="popup_menu_img">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">モザイク解除(_C)</attribute>
+        <attribute name="action">article.Cancel_Mosaic</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">モザイクで開く(_M)</attribute>
+        <attribute name="action">article.Show_Mosaic</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">サイズが大きい画像を表示(_L)</attribute>
+        <attribute name="action">article.ShowLargeImg</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">ブラウザで開く(_W)</attribute>
+        <attribute name="action">article.OpenBrowser</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">キャッシュをブラウザで開く(_X)</attribute>
+        <attribute name="action">article.OpenCacheBrowser</attribute>
+      </item>
+      <!-- TODO: ユーザーコマンドの挿入位置 -->
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">URLをコピー(_U)</attribute>
+        <attribute name="action">article.CopyURL</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">名前を付けて保存(_S)...</attribute>
+        <attribute name="action">article.SaveImage</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">キャッシュを保護する(_P)</attribute>
+        <attribute name="action">article.ProtectImage</attribute>
+      </item>
+      <submenu>
+        <attribute name="label" translatable="yes">削除(_D)</attribute>
+        <attribute name="action">article.DeleteImage_Menu</attribute>
+        <item>
+          <attribute name="label" translatable="yes">削除する(_D)</attribute>
+          <attribute name="action">article.DeleteImage</attribute>
+        </item>
+      </submenu>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">画像をあぼ〜んする(_A)</attribute>
+        <attribute name="action">article.AboneImage</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">画像のプロパティ(_M)...</attribute>
+        <attribute name="action">article.PreferenceImage</attribute>
+      </item>
+    </section>
+  </menu>
 </interface>

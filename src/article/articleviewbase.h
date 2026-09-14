@@ -101,6 +101,7 @@ namespace ARTICLE
         Gtk::Menu m_popup_menu_id;
         Gtk::Menu m_popup_menu_name;
         Gtk::Menu m_popup_menu_abone;
+        Gtk::Menu m_popup_menu_img;
 #endif
 
     public:
