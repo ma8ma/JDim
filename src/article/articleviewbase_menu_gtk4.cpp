@@ -70,36 +70,63 @@ void ARTICLE::ArticleViewBase::setup_action()
                                 sigc::mem_fun( *this, &ArticleViewBase::slot_open_browser ) );
     m_action_group->add_action( "OpenCacheBrowser", sigc::mem_fun( *this, &ArticleViewBase::slot_open_cache_browser ) );
     m_action_group->add_action( "CopyURL", sigc::mem_fun( *this, &ArticleViewBase::slot_copy_current_url ) );
+    m_action_group->add_action( "CopyTitleURL", sigc::mem_fun( *this, &ArticleViewBase::slot_copy_title_url ) );
     m_action_group->add_action( "CopyNAME", sigc::mem_fun( *this, &ArticleViewBase::slot_copy_name ) );
     m_action_group->add_action( "CopyID", sigc::mem_fun( *this, &ArticleViewBase::slot_copy_id ) );
+    m_action_group->add_action( "Copy", sigc::mem_fun( *this, &ArticleViewBase::slot_copy_selection_str ) );
     m_action_group->add_action( "WriteRes",sigc::mem_fun( *this, &ArticleViewBase::slot_write_res ) );
     m_action_group->add_action( "QuoteRes",sigc::mem_fun( *this, &ArticleViewBase::slot_quote_res ) );
+    m_action_group->add_action( "QuoteSelectionRes", sigc::mem_fun( *this, &ArticleViewBase::slot_quote_selection_res ) );
     m_action_group->add_action( "CopyRes", sigc::bind<bool>( sigc::mem_fun( *this, &ArticleViewBase::slot_copy_res ), false ) );
     m_action_group->add_action( "CopyResRef", sigc::bind<bool>( sigc::mem_fun( *this, &ArticleViewBase::slot_copy_res ), true ) );
+    m_action_group->add_action( "Delete_Menu" );
     m_action_group->add_action( "Delete", sigc::mem_fun( *this, &ArticleViewBase::exec_delete ) );
     m_action_group->add_action( "DeleteOpen", sigc::mem_fun( *this, &ArticleViewBase::delete_open_view ) );
+    m_action_group->add_action( "AppendFavorite", sigc::mem_fun( *this, &ArticleViewBase::set_favorite ) );
+    m_action_group->add_action( "Reload", sigc::mem_fun( *this, &ArticleViewBase::exec_reload ) );
+    m_action_group->add_action( "PreferenceArticle", sigc::mem_fun( *this, &ArticleViewBase::show_preference ) );
     m_action_group->add_action( "PreferenceImage", sigc::mem_fun( *this, &ArticleViewBase::slot_preferences_image ) );
 
     // 検索
+    m_action_group->add_action( "Search_Menu" );
+    m_action_group->add_action( "SearchNextArticle", sigc::mem_fun( *this, &ArticleViewBase::slot_search_next ) );
+    m_action_group->add_action( "SearchWeb", sigc::mem_fun( *this, &ArticleViewBase::slot_search_web ) );
+    m_action_group->add_action( "SearchCacheLocal", sigc::mem_fun( *this, &ArticleViewBase::slot_search_cachelocal ) );
+    m_action_group->add_action( "SearchCacheAll" );
+    m_action_group->add_action( "ExecSearchCacheAll", sigc::mem_fun( *this, &ArticleViewBase::slot_search_cacheall ) );
+    m_action_group->add_action( "SearchTitle", sigc::mem_fun( *this, &ArticleViewBase::slot_search_title ) );
 
     // 抽出系
     m_action_group->add_action( "Drawout_Menu" );
+    m_action_group->add_action( "DrawoutWord", sigc::mem_fun( *this, &ArticleViewBase::slot_drawout_selection_str ) );
     m_action_group->add_action( "DrawoutRes", sigc::mem_fun( *this, &ArticleViewBase::slot_drawout_res ) );
     m_action_group->add_action( "DrawoutNAME", sigc::mem_fun( *this, &ArticleViewBase::slot_drawout_name ) );
     m_action_group->add_action( "DrawoutID", sigc::mem_fun( *this, &ArticleViewBase::slot_drawout_id ) );
+    m_action_group->add_action( "DrawoutBM", sigc::mem_fun( *this, &ArticleViewBase::slot_drawout_bm ) );
+    m_action_group->add_action( "DrawoutPost", sigc::mem_fun( *this, &ArticleViewBase::slot_drawout_post ) );
+    m_action_group->add_action( "DrawoutHighRefRes", sigc::mem_fun( *this, &ArticleViewBase::slot_drawout_highly_referenced_res ) );
+    m_action_group->add_action( "DrawoutURL", sigc::mem_fun( *this, &ArticleViewBase::slot_drawout_url ) );
     m_action_group->add_action( "DrawoutRefer", sigc::mem_fun( *this, &ArticleViewBase::slot_drawout_refer ) );
     m_action_group->add_action( "DrawoutAround", sigc::mem_fun( *this, &ArticleViewBase::slot_drawout_around ) );
+    m_action_group->add_action( "DrawoutTmp", sigc::mem_fun( *this, &ArticleViewBase::slot_drawout_tmp ) );
 
     // あぼーん系
+    m_action_group->add_action( "AboneWord_Menu" );
     m_action_group->add_action( "AboneRes", sigc::mem_fun( *this, &ArticleViewBase::slot_abone_res ) );
+    m_action_group->add_action( "AboneSelectionRes", sigc::mem_fun( *this, &ArticleViewBase::slot_abone_selection_res ) );
     m_action_group->add_action( "AboneID", sigc::mem_fun( *this, &ArticleViewBase::slot_abone_id ) );
     m_action_group->add_action( "AboneName", sigc::mem_fun( *this, &ArticleViewBase::slot_abone_name ) );
+    m_action_group->add_action( "AboneWord", sigc::mem_fun( *this, &ArticleViewBase::slot_abone_word ) );
 
     m_action_group->add_action( "AboneNameBoard" );
     m_action_group->add_action( "SetAboneNameBoard", sigc::mem_fun( *this, &ArticleViewBase::slot_abone_name_board ) );
+    m_action_group->add_action( "AboneWordBoard" );
+    m_action_group->add_action( "SetAboneWordBoard", sigc::mem_fun( *this, &ArticleViewBase::slot_abone_word_board ) );
 
     m_action_group->add_action( "GlobalAboneName" );
     m_action_group->add_action( "SetGlobalAboneName", sigc::mem_fun( *this, &ArticleViewBase::slot_global_abone_name ) );
+    m_action_group->add_action( "GlobalAboneWord" );
+    m_action_group->add_action( "SetGlobalAboneWord", sigc::mem_fun( *this, &ArticleViewBase::slot_global_abone_word ) );
 
     m_action_group->add_action_bool( "TranspAbone", sigc::mem_fun( *this, &ArticleViewBase::slot_toggle_abone_transp ), false );
     m_action_group->add_action_bool( "TranspChainAbone", sigc::mem_fun( *this, &ArticleViewBase::slot_toggle_abone_transp_chain ), false );
@@ -109,11 +136,26 @@ void ARTICLE::ArticleViewBase::setup_action()
     m_action_group->add_action( "SetupAboneAll", sigc::mem_fun( *this, &ArticleViewBase::slot_setup_abone_all ) );
 
     // 移動系
+    m_action_group->add_action( "Move_Menu" );
+    m_action_group->add_action( "Home", sigc::mem_fun( *this, &ArticleViewBase::goto_top ) );
+    m_action_group->add_action( "GotoNew", sigc::mem_fun( *this, &ArticleViewBase::goto_new ) );
+    m_action_group->add_action( "End", sigc::mem_fun( *this, &ArticleViewBase::goto_bottom ) );
+    m_action_group->add_action( "PreBookMark", sigc::mem_fun( *this, &ArticleViewBase::slot_pre_bm ) );
+    m_action_group->add_action( "NextBookMark", sigc::mem_fun( *this, &ArticleViewBase::slot_next_bm ) );
+    m_action_group->add_action( "PrePost", sigc::mem_fun( *this, &ArticleViewBase::slot_pre_post ) );
+    m_action_group->add_action( "NextPost", sigc::mem_fun( *this, &ArticleViewBase::slot_next_post ) );
     m_action_group->add_action( "Jump", sigc::mem_fun( *this, &ArticleViewBase::slot_jump ) );
+    m_action_group->add_action( "PrevView", sigc::bind<int>( sigc::mem_fun( *this, &ArticleViewBase::back_viewhistory ), 1 ) );
+    m_action_group->add_action( "NextView", sigc::bind<int>( sigc::mem_fun( *this, &ArticleViewBase::forward_viewhistory ), 1 ) );
 
     // 画像系
     m_action_group->add_action( "Cancel_Mosaic", sigc::mem_fun( *this, &ArticleViewBase::slot_cancel_mosaic ) );
     m_action_group->add_action( "Show_Mosaic", sigc::mem_fun( *this, &ArticleViewBase::slot_show_image_with_mosaic ) );
+    m_action_group->add_action( "ShowSelectImage", sigc::mem_fun( *this, &ArticleViewBase::slot_show_selection_images ) );
+    m_action_group->add_action( "DeleteSelectImage_Menu" );
+    m_action_group->add_action( "DeleteSelectImage", sigc::mem_fun( *this, &ArticleViewBase::slot_delete_selection_images ) );
+    m_action_group->add_action( "AboneSelectImage_Menu" );
+    m_action_group->add_action( "AboneSelectImage", sigc::mem_fun( *this, &ArticleViewBase::slot_abone_selection_images ) );
     m_action_group->add_action( "ShowLargeImg", sigc::mem_fun( *this, &ArticleViewBase::slot_show_large_img ) );
     m_action_group->add_action_bool( "ProtectImage", sigc::mem_fun( *this, &ArticleViewBase::slot_toggle_protectimage ), false );
     m_action_group->add_action( "DeleteImage_Menu" );
@@ -122,6 +164,9 @@ void ARTICLE::ArticleViewBase::setup_action()
     m_action_group->add_action_bool( "AboneImage", sigc::mem_fun( *this, &ArticleViewBase::slot_abone_img ), false );
 
     // その他
+    m_action_group->add_action( "Etc_Menu" );
+    m_action_group->add_action( "SaveDat", sigc::mem_fun( *this, &ArticleViewBase::slot_save_dat ) );
+    m_action_group->add_action( "CopyInfo", sigc::mem_fun( *this, &ArticleViewBase::slot_copy_article_info ) );
 
     // TODO: GTK4 ユーザーコマンドは現段階では省略します。GTKMM4 版をマージ完了後に対応します。
 
@@ -168,6 +213,8 @@ void ARTICLE::ArticleViewBase::setup_action()
     m_popup_menu.attach_to_widget( *this );
 
     // ポップアップメニューにショートカットキーやマウスジェスチャを表示
+    // TODO: GTK4 Gio::Menu は Gtk::Menu にバインドすると変更がフリーズされるためラベルを変更することができない。
+    // 別の仕組みを検討する。
 }
 
 
@@ -525,23 +572,74 @@ void ARTICLE::ArticleViewBase::activate_act_before_popupmenu( const std::string&
         }
     };
 
-    set_action_enabled( "QuoteRes", ! nourl );
+    // TODO: GTK4 GMenu ではサブメニュー親の sensitive が Action に連動しないため、
+    // 通常メニューの「抽出」サブメニュー自体は無効化せず、子のメニュー項目だけ enabled を落とします。
+    // サブメニュー親の無効化をどうするかは後続のフェーズで決めます。
+    // GTK4ではサブメニュー親を無効化できないため、各子Action側でURLの有無も判定します。
+    set_action_enabled( "DrawoutURL", ! nourl );
+    set_action_enabled( "DrawoutTmp", ! nourl );
 
-    // 範囲選択されてない
+    set_action_enabled( "SearchCacheAll", ! nourl );
+    set_action_enabled( "SearchNextArticle", ! nourl );
+    set_action_enabled( "QuoteRes", ! nourl );
+    set_action_enabled( "SaveDat", ! nourl );
+    set_action_enabled( "PreferenceArticle", ! nourl );
+
+    // 選択範囲の状態
+    const unsigned int max_selection_str = 1024;
+    const unsigned int max_selection_str_quote = 8192;
+
+    const std::string str_select = m_drawarea->str_selection();
+
+    const bool has_selection = ! str_select.empty();
+    const bool selection_ok = has_selection && str_select.length() <= max_selection_str;
+    const bool quote_ok = has_selection && str_select.length() <= max_selection_str_quote;
+    const bool abone_enabled = ! nourl && selection_ok;
+    const bool has_imgurls = has_selection && ! m_drawarea->get_selection_imgurls().empty();
+
+    set_action_enabled( "QuoteSelectionRes", quote_ok );
+    set_action_enabled( "Copy", has_selection );
+    set_action_enabled( "DrawoutWord", ! nourl && has_selection );
+
+    set_action_enabled( "AboneWord", abone_enabled );
+    set_action_enabled( "SetAboneWordBoard", abone_enabled );
+    set_action_enabled( "SetGlobalAboneWord", abone_enabled );
+
+    set_action_enabled( "AboneSelectionRes", ! nourl && has_selection );
+
+    set_action_enabled( "ShowSelectImage", has_imgurls );
+    set_action_enabled( "DeleteSelectImage", has_imgurls );
+    set_action_enabled( "AboneSelectImage", has_imgurls );
 
     // 検索関係
+    set_action_enabled( "SearchWeb", selection_ok );
+    set_action_enabled( "SearchCacheLocal", selection_ok );
+    set_action_enabled( "ExecSearchCacheAll", selection_ok );
+    set_action_enabled( "SearchTitle", selection_ok );
 
     // TODO: GTK4 ユーザーコマンドは現段階では省略します。GTKMM4 版をマージ完了後に対応します。
 
     // ブックマークがセットされていない
+    const bool has_bookmark = m_article->get_num_bookmark() != 0; // 元のコードは int 値の暗黙的 bool 変換だった
+    set_action_enabled( "DrawoutBM", ! nourl && has_bookmark );
+    set_action_enabled( "PreBookMark", has_bookmark );
+    set_action_enabled( "NextBookMark", has_bookmark );
 
     // 書き込みしていない
+    const bool has_posted = m_article->get_num_posted() != 0; // 元のコードは int 値の暗黙的 bool 変換だった
+    set_action_enabled( "DrawoutPost", ! nourl && has_posted );
+    set_action_enabled( "PrePost", has_posted );
+    set_action_enabled( "NextPost", has_posted );
 
     // 高参照レス抽出
+    set_action_enabled( "DrawoutHighRefRes", ! nourl );
 
     // 新着移動
+    set_action_enabled( "GotoNew", m_article->get_number_new() != 0 ); // 元のコードは int 値の暗黙的 bool 変換だった
 
     // 進む、戻る
+    set_action_enabled( "PrevView", HISTORY::get_history_manager()->can_back_viewhistory( get_url(), 1 ) );
+    set_action_enabled( "NextView", HISTORY::get_history_manager()->can_forward_viewhistory( get_url(), 1 ) );
 
     // 透明あぼーん
     if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "TranspAbone" ) ) ) {
@@ -606,6 +704,7 @@ void ARTICLE::ArticleViewBase::activate_act_before_popupmenu( const std::string&
     }
 
     // スレ情報の引き継ぎ
+    set_action_enabled( "CopyInfo", ! url.empty() && ! DBTREE::url_dat( url ).empty() );
 
     m_enable_menuslot = true;
 }
