@@ -433,6 +433,7 @@ bool Usrcmd_Manager::is_hide( int num, const std::string& url ) const
 }
 
 
+#ifndef USE_GTKMM4
 //
 // ユーザコマンドの登録とメニュー作成
 //
@@ -537,3 +538,4 @@ void Usrcmd_Manager::toggle_sensitive( Glib::RefPtr< Gtk::ActionGroup >& action_
         }
     }
 }
+#endif // USE_GTKMM4
