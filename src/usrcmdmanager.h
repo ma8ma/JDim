@@ -60,6 +60,8 @@ namespace CORE
                                  const std::string& text,
                                  const int number ) const;
 
+#ifndef USE_GTKMM4
+        // TODO: GTK4 ユーザーコマンドは GTKMM4 移行中は省略して移行後に再構築します。
         // ユーザコマンドメニューの作成
         std::string create_usrcmd_menu( Glib::RefPtr< Gtk::ActionGroup >& action_group );
         std::string create_usrcmd_menu( Glib::RefPtr< Gtk::ActionGroup >& action_group,
@@ -72,6 +74,8 @@ namespace CORE
                                const std::string& url_article,
                                const std::string& url_link,
                                const std::string& str_select );
+#endif
+
       private:
 
         bool show_replacetextdiag( std::string& texti, const std::string& title ) const;
