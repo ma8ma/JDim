@@ -27,6 +27,12 @@ enum
 AboutDiag::AboutDiag( const Glib::ustring& title )
     : Gtk::Dialog( title, ENVIRONMENT::get_dialog_use_header_bar() ? Gtk::DIALOG_USE_HEADER_BAR
                                                                    : Gtk::DialogFlags{} )
+    , m_vbox_info{ Gtk::ORIENTATION_VERTICAL, 0 }
+    , m_hbox_url{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_vbox_environment{ Gtk::ORIENTATION_VERTICAL, 0 }
+#ifdef USE_GTKMM4
+    , m_hbuttonbox_environment{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+#endif
     , m_button_copy_environment( "クリップボードへコピー" )
 {
     set_transient_for( *CORE::get_mainwindow() );
@@ -129,7 +135,11 @@ void AboutDiag::init()
 
     // クリップボードへコピーのボタン
     m_button_copy_environment.signal_clicked().connect( sigc::mem_fun( *this, &AboutDiag::slot_copy_environment ) );
+#ifdef USE_GTKMM4
+    m_hbuttonbox_environment.set_halign( Gtk::ALIGN_END );
+#else
     m_hbuttonbox_environment.set_layout( Gtk::BUTTONBOX_END );
+#endif
     m_hbuttonbox_environment.pack_start( m_button_copy_environment, Gtk::PACK_SHRINK );
     m_vbox_environment.pack_start( m_hbuttonbox_environment, Gtk::PACK_SHRINK );
 

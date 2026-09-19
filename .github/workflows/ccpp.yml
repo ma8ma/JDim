@@ -1,13 +1,16 @@
 # SPDX-License-Identifier: FSFAP
 name: CI
 
+# gtkmm4-migration ブランチでのGTKMM4移行作業中は通常CIの自動実行を停止する。（手動実行のみ許可）
+# 移行完了後にpush/pull_requestのトリガーを復元する。
 on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
+  workflow_dispatch:
+  #push:
+  #  branches:
+  #    - master
+  #pull_request:
+  #  branches:
+  #    - master
 
 jobs:
 

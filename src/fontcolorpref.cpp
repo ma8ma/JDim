@@ -32,6 +32,8 @@ FontColorPref::FontColorPref( Gtk::Window* parent, const std::string& url )
     , m_label_aafont{ "AAレスと判定する正規表現(_R):", true }
     , m_bt_reset_font{ "フォントの設定を全てデフォルトに戻す(_F)", true }
 
+    , m_vbox_color{ Gtk::ORIENTATION_VERTICAL, 0 }
+    , m_hbox_change_color{ Gtk::ORIENTATION_HORIZONTAL, 0 }
     , m_label_reset_color{ "選択行の色をデフォルトに戻す:", false }
     , m_bt_change_color{ "選択行の色を設定する(_S)", true }
     , m_bt_reset_color{ "ライト(_R)", true }
@@ -657,11 +659,21 @@ void FontColorPref::slot_change_color()
         if( colorid == COLOR_NONE ) return;
     }
 
+#ifdef USE_GTKMM4
+    // TODO: GTK4 - ColorChooserDialog も GTK 4.10 以降 deprecated になる。 Gtk::ColorDialog へ移行する。
+    // ColorChooserDialog ではKDE環境のスポイトが利用できない
+    Gtk::ColorChooserDialog colordiag;
+    colordiag.set_use_alpha( false );
+    if( colorid != COLOR_NONE ) {
+        colordiag.set_rgba( Gdk::RGBA( CONFIG::get_color( colorid ) ) );
+    }
+#else
     Gtk::ColorSelectionDialog colordiag;
     if( colorid != COLOR_NONE ) {
         Gtk::ColorSelection* sel = colordiag.get_color_selection();
         sel->set_current_rgba( Gdk::RGBA( CONFIG::get_color( colorid ) ) );
     }
+#endif
     colordiag.set_transient_for( *CORE::get_mainwindow() );
     const int ret = colordiag.run();
 
@@ -674,8 +686,13 @@ void FontColorPref::slot_change_color()
 
             colorid = row[ m_columns_color.m_col_colorid ];
             if( colorid != COLOR_NONE ) {
+#ifdef USE_GTKMM4
+                const Gdk::RGBA rgba = colordiag.get_rgba();
+                CONFIG::set_color( colorid, MISC::color_to_str( rgba ) );
+#else
                 Gtk::ColorSelection* sel = colordiag.get_color_selection();
                 CONFIG::set_color( colorid, MISC::color_to_str( sel->get_current_rgba() ) );
+#endif
             }
         }
     }
