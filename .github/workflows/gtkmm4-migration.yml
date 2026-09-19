@@ -160,6 +160,22 @@ jobs:
       - run: meson test -v -C builddir
       - run: ./builddir/src/jdim -V
 
+  gtkmm4-unity-build-gcc14-Werror:
+    runs-on: ubuntu-24.04
+    env:
+      CC: gcc-14
+      CXX: g++-14
+    steps:
+      - uses: actions/checkout@v7
+      - name: dependencies installation
+        run: |
+          sudo apt update
+          sudo apt install libcrypt-dev libgnutls28-dev libgtest-dev libgtkmm-3.0-dev meson zlib1g-dev g++-14
+      - run: meson setup builddir -Duse_gtkmm4=true -Dunity=on -Dunity_size=1000 -Dbuildtype=debug -Dcpp_args="-D_DEBUG" -Dwerror=true
+      - run: ninja -C builddir -k0
+      - run: meson test -v -C builddir
+      - run: ./builddir/src/jdim -V
+
   gtkmm4-migration:
     runs-on: ubuntu-24.04
     env:
@@ -183,9 +199,6 @@ jobs:
           sudo apt install libcrypt-dev libgnutls28-dev libgtest-dev libgtkmm-3.0-dev meson zlib1g-dev ${{ matrix.sets.package }}
       - run: meson setup builddir -Duse_gtkmm4=true -Dbuildtype=debug -Dcpp_args="-D_DEBUG"
       - name: Build with GTKMM4 migration
-        # GTKMM4移行初期ではビルド失敗は意図したものなので、
-        # ビルドに失敗してもJobを成功扱いとして後続処理を続行する。
-        continue-on-error: true
         run: |
           set -o pipefail
           ninja -C builddir -k0 2>&1 | tee build.log
@@ -216,9 +229,6 @@ jobs:
           sudo apt install libcrypt-dev libgnutls28-dev libgtest-dev libgtkmm-3.0-dev meson zlib1g-dev ${{ matrix.sets.package }}
       - run: meson setup builddir -Duse_gtkmm4=true -Dbuildtype=debug -Dcpp_args="-fdiagnostics-format=json-file -D_DEBUG"
       - name: Build with GTKMM4 migration
-        # GTKMM4移行初期ではビルド失敗は意図したものなので、
-        # ビルドに失敗してもJobを成功扱いとして後続処理を続行する。
-        continue-on-error: true
         run: ninja -C builddir -k0
       - name: Collect JSON diagnostics
         if: always()

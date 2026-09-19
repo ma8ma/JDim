@@ -150,13 +150,21 @@ if use_gtkmm4
   ]
 endif
 
+jdim_resources_lib = static_library(
+  'jdim-resources',
+  gresource_sources,
+  dependencies : [gtkmm_dep],  # gio に依存している
+  override_options : ['unity=off'],
+)
+
 # Generated resource source must be linked into the final executable.
 # Linking it only into a static library prevents the constructor from
 # registering the resource at startup.
 jdim_exe = executable(
-  'jdim', [sources, buildinfo_h, gresource_sources],
+  'jdim', [sources, buildinfo_h],
   dependencies : [config_h_dep, jdim_deps],
   include_directories : jdim_incs,
+  link_whole : jdim_resources_lib,
   link_with : jdim_libs,
   install : true,
 )
