@@ -164,7 +164,7 @@ jdim_exe = executable(
   'jdim', [sources, buildinfo_h],
   dependencies : [config_h_dep, jdim_deps],
   include_directories : jdim_incs,
-  link_whole: jdim_resources_lib,
+  link_whole : jdim_resources_lib,
   link_with : jdim_libs,
   install : true,
 )
