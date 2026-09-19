@@ -32,6 +32,8 @@ SelectItemPref::SelectItemPref( Gtk::Window* parent, const std::string& url )
 #ifdef USE_GTKMM4
     , m_vbuttonbox_action{ Gtk::ORIENTATION_VERTICAL, 4 }
 #endif
+    , m_vbox{ Gtk::ORIENTATION_VERTICAL, 0 }
+    , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
 {
     m_list_default_data.clear();
 

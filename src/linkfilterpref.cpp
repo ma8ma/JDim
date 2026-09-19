@@ -23,10 +23,12 @@
 using namespace CORE;
 
 LinkFilterDiag::LinkFilterDiag( Gtk::Window* parent, const std::string& url, const std::string& cmd )
-    : SKELETON::PrefDiag( parent, "" ),
-      m_label_url( "アドレス", Gtk::ALIGN_START ),
-      m_label_cmd( "実行するコマンド", Gtk::ALIGN_START ),
-      m_button_manual( "オンラインマニュアルの置換文字一覧を表示" )
+    : SKELETON::PrefDiag( parent, "" )
+    , m_vbox{ Gtk::ORIENTATION_VERTICAL, 0 }
+    , m_label_url( "アドレス", Gtk::ALIGN_START )
+    , m_hbox_cmd{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_label_cmd( "実行するコマンド", Gtk::ALIGN_START )
+    , m_button_manual( "オンラインマニュアルの置換文字一覧を表示" )
 {
     resize( 640, 1 );
 
@@ -75,6 +77,7 @@ LinkFilterPref::LinkFilterPref( Gtk::Window* parent, const std::string& url )
 #ifdef USE_GTKMM4
     , m_vbuttonbox{ Gtk::ORIENTATION_VERTICAL, 4 }
 #endif
+    , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
 {
     const bool use_symbolic = CONFIG::get_use_symbolic_icon();
     m_button_top.set_image_from_icon_name( use_symbolic ? "go-top-symbolic" : "go-top" );

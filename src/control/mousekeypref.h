@@ -34,7 +34,7 @@ namespace CONTROL
         std::string m_str_motion;
 
         Gtk::Label m_label;
-        Gtk::HBox m_hbox;
+        Gtk::Box m_hbox;
 
         CONTROL::Control m_control;
 
@@ -103,8 +103,7 @@ namespace CONTROL
 #else
         Gtk::VButtonBox m_vbuttonbox;
 #endif
-
-        Gtk::HBox m_hbox;
+        Gtk::Box m_hbox;
 
       public:
 
@@ -185,7 +184,7 @@ namespace CONTROL
         MouseKeyTreeColumn m_columns;
         Gtk::ScrolledWindow m_scrollwin;
 
-        Gtk::HBox m_hbox;
+        Gtk::Box m_hbox;
         Gtk::Button m_button_reset;
 
         Gtk::Label m_label;
