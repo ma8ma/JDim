@@ -350,7 +350,8 @@ SetupWizard::SetupWizard()
     hbox->set_halign( Gtk::ALIGN_END );
     hbox->pack_start( m_back );
     hbox->pack_start( m_next );
-    get_content_area()->pack_end( *hbox );
+    // GTK4では action area がないため、ボタン用のBoxを content area に配置する。
+    // m_notebookの後に追加して、ダイアログ下部にボタンを置く。
 #else
     get_action_area()->set_spacing( SPACING_SIZE / 2 );
     get_action_area()->pack_start( m_back, false, false );
@@ -379,6 +380,9 @@ SetupWizard::SetupWizard()
     m_sigc_switch_page = m_notebook.signal_switch_page().connect( sigc::mem_fun( *this, &SetupWizard::slot_switch_page ) );
 
     get_content_area()->pack_start( m_notebook, true, false, SPACING_SIZE );
+#ifdef USE_GTKMM4
+    get_content_area()->pack_start( *hbox, false, false );
+#endif
 
     show_all_children();
 }
