@@ -341,9 +341,22 @@ SetupWizard::SetupWizard()
     set_position( Gtk::WIN_POS_CENTER ); // 配置はデスクトップ環境次第
 
     // ボタン
+#ifdef USE_GTKMM4
+    // TODO: GTK4では Gtk::Dialog::get_action_area() が削除されている。
+    // 現時点ではコンパイル可能にすることを優先し、
+    // ボタンは content_area に配置する。
+    // ボタン配置の最終調整は GTK4 UI 移行時に行う。
+    auto hbox = Gtk::make_managed<Gtk::Box>( Gtk::ORIENTATION_HORIZONTAL, SPACING_SIZE / 2 );
+    hbox->set_halign( Gtk::ALIGN_END );
+    hbox->pack_start( m_back );
+    hbox->pack_start( m_next );
+    // GTK4では action area がないため、ボタン用のBoxを content area に配置する。
+    // m_notebookの後に追加して、ダイアログ下部にボタンを置く。
+#else
     get_action_area()->set_spacing( SPACING_SIZE / 2 );
-    get_action_area()->pack_start( m_back, Gtk::PACK_SHRINK );
-    get_action_area()->pack_start( m_next, Gtk::PACK_SHRINK );
+    get_action_area()->pack_start( m_back, false, false );
+    get_action_area()->pack_start( m_next, false, false );
+#endif
     m_fin = add_button( "完了(_C)", Gtk::RESPONSE_OK );
 
     m_back.set_sensitive( false );
@@ -366,7 +379,10 @@ SetupWizard::SetupWizard()
     m_notebook.set_show_tabs( false );
     m_sigc_switch_page = m_notebook.signal_switch_page().connect( sigc::mem_fun( *this, &SetupWizard::slot_switch_page ) );
 
-    get_content_area()->pack_start( m_notebook, Gtk::PACK_EXPAND_PADDING, SPACING_SIZE );
+    get_content_area()->pack_start( m_notebook, true, false, SPACING_SIZE );
+#ifdef USE_GTKMM4
+    get_content_area()->pack_start( *hbox, false, false );
+#endif
 
     show_all_children();
 }
