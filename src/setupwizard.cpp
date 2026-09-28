@@ -350,8 +350,8 @@ SetupWizard::SetupWizard()
     // ボタン配置の最終調整は GTK4 UI 移行時に行う。
     auto hbox = Gtk::make_managed<Gtk::Box>( Gtk::ORIENTATION_HORIZONTAL, SPACING_SIZE / 2 );
     hbox->set_halign( Gtk::ALIGN_END );
-    hbox->pack_start( m_back );
-    hbox->pack_start( m_next );
+    JDLIB::compat::box_append_expand( *hbox, m_back );
+    JDLIB::compat::box_append_expand( *hbox, m_next );
     // GTK4では action area がないため、ボタン用のBoxを content area に配置する。
     // m_notebookの後に追加して、ダイアログ下部にボタンを置く。
 #else
