@@ -12,6 +12,8 @@
 
 #include "icons/iconmanager.h"
 
+#include "jdlib/gtk_compat.h"
+
 using namespace CORE;
 
 enum
@@ -354,8 +356,8 @@ SetupWizard::SetupWizard()
     // m_notebookの後に追加して、ダイアログ下部にボタンを置く。
 #else
     get_action_area()->set_spacing( SPACING_SIZE / 2 );
-    get_action_area()->pack_start( m_back, false, false );
-    get_action_area()->pack_start( m_next, false, false );
+    JDLIB::compat::box_append_shrink( *get_action_area(), m_back );
+    JDLIB::compat::box_append_shrink( *get_action_area(), m_next );
 #endif
     m_fin = add_button( "完了(_C)", Gtk::RESPONSE_OK );
 
@@ -381,7 +383,7 @@ SetupWizard::SetupWizard()
 
     get_content_area()->pack_start( m_notebook, true, false, SPACING_SIZE );
 #ifdef USE_GTKMM4
-    get_content_area()->pack_start( *hbox, false, false );
+    JDLIB::compat::box_append_shrink( *get_content_area(), *hbox );
 #endif
 
     show_all_children();
