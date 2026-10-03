@@ -5,12 +5,15 @@
 
 #include "tabswitchbutton.h"
 
+#include "jdlib/gtk_compat.h"
+
 
 using namespace SKELETON;
 
 
 TabSwitchButton::TabSwitchButton( DragableNoteBook* )
     : Gtk::Notebook()
+    , m_vbox{ Gtk::ORIENTATION_VERTICAL, 0 }
 {
     set_border_width( 0 );
 
@@ -24,7 +27,7 @@ TabSwitchButton::TabSwitchButton( DragableNoteBook* )
     m_button.set_margin_top( 0 );
     m_button.set_margin_bottom( 0 );
 
-    m_vbox.pack_start( m_button, Gtk::PACK_SHRINK );
+    JDLIB::compat::box_append_shrink( m_vbox, m_button );
 
     set_show_tabs( false );
 }

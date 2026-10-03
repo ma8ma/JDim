@@ -20,6 +20,7 @@
 #include <gtkmm.h>
 
 #include <list>
+#include <map>
 #include <memory>
 #include <string>
 
@@ -99,6 +100,7 @@ namespace CORE
 
         // ツールバー
         std::unique_ptr<MainToolBar> m_toolbar;
+        SKELETON::JDVBox m_toolbar_socket;
 
         // タイトルに表示する文字列
         // set_maintitle() 参照
@@ -106,8 +108,14 @@ namespace CORE
 
         Gtk::MenuBar* m_menubar{};
 
+#ifdef USE_GTKMM4
+        // 暫定: 旧 Action 名 → MenuItem*（状態更新用）。
+        // 将来: Gio::SimpleActionGroup に置き換える可能性あり。
+        std::map<std::string, Gtk::MenuItem*> m_action_group;
+#else
         Glib::RefPtr< Gtk::ActionGroup > m_action_group;
         Glib::RefPtr< Gtk::UIManager > m_ui_manager;
+#endif
         bool m_enable_menuslot;
 
         // 初期設定中
@@ -144,6 +152,15 @@ namespace CORE
 
         void pack_widget( bool unpack );
         void create_toolbar();
+        void setup_menubar();
+#ifdef USE_GTKMM4
+        Gtk::MenuItem* create_file_menu();
+        Gtk::MenuItem* create_view_menu();
+        Gtk::MenuItem* create_history_menu();
+        Gtk::MenuItem* create_tool_menu();
+        Gtk::MenuItem* create_setting_menu();
+        Gtk::MenuItem* create_help_menu();
+#endif
 
         // 初回起動時のセットアップ
         void first_setup();

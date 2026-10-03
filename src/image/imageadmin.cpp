@@ -21,6 +21,7 @@
 
 #include "history/historymanager.h"
 
+#include "jdlib/gtk_compat.h"
 #include "jdlib/miscutil.h"
 #include "jdlib/miscmsg.h"
 
@@ -50,6 +51,8 @@ using namespace IMAGE;
 
 ImageAdmin::ImageAdmin( const std::string& url )
     : SKELETON::Admin( url )
+    , m_tab{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_iconbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
     , m_scroll( SCROLL_NO )
 {
     m_scrwin.add( m_iconbox );
@@ -76,9 +79,9 @@ ImageAdmin::ImageAdmin( const std::string& url )
     m_tab.add_events( Gdk::SMOOTH_SCROLL_MASK );
     m_tab.signal_scroll_event().connect( sigc::mem_fun( *this, &ImageAdmin::slot_scroll_event ) );
 
-    m_tab.pack_start( m_scrwin );
-    m_tab.pack_end( m_right, Gtk::PACK_SHRINK );
-    m_tab.pack_end( m_left, Gtk::PACK_SHRINK );
+    JDLIB::compat::box_append_expand( m_tab, m_scrwin );
+    JDLIB::compat::box_append_shrink( m_tab, m_left );
+    JDLIB::compat::box_append_shrink( m_tab, m_right );
     m_tab.show_all_children();
 }
 
@@ -353,7 +356,7 @@ void ImageAdmin::open_view( const COMMAND_ARGS& command )
             if( command.arg3 == "lock" ) icon->lock();
             icon->set_size_request( ICON_SIZE ,  ICON_SIZE );
             icon->show_view();
-            m_iconbox.pack_start( *icon, Gtk::PACK_SHRINK );
+            JDLIB::compat::box_append_shrink( m_iconbox, *icon );
             m_iconbox.show_all_children();
         }
 
@@ -620,11 +623,8 @@ void ImageAdmin::open_window()
     ImageWin* win = dynamic_cast< ImageWin* >( get_jdwin() );
 
     if( ! SESSION::get_embedded_img() && ! win && ! empty() ){
-        set_jdwin( std::make_unique<IMAGE::ImageWin>() );
-        win = dynamic_cast<IMAGE::ImageWin*>( get_jdwin() );
-        win->pack_remove_tab( false, m_tab );
-        win->pack_remove_end( false, m_view );
-        win->show_all();
+        set_jdwin( std::make_unique<IMAGE::ImageWin>( m_tab, m_view ) );
+        get_jdwin()->show_all();
     }
     else if( win && win->is_hide() ){
         win->show();
@@ -642,7 +642,7 @@ void ImageAdmin::close_window()
 
     if( win ){
         win->pack_remove_tab( true, m_tab );
-        win->pack_remove_end( true, m_view );
+        win->pack_remove_start( true, m_view );
         delete_jdwin();
     }
 }

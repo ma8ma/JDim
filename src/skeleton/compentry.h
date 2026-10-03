@@ -14,7 +14,7 @@
 
 namespace SKELETON
 {
-    class CompletionEntry : public Gtk::HBox
+    class CompletionEntry : public Gtk::Box
     {
         typedef sigc::signal< void, int > SIG_OPERATE;
         typedef sigc::signal< void > SIG_ACTIVATE;
@@ -62,7 +62,9 @@ namespace SKELETON
 
         void modify_font( const Pango::FontDescription& pfd )
         {
+#ifndef USE_GTKMM4
             m_entry.override_font( pfd );
+#endif
         }
 
       private:

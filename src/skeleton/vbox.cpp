@@ -5,21 +5,32 @@
 
 #include "vbox.h"
 
+#include "jdlib/gtk_compat.h"
+
 using namespace SKELETON;
+
+
+JDVBox::JDVBox()
+    : Gtk::Box{ Gtk::ORIENTATION_VERTICAL, 0 }
+{
+}
+
 
 JDVBox::~JDVBox() noexcept = default;
 
 
 // unpack = true の時取り除く
-void JDVBox::pack_remove_start( bool unpack, Widget& child, Gtk::PackOptions options, guint padding )
+void JDVBox::pack_remove_start( bool unpack, Widget& child, bool expand, bool fill, guint padding )
 {
     if( unpack ) remove( child );
-    else pack_start( child, options, padding );
-}
-
-// unpack = true の時取り除く
-void JDVBox::pack_remove_end( bool unpack, Widget& child, Gtk::PackOptions options, guint padding )
-{
-    if( unpack ) remove( child );
-    else pack_end( child, options, padding );
+    else if( expand && fill ) {
+        JDLIB::compat::box_append_expand( *this, child, padding );
+    }
+    else if( expand ) {
+        JDLIB::compat::box_append_expand_nofill( *this, child, padding );
+    }
+    else {
+        assert( ! fill ); // 呼び出し元に expand=false, fill=true のパターンはない
+        JDLIB::compat::box_append_shrink( *this, child, padding );
+    }
 }

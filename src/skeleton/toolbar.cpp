@@ -14,6 +14,7 @@
 
 #include "dbtree/interface.h"
 
+#include "jdlib/gtk_compat.h"
 #include "jdlib/miscutil.h"
 
 #include "icons/iconmanager.h"
@@ -31,7 +32,8 @@ using namespace SKELETON;
 
 
 ToolBar::ToolBar( Admin* admin )
-    : m_admin( admin )
+    : Gtk::Box{ Gtk::ORIENTATION_VERTICAL, 0 }
+    , m_admin( admin )
     , m_enable_slot{ true }
 {
     m_buttonbar.set_border_width( 0 );
@@ -119,8 +121,8 @@ void ToolBar::show_toolbar()
     if( m_buttonbar_shown && ! m_buttonbar_packed ){
 
         if( m_searchbar_packed ) remove( *m_searchbar );
-        pack_start( m_buttonbar, Gtk::PACK_SHRINK );
-        if( m_searchbar_packed ) pack_start( *m_searchbar, Gtk::PACK_SHRINK );
+        JDLIB::compat::box_append_shrink( *this, m_buttonbar );
+        if( m_searchbar_packed ) JDLIB::compat::box_append_shrink( *this, *m_searchbar );
 
         show_all_children();
         set_relief();
@@ -131,7 +133,7 @@ void ToolBar::show_toolbar()
     // 検索バーのpack
     if( m_searchbar_shown && ! m_searchbar_packed ){
 
-        pack_start( *m_searchbar, Gtk::PACK_SHRINK );
+        JDLIB::compat::box_append_shrink( *this, *m_searchbar );
 
         show_all_children();
         set_relief();

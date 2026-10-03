@@ -9,6 +9,8 @@
 
 #include "config/globalconf.h"
 
+#include "jdlib/gtk_compat.h"
+
 #include "dndmanager.h"
 
 using namespace SKELETON;
@@ -21,6 +23,7 @@ enum
 
 TabLabel::TabLabel( const std::string& url )
     : m_url( url )
+    , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
     , m_id_icon( ICON::NUM_ICONS )
 {
 #ifdef _DEBUG
@@ -35,7 +38,7 @@ TabLabel::TabLabel( const std::string& url )
     add_events( Gdk::SMOOTH_SCROLL_MASK ); // マウスホイールによるタブの切り替え
 
     add( m_hbox );
-    m_hbox.pack_start( m_label, Gtk::PACK_SHRINK );
+    JDLIB::compat::box_append_shrink( m_hbox, m_label );
 
     show_all_children();
 }
@@ -52,8 +55,8 @@ void TabLabel::set_id_icon( const int id )
         m_image = std::make_unique<Gtk::Image>();
         m_hbox.remove( m_label );
         m_hbox.set_spacing( SPACING_LABEL );
-        m_hbox.pack_start( *m_image, Gtk::PACK_SHRINK );
-        m_hbox.pack_start( m_label, Gtk::PACK_SHRINK );
+        JDLIB::compat::box_append_shrink( m_hbox, *m_image );
+        JDLIB::compat::box_append_shrink( m_hbox, m_label );
         show_all_children();
     }
 
@@ -113,9 +116,13 @@ int TabLabel::get_label_margin() const
 {
     int label_margin;
 
+#ifdef USE_GTKMM4
+    label_margin = m_label.get_margin_start() + m_label.get_margin_end()
+#else
     int x_pad, y_pad;
     m_label.get_padding( x_pad, y_pad );
     label_margin = x_pad*2
+#endif
         + m_hbox.get_spacing() + m_hbox.get_border_width()*2
         + get_border_width()*2;
 

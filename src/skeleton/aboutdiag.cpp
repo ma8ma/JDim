@@ -11,6 +11,7 @@
 
 #include "config/globalconf.h"
 #include "icons/iconmanager.h"
+#include "jdlib/gtk_compat.h"
 #include "jdlib/miscgtk.h"
 
 #include <glib/gi18n.h>
@@ -27,6 +28,12 @@ enum
 AboutDiag::AboutDiag( const Glib::ustring& title )
     : Gtk::Dialog( title, ENVIRONMENT::get_dialog_use_header_bar() ? Gtk::DIALOG_USE_HEADER_BAR
                                                                    : Gtk::DialogFlags{} )
+    , m_vbox_info{ Gtk::ORIENTATION_VERTICAL, 0 }
+    , m_hbox_url{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_vbox_environment{ Gtk::ORIENTATION_VERTICAL, 0 }
+#ifdef USE_GTKMM4
+    , m_hbuttonbox_environment{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+#endif
     , m_button_copy_environment( "クリップボードへコピー" )
 {
     set_transient_for( *CORE::get_mainwindow() );
@@ -87,29 +94,29 @@ void AboutDiag::init()
     // ロゴ
     if( get_logo() )
     {
-        m_vbox_info.pack_start( m_image_logo, Gtk::PACK_SHRINK );
+        JDLIB::compat::box_append_shrink( m_vbox_info, m_image_logo );
     }
     // バージョン 
     if( ! get_version().empty() )
     {
-        m_vbox_info.pack_start( m_label_version, Gtk::PACK_EXPAND_WIDGET, MARGIN );
+        JDLIB::compat::box_append_expand( m_vbox_info, m_label_version, MARGIN );
     }
     // コメント
     if( ! get_comments().empty() )
     {
-        m_vbox_info.pack_start( m_label_comments, Gtk::PACK_SHRINK );
+        JDLIB::compat::box_append_shrink( m_vbox_info, m_label_comments );
     }
     // コピーライト
     if( ! get_copyright().empty() )
     {
         m_label_copyright.set_justify( Gtk::JUSTIFY_CENTER );
-        m_vbox_info.pack_start( m_label_copyright, Gtk::PACK_SHRINK );
+        JDLIB::compat::box_append_shrink( m_vbox_info, m_label_copyright );
     }
     // Webサイト
     if( ! get_website_label().empty() )
     {
-        m_hbox_url.pack_start( m_button_website, Gtk::PACK_EXPAND_PADDING );
-        m_vbox_info.pack_start( m_hbox_url, Gtk::PACK_SHRINK );
+        JDLIB::compat::box_append_expand_nofill( m_hbox_url, m_button_website );
+        JDLIB::compat::box_append_shrink( m_vbox_info, m_hbox_url );
     }
     m_notebook.append_page( m_vbox_info, m_label_tab_info );
 
@@ -125,15 +132,19 @@ void AboutDiag::init()
     m_notebook.append_page( m_vbox_environment, m_label_tab_environment );
 
     // 動作環境一覧
-    m_vbox_environment.pack_start( m_scrollwindow_environment, Gtk::PACK_EXPAND_WIDGET );
+    JDLIB::compat::box_append_expand( m_vbox_environment, m_scrollwindow_environment );
 
     // クリップボードへコピーのボタン
     m_button_copy_environment.signal_clicked().connect( sigc::mem_fun( *this, &AboutDiag::slot_copy_environment ) );
+#ifdef USE_GTKMM4
+    m_hbuttonbox_environment.set_halign( Gtk::ALIGN_END );
+#else
     m_hbuttonbox_environment.set_layout( Gtk::BUTTONBOX_END );
-    m_hbuttonbox_environment.pack_start( m_button_copy_environment, Gtk::PACK_SHRINK );
-    m_vbox_environment.pack_start( m_hbuttonbox_environment, Gtk::PACK_SHRINK );
+#endif
+    JDLIB::compat::box_append_shrink( m_hbuttonbox_environment, m_button_copy_environment );
+    JDLIB::compat::box_append_shrink( m_vbox_environment, m_hbuttonbox_environment );
 
-    get_content_area()->pack_start( m_notebook, Gtk::PACK_EXPAND_WIDGET, MARGIN );
+    JDLIB::compat::box_append_expand( *get_content_area(), m_notebook, MARGIN );
 
     show_all_children();
 

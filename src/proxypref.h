@@ -10,6 +10,7 @@
 
 #include "config/globalconf.h"
 
+#include "jdlib/gtk_compat.h"
 #include "jdlib/miscutil.h"
 
 namespace CORE
@@ -24,8 +25,8 @@ namespace CORE
 
     class ProxyFrame : public Gtk::Frame
     {
-        Gtk::VBox m_vbox;
-        Gtk::HBox m_hbox;
+        Gtk::Box m_vbox;
+        Gtk::Box m_hbox;
 
         Gtk::Box m_hbox_port; ///< "ポート番号"のラベルと入力欄を一つにまとめる
         Gtk::Label m_label_port; ///< "ポート番号"のラベル
@@ -39,7 +40,9 @@ namespace CORE
 
         ProxyFrame( const std::string& title, const Glib::ustring& ckbt_label, const Glib::ustring& send_label,
                     const Glib::ustring& host_label, const Glib::ustring& port_label )
-            : m_hbox_port{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+            : m_vbox{ Gtk::ORIENTATION_VERTICAL, 0 }
+            , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+            , m_hbox_port{ Gtk::ORIENTATION_HORIZONTAL, 0 }
             , m_label_port{ port_label, true }
             , ckbt( ckbt_label, true )
             , send_cookie_check( send_label, true )
@@ -52,18 +55,18 @@ namespace CORE
             entry_port.set_hexpand( false );
             m_label_port.set_mnemonic_widget( entry_port );
 
-            m_hbox_port.pack_start( m_label_port, 0, 0, false );
-            m_hbox_port.pack_start( entry_port, 0, 0, false );
+            JDLIB::compat::box_append_shrink( m_hbox_port, m_label_port );
+            JDLIB::compat::box_append_shrink( m_hbox_port, entry_port );
 
             m_hbox.set_spacing( 8 );
-            m_hbox.pack_start( ckbt, Gtk::PACK_SHRINK );
-            m_hbox.pack_start( send_cookie_check, Gtk::PACK_SHRINK );
-            m_hbox.pack_start( entry_host );
-            m_hbox.pack_start( m_hbox_port, Gtk::PACK_SHRINK );
+            JDLIB::compat::box_append_shrink( m_hbox, ckbt );
+            JDLIB::compat::box_append_shrink( m_hbox, send_cookie_check );
+            JDLIB::compat::box_append_expand( m_hbox, entry_host );
+            JDLIB::compat::box_append_shrink( m_hbox, m_hbox_port );
 
             m_hbox.set_border_width( 8 );
             m_vbox.set_spacing( 8 );
-            m_vbox.pack_start( m_hbox, Gtk::PACK_SHRINK );
+            JDLIB::compat::box_append_shrink( m_vbox, m_hbox );
 
             set_label( title );
             set_border_width( 8 );
@@ -119,8 +122,8 @@ namespace CORE
             entry_port.set_hexpand( false );
             m_label_port.set_mnemonic_widget( entry_port );
 
-            m_hbox_port.pack_start( m_label_port, 0, 0, false );
-            m_hbox_port.pack_start( entry_port, 0, 0, false );
+            JDLIB::compat::box_append_shrink( m_hbox_port, m_label_port );
+            JDLIB::compat::box_append_shrink( m_hbox_port, entry_port );
 
             fallback_proxy_check.set_halign( Gtk::ALIGN_START );
             m_toggle_notice.set_halign( Gtk::ALIGN_END );
@@ -134,22 +137,24 @@ namespace CORE
             m_binding_notice = Glib::Binding::bind_property( m_toggle_notice.property_active(),
                                                              m_revealer_notice.property_reveal_child() );
 
-            m_hbox.pack_start( ckbt, Gtk::PACK_SHRINK );
-            m_hbox.pack_start( send_cookie_check, Gtk::PACK_SHRINK );
-            m_hbox.pack_start( entry_host );
-            m_hbox.pack_start( m_hbox_port, Gtk::PACK_SHRINK );
+            JDLIB::compat::box_append_shrink( m_hbox, ckbt );
+            JDLIB::compat::box_append_shrink( m_hbox, send_cookie_check );
+            JDLIB::compat::box_append_expand( m_hbox, entry_host );
+            JDLIB::compat::box_append_shrink( m_hbox, m_hbox_port );
 
             m_hbox_fallback_proxy.set_hexpand( true );
             m_hbox_fallback_proxy.set_margin_start( 8 );
             m_hbox_fallback_proxy.set_margin_end( 8 );
-            m_hbox_fallback_proxy.pack_start( fallback_proxy_check, Gtk::PACK_SHRINK );
-            m_hbox_fallback_proxy.pack_end( m_toggle_notice, Gtk::PACK_SHRINK );
-            m_vbox_exp_option.pack_start( m_hbox_fallback_proxy, Gtk::PACK_SHRINK );
-            m_vbox_exp_option.pack_start( m_revealer_notice, Gtk::PACK_SHRINK );
+            JDLIB::compat::box_append_shrink( m_hbox_fallback_proxy, fallback_proxy_check );
+            auto* spacer = Gtk::make_managed<Gtk::Box>( Gtk::ORIENTATION_HORIZONTAL, 0 );
+            JDLIB::compat::box_append_expand( m_hbox_fallback_proxy, *spacer );
+            JDLIB::compat::box_append_shrink( m_hbox_fallback_proxy, m_toggle_notice );
+            JDLIB::compat::box_append_shrink( m_vbox_exp_option, m_hbox_fallback_proxy );
+            JDLIB::compat::box_append_shrink( m_vbox_exp_option, m_revealer_notice );
 
             m_hbox.set_border_width( 8 );
-            m_vbox.pack_start( m_hbox, Gtk::PACK_SHRINK );
-            m_vbox.pack_start( m_vbox_exp_option, Gtk::PACK_SHRINK );
+            JDLIB::compat::box_append_shrink( m_vbox, m_hbox );
+            JDLIB::compat::box_append_shrink( m_vbox, m_vbox_exp_option );
 
             set_label( title );
             set_border_width( 8 );
@@ -244,10 +249,10 @@ namespace CORE
             set_activate_entry( m_frame_data.entry_port );
 
             get_content_area()->set_spacing( 4 );
-            get_content_area()->pack_start( m_label );
-            get_content_area()->pack_start( m_frame_2ch );
-            get_content_area()->pack_start( m_frame_2ch_w );
-            get_content_area()->pack_start( m_frame_data );
+            JDLIB::compat::box_append_expand( *get_content_area(), m_label );
+            JDLIB::compat::box_append_expand( *get_content_area(), m_frame_2ch );
+            JDLIB::compat::box_append_expand( *get_content_area(), m_frame_2ch_w );
+            JDLIB::compat::box_append_expand( *get_content_area(), m_frame_data );
 
             set_title( "プロキシ設定" );
             // 2ch読み込み用設定にある label のテキストを wrap するためダイアログのサイズを設定しておく

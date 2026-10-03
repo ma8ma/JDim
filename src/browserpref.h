@@ -17,11 +17,11 @@ namespace CORE
 {
     class BrowserPref : public SKELETON::PrefDiag
     {
-        Gtk::VBox m_vbox;
+        Gtk::Box m_vbox;
         Gtk::Label m_label_notice;
         Gtk::ComboBoxText m_combo;
         Gtk::Frame m_frame;
-        Gtk::HBox m_hbox;
+        Gtk::Box m_hbox;
         Gtk::Entry m_entry_browser;
 
         // OK押した
@@ -39,8 +39,10 @@ namespace CORE
       public:
 
         BrowserPref( Gtk::Window* parent, const std::string& url )
-        : SKELETON::PrefDiag( parent, url ),
-        m_label_notice( "使用するWebブラウザを選択して下さい\nリンククリック時に %LINK をURLに置換します" )
+            : SKELETON::PrefDiag( parent, url )
+            , m_vbox{ Gtk::ORIENTATION_VERTICAL, 0 }
+            , m_label_notice( "使用するWebブラウザを選択して下さい\nリンククリック時に %LINK をURLに置換します" )
+            , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
         {
             const int mrg = 8;
 
@@ -63,12 +65,12 @@ namespace CORE
             m_label_notice.set_xalign( 0 );
 
             m_vbox.set_border_width( mrg );
-            m_vbox.pack_start( m_label_notice, Gtk::PACK_EXPAND_WIDGET, mrg );
-            m_vbox.pack_start( m_combo, Gtk::PACK_EXPAND_WIDGET, 0 );
-            m_vbox.pack_start( m_frame, Gtk::PACK_EXPAND_WIDGET, mrg );
+            JDLIB::compat::box_append_expand( m_vbox, m_label_notice, mrg );
+            JDLIB::compat::box_append_expand( m_vbox, m_combo, 0 );
+            JDLIB::compat::box_append_expand( m_vbox, m_frame, mrg );
 
             get_content_area()->set_spacing( 0 );
-            get_content_area()->pack_start( m_vbox );
+            JDLIB::compat::box_append_expand( *get_content_area(), m_vbox );
 
             set_activate_entry( m_entry_browser );
 
