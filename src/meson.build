@@ -28,10 +28,7 @@ subdir('jdlib')
 subdir('message')
 subdir('skeleton')
 subdir('sound')
-if use_gtkmm4
-  # GTK3 では使用しないので隔離する
-  subdir('ui')
-endif
+subdir('ui')
 subdir('xml')
 
 
@@ -140,11 +137,11 @@ jdim_libs = [
 
 gresource_sources = [
   icons_gresource_cpp,
+  jdim_ui_common_gresource_cpp, # use_gtkmm4 の値に関係なく使用するUI
 ]
 
 if use_gtkmm4
-  # FIXME: フェーズ1の最後に static_library + unity=off + link_whole で use_gtkmm4=true の unity build を直す。
-  # gnome.compile_resources で生成した複数のソースファイルを unity build にすると名前が衝突してエラーが発生する。
+  # GTK3 では使用しないので隔離する
   gresource_sources += [
     jdim_ui_gresource_cpp,
   ]
