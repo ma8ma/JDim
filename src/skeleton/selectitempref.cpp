@@ -6,6 +6,7 @@
 #include "selectitempref.h"
 
 #include "config/globalconf.h"
+#include "jdlib/gtk_compat.h"
 #include "jdlib/miscutil.h"
 
 #include "global.h"
@@ -24,7 +25,16 @@ SelectItemPref::SelectItemPref( Gtk::Window* parent, const std::string& url )
     , m_button_up( g_dpgettext( GTK_DOMAIN, "Stock label, navigation\x04_Up", 24 ), true )
     , m_button_down( g_dpgettext( GTK_DOMAIN, "Stock label, navigation\x04_Down", 24 ), true )
     , m_button_bottom( g_dpgettext( GTK_DOMAIN, "Stock label, navigation\x04_Bottom", 24 ), true )
+#ifdef USE_GTKMM4
+    , m_vbuttonbox_v{ Gtk::ORIENTATION_VERTICAL, 4 }
+    , m_vbuttonbox_h{ Gtk::ORIENTATION_VERTICAL, 4 }
+#endif
     , m_button_default( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Revert", 12 ), true )
+#ifdef USE_GTKMM4
+    , m_vbuttonbox_action{ Gtk::ORIENTATION_VERTICAL, 4 }
+#endif
+    , m_vbox{ Gtk::ORIENTATION_VERTICAL, 0 }
+    , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
 {
     m_list_default_data.clear();
 
@@ -66,15 +76,15 @@ void SelectItemPref::pack_widgets()
     view_column_shown->add_attribute( *render_text_shown, "text", 1 );
 
     // ボタン(縦移動)
-    m_vbuttonbox_v.pack_start( m_button_top, Gtk::PACK_SHRINK );
-    m_vbuttonbox_v.pack_start( m_button_up, Gtk::PACK_SHRINK );
-    m_vbuttonbox_v.pack_start( m_button_down, Gtk::PACK_SHRINK );
-    m_vbuttonbox_v.pack_start( m_button_bottom, Gtk::PACK_SHRINK );
+    JDLIB::compat::box_append_shrink( m_vbuttonbox_v, m_button_top );
+    JDLIB::compat::box_append_shrink( m_vbuttonbox_v, m_button_up );
+    JDLIB::compat::box_append_shrink( m_vbuttonbox_v, m_button_down );
+    JDLIB::compat::box_append_shrink( m_vbuttonbox_v, m_button_bottom );
     // ボタン(横移動)
-    m_vbuttonbox_h.pack_start( m_button_delete, Gtk::PACK_SHRINK );
-    m_vbuttonbox_h.pack_start( m_button_add, Gtk::PACK_SHRINK );
+    JDLIB::compat::box_append_shrink( m_vbuttonbox_h, m_button_delete );
+    JDLIB::compat::box_append_shrink( m_vbuttonbox_h, m_button_add );
     // ボタン(アクション)
-    m_vbuttonbox_action.pack_start( m_button_default, Gtk::PACK_SHRINK );
+    JDLIB::compat::box_append_shrink( m_vbuttonbox_action, m_button_default );
 
     // ボタン(スロット関数)
     m_button_top.signal_clicked().connect( sigc::mem_fun( *this, &SelectItemPref::slot_top ) );
@@ -108,30 +118,44 @@ void SelectItemPref::pack_widgets()
     m_scroll_shown.set_size_request( 250, 300 );
     m_scroll_shown.set_policy( Gtk::POLICY_NEVER, Gtk::POLICY_ALWAYS );
 
-    m_hbox.pack_start( m_scroll_shown, Gtk::PACK_EXPAND_WIDGET );
+    JDLIB::compat::box_append_expand( m_hbox, m_scroll_shown );
 
+#ifdef USE_GTKMM4
+    m_vbuttonbox_v.set_valign( Gtk::ALIGN_START );
+#else
     m_vbuttonbox_v.set_layout( Gtk::BUTTONBOX_START );
     m_vbuttonbox_v.set_spacing( 4 );
-    m_vbox.pack_start( m_vbuttonbox_v, Gtk::PACK_EXPAND_WIDGET );
+#endif
+    JDLIB::compat::box_append_expand( m_vbox, m_vbuttonbox_v );
 
+#ifdef USE_GTKMM4
+    // TODO: GTK4 - Gtk::BUTTONBOX_EDGE の再現（set_valign では端寄せができないため、
+    // 実際に画面描画を確認するフェーズで CSS/Grid または伸縮用 Spacer Box の追加を検討する）
+    m_vbuttonbox_h.set_valign( Gtk::ALIGN_FILL );
+#else
     m_vbuttonbox_h.set_layout( Gtk::BUTTONBOX_EDGE );
     m_vbuttonbox_h.set_spacing( 4 );
-    m_vbox.pack_start( m_vbuttonbox_h, Gtk::PACK_SHRINK );
+#endif
+    JDLIB::compat::box_append_shrink( m_vbox, m_vbuttonbox_h );
 
+#ifdef USE_GTKMM4
+    m_vbuttonbox_action.set_valign( Gtk::ALIGN_END );
+#else
     m_vbuttonbox_action.set_layout( Gtk::BUTTONBOX_END );
     m_vbuttonbox_action.set_spacing( 4 );
-    m_vbox.pack_start( m_vbuttonbox_action, Gtk::PACK_EXPAND_WIDGET );
+#endif
+    JDLIB::compat::box_append_expand( m_vbox, m_vbuttonbox_action );
 
-    m_hbox.pack_start( m_vbox, Gtk::PACK_SHRINK, 4 );
+    JDLIB::compat::box_append_shrink( m_hbox, m_vbox, 4 );
 
     m_scroll_hidden.add( m_tree_hidden );
     m_scroll_hidden.set_size_request( 250, 300 );
     m_scroll_hidden.set_policy( Gtk::POLICY_NEVER, Gtk::POLICY_ALWAYS );
 
-    m_hbox.pack_start( m_scroll_hidden, Gtk::PACK_EXPAND_WIDGET );
+    JDLIB::compat::box_append_expand( m_hbox, m_scroll_hidden );
 
     get_content_area()->set_spacing( 8 );
-    get_content_area()->pack_start( m_hbox );
+    JDLIB::compat::box_append_expand( *get_content_area(), m_hbox );
 
     show_all_children();
 }

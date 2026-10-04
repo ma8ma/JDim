@@ -12,6 +12,8 @@
 #include "global.h"
 #include "session.h"
 
+#include "jdlib/gtk_compat.h"
+
 #include <glib/gi18n.h>
 
 
@@ -31,7 +33,18 @@ PrefDiag::PrefDiag( Gtk::Window* parent, const std::string& url, const bool add_
             get_header_bar()->pack_start( m_bt_apply );
         }
         else {
-            get_action_area()->pack_start( m_bt_apply );
+#ifdef USE_GTKMM4
+            // TODO: GTK4では Gtk::Dialog::get_action_area() が削除されている。
+            // 現時点ではコンパイル可能にすることを優先し、
+            // ボタンは content_area に配置する。
+            // ボタン配置の最終調整は GTK4 UI 移行時に行う。
+            auto hbox = Gtk::make_managed<Gtk::Box>();
+            hbox->set_halign( Gtk::ALIGN_END );
+            JDLIB::compat::box_append_expand( *hbox, m_bt_apply );
+            get_content_area()->pack_end( *hbox );
+#else
+            JDLIB::compat::box_append_expand( *get_action_area(), m_bt_apply );
+#endif
         }
     }
 

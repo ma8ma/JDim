@@ -8,6 +8,8 @@
 
 #include "dbtree/interface.h"
 
+#include "jdlib/gtk_compat.h"
+
 #include "skeleton/view.h"
 
 using namespace MESSAGE;
@@ -21,9 +23,9 @@ ConfirmDiag::ConfirmDiag( const std::string& url, const std::string& message )
       m_chkbutton( "今後表示しない(常にOK)(_D)", true )
 {
     const int mrg = 16;
-    Gtk::HBox* hbox = Gtk::manage( new Gtk::HBox );
-    hbox->pack_start( m_chkbutton, Gtk::PACK_EXPAND_WIDGET, mrg );
-    get_content_area()->pack_start( *hbox, Gtk::PACK_SHRINK );
+    Gtk::Box* hbox = Gtk::make_managed<Gtk::Box>( Gtk::ORIENTATION_HORIZONTAL, 0 );
+    JDLIB::compat::box_append_expand( *hbox, m_chkbutton, mrg );
+    JDLIB::compat::box_append_shrink( *get_content_area(), *hbox );
 
     set_title( "投稿確認" );
     show_all_children();

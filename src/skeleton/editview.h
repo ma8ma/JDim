@@ -153,7 +153,9 @@ namespace SKELETON
 
         void modify_font( const Pango::FontDescription& font_desc )
         {
+#ifndef USE_GTKMM4
             m_textview.override_font( font_desc );
+#endif
         }
 
         void focus_view(){ m_textview.grab_focus(); }

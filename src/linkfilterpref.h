@@ -14,11 +14,11 @@ namespace CORE
 {
     class LinkFilterDiag : public SKELETON::PrefDiag
     {
-        Gtk::VBox m_vbox;
+        Gtk::Box m_vbox;
         Gtk::Entry m_entry_url;
         Gtk::Entry m_entry_cmd;
         Gtk::Label m_label_url;
-        Gtk::HBox m_hbox_cmd;
+        Gtk::Box m_hbox_cmd;
         Gtk::Label m_label_cmd;
         Gtk::Button m_button_manual;
 
@@ -65,9 +65,13 @@ namespace CORE
         Gtk::Button m_button_bottom;
         Gtk::Button m_button_delete;
         Gtk::Button m_button_add;
+#ifdef USE_GTKMM4
+        Gtk::Box m_vbuttonbox;
+#else
         Gtk::VButtonBox m_vbuttonbox;
+#endif
 
-        Gtk::HBox m_hbox;
+        Gtk::Box m_hbox;
 
       public:
 

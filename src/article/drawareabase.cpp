@@ -15,6 +15,7 @@
 #include "font.h"
 #include "embeddedimage.h"
 
+#include "jdlib/gtk_compat.h"
 #include "jdlib/jdregex.h"
 #include "jdlib/misccharcode.h"
 #include "jdlib/miscgtk.h"
@@ -118,7 +119,8 @@ struct LAYOUT_TABLE
 
 
 DrawAreaBase::DrawAreaBase( const std::string& url )
-    : m_url( url )
+    : Gtk::Box{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_url( url )
     , m_backscreen( nullptr, cairo_surface_destroy )
     , m_enable_draw{ true }
     , m_back_frame_top( nullptr, cairo_surface_destroy )
@@ -200,7 +202,7 @@ void DrawAreaBase::setup( const bool show_abone, const bool show_scrbar, const b
     m_view.signal_key_press_event().connect( sigc::mem_fun(*this, &DrawAreaBase::slot_key_press_event ));
     m_view.signal_key_release_event().connect( sigc::mem_fun(*this, &DrawAreaBase::slot_key_release_event ));
 
-    pack_start( m_view );
+    JDLIB::compat::box_append_expand( *this, m_view );
 
     // pango layout 作成
     m_pango_layout = m_view.create_pango_layout( "" );
@@ -292,9 +294,9 @@ void DrawAreaBase::create_scrbar()
     if( CONFIG::get_left_scrbar() ) remove( m_view );
 
     m_event->add( *m_vscrbar );
-    pack_start( *m_event, Gtk::PACK_SHRINK );
+    JDLIB::compat::box_append_shrink( *this, *m_event );
 
-    if( CONFIG::get_left_scrbar() ) pack_start( m_view );
+    if( CONFIG::get_left_scrbar() ) JDLIB::compat::box_append_expand( *this, m_view );
 
     m_vscrbar->get_adjustment()->signal_value_changed().connect( sigc::mem_fun( *this, &DrawAreaBase::slot_change_adjust ) );
 
