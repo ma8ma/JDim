@@ -20,7 +20,6 @@ namespace ARTICLE
 
         bool m_enable_slot{};
 
-        Gtk::ToolItem m_tool_bm;
         Gtk::CheckButton m_check_bm;
 
       public:

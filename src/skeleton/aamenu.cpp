@@ -24,11 +24,15 @@ AAMenu::AAMenu( Gtk::Window& parent )
 
     Pango::FontDescription pfd( CONFIG::get_fontname( FONT_MESSAGE ) );
     pfd.set_weight( Pango::WEIGHT_NORMAL );
+#ifndef USE_GTKMM4
+    // GTK4ではoverride_*()が廃止されているため、フェーズ1では省略する。
+    // TODO: GTK4 StyleContext/CssProvider等を利用したスタイル設定に移行する。
     m_textview.override_font( pfd );
     m_textview.override_color( Gdk::RGBA( CONFIG::get_color( COLOR_CHAR_SELECTION ) ),
                                Gtk::STATE_FLAG_NORMAL );
     m_textview.override_background_color( Gdk::RGBA( CONFIG::get_color( COLOR_BACK_SELECTION ) ),
                                           Gtk::STATE_FLAG_NORMAL );
+#endif
 
     m_popup.set_transient_for( m_parent );
     m_popup.sig_configured().connect( sigc::mem_fun( *this, &AAMenu::slot_configured_popup ) );
@@ -62,27 +66,23 @@ void AAMenu::set_text( const std::string& text )
 
 
 // メニュー項目作成
-void AAMenu::create_menuitem( Glib::RefPtr< Gtk::ActionGroup > actiongroup, Gtk::Menu* menu, const int id )
+void AAMenu::create_menuitem( Gtk::Menu* menu, const int id )
 {
     const int maxchar = 20;
+
+    for( const auto& pair : m_map_items ) {
+        if( pair.second == id ) return; // 登録済み
+    }
 
     Glib::ustring aa_label = CORE::get_aamanager()->get_label( id );
     std::string shortcut = CORE::get_aamanager()->id2shortcut( id );
     if( ! shortcut.empty() ) aa_label = "[" + shortcut + "] " + aa_label;
 
-    std::string actname = "aa" + std::to_string( id );
-    if( actiongroup->get_action( actname ) ) return; // 登録済み
-
-#ifdef _DEBUG
-    std::cout << actname << " label = " << aa_label << std::endl;
-#endif
-
-    Glib::RefPtr< Gtk::Action > action = Gtk::Action::create( actname, aa_label.substr( 0, maxchar ) );
-    action->set_accel_group( m_parent.get_accel_group() );
-
-    Gtk::MenuItem* item = Gtk::manage( action->create_menu_item() );
-
-    actiongroup->add( action, sigc::bind< Gtk::MenuItem* >( sigc::mem_fun( *this, &AAMenu::slot_aainput_menu_clicked ), item ) );
+    // Gtk::Action と Gtk::ActionGroup は GTK4 で廃止予定のため、
+    // MenuItem を直接生成して signal_activate() を接続する。
+    auto* item = Gtk::make_managed<Gtk::MenuItem>( aa_label.substr( 0, maxchar ) );
+    item->signal_activate().connect(
+        sigc::bind( sigc::mem_fun( *this, &AAMenu::slot_aainput_menu_clicked ), item ) );
     item->signal_select().connect( sigc::bind< Gtk::MenuItem* >( sigc::mem_fun( *this, &AAMenu::slot_select_item ), item ) );
 
     menu->append( *item );
@@ -97,12 +97,10 @@ void AAMenu::create_popupmenu()
     std::string aa_lines;
     if( ! CACHE::load_rawdata( CACHE::path_aalist(), aa_lines ) ) return;
 
-    Glib::RefPtr< Gtk::ActionGroup > actiongroup = Gtk::ActionGroup::create();
-
     // 履歴
     for( int i = 0 ; i < CORE::get_aamanager()->get_historysize() ; ++i ){
         int org_id = CORE::get_aamanager()->history2id( i );
-        create_menuitem( actiongroup, this, org_id );
+        create_menuitem( this, org_id );
     }
 
     if( CORE::get_aamanager()->get_historysize() ){
@@ -111,7 +109,7 @@ void AAMenu::create_popupmenu()
         m_map_items.insert( std::make_pair( item, -1 ) );
     }
 
-    for( int i = 0 ; i < CORE::get_aamanager()->get_size() ; ++i ) create_menuitem( actiongroup, this, i );
+    for( int i = 0 ; i < CORE::get_aamanager()->get_size() ; ++i ) create_menuitem( this, i );
 
     show_all_children();
 }
@@ -244,7 +242,21 @@ bool AAMenu::on_key_press_event( GdkEventKey* event )
 //
 void AAMenu::slot_configured_popup( int width, int height )
 {
+#ifdef USE_GTKMM4
+    // TODO: GTK4 GtkPopoverベースで再設計予定。
+    // Wayland と X11 で挙動が一致していない。
+    // GTK4移行のため最低限動作する実装としている。
+    Gdk::Rectangle rect;
+    {
+        const auto toplevel = get_toplevel();
+        const auto display = Gdk::Display::get_default();
+        const auto monitor = display->get_monitor_at_window( toplevel->get_window() );
+        monitor->get_geometry( rect );
+    }
+    int sw = rect.get_width();
+#else
     int sw = get_screen()->get_width();
+#endif
     int x, y;
     get_window()->get_root_coords( 0, 0, x, y );
 
@@ -258,7 +270,11 @@ void AAMenu::slot_configured_popup( int width, int height )
     y -= height;
     if( x + width > sw  ) x = sw -  width;
 
+#ifdef USE_GTKMM4
+    m_popup.move( x - 5, y - 7 ); // XXX: GTK4 Wayland 向けに応急処置の調整
+#else
     m_popup.move( x, y );
+#endif
 }
 
 

@@ -11,6 +11,7 @@
 
 #include "dbimg/img.h"
 
+#include "jdlib/gtk_compat.h"
 #include "jdlib/miscutil.h"
 
 #include "config/globalconf.h"
@@ -60,7 +61,7 @@ ImageViewMain::ImageViewMain( const std::string& url )
     m_scrwin->property_vscrollbar_policy() = Gtk::POLICY_AUTOMATIC;
     m_scrwin->property_hscrollbar_policy() = Gtk::POLICY_AUTOMATIC;
     m_scrwin->add( get_event() );
-    pack_start( *m_scrwin );
+    JDLIB::compat::box_append_expand( *this, *m_scrwin );
 
     setup_common();
 
@@ -408,7 +409,7 @@ void ImageViewMain::add_tab_number()
 //
 Gtk::Menu* ImageViewMain::get_popupmenu( const std::string& url )
 {
-    Gtk::Menu* popupmenu = dynamic_cast< Gtk::Menu* >( ui_manager()->get_widget( "/popup_menu" ) );
+    Gtk::Menu* popupmenu = get_popupmenu_impl( "/popup_menu" );
     return popupmenu;
 }
 

@@ -10,6 +10,8 @@
 #include "dispatchmanager.h"
 #include "global.h"
 
+#include "jdlib/gtk_compat.h"
+
 #include <glib/gi18n.h>
 
 
@@ -146,9 +148,9 @@ MsgCheckDiag::MsgCheckDiag( Gtk::Window* parent,
 {
     const int mrg = 16;
                 
-    Gtk::HBox* hbox = Gtk::manage( new Gtk::HBox );
-    hbox->pack_start( m_chkbutton, Gtk::PACK_EXPAND_WIDGET, mrg );
-    get_content_area()->pack_start( *hbox, Gtk::PACK_SHRINK );
+    Gtk::Box* hbox = Gtk::make_managed<Gtk::Box>( Gtk::ORIENTATION_HORIZONTAL, 0 );
+    JDLIB::compat::box_append_expand( *hbox, m_chkbutton, mrg );
+    JDLIB::compat::box_append_shrink( *get_content_area(), *hbox );
 
     if( buttons == Gtk::BUTTONS_OK ){
 

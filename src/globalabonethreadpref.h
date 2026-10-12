@@ -12,6 +12,7 @@
 
 #include "dbtree/interface.h"
 
+#include "jdlib/gtk_compat.h"
 #include "jdlib/miscutil.h"
 
 #include "command.h"
@@ -25,7 +26,7 @@ namespace CORE
         SKELETON::EditView m_edit_word, m_edit_regex;
         Gtk::Label m_label_warning;
 
-        Gtk::VBox m_vbox_abone_thread;
+        Gtk::Box m_vbox_abone_thread;
         Gtk::Label m_label_abone_thread;
 
         Gtk::Box m_hbox_low_number;
@@ -36,7 +37,7 @@ namespace CORE
         Gtk::Label m_label_high_number;
         Gtk::SpinButton m_spin_high_number;
 
-        Gtk::HBox m_hbox_hour;
+        Gtk::Box m_hbox_hour;
         Gtk::Label m_label_hour;
         Gtk::SpinButton m_spin_hour;
 
@@ -68,8 +69,10 @@ namespace CORE
 
         GlobalAboneThreadPref( Gtk::Window* parent, const std::string& url )
             : SKELETON::PrefDiag( parent, url )
+            , m_vbox_abone_thread{ Gtk::ORIENTATION_VERTICAL, 0 }
             , m_hbox_low_number{ Gtk::ORIENTATION_HORIZONTAL, 4 }
             , m_hbox_high_number{ Gtk::ORIENTATION_HORIZONTAL, 4 }
+            , m_hbox_hour{ Gtk::ORIENTATION_HORIZONTAL, 0 }
         {
             // スレ数、時間
             m_label_abone_thread.set_text( "以下の数字が0の時は未設定になります。\nまたキャッシュにログがあるスレはあぼ〜んされません。\n\n" );
@@ -79,8 +82,8 @@ namespace CORE
             m_spin_low_number.set_increments( 1, 1 );
             m_spin_low_number.set_value( CONFIG::get_abone_low_number_thread() );
 
-            m_hbox_low_number.pack_start( m_spin_low_number, Gtk::PACK_SHRINK );
-            m_hbox_low_number.pack_start( m_label_low_number, Gtk::PACK_SHRINK );
+            JDLIB::compat::box_append_shrink( m_hbox_low_number, m_spin_low_number );
+            JDLIB::compat::box_append_shrink( m_hbox_low_number, m_label_low_number );
 
             set_activate_entry( m_spin_low_number );
 
@@ -89,8 +92,8 @@ namespace CORE
             m_spin_high_number.set_increments( 1, 1 );
             m_spin_high_number.set_value( CONFIG::get_abone_high_number_thread() );
 
-            m_hbox_high_number.pack_start( m_spin_high_number, Gtk::PACK_SHRINK );
-            m_hbox_high_number.pack_start( m_label_high_number, Gtk::PACK_SHRINK );
+            JDLIB::compat::box_append_shrink( m_hbox_high_number, m_spin_high_number );
+            JDLIB::compat::box_append_shrink( m_hbox_high_number, m_label_high_number );
 
             set_activate_entry( m_spin_high_number );
 
@@ -100,17 +103,17 @@ namespace CORE
             m_spin_hour.set_value( CONFIG::get_abone_hour_thread() );
             
             m_hbox_hour.set_spacing( 4 );
-            m_hbox_hour.pack_start( m_spin_hour, Gtk::PACK_SHRINK );
-            m_hbox_hour.pack_start( m_label_hour, Gtk::PACK_SHRINK );
+            JDLIB::compat::box_append_shrink( m_hbox_hour, m_spin_hour );
+            JDLIB::compat::box_append_shrink( m_hbox_hour, m_label_hour );
 
             set_activate_entry( m_spin_hour );
 
             m_vbox_abone_thread.set_border_width( 16 );
             m_vbox_abone_thread.set_spacing( 8 );
-            m_vbox_abone_thread.pack_start( m_label_abone_thread, Gtk::PACK_SHRINK );
-            m_vbox_abone_thread.pack_start( m_hbox_low_number, Gtk::PACK_SHRINK );
-            m_vbox_abone_thread.pack_start( m_hbox_high_number, Gtk::PACK_SHRINK );
-            m_vbox_abone_thread.pack_start( m_hbox_hour, Gtk::PACK_SHRINK );
+            JDLIB::compat::box_append_shrink( m_vbox_abone_thread, m_label_abone_thread );
+            JDLIB::compat::box_append_shrink( m_vbox_abone_thread, m_hbox_low_number );
+            JDLIB::compat::box_append_shrink( m_vbox_abone_thread, m_hbox_high_number );
+            JDLIB::compat::box_append_shrink( m_vbox_abone_thread, m_hbox_hour );
 
             // word
             std::list< std::string > list_word = CONFIG::get_list_abone_word_thread();
@@ -127,7 +130,7 @@ namespace CORE
             m_notebook.append_page( m_edit_word, "NG ワード" );
             m_notebook.append_page( m_edit_regex, "NG 正規表現" );
 
-            get_content_area()->pack_start( m_notebook );
+            JDLIB::compat::box_append_expand( *get_content_area(), m_notebook );
             set_title( "全体スレあぼ〜ん設定" );
             resize( 600, 400 );
             show_all_children();

@@ -8,6 +8,8 @@
 #include "command.h"
 #include "session.h"
 
+#include "jdlib/gtk_compat.h"
+
 
 using namespace BBSLIST;
 
@@ -21,10 +23,17 @@ AddEtcDialog::AddEtcDialog( const bool move, const std::string& url, const std::
 {
     set_default_size( 600, -1 );
 
+#ifdef USE_GTKMM4
+    m_label_name.set_xalign( 0.0 );
+    m_label_url.set_xalign( 0.0 );
+    m_label_id.set_xalign( 0.0 );
+    m_label_pw.set_xalign( 0.0 );
+#else
     m_label_name.set_alignment( Gtk::ALIGN_START );
     m_label_url.set_alignment( Gtk::ALIGN_START );
     m_label_id.set_alignment( Gtk::ALIGN_START );
     m_label_pw.set_alignment( Gtk::ALIGN_START );
+#endif
 
     m_label_name.set_mnemonic_widget( m_entry_name );
     m_label_url.set_mnemonic_widget( m_entry_url );
@@ -67,8 +76,8 @@ AddEtcDialog::AddEtcDialog( const bool move, const std::string& url, const std::
 
     get_content_area()->set_spacing( 8 );
     get_content_area()->property_margin() = 8;
-    get_content_area()->pack_start( m_grid );
-    get_content_area()->pack_start( m_frame );
+    JDLIB::compat::box_append_expand( *get_content_area(), m_grid );
+    JDLIB::compat::box_append_expand( *get_content_area(), m_frame );
 
     if( move ){
         set_title( "外部板編集" );
@@ -102,8 +111,13 @@ AddEtcBBSMenuDialog::AddEtcBBSMenuDialog( Gtk::Window* parent, const bool edit,
 {
     set_default_size( 600, -1 );
 
+#ifdef USE_GTKMM4
+    m_label_name.set_xalign( 0.0 );
+    m_label_url.set_xalign( 0.0 );
+#else
     m_label_name.set_alignment( Gtk::ALIGN_START );
     m_label_url.set_alignment( Gtk::ALIGN_START );
+#endif
     m_label_name.set_mnemonic_widget( m_entry_name );
     m_label_url.set_mnemonic_widget( m_entry_url );
 
@@ -121,8 +135,8 @@ AddEtcBBSMenuDialog::AddEtcBBSMenuDialog( Gtk::Window* parent, const bool edit,
 
     get_content_area()->set_spacing( 8 );
     get_content_area()->property_margin() = 8;
-    get_content_area()->pack_start( m_label_supplement );
-    get_content_area()->pack_start( m_grid );
+    JDLIB::compat::box_append_expand( *get_content_area(), m_label_supplement );
+    JDLIB::compat::box_append_expand( *get_content_area(), m_grid );
 
     set_activate_entry( m_entry_name );
     set_activate_entry( m_entry_url );

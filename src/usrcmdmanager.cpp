@@ -14,6 +14,7 @@
 
 #include "xml/tools.h"
 
+#include "jdlib/gtk_compat.h"
 #include "jdlib/miscutil.h"
 #include "jdlib/jdregex.h"
 
@@ -46,22 +47,24 @@ void CORE::delete_usrcmd_manager()
 
 class ReplaceTextDiag : public SKELETON::PrefDiag
 {
-    Gtk::VBox m_vbox;
+    Gtk::Box m_vbox;
     Gtk::Entry m_entry;
     Gtk::Label m_label;
 
 public:
 
     ReplaceTextDiag( Gtk::Window* parent, const std::string& title )
-        : SKELETON::PrefDiag( parent, "" ), m_label( title + "を置き換えるテキストを入力してください。" )
+        : SKELETON::PrefDiag( parent, "" )
+        , m_vbox{ Gtk::ORIENTATION_VERTICAL, 0 }
+        , m_label( title + "を置き換えるテキストを入力してください。" )
     {
         resize( 640, 1 );
 
-        m_vbox.pack_start( m_label, Gtk::PACK_SHRINK );
-        m_vbox.pack_start( m_entry, Gtk::PACK_SHRINK );
+        JDLIB::compat::box_append_shrink( m_vbox, m_label );
+        JDLIB::compat::box_append_shrink( m_vbox, m_entry );
 
         get_content_area()->set_spacing( 8 );
-        get_content_area()->pack_start( m_vbox );
+        JDLIB::compat::box_append_expand( *get_content_area(), m_vbox );
 
         set_title( "テキスト入力" );
         show_all_children();
@@ -433,6 +436,7 @@ bool Usrcmd_Manager::is_hide( int num, const std::string& url ) const
 }
 
 
+#ifndef USE_GTKMM4
 //
 // ユーザコマンドの登録とメニュー作成
 //
@@ -537,3 +541,4 @@ void Usrcmd_Manager::toggle_sensitive( Glib::RefPtr< Gtk::ActionGroup >& action_
         }
     }
 }
+#endif // USE_GTKMM4

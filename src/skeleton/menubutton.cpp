@@ -5,6 +5,7 @@
 
 #include "menubutton.h"
 
+#include "jdlib/gtk_compat.h"
 #include "jdlib/miscutil.h"
 
 #include "icons/iconmanager.h"
@@ -19,19 +20,30 @@ enum
 };
 
 
-MenuButton::MenuButton( const bool show_arrow, Gtk::Widget* label, Gtk::PackOptions options )
+MenuButton::MenuButton( const bool show_arrow, Gtk::Widget* label, bool expand, bool fill )
     : m_label{ label }
     , m_enable_sig_clicked{ true }
 {
     Gtk::Box* hbox = Gtk::manage( new Gtk::Box( Gtk::ORIENTATION_HORIZONTAL ) );
 
     hbox->set_spacing( 4 );
-    if( m_label ) hbox->pack_start( *m_label, options );
+    if( m_label ) {
+        if( expand && fill ) {
+            JDLIB::compat::box_append_expand( *hbox, *m_label );
+        }
+        else if( expand ) {
+            JDLIB::compat::box_append_expand_nofill( *hbox, *m_label );
+        }
+        else {
+            assert( ! fill ); // 呼び出し元に expand=false, fill=true のパターンがないため
+            JDLIB::compat::box_append_shrink( *hbox, *m_label );
+        }
+    }
 
     if( show_arrow ){
         m_arrow = Gtk::manage( new Gtk::Image() );
         m_arrow->set_from_icon_name( "pan-down-symbolic", Gtk::ICON_SIZE_SMALL_TOOLBAR );
-        hbox->pack_start( *m_arrow, Gtk::PACK_SHRINK );
+        JDLIB::compat::box_append_shrink( *hbox, *m_arrow );
     }
     else m_enable_sig_clicked = false;
 
@@ -47,13 +59,12 @@ MenuButton::MenuButton( const bool show_arrow, Gtk::Widget* label, Gtk::PackOpti
     show_all_children();
 
     // メニュー項目作成
-    Glib::RefPtr< Gtk::ActionGroup > actiongroup = Gtk::ActionGroup::create();
-    Glib::RefPtr< Gtk::AccelGroup > agroup  = CORE::get_mainwindow()->get_accel_group();
+    // Gtk::Action と Gtk::ActionGroup は GTK4 で廃止予定のため、
+    // MenuItem を直接生成して signal_activate() を接続する。
     for( size_t i = 0 ; i < MAX_MENU_SIZE; ++i ){
-        Glib::RefPtr< Gtk::Action > action = Gtk::Action::create( "menu" + std::to_string( i ), "dummy" );
-        action->set_accel_group( agroup );
-        Gtk::MenuItem* item = Gtk::manage( action->create_menu_item() );
-        actiongroup->add( action, sigc::bind( sigc::mem_fun( *this, &MenuButton::slot_menu_selected ), i ) );
+        auto* item = Gtk::make_managed<Gtk::MenuItem>( "dummy" );
+        item->signal_activate().connect(
+            sigc::bind( sigc::mem_fun( *this, &MenuButton::slot_menu_selected ), i ) );
         m_menuitems.push_back( item );
     }
 
@@ -68,7 +79,7 @@ MenuButton::MenuButton( const bool show_arrow, Gtk::Widget& label )
 
 
 MenuButton::MenuButton( const bool show_arrow, const int id )
-    : MenuButton( show_arrow, Gtk::manage( new Gtk::Image( ICON::get_icon( id ), Gtk::ICON_SIZE_SMALL_TOOLBAR ) ), Gtk::PACK_SHRINK )
+    : MenuButton( show_arrow, Gtk::manage( new Gtk::Image( ICON::get_icon( id ), Gtk::ICON_SIZE_SMALL_TOOLBAR ) ), false, false )
 {
 }
 
