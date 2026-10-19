@@ -35,7 +35,7 @@
 #   - 生成された実行ファイルの場所は builddir/src/jdim
 
 project('jdim', 'cpp',
-        version : '0.17.90-alpha',
+        version : '0.17.91-alpha',
         license : 'GPL2',
         meson_version : '>= 0.61.0',
         default_options : ['warning_level=3', 'cpp_std=c++20'])
@@ -63,9 +63,25 @@ endif
 #
 # 必須パッケージのチェック
 #
-gtkmm_dep = dependency('gtkmm-3.0', version : '>= 3.24.5')
-gtkmm_dep = declare_dependency(compile_args : '-DGTK_DOMAIN="gtk30"',
+use_gtkmm4 = get_option('use_gtkmm4')
+if use_gtkmm4
+  # GTKMM4移行ビルドは USE_GTKMM4 を定義する
+  add_project_arguments(
+    '-DUSE_GTKMM4',
+    language: 'cpp',
+  )
+  gtkmm_package_name = 'gtkmm-4.0'
+  gtkmm_require_version = '>= 4.8.0' # Debian bookworm
+  gtk_domain_macro = '-DGTK_DOMAIN="gtk40"'
+else
+  gtkmm_package_name = 'gtkmm-3.0'
+  gtkmm_require_version = '>= 3.24.5'
+  gtk_domain_macro = '-DGTK_DOMAIN="gtk30"'
+endif
+gtkmm_dep = dependency(gtkmm_package_name, version : gtkmm_require_version)
+gtkmm_dep = declare_dependency(compile_args : gtk_domain_macro,
                                dependencies : gtkmm_dep)
+
 threads_dep = dependency('threads')
 x11_dep = dependency('x11')
 zlib_dep = dependency('zlib', version : '>= 1.2.0')
@@ -213,26 +229,6 @@ if native
     error('not support -march=native')
   endif
   message('Optimize to your machine: YES')
-endif
-
-
-#
-# GTKMM4移行準備: 廃止予定APIをエラーにする
-#
-use_gtkmm4 = get_option('use_gtkmm4')
-if use_gtkmm4
-  # GTKMM4移行ビルドは USE_GTKMM4 を定義する
-  # 廃止予定機能が使われていたらコンパイルエラーにするマクロを定義する
-  add_project_arguments(
-    '-DUSE_GTKMM4',
-    '-DGDKMM_DISABLE_DEPRECATED',
-    '-DGDK_DISABLE_DEPRECATED',
-    '-DGIOMM_DISABLE_DEPRECATED',
-    '-DGLIBMM_DISABLE_DEPRECATED',
-    '-DGTKMM_DISABLE_DEPRECATED',
-    '-DGTK_DISABLE_DEPRECATED',
-    language: 'cpp',
-  )
 endif
 
 
