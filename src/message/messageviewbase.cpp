@@ -622,7 +622,7 @@ void MessageViewBase::write()
 
     if( reason ) {
         SKELETON::MsgDiag mdiag( get_parent_win(), "投稿がキャンセルされました。" );
-        mdiag.property_message_type() = Gtk::MESSAGE_WARNING;
+        mdiag.property_message_type() = JDLIB::compat::MessageType::WARNING;
         mdiag.set_secondary_text( reason );
         mdiag.run();
         return;
@@ -647,7 +647,7 @@ void MessageViewBase::write()
 
             SKELETON::MsgDiag mdiag( get_parent_win(),
                                      "ユニコード文字が含まれていますが、この板ではユニコード文字は文字化けします(BBS_UNICODE=change)。\n\n書き込みますか？",
-                                     false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+                                     false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
             if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
         }
     }

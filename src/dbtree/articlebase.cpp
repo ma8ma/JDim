@@ -1702,7 +1702,7 @@ void ArticleBase::delete_cache( const bool cache_only )
             const std::string msg = "「" + MISC::to_plain( get_modified_subject() ) +
             "」にはしおりが付けられています。\n\nスレを削除しますか？\n\nしおりを解除するにはスレの上で右クリックしてしおり解除を選択してください。";
 
-            SKELETON::MsgDiag mdiag( nullptr, msg, false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+            SKELETON::MsgDiag mdiag( nullptr, msg, false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
             mdiag.set_default_response( JDLIB::compat::ResponseType::YES );
             if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
         }
@@ -1713,7 +1713,7 @@ void ArticleBase::delete_cache( const bool cache_only )
 
             SKELETON::MsgCheckDiag mdiag( nullptr, msg,
                                           "今後表示しない(常に削除)(_D)",
-                                          Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+                                          JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
 
             if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
@@ -1735,7 +1735,7 @@ void ArticleBase::delete_cache( const bool cache_only )
 
                     SKELETON::MsgCheckDiag mdiag( nullptr, msg,
                                                   "今後表示しない(常に削除しない)(_D)",
-                                                  Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_NONE );
+                                                  JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_NONE );
 
                     mdiag.add_button( "スレ削除中止(_C)", JDLIB::compat::ResponseType::CANCEL );
                     mdiag.add_button( g_dgettext( GTK_DOMAIN, "_Yes" ), JDLIB::compat::ResponseType::YES );

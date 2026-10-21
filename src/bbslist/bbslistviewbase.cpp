@@ -381,7 +381,7 @@ void BBSListViewBase::close_view()
 //
 void BBSListViewBase::delete_view()
 {
-    SKELETON::MsgDiag mdiag( get_parent_win(), "削除しますか？", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+    SKELETON::MsgDiag mdiag( get_parent_win(), "削除しますか？", false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
     if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
     delete_view_impl();
@@ -1140,7 +1140,7 @@ void BBSListViewBase::add_newbbsmenu( const bool move, const std::string& _url, 
 
     if( name.empty() || url.empty() ) {
         SKELETON::MsgDiag mdiag( get_parent_win(), "BBSMENU名またはアドレスが空白です",
-                                 false, Gtk::MESSAGE_ERROR );
+                                 false, JDLIB::compat::MessageType::ERROR );
         mdiag.run();
         mdiag.hide();
         add_newbbsmenu( move, url_org, name );
@@ -1160,7 +1160,7 @@ void BBSListViewBase::add_newbbsmenu( const bool move, const std::string& _url, 
     // 既に登録されているか確認
     if( ! move && ! DBTREE::bbsmenu_name( url ).empty() ) {
         SKELETON::MsgDiag mdiag( get_parent_win(), name + "\n" + url + "\n\nは既に登録されています",
-                                 false, Gtk::MESSAGE_ERROR );
+                                 false, JDLIB::compat::MessageType::ERROR );
         mdiag.run();
         mdiag.hide();
         add_newbbsmenu( move, url_org, name );
@@ -1206,7 +1206,7 @@ void BBSListViewBase::add_newbbsmenu( const bool move, const std::string& _url, 
     else {
 
         SKELETON::MsgDiag mdiag( get_parent_win(), "外部BBSMENUの登録に失敗しました。アドレスを確認してください",
-                                 false, Gtk::MESSAGE_ERROR );
+                                 false, JDLIB::compat::MessageType::ERROR );
         mdiag.run();
         mdiag.hide();
         add_newbbsmenu( move, url_org, name );
@@ -1278,7 +1278,7 @@ void BBSListViewBase::add_newetcboard( const bool move, // true なら編集モ�
         if( ! id.empty() && ! passwd.empty() ) basicauth = id + ":" + passwd;
 
         if( name.empty() || url.empty() ){
-            SKELETON::MsgDiag mdiag( get_parent_win(), "板名またはアドレスが空白です", false, Gtk::MESSAGE_ERROR );
+            SKELETON::MsgDiag mdiag( get_parent_win(), "板名またはアドレスが空白です", false, JDLIB::compat::MessageType::ERROR );
             mdiag.run();
             mdiag.hide();
             add_newetcboard( move, url_org, name, id, passwd );
@@ -1306,7 +1306,7 @@ void BBSListViewBase::add_newetcboard( const bool move, // true なら編集モ�
 
         // boardid 取得
         if( ! regex.exec( "(https?://.*)/([^/]*)/$" , url, offset, icase, newline, usemigemo, wchar ) ){
-            SKELETON::MsgDiag mdiag( get_parent_win(), "アドレスが不正な形式になっています", false, Gtk::MESSAGE_ERROR );
+            SKELETON::MsgDiag mdiag( get_parent_win(), "アドレスが不正な形式になっています", false, JDLIB::compat::MessageType::ERROR );
             mdiag.run();
             mdiag.hide();
             add_newetcboard( move, url_org, name, id, passwd );
@@ -1324,7 +1324,7 @@ void BBSListViewBase::add_newetcboard( const bool move, // true なら編集モ�
         std::string boardid = regex.str( 2 );
 
         if( boardid.empty() ){
-            SKELETON::MsgDiag mdiag( get_parent_win(), "板IDを取得出来ません", false, Gtk::MESSAGE_ERROR );
+            SKELETON::MsgDiag mdiag( get_parent_win(), "板IDを取得出来ません", false, JDLIB::compat::MessageType::ERROR );
             mdiag.run();
             mdiag.hide();
             add_newetcboard( move, url_org, name, id, passwd );
@@ -1337,7 +1337,7 @@ void BBSListViewBase::add_newetcboard( const bool move, // true なら編集モ�
 
         // 既に登録されているか確認
         if( ! move && ! DBTREE::board_name( url ).empty() ){
-            SKELETON::MsgDiag mdiag( get_parent_win(), name + "\n" + url + "\n\nは既に登録されています", false, Gtk::MESSAGE_ERROR );
+            SKELETON::MsgDiag mdiag( get_parent_win(), name + "\n" + url + "\n\nは既に登録されています", false, JDLIB::compat::MessageType::ERROR );
             mdiag.run();
             mdiag.hide();
             add_newetcboard( move, url_org, name,  id, passwd );
@@ -1380,7 +1380,7 @@ void BBSListViewBase::add_newetcboard( const bool move, // true なら編集モ�
 
         else{
 
-            SKELETON::MsgDiag mdiag( get_parent_win(), "外部板の登録に失敗しました。アドレスを確認してください", false, Gtk::MESSAGE_ERROR );
+            SKELETON::MsgDiag mdiag( get_parent_win(), "外部板の登録に失敗しました。アドレスを確認してください", false, JDLIB::compat::MessageType::ERROR );
             mdiag.run();
             mdiag.hide();
             add_newetcboard( move, url_org, name, id, passwd );
@@ -1483,7 +1483,7 @@ void BBSListViewBase::slot_select_all_dir()
 //
 void BBSListViewBase::slot_select_all()
 {
-    SKELETON::MsgDiag mdiag( get_parent_win(), "全ての行を選択しますか？\n\n(注意) ディレクトリは全て展開されます。", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+    SKELETON::MsgDiag mdiag( get_parent_win(), "全ての行を選択しますか？\n\n(注意) ディレクトリは全て展開されます。", false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
     mdiag.set_default_response( JDLIB::compat::ResponseType::NO );
     if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
@@ -1769,7 +1769,7 @@ bool BBSListViewBase::open_row( Gtk::TreePath& path, const bool tab )
 
             if( DBIMG::get_abone( url ) ) {
                 SKELETON::MsgDiag mdiag( get_parent_win(), "あぼ〜んされています", false,
-                                         Gtk::MESSAGE_INFO, Gtk::BUTTONS_YES_NO );
+                                         JDLIB::compat::MessageType::INFO, Gtk::BUTTONS_YES_NO );
                 std::string abone_reason = DBIMG::get_img_abone_reason( url );
                 if( ! abone_reason.empty() ) {
                     abone_reason = MISC::replace_str( abone_reason, "<br>", "\n" );
@@ -2505,7 +2505,7 @@ void BBSListViewBase::replace_thread( const std::string& url, const std::string&
                         SKELETON::MsgCheckDiag mdiag( get_parent_win(),
                                                       "お気に入りに前スレが登録されています。\n\n名前とアドレスを新スレの物に置き換えますか？"
                                                       , "今後表示しない(_D)",
-                                                      Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_NONE
+                                                      JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_NONE
                             );
 
                         mdiag.add_default_button( g_dgettext( GTK_DOMAIN, "_No" ), JDLIB::compat::ResponseType::NO );

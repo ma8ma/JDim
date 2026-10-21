@@ -1190,7 +1190,7 @@ void BoardBase::receive_finish()
                     SKELETON::MsgCheckDiag mdiag( nullptr,
                                                   msg,
                                                   "今後表示しない(常に更新)(_D)",
-                                                  Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+                                                  JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
 
                     mdiag.set_title( "更新確認" );
                     ret = mdiag.run();
@@ -1209,7 +1209,7 @@ void BoardBase::receive_finish()
             }
         }
         else{
-            SKELETON::MsgDiag mdiag( nullptr, "移転しました\n\n板一覧を更新しますか？", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+            SKELETON::MsgDiag mdiag( nullptr, "移転しました\n\n板一覧を更新しますか？", false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
             mdiag.set_default_response( JDLIB::compat::ResponseType::YES );
             if( mdiag.run() == JDLIB::compat::ResponseType::YES ) CORE::core_set_command( "reload_bbsmenu" );
         }
@@ -1628,7 +1628,7 @@ void BoardBase::remove_old_abone_thread()
         SKELETON::MsgCheckDiag mdiag( nullptr,
                                       "NGスレタイトルに登録したスレがdat落ちしました。\n\nNGスレタイトルから除外しますか？\n後で板のプロパティから削除する事も可能です。",
                                       "今後表示しない(_D)",
-                                      Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_NONE );
+                                      JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_NONE );
 
         mdiag.add_default_button( g_dgettext( GTK_DOMAIN, "_No" ), JDLIB::compat::ResponseType::NO );
         mdiag.add_button( g_dgettext( GTK_DOMAIN, "_Yes" ), JDLIB::compat::ResponseType::YES );

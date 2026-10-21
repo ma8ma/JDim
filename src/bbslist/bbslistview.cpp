@@ -188,12 +188,12 @@ void BBSListViewMain::delete_view()
     std::list< Gtk::TreeModel::iterator > list_it = get_treeview().get_selected_iterators();
     if( std::any_of( list_it.cbegin(), list_it.cend(),
                      [this]( const Gtk::TreeIter& iter ) { return ! is_etcboard( iter ); } ) ) {
-        SKELETON::MsgDiag mdiag( get_parent_win(), "通常の板は削除出来ません", false, Gtk::MESSAGE_ERROR );
+        SKELETON::MsgDiag mdiag( get_parent_win(), "通常の板は削除出来ません", false, JDLIB::compat::MessageType::ERROR );
         mdiag.run();
         return;
     }
 
-    SKELETON::MsgDiag mdiag( get_parent_win(), "削除しますか？", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+    SKELETON::MsgDiag mdiag( get_parent_win(), "削除しますか？", false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
     if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
     delete_view_impl();

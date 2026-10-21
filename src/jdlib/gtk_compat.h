@@ -93,6 +93,27 @@ inline void box_append_expand_nofill( Gtk::Box& box, Gtk::Widget& widget, guint 
 }
 
 /**
+ * @brief Gtk::MessageType の alias
+ *
+ * @note 未使用またはコメントアウトされている enum 値は alias を作成していません。
+ */
+namespace MessageType {
+using type = Gtk::MessageType;
+
+#ifdef USE_GTKMM4
+using Gtk::MessageType::INFO;
+using Gtk::MessageType::WARNING;
+using Gtk::MessageType::QUESTION;
+using Gtk::MessageType::ERROR;
+#else
+constexpr type INFO = Gtk::MESSAGE_INFO;
+constexpr type WARNING = Gtk::MESSAGE_WARNING;
+constexpr type QUESTION = Gtk::MESSAGE_QUESTION;
+constexpr type ERROR = Gtk::MESSAGE_ERROR;
+#endif
+} // MessageType
+
+/**
  * @brief Gtk::ResponseType の alias
  *
  * @note 未使用またはコメントアウトされている enum 値は alias を作成していません。

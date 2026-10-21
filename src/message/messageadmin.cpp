@@ -367,7 +367,7 @@ bool MessageAdmin::delete_message( SKELETON::View * view )
                                   "編集中のメッセージを閉じる前に内容を保存しますか？\n\n保存ボタンを押すとメッセージを保存できます。",
 
                                   "今後表示しない(常に保存せずに閉じる) (_D)",
-                                  Gtk::MESSAGE_WARNING, Gtk::BUTTONS_NONE );
+                                  JDLIB::compat::MessageType::WARNING, Gtk::BUTTONS_NONE );
 
     mdiag.add_button( "保存せずに閉じる(_Q)", JDLIB::compat::ResponseType::NO );
     mdiag.add_button( g_dgettext( GTK_DOMAIN, "_Cancel" ), JDLIB::compat::ResponseType::CANCEL );

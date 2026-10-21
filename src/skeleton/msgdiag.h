@@ -22,7 +22,7 @@ namespace SKELETON
         MsgDiag( Gtk::Window& parent,
                  const Glib::ustring& message,
                  bool use_markup = false,
-                 Gtk::MessageType type = Gtk::MESSAGE_INFO,
+                 Gtk::MessageType type = JDLIB::compat::MessageType::INFO,
                  Gtk::ButtonsType buttons = Gtk::BUTTONS_OK,
                  bool modal = false);
 
@@ -30,7 +30,7 @@ namespace SKELETON
         MsgDiag( Gtk::Window* parent,
                  const Glib::ustring& message,
                  bool use_markup = false,
-                 Gtk::MessageType type = Gtk::MESSAGE_INFO,
+                 Gtk::MessageType type = JDLIB::compat::MessageType::INFO,
                  Gtk::ButtonsType buttons = Gtk::BUTTONS_OK,
                  bool modal = false);
 
@@ -63,7 +63,7 @@ namespace SKELETON
         MsgCheckDiag( Gtk::Window* parent,
                       const Glib::ustring& message,
                       const Glib::ustring& message_check,
-                      Gtk::MessageType type = Gtk::MESSAGE_INFO,
+                      Gtk::MessageType type = JDLIB::compat::MessageType::INFO,
                       Gtk::ButtonsType buttons = Gtk::BUTTONS_OK,
                       const int default_response = -1
             );

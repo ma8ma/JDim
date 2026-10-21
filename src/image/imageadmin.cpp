@@ -1223,7 +1223,7 @@ void ImageAdmin::save_all()
                                 {
                                     SKELETON::MsgDiag mdiag_name( get_win(),
                                                                   "ファイル名として画像キャッシュでのファイル名を使用しますか？\n\nいいえを選ぶとファイル選択ダイアログを開きます。",
-                                                                  false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+                                                                  false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
 
                                     mdiag_name.add_button( "すべてはい", SKELETON::OVERWRITE_YES_ALL );
                                     mdiag_name.set_default_response( JDLIB::compat::ResponseType::YES );

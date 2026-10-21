@@ -190,7 +190,7 @@ MsgCheckDiag::~MsgCheckDiag() noexcept = default;
 
 MsgOverwriteDiag::MsgOverwriteDiag( Gtk::Window* parent )
     : SKELETON::MsgDiag( parent, "ファイルが存在します。ファイル名を変更して保存しますか？", 
-                         false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_NONE )
+                         false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_NONE )
 {
     add_button( g_dgettext( GTK_DOMAIN, "_No" ), JDLIB::compat::ResponseType::NO );
     add_button( g_dgettext( GTK_DOMAIN, "_Yes" ), JDLIB::compat::ResponseType::YES );

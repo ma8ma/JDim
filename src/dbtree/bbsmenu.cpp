@@ -132,7 +132,7 @@ void BBSMenu::receive_finish()
 
         auto msg = Glib::ustring::compose(
             "%1\n\nサーバー上のBBSMENUは更新されていません。強制的に再読み込みをしますか？", get_str_code() );
-        SKELETON::MsgDiag mdiag( nullptr, msg, false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+        SKELETON::MsgDiag mdiag( nullptr, msg, false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
         mdiag.set_default_response( JDLIB::compat::ResponseType::YES );
         if( mdiag.run() == JDLIB::compat::ResponseType::YES ){
             set_date_modified( std::string() );
@@ -150,7 +150,7 @@ void BBSMenu::receive_finish()
 
         auto msg = Glib::ustring::compose( "%1\n\nBBSMENUが %2 に移転しました。更新しますか？",
                                            get_str_code(), location() );
-        SKELETON::MsgDiag mdiag( nullptr, msg, false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+        SKELETON::MsgDiag mdiag( nullptr, msg, false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
         mdiag.set_default_response( JDLIB::compat::ResponseType::YES );
         if( mdiag.run() == JDLIB::compat::ResponseType::YES ){
             set_date_modified( std::string() );
@@ -169,7 +169,7 @@ void BBSMenu::receive_finish()
         auto msg = Glib::ustring::compose( "%1\n\nBBSMENUの読み込みに失敗したためBBSMENUは更新されませんでした。\n\n"
                                            "プロキシ設定やBBSMENUを取得するサーバのアドレスを確認して、"
                                            "再読み込みをして下さい。", get_str_code() );
-        SKELETON::MsgDiag mdiag( nullptr, msg, false, Gtk::MESSAGE_ERROR );
+        SKELETON::MsgDiag mdiag( nullptr, msg, false, JDLIB::compat::MessageType::ERROR );
         mdiag.run();
         MISC::ERRMSG( "bbsmenu load failed : " + get_str_code() );
 

@@ -630,7 +630,7 @@ void Preferences::slot_clear_samba()
 void Preferences::slot_clear_post_history()
 {
     SKELETON::MsgDiag mdiag( nullptr, "この板にある全てのスレの書き込み履歴を削除しますか？\n\nスレ数によっては時間がかかります。",
-                             false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+                             false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
     if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
     DBTREE::board_clear_all_post_history( get_url() );
@@ -666,7 +666,7 @@ void Preferences::slot_check_live()
                                  "実況を許された板以外では実況しないようにして下さい。\n\n"
                                  "実況状態のまま閉じたスレはJDim終了時に削除されます。"
                                  "詳しくはマニュアルの実況の項目を参照して下さい。",
-                                 false, Gtk::MESSAGE_WARNING );
+                                 false, JDLIB::compat::MessageType::WARNING );
         mdiag.run();
     }
     else m_spin_live.set_sensitive( false );
@@ -677,7 +677,7 @@ void Preferences::slot_remove_old_title()
 {
 
     if( ! DBTREE::board_list_subject( get_url() ).size() ){
-        SKELETON::MsgDiag mdiag( nullptr, "再読み込みしてスレ一覧を更新して下さい。", false, Gtk::MESSAGE_WARNING );
+        SKELETON::MsgDiag mdiag( nullptr, "再読み込みしてスレ一覧を更新して下さい。", false, JDLIB::compat::MessageType::WARNING );
         mdiag.run();
         return;
     }

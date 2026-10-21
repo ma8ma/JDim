@@ -596,7 +596,7 @@ void ArticleViewMain::update_finish()
     if( m_show_closedialog && !number_load && is_old() ){
 
         SKELETON::MsgDiag mdiag( get_parent_win(), "DAT落ちしたためスレッドを取得できませんでした。\n\nタブを閉じますか？",
-                                 false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+                                 false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
         mdiag.set_default_response( JDLIB::compat::ResponseType::YES );
         if( mdiag.run() == JDLIB::compat::ResponseType::YES ) close_view();
     }

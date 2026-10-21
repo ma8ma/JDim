@@ -395,7 +395,7 @@ void ReplaceStrPref::slot_row_activated( const Gtk::TreeModel::Path& path, Gtk::
             if( ! ptn.set( dlg.get_pattern(), dlg.get_icase(), newline, migemo, dlg.get_wchar(), dlg.get_norm() ) ) {
                 const std::string msg = ptn.errstr() + "\n\n" + dlg.get_pattern();
 
-                SKELETON::MsgDiag mdlg( *this, msg, false, Gtk::MESSAGE_WARNING, Gtk::BUTTONS_OK );
+                SKELETON::MsgDiag mdlg( *this, msg, false, JDLIB::compat::MessageType::WARNING, Gtk::BUTTONS_OK );
                 mdlg.run();
             }
         }
@@ -514,7 +514,7 @@ void ReplaceStrPref::slot_delete()
     Gtk::TreeModel::iterator it = get_selected_row();
     if( ! it ) return;
 
-    SKELETON::MsgDiag mdiag( *this, "削除しますか？", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+    SKELETON::MsgDiag mdiag( *this, "削除しますか？", false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
     if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
     auto it_next = std::next( it );

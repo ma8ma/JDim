@@ -1080,7 +1080,7 @@ void Core::slot_clear_privacy()
 void Core::slot_clear_post_log()
 {
     SKELETON::MsgDiag mdiag( nullptr, "書き込みログを削除しますか？",
-                             false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+                             false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
     if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
     MESSAGE::get_log_manager()->clear_post_log();
@@ -1096,7 +1096,7 @@ void Core::slot_clear_post_log()
 void Core::slot_clear_post_history()
 {
     SKELETON::MsgDiag mdiag( nullptr, "全スレの書き込み履歴を削除します。\n\nある板、または特定のスレの履歴を削除するには板またはスレのプロパティから行って下さい。\n\nまた全スレの書き込み履歴の削除には時間がかかります。\n\n全スレの書き込み履歴の削除を実行しますか？",
-                             false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+                             false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
     if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
     DBTREE::clear_all_post_history();

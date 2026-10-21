@@ -1437,7 +1437,7 @@ bool BoardViewBase::operate_view( const int control )
         case CONTROL::AppendFavorite:
         {
             SKELETON::MsgDiag mdiag( get_parent_win(), "板と選択中のスレのどちらを登録しますか？", false,
-                                     Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_CANCEL );
+                                     JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_CANCEL );
 
             mdiag.add_button( "板を登録(_B)", 0xB0A );
             mdiag.add_button( "スレを登録(_T)", 0xEAD );
@@ -1521,7 +1521,7 @@ bool BoardViewBase::operate_view( const int control )
                 SKELETON::MsgCheckDiag mdiag( get_parent_win(),
                                               "選択した行のログを削除しますか？",
                                               "今後表示しない(常に削除)(_D)",
-                                              Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+                                              JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
                 mdiag.set_title( "削除確認" );
                 const int ret = mdiag.run();
                 if( ret != JDLIB::compat::ResponseType::YES ) return true;
@@ -2445,7 +2445,7 @@ void BoardViewBase::slot_copy_title_url()
 //
 void BoardViewBase::slot_select_all()
 {
-    SKELETON::MsgDiag mdiag( get_parent_win(), "全ての行を選択しますか？", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+    SKELETON::MsgDiag mdiag( get_parent_win(), "全ての行を選択しますか？", false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
     mdiag.set_default_response( JDLIB::compat::ResponseType::NO );
     if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
@@ -2495,7 +2495,7 @@ bool BoardViewBase::open_row( const Gtk::TreePath& path, const bool tab, const b
         if( DBTREE::article_status( url_target ) & STATUS_OLD ){
             SKELETON::MsgDiag mdiag( get_parent_win(),
                                      "DAT落ちしています。\n\nログが消える恐れがあります。実行しますか？",
-                                     false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+                                     false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
             mdiag.set_default_response( JDLIB::compat::ResponseType::NO );
             if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return false;
         }
@@ -2544,7 +2544,7 @@ void BoardViewBase::open_selected_rows( const bool reget )
             if( art->get_status() & STATUS_OLD ){
                 SKELETON::MsgDiag mdiag( get_parent_win(),
                                          "DAT落ちしているスレを含んでいます。\n\nログが消える恐れがあります。実行しますか？",
-                                         false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+                                         false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
                 mdiag.set_default_response( JDLIB::compat::ResponseType::NO );
                 if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 

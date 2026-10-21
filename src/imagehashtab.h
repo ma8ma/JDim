@@ -351,7 +351,7 @@ private:
         std::vector<Gtk::TreeModel::Path> paths = m_treeview.get_selection()->get_selected_rows();
         if( paths.empty() ) return;
 
-        SKELETON::MsgDiag mdiag( *m_parent, "削除しますか？", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+        SKELETON::MsgDiag mdiag( *m_parent, "削除しますか？", false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
         mdiag.set_secondary_text( "ハッシュ値を削除しても画像のあぼ〜んは維持されるため個別に解除する必要があります。" );
         if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 

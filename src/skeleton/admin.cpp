@@ -2705,7 +2705,7 @@ bool Admin::back_forward_viewhistory( const std::string& url, const bool back, c
                 else enable_next = HISTORY::get_history_manager()->can_forward_viewhistory( url, count +1 );
 
                 SKELETON::MsgDiag mdiag( get_win(), historyitem->title + "\n\nは既にタブで開いています",
-                                         false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_NONE );
+                                         false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_NONE );
                 mdiag.add_button( "タブを開く(_T)", JDLIB::compat::ResponseType::YES );
                 if( enable_next ) mdiag.add_button( "次を開く(_N)", JDLIB::compat::ResponseType::NO );
                 mdiag.add_button( g_dgettext( GTK_DOMAIN, "_Cancel" ), JDLIB::compat::ResponseType::CANCEL );
