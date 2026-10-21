@@ -39,9 +39,9 @@ AboutDiag::AboutDiag( const Glib::ustring& title )
     set_transient_for( *CORE::get_mainwindow() );
     set_resizable( false );
 
-    add_button( g_dgettext( GTK_DOMAIN, "_Close" ), Gtk::RESPONSE_CLOSE );
+    add_button( g_dgettext( GTK_DOMAIN, "_Close" ), JDLIB::compat::ResponseType::CLOSE );
 
-    set_default_response( Gtk::RESPONSE_CLOSE );
+    set_default_response( JDLIB::compat::ResponseType::CLOSE );
 
     set_logo( ICON::get_pixbuf( ICON::JD96 ) );
     set_version( ENVIRONMENT::get_jdversion() );

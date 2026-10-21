@@ -232,7 +232,7 @@ bool Usrcmd_Manager::show_replacetextdiag( std::string& texti, const std::string
     if( ! texti.empty() ) return true;
 
     ReplaceTextDiag textdiag( nullptr, title );
-    if( textdiag.run() != Gtk::RESPONSE_OK ) return false;
+    if( textdiag.run() != JDLIB::compat::ResponseType::OK ) return false;
     texti = textdiag.get_text();
     return true;
 }

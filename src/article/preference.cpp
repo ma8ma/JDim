@@ -372,7 +372,7 @@ void Preferences::slot_clear_post_history()
     if( m_label_write_value.get_text().empty() ) return;
 
     SKELETON::MsgDiag mdiag( nullptr, "書き込み履歴を削除しますか？", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
-    if( mdiag.run() != Gtk::RESPONSE_YES ) return;
+    if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
     DBTREE::article_clear_post_history( get_url() );
     m_label_write_value.set_text( "" );

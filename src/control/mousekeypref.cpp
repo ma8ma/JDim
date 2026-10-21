@@ -377,7 +377,7 @@ std::string MouseKeyDiag::show_inputdiag( bool is_append )
     std::unique_ptr<InputDiag> diag = create_inputdiag();
     if( diag == nullptr ) return std::string();
 
-    while( diag->run() == Gtk::RESPONSE_OK ){
+    while( diag->run() == JDLIB::compat::ResponseType::OK ){
 
         // 設定が重複していないかチェック
         bool conflict = false;
@@ -657,7 +657,7 @@ void MouseKeyPref::slot_row_activated( const Gtk::TreeModel::Path& path, Gtk::Tr
     if( id == CONTROL::NoOperation ) return;
 
     std::unique_ptr<MouseKeyDiag> diag = create_setting_diag( id, row[ get_colums().m_col_motions ] );
-    if( diag->run() == Gtk::RESPONSE_OK ){
+    if( diag->run() == JDLIB::compat::ResponseType::OK ){
 
         const std::string motions = diag->get_str_motions();
 

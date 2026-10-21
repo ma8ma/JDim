@@ -101,7 +101,7 @@ SelectListDialog::SelectListDialog( Gtk::Window* parent, const std::string& url,
     set_title( "お気に入り追加先選択" );
     set_default_size( SELECTDIAG_WIDTH, -1 );
 
-    set_default_response( Gtk::RESPONSE_OK );
+    set_default_response( JDLIB::compat::ResponseType::OK );
     grab_ok();
     show_all_children();
 }

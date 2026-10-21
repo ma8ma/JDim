@@ -362,7 +362,7 @@ void App::slot_startup()
                               + ")は存在しますが読み込むことが出来ませんでした。\n\n起動しますか？";
             Gtk::MessageDialog mdiag( msg, false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
             const int ret = mdiag.run();
-            if( ret != Gtk::RESPONSE_YES ) return quit();
+            if( ret != JDLIB::compat::ResponseType::YES ) return quit();
         }
 
         // 初回起動時にルートを作る
@@ -432,7 +432,7 @@ bool App::setup_fifo( std::string url )
 
             CONFIG::set_show_diag_fifo_error( ! chk_button.get_active() );
 
-            if( ret != Gtk::RESPONSE_YES )
+            if( ret != JDLIB::compat::ResponseType::YES )
             {
                 CONFIG::save_conf();
                 return false;

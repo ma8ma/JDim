@@ -11,6 +11,8 @@
 #include "command.h"
 #include "session.h"
 
+#include "jdlib/gtk_compat.h"
+
 namespace SKELETON
 {
     class FileDiag : public Gtk::FileChooserDialog
@@ -22,14 +24,14 @@ namespace SKELETON
         // ボタン追加 + saveボタンをデフォルトボタンにセット
         void add_buttons(){
 
-            add_button( g_dgettext( GTK_DOMAIN, "_Cancel" ), Gtk::RESPONSE_CANCEL );
+            add_button( g_dgettext( GTK_DOMAIN, "_Cancel" ), JDLIB::compat::ResponseType::CANCEL );
 
             if( m_action == Gtk::FILE_CHOOSER_ACTION_OPEN ) {
-                add_button( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Open", 12 ), Gtk::RESPONSE_ACCEPT );
+                add_button( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Open", 12 ), JDLIB::compat::ResponseType::ACCEPT );
             }
-            else add_button( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Save", 12 ), Gtk::RESPONSE_ACCEPT );
+            else add_button( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Save", 12 ), JDLIB::compat::ResponseType::ACCEPT );
 
-            set_default_response( Gtk::RESPONSE_ACCEPT );
+            set_default_response( JDLIB::compat::ResponseType::ACCEPT );
         }
 
         FileDiag( Gtk::Window& parent, const Glib::ustring& title, Gtk::FileChooserAction action = Gtk::FILE_CHOOSER_ACTION_OPEN )

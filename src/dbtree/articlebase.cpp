@@ -9,6 +9,7 @@
 
 #include "skeleton/msgdiag.h"
 
+#include "jdlib/gtk_compat.h"
 #include "jdlib/jdregex.h"
 #include "jdlib/misccharcode.h"
 #include "jdlib/miscmsg.h"
@@ -1702,8 +1703,8 @@ void ArticleBase::delete_cache( const bool cache_only )
             "」にはしおりが付けられています。\n\nスレを削除しますか？\n\nしおりを解除するにはスレの上で右クリックしてしおり解除を選択してください。";
 
             SKELETON::MsgDiag mdiag( nullptr, msg, false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
-            mdiag.set_default_response( Gtk::RESPONSE_YES );
-            if( mdiag.run() != Gtk::RESPONSE_YES ) return;
+            mdiag.set_default_response( JDLIB::compat::ResponseType::YES );
+            if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
         }
 
         if( CONFIG::get_show_del_written_thread_diag() && m_write_time ){
@@ -1714,7 +1715,7 @@ void ArticleBase::delete_cache( const bool cache_only )
                                           "今後表示しない(常に削除)(_D)",
                                           Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
 
-            if( mdiag.run() != Gtk::RESPONSE_YES ) return;
+            if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
             if( mdiag.get_chkbutton().get_active() ) CONFIG::set_del_written_thread_diag( false );
         }
@@ -1736,13 +1737,13 @@ void ArticleBase::delete_cache( const bool cache_only )
                                                   "今後表示しない(常に削除しない)(_D)",
                                                   Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_NONE );
 
-                    mdiag.add_button( "スレ削除中止(_C)", Gtk::RESPONSE_CANCEL );
-                    mdiag.add_button( g_dgettext( GTK_DOMAIN, "_Yes" ), Gtk::RESPONSE_YES );
-                    mdiag.add_default_button( g_dgettext( GTK_DOMAIN, "_No" ), Gtk::RESPONSE_NO );
+                    mdiag.add_button( "スレ削除中止(_C)", JDLIB::compat::ResponseType::CANCEL );
+                    mdiag.add_button( g_dgettext( GTK_DOMAIN, "_Yes" ), JDLIB::compat::ResponseType::YES );
+                    mdiag.add_default_button( g_dgettext( GTK_DOMAIN, "_No" ), JDLIB::compat::ResponseType::NO );
 
                     const int ret = mdiag.run();
-                    if( ret == Gtk::RESPONSE_CANCEL ) return;
-                    if( ret != Gtk::RESPONSE_YES ){
+                    if( ret == JDLIB::compat::ResponseType::CANCEL ) return;
+                    if( ret != JDLIB::compat::ResponseType::YES ){
 
                         if( mdiag.get_chkbutton().get_active() ) CONFIG::set_delete_img_in_thread( 2 );
                         delete_img_cache = false;

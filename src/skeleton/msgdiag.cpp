@@ -154,26 +154,26 @@ MsgCheckDiag::MsgCheckDiag( Gtk::Window* parent,
 
     if( buttons == Gtk::BUTTONS_OK ){
 
-        add_default_button( g_dgettext( GTK_DOMAIN, "_OK" ), Gtk::RESPONSE_OK );
+        add_default_button( g_dgettext( GTK_DOMAIN, "_OK" ), JDLIB::compat::ResponseType::OK );
     }
     else if( buttons == Gtk::BUTTONS_OK_CANCEL ){
-        add_button( g_dgettext( GTK_DOMAIN, "_No" ), Gtk::RESPONSE_CANCEL );
+        add_button( g_dgettext( GTK_DOMAIN, "_No" ), JDLIB::compat::ResponseType::CANCEL );
 
-        add_default_button( g_dgettext( GTK_DOMAIN, "_OK" ), Gtk::RESPONSE_OK );
+        add_default_button( g_dgettext( GTK_DOMAIN, "_OK" ), JDLIB::compat::ResponseType::OK );
     }
     else if( buttons == Gtk::BUTTONS_YES_NO ){
 
-        if( default_response == Gtk::RESPONSE_NO ){
+        if( default_response == JDLIB::compat::ResponseType::NO ){
 
-            add_default_button( g_dgettext( GTK_DOMAIN, "_No" ), Gtk::RESPONSE_NO );
+            add_default_button( g_dgettext( GTK_DOMAIN, "_No" ), JDLIB::compat::ResponseType::NO );
 
-            add_button( g_dgettext( GTK_DOMAIN, "_Yes" ), Gtk::RESPONSE_YES );
+            add_button( g_dgettext( GTK_DOMAIN, "_Yes" ), JDLIB::compat::ResponseType::YES );
         }
         else{
 
-            add_button( g_dgettext( GTK_DOMAIN, "_No" ), Gtk::RESPONSE_NO );
+            add_button( g_dgettext( GTK_DOMAIN, "_No" ), JDLIB::compat::ResponseType::NO );
 
-            add_default_button( g_dgettext( GTK_DOMAIN, "_Yes" ), Gtk::RESPONSE_YES );
+            add_default_button( g_dgettext( GTK_DOMAIN, "_Yes" ), JDLIB::compat::ResponseType::YES );
         }
     }
 
@@ -192,8 +192,8 @@ MsgOverwriteDiag::MsgOverwriteDiag( Gtk::Window* parent )
     : SKELETON::MsgDiag( parent, "ファイルが存在します。ファイル名を変更して保存しますか？", 
                          false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_NONE )
 {
-    add_button( g_dgettext( GTK_DOMAIN, "_No" ), Gtk::RESPONSE_NO );
-    add_button( g_dgettext( GTK_DOMAIN, "_Yes" ), Gtk::RESPONSE_YES );
+    add_button( g_dgettext( GTK_DOMAIN, "_No" ), JDLIB::compat::ResponseType::NO );
+    add_button( g_dgettext( GTK_DOMAIN, "_Yes" ), JDLIB::compat::ResponseType::YES );
     add_button( "上書き", OVERWRITE_YES );
     add_button( "すべていいえ", OVERWRITE_NO_ALL );
     add_button( "すべて上書き", OVERWRITE_YES_ALL );

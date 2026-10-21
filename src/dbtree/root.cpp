@@ -367,8 +367,8 @@ void Root::receive_finish()
 
         std::string msg = get_str_code() + "\n\nサーバー上の板一覧は更新されていません。強制的に再読み込みをしますか？";
         SKELETON::MsgDiag mdiag( nullptr, msg, false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
-        mdiag.set_default_response( Gtk::RESPONSE_YES );
-        if( mdiag.run() == Gtk::RESPONSE_YES ){
+        mdiag.set_default_response( JDLIB::compat::ResponseType::YES );
+        if( mdiag.run() == JDLIB::compat::ResponseType::YES ){
             set_date_modified( std::string() );
             download_bbsmenu();
         }
@@ -381,8 +381,8 @@ void Root::receive_finish()
 
         const std::string msg = get_str_code() + "\n\n板一覧が " + location() + " に移転しました。更新しますか？";
         SKELETON::MsgDiag mdiag( nullptr, msg, false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
-        mdiag.set_default_response( Gtk::RESPONSE_YES );
-        if( mdiag.run() == Gtk::RESPONSE_YES ){
+        mdiag.set_default_response( JDLIB::compat::ResponseType::YES );
+        if( mdiag.run() == JDLIB::compat::ResponseType::YES ){
             set_date_modified( std::string() );
             CONFIG::set_url_bbsmenu( location() );
             download_bbsmenu();

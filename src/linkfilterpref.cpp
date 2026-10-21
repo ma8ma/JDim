@@ -248,7 +248,7 @@ void LinkFilterPref::slot_row_activated( const Gtk::TreeModel::Path& path, Gtk::
     if( ! row ) return;
 
     LinkFilterDiag diag( this, row[ m_columns.m_col_url ], row[ m_columns.m_col_cmd ] );
-    if( diag.run() == Gtk::RESPONSE_OK ){
+    if( diag.run() == JDLIB::compat::ResponseType::OK ){
         row[ m_columns.m_col_url ] = diag.get_entry_url();
         row[ m_columns.m_col_cmd ] = diag.get_cmd();
         static_cast<void>( row ); // cppcheck: unreadVariable
@@ -344,7 +344,7 @@ void LinkFilterPref::slot_delete()
     if( ! row ) return;
 
     SKELETON::MsgDiag mdiag( nullptr, "削除しますか？", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
-    if( mdiag.run() != Gtk::RESPONSE_YES ) return;
+    if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
     Gtk::TreePath path_next( row );
     path_next.next();
@@ -366,5 +366,5 @@ void LinkFilterPref::slot_delete()
 void LinkFilterPref::slot_add()
 {
     LinkFilterDiag diag( this, "", "" );
-    if( diag.run() == Gtk::RESPONSE_OK ) append_row( diag.get_entry_url(), diag.get_cmd() );
+    if( diag.run() == JDLIB::compat::ResponseType::OK ) append_row( diag.get_entry_url(), diag.get_cmd() );
 }

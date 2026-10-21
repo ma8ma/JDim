@@ -14,6 +14,7 @@
 #include "dbimg/imginterface.h"
 #include "dbimg/img.h"
 
+#include "jdlib/gtk_compat.h"
 #include "jdlib/miscgtk.h"
 
 #include "control/controlutil.h"
@@ -346,10 +347,10 @@ void ImageViewBase::delete_view_impl( const bool show_diag )
                                           "今後表示しない(常に削除) (_D)",
                                           Gtk::MESSAGE_QUESTION,
                                           Gtk::BUTTONS_YES_NO,
-                                          Gtk::RESPONSE_NO
+                                          JDLIB::compat::ResponseType::NO
                 );
 
-            if( mdiag.run() != Gtk::RESPONSE_YES ) return;
+            if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
             if( mdiag.get_chkbutton().get_active() ) CONFIG::set_show_delimgdiag( false );
         }
     }
@@ -666,8 +667,8 @@ void ImageViewBase::slot_cancel_mosaic()
                                  "拡張子が偽装されています。" + type + "\n\nモザイクを解除しますか？",
                                  false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
 
-        mdiag.set_default_response( Gtk::RESPONSE_NO );
-        if( mdiag.run() != Gtk::RESPONSE_YES ) return;
+        mdiag.set_default_response( JDLIB::compat::ResponseType::NO );
+        if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
     }
 
     m_img->set_mosaic( false );

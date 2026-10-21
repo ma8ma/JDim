@@ -483,8 +483,8 @@ void ArticleViewBase::delete_open_view()
 
     if( DBTREE::article_status( m_url_article ) & STATUS_OLD ){
         SKELETON::MsgDiag mdiag( get_parent_win(), "DAT落ちしています。\n\nログが消える恐れがあります。実行しますか？", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
-        mdiag.set_default_response( Gtk::RESPONSE_NO );
-        if( mdiag.run() != Gtk::RESPONSE_YES ) return;
+        mdiag.set_default_response( JDLIB::compat::ResponseType::NO );
+        if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
     }
 
     const std::string str_tab = "false";
@@ -622,14 +622,14 @@ bool ArticleViewBase::operate_view( const int control )
                                           "ログを削除しますか？\n\n「スレ再取得」を押すと\nあぼ〜んなどのスレ情報を削除せずにスレを再取得します。",
                                           "今後表示しない(常に削除)(_D)",
                                           Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_NONE );
-            mdiag.add_button( g_dgettext( GTK_DOMAIN, "_No" ), Gtk::RESPONSE_NO );
-            mdiag.add_default_button( g_dgettext( GTK_DOMAIN, "_Yes" ), Gtk::RESPONSE_YES );
+            mdiag.add_button( g_dgettext( GTK_DOMAIN, "_No" ), JDLIB::compat::ResponseType::NO );
+            mdiag.add_default_button( g_dgettext( GTK_DOMAIN, "_Yes" ), JDLIB::compat::ResponseType::YES );
 
-            mdiag.add_button( "スレ再取得(_R)", Gtk::RESPONSE_YES + 100 );
-            mdiag.set_default_response( Gtk::RESPONSE_YES );
+            mdiag.add_button( "スレ再取得(_R)", JDLIB::compat::ResponseType::YES + 100 );
+            mdiag.set_default_response( JDLIB::compat::ResponseType::YES );
             int ret = mdiag.run();
-            if( ret == Gtk::RESPONSE_YES ) exec_delete();
-            else if( ret == Gtk::RESPONSE_YES + 100 ) delete_open_view();
+            if( ret == JDLIB::compat::ResponseType::YES ) exec_delete();
+            else if( ret == JDLIB::compat::ResponseType::YES + 100 ) delete_open_view();
 
             if( mdiag.get_chkbutton().get_active() ) CONFIG::set_show_delartdiag( false );
 
@@ -2256,7 +2256,7 @@ bool ArticleViewBase::click_url( std::string url, int res_number, GdkEventButton
             abone_reason.append( DBIMG::kTemporaryMosaicQuestion );
             mdiag.set_secondary_text( abone_reason );
             const int response = mdiag.run();
-            if( response == Gtk::RESPONSE_YES ) {
+            if( response == JDLIB::compat::ResponseType::YES ) {
 
                 const bool open_imageview{ ! sssp // sssp の時は画像ビューを開かない
                                            && CONFIG::get_use_image_view()
@@ -3176,8 +3176,8 @@ void ArticleViewBase::slot_cancel_mosaic()
         SKELETON::MsgDiag mdiag( get_parent_win(),
                                  "拡張子が偽装されています。モザイクを解除しますか？", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
 
-        mdiag.set_default_response( Gtk::RESPONSE_NO );
-        if( mdiag.run() != Gtk::RESPONSE_YES ) return;
+        mdiag.set_default_response( JDLIB::compat::ResponseType::NO );
+        if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
     }
 
     DBIMG::set_mosaic( m_url_tmp, false );

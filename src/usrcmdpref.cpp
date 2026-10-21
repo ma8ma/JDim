@@ -255,7 +255,7 @@ void UsrCmdPref::show_popupmenu()
 void UsrCmdPref::slot_newcmd()
 {
     UsrCmdDiag diag( this, "", "" );
-    if( diag.run() == Gtk::RESPONSE_OK ){
+    if( diag.run() == JDLIB::compat::ResponseType::OK ){
 
         if( diag.get_name().empty() || diag.get_cmd().empty() ) return;
 
@@ -318,7 +318,7 @@ void UsrCmdPref::slot_newsepa()
 void UsrCmdPref::delete_row()
 {
     SKELETON::MsgDiag mdiag( nullptr, "削除しますか？", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
-    if( mdiag.run() != Gtk::RESPONSE_YES ) return;
+    if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
     slot_delete();
 }
@@ -348,7 +348,7 @@ void UsrCmdPref::slot_row_activated( const Gtk::TreeModel::Path& path, Gtk::Tree
     if( row[ m_columns.m_type ] != TYPE_USRCMD ) return;
 
     UsrCmdDiag diag( this, row[ m_columns.m_name ], row[ m_columns.m_data ] );
-    if( diag.run() == Gtk::RESPONSE_OK ){
+    if( diag.run() == JDLIB::compat::ResponseType::OK ){
         row[ m_columns.m_name ] = diag.get_name();
         row[ m_columns.m_data ] = diag.get_cmd();
         static_cast<void>( row ); // cppcheck: unreadVariable

@@ -7,6 +7,7 @@
 #define JDLIB_GTK_COMPAT_H
 
 #include <gtkmm/box.h>
+#include <gtkmm/dialog.h>
 
 
 namespace JDLIB::compat {
@@ -90,6 +91,31 @@ inline void box_append_expand_nofill( Gtk::Box& box, Gtk::Widget& widget, guint 
     box.pack_start( widget, true, false, padding );
 #endif
 }
+
+/**
+ * @brief Gtk::ResponseType の alias
+ *
+ * @note 未使用またはコメントアウトされている enum 値は alias を作成していません。
+ */
+namespace ResponseType {
+using type = Gtk::ResponseType;
+
+#ifdef USE_GTKMM4
+using Gtk::ResponseType::ACCEPT;
+using Gtk::ResponseType::OK;
+using Gtk::ResponseType::CANCEL;
+using Gtk::ResponseType::CLOSE;
+using Gtk::ResponseType::YES;
+using Gtk::ResponseType::NO;
+#else
+constexpr type ACCEPT = Gtk::RESPONSE_ACCEPT;
+constexpr type OK = Gtk::RESPONSE_OK;
+constexpr type CANCEL = Gtk::RESPONSE_CANCEL;
+constexpr type CLOSE = Gtk::RESPONSE_CLOSE;
+constexpr type YES = Gtk::RESPONSE_YES;
+constexpr type NO = Gtk::RESPONSE_NO;
+#endif
+} // ResponseType
 
 } // JDLIB::compat
 

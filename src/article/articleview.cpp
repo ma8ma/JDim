@@ -597,8 +597,8 @@ void ArticleViewMain::update_finish()
 
         SKELETON::MsgDiag mdiag( get_parent_win(), "DAT落ちしたためスレッドを取得できませんでした。\n\nタブを閉じますか？",
                                  false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
-        mdiag.set_default_response( Gtk::RESPONSE_YES );
-        if( mdiag.run() == Gtk::RESPONSE_YES ) close_view();
+        mdiag.set_default_response( JDLIB::compat::ResponseType::YES );
+        if( mdiag.run() == JDLIB::compat::ResponseType::YES ) close_view();
     }
 }
 

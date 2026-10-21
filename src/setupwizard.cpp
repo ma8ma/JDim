@@ -359,7 +359,7 @@ SetupWizard::SetupWizard()
     JDLIB::compat::box_append_shrink( *get_action_area(), m_back );
     JDLIB::compat::box_append_shrink( *get_action_area(), m_next );
 #endif
-    m_fin = add_button( "完了(_C)", Gtk::RESPONSE_OK );
+    m_fin = add_button( "完了(_C)", JDLIB::compat::ResponseType::OK );
 
     m_back.set_sensitive( false );
     m_next.set_sensitive( true );

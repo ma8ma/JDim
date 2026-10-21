@@ -648,7 +648,7 @@ void MessageViewBase::write()
             SKELETON::MsgDiag mdiag( get_parent_win(),
                                      "ユニコード文字が含まれていますが、この板ではユニコード文字は文字化けします(BBS_UNICODE=change)。\n\n書き込みますか？",
                                      false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
-            if( mdiag.run() != Gtk::RESPONSE_YES ) return;
+            if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
         }
     }
 

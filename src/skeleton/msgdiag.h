@@ -7,6 +7,7 @@
 
 #include <gtkmm.h>
 
+#include "jdlib/gtk_compat.h"
 #include "jdlib/timeout.h"
 
 namespace SKELETON
@@ -78,9 +79,9 @@ namespace SKELETON
 
     enum
     {
-        OVERWRITE_YES = Gtk::RESPONSE_YES + 100,
-        OVERWRITE_YES_ALL = Gtk::RESPONSE_YES + 200,
-        OVERWRITE_NO_ALL = Gtk::RESPONSE_NO + 200
+        OVERWRITE_YES = JDLIB::compat::ResponseType::YES + 100,
+        OVERWRITE_YES_ALL = JDLIB::compat::ResponseType::YES + 200,
+        OVERWRITE_NO_ALL = JDLIB::compat::ResponseType::NO + 200
     };
 
     class MsgOverwriteDiag : public SKELETON::MsgDiag

@@ -9,6 +9,7 @@
 
 #include "skeleton/msgdiag.h"
 
+#include "jdlib/gtk_compat.h"
 #include "jdlib/loaderdata.h"
 #include "jdlib/jdiconv.h"
 #include "jdlib/miscmsg.h"
@@ -412,7 +413,7 @@ void Post::receive_finish()
             mdiag.set_default_size( 600, 400 );
             const int response = mdiag.run();
             mdiag.hide();
-            if( response != Gtk::RESPONSE_OK ){
+            if( response != JDLIB::compat::ResponseType::OK ){
 
                 set_code( HTTP_CANCEL );
                 emit_sigfin();

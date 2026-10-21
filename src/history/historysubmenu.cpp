@@ -187,7 +187,7 @@ bool HistorySubMenu::open_history( const unsigned int i )
                     mdiag.set_secondary_text( abone_reason );
 
                     const int response = mdiag.run();
-                    if( response == Gtk::RESPONSE_YES ) {
+                    if( response == JDLIB::compat::ResponseType::YES ) {
                         open_image = true;
                         open_mode = "force_mosaic";
                     }

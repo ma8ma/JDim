@@ -659,7 +659,7 @@ bool ConfigItems::load( const bool restore )
             msg = "設定ファイル (" + path_conf + ")に異常な値があります。全設定をバックアップから復元しますか？";
             Gtk::MessageDialog mdiag( msg, false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
             const int ret = mdiag.run();
-            if( ret != Gtk::RESPONSE_YES ) load( true ); // resotreモードで再帰
+            if( ret != JDLIB::compat::ResponseType::YES ) load( true ); // resotreモードで再帰
         }
         else
         {

@@ -680,7 +680,7 @@ void FontColorPref::slot_change_color()
     colordiag.set_transient_for( *CORE::get_mainwindow() );
     const int ret = colordiag.run();
 
-    if( ret == Gtk::RESPONSE_OK ){
+    if( ret == JDLIB::compat::ResponseType::OK ){
 
         for( const Gtk::TreePath& path : selection_path ) {
 

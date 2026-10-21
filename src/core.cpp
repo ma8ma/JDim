@@ -707,7 +707,7 @@ bool Core::open_color_diag( std::string title, int id )
     diag.set_use_alpha( false );
     diag.set_rgba( color );
     diag.set_transient_for( *CORE::get_mainwindow() );
-    if( diag.run() == Gtk::RESPONSE_OK ){
+    if( diag.run() == JDLIB::compat::ResponseType::OK ){
         color = diag.get_rgba();
         CONFIG::set_color( id, MISC::color_to_str( color ) );
         return true;
@@ -716,7 +716,7 @@ bool Core::open_color_diag( std::string title, int id )
     Gtk::ColorSelectionDialog diag( title );
     diag.get_color_selection()->set_current_rgba( color );
     diag.set_transient_for( *CORE::get_mainwindow() );
-    if( diag.run() == Gtk::RESPONSE_OK ){
+    if( diag.run() == JDLIB::compat::ResponseType::OK ){
         Gtk::ColorSelection* sel = diag.get_color_selection();
         CONFIG::set_color( id, MISC::color_to_str( sel->get_current_rgba() ) );
         return true;
@@ -1445,7 +1445,7 @@ void Core::set_command( const COMMAND_ARGS& command )
 
             SKELETON::MsgDiag mdiag( nullptr, "全ログの一覧表示はかなり時間がかかります。\n\n本当に表示しますか？",
                                      false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
-            if( mdiag.run() != Gtk::RESPONSE_YES ) return;
+            if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
             url = URL_ALLLOG;
         }
@@ -1570,7 +1570,7 @@ void Core::set_command( const COMMAND_ARGS& command )
 
             SKELETON::MsgDiag mdiag( nullptr, "「"+ DBTREE::board_name( command.url ) + "」\n\nにdatファイルをインポートしますか？",
                                      false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
-            if( mdiag.run() != Gtk::RESPONSE_YES ) return;
+            if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
         }
 
         std::vector< std::string > list_files;
@@ -1814,7 +1814,7 @@ void Core::set_command( const COMMAND_ARGS& command )
                 SKELETON::MsgDiag mdiag( nullptr, "スレのサイズが" + std::to_string( max_lng )
                                                   + "Kバイトを越えています。\n\n本当に書き込みますか？",
                                          false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
-                if( mdiag.run() != Gtk::RESPONSE_YES ) return;
+                if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
             }
 
             if( SESSION::get_embedded_mes() ) m_vpaned_message.get_ctrl().set_mode( SKELETON::PANE_NORMAL );

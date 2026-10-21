@@ -378,7 +378,7 @@ void ReplaceStrPref::slot_row_activated( const Gtk::TreeModel::Path& path, Gtk::
     const ReplaceStrCondition condition{ active, icase, regex, wchar, norm };
 
     ReplaceStrDiag dlg( this, condition, row[ m_columns.m_col_pattern ], row[ m_columns.m_col_replace ] );
-    if( dlg.run() == Gtk::RESPONSE_OK ) {
+    if( dlg.run() == JDLIB::compat::ResponseType::OK ) {
         row.set_value( m_columns.m_col_active, dlg.get_active() );
         row.set_value( m_columns.m_col_icase, dlg.get_icase() );
         row.set_value( m_columns.m_col_regex, dlg.get_regex() );
@@ -515,7 +515,7 @@ void ReplaceStrPref::slot_delete()
     if( ! it ) return;
 
     SKELETON::MsgDiag mdiag( *this, "削除しますか？", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
-    if( mdiag.run() != Gtk::RESPONSE_YES ) return;
+    if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
     auto it_next = std::next( it );
 
@@ -536,7 +536,7 @@ void ReplaceStrPref::slot_add()
 {
     constexpr ReplaceStrCondition condition{ true, false, false, false, false };
     ReplaceStrDiag dlg( this, condition, "", "" );
-    if( dlg.run() == Gtk::RESPONSE_OK ) {
+    if( dlg.run() == JDLIB::compat::ResponseType::OK ) {
         append_row( m_current_store, dlg.get_condition(),
                     dlg.get_pattern(), dlg.get_replace() );
     }

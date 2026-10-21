@@ -49,12 +49,12 @@ PrefDiag::PrefDiag( Gtk::Window* parent, const std::string& url, const bool add_
     }
 
     if( add_cancel ){
-        add_button( g_dgettext( GTK_DOMAIN, "_Cancel" ), Gtk::RESPONSE_CANCEL )
+        add_button( g_dgettext( GTK_DOMAIN, "_Cancel" ), JDLIB::compat::ResponseType::CANCEL )
         ->signal_clicked().connect( sigc::mem_fun(*this, &PrefDiag::slot_cancel_clicked ) );
     }
 
-    if( add_open ) m_bt_ok = add_button( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Open", 12 ), Gtk::RESPONSE_OK );
-    else m_bt_ok = add_button( g_dgettext( GTK_DOMAIN, "_OK" ), Gtk::RESPONSE_OK );
+    if( add_open ) m_bt_ok = add_button( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Open", 12 ), JDLIB::compat::ResponseType::OK );
+    else m_bt_ok = add_button( g_dgettext( GTK_DOMAIN, "_OK" ), JDLIB::compat::ResponseType::OK );
 
     m_bt_ok->signal_clicked().connect( sigc::mem_fun(*this, &PrefDiag::slot_ok_clicked ) );
 
@@ -100,7 +100,7 @@ void PrefDiag::slot_activate_entry()
 #endif
 
     slot_ok_clicked();
-    response( Gtk::RESPONSE_OK );
+    response( JDLIB::compat::ResponseType::OK );
 }
 
 

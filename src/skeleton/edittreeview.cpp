@@ -11,6 +11,7 @@
 
 #include "config/globalconf.h"
 #include "dbtree/interface.h"
+#include "jdlib/gtk_compat.h"
 #include "jdlib/miscgtk.h"
 #include "xml/document.h"
 
@@ -1059,7 +1060,7 @@ CORE::DATA_INFO_LIST EditTreeView::append_info( const CORE::DATA_INFO_LIST& list
                 SKELETON::MsgCheckDiag mdiag( get_parent_win(),
                                               info.name + "\n\nは既に含まれています。追加しますか？",
                                               "今後表示しない(常に追加しない) (_D)",
-                                              Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO, Gtk::RESPONSE_NO );
+                                              Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO, JDLIB::compat::ResponseType::NO );
                 mdiag.set_title( "お気に入り追加確認" );
 
                 const int ret = mdiag.run();
@@ -1067,7 +1068,7 @@ CORE::DATA_INFO_LIST EditTreeView::append_info( const CORE::DATA_INFO_LIST& list
                     CONFIG::set_check_favorite_dup( 2 );
                     check_dup = 2;
                 }
-                if( ret != Gtk::RESPONSE_YES ) continue;
+                if( ret != JDLIB::compat::ResponseType::YES ) continue;
             }
 
             list_info_src.push_back( info );
@@ -1174,7 +1175,7 @@ void EditTreeView::delete_selected_rows( const bool force )
         if( is_dir( iter ) ){
             SKELETON::MsgDiag mdiag( get_parent_win(), "ディレクトリを削除するとディレクトリ内の行も全て削除されます。削除しますか？",
                                       false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
-            if( mdiag.run() != Gtk::RESPONSE_YES ) return;
+            if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
             break;
         }
     }

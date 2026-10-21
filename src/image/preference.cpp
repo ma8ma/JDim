@@ -200,7 +200,7 @@ void Preferences::slot_open_ref()
 
     CORE::core_set_command( "open_article_res", url, ss.str(), std::to_string( center ) );
 
-    response( Gtk::RESPONSE_CANCEL );
+    response( JDLIB::compat::ResponseType::CANCEL );
 }
 
 
