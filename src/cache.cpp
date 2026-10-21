@@ -1054,7 +1054,7 @@ std::string CACHE::open_save_diag( Gtk::Window* parent, const std::string& dir, 
     if( CACHE::file_exists( path_to ) == CACHE::EXIST_FILE ){
 
         SKELETON::MsgDiag mdiag( parent, "ファイルが存在します。ファイル名を変更して保存しますか？", 
-                                 false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_NONE );
+                                 false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::NONE );
         mdiag.add_button( g_dgettext( GTK_DOMAIN, "_No" ), JDLIB::compat::ResponseType::NO );
         mdiag.add_button( g_dgettext( GTK_DOMAIN, "_Yes" ), JDLIB::compat::ResponseType::YES );
         mdiag.add_button( "上書き", JDLIB::compat::ResponseType::YES + 100 );

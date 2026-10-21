@@ -143,7 +143,7 @@ MsgCheckDiag::MsgCheckDiag( Gtk::Window* parent,
                             const Glib::ustring& message,
                             const Glib::ustring& message_check,
                             Gtk::MessageType type, Gtk::ButtonsType buttons, const int default_response )
-    : SKELETON::MsgDiag( parent, message, false, type, Gtk::BUTTONS_NONE, false )
+    : SKELETON::MsgDiag( parent, message, false, type, JDLIB::compat::ButtonsType::NONE, false )
     , m_chkbutton( message_check, true )
 {
     const int mrg = 16;
@@ -152,16 +152,16 @@ MsgCheckDiag::MsgCheckDiag( Gtk::Window* parent,
     JDLIB::compat::box_append_expand( *hbox, m_chkbutton, mrg );
     JDLIB::compat::box_append_shrink( *get_content_area(), *hbox );
 
-    if( buttons == Gtk::BUTTONS_OK ){
+    if( buttons == JDLIB::compat::ButtonsType::OK ){
 
         add_default_button( g_dgettext( GTK_DOMAIN, "_OK" ), JDLIB::compat::ResponseType::OK );
     }
-    else if( buttons == Gtk::BUTTONS_OK_CANCEL ){
+    else if( buttons == JDLIB::compat::ButtonsType::OK_CANCEL ){
         add_button( g_dgettext( GTK_DOMAIN, "_No" ), JDLIB::compat::ResponseType::CANCEL );
 
         add_default_button( g_dgettext( GTK_DOMAIN, "_OK" ), JDLIB::compat::ResponseType::OK );
     }
-    else if( buttons == Gtk::BUTTONS_YES_NO ){
+    else if( buttons == JDLIB::compat::ButtonsType::YES_NO ){
 
         if( default_response == JDLIB::compat::ResponseType::NO ){
 
@@ -190,7 +190,7 @@ MsgCheckDiag::~MsgCheckDiag() noexcept = default;
 
 MsgOverwriteDiag::MsgOverwriteDiag( Gtk::Window* parent )
     : SKELETON::MsgDiag( parent, "ファイルが存在します。ファイル名を変更して保存しますか？", 
-                         false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_NONE )
+                         false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::NONE )
 {
     add_button( g_dgettext( GTK_DOMAIN, "_No" ), JDLIB::compat::ResponseType::NO );
     add_button( g_dgettext( GTK_DOMAIN, "_Yes" ), JDLIB::compat::ResponseType::YES );

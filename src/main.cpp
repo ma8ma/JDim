@@ -360,7 +360,7 @@ void App::slot_startup()
 
             std::string msg = "JDimの設定ファイル(" + CACHE::path_conf()
                               + ")は存在しますが読み込むことが出来ませんでした。\n\n起動しますか？";
-            Gtk::MessageDialog mdiag( msg, false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
+            Gtk::MessageDialog mdiag( msg, false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
             const int ret = mdiag.run();
             if( ret != JDLIB::compat::ResponseType::YES ) return quit();
         }
@@ -422,7 +422,7 @@ bool App::setup_fifo( std::string url )
         if( CONFIG::get_show_diag_fifo_error() )
         {
             Gtk::MessageDialog mdiag( CACHE::path_lock() + "の作成またはオープンに問題があります。このまま起動しますか？",
-                                      false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
+                                      false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
 
             Gtk::CheckButton chk_button( "今後表示しない" );
             JDLIB::compat::box_append_shrink( *mdiag.get_content_area(), chk_button );

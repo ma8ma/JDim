@@ -630,7 +630,7 @@ void Preferences::slot_clear_samba()
 void Preferences::slot_clear_post_history()
 {
     SKELETON::MsgDiag mdiag( nullptr, "この板にある全てのスレの書き込み履歴を削除しますか？\n\nスレ数によっては時間がかかります。",
-                             false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
+                             false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
     if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
     DBTREE::board_clear_all_post_history( get_url() );

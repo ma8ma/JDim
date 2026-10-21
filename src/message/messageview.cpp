@@ -82,7 +82,7 @@ std::string MessageViewMain::create_message( const bool utf8_post )
             SKELETON::MsgDiag mdiag( get_parent_win(),
                                      "メッセージがスペースまたは改行で終わっています。\n\n"
                                      "このまま書き込みますか？ (または、改行等を削除)",
-                                     false, JDLIB::compat::MessageType::WARNING, Gtk::BUTTONS_NONE );
+                                     false, JDLIB::compat::MessageType::WARNING, JDLIB::compat::ButtonsType::NONE );
 
             mdiag.set_title( "確認" );
             mdiag.add_button( g_dgettext( GTK_DOMAIN, "_Cancel" ), JDLIB::compat::ResponseType::CANCEL );
@@ -110,7 +110,7 @@ std::string MessageViewMain::create_message( const bool utf8_post )
 
         SKELETON::MsgDiag mdiag( get_parent_win(),
                                  "スレビューで開いているスレと異なるスレに書き込もうとしています\n\n誤爆する可能性がありますが書き込みますか？",
-                                 false, JDLIB::compat::MessageType::WARNING, Gtk::BUTTONS_NONE );
+                                 false, JDLIB::compat::MessageType::WARNING, JDLIB::compat::ButtonsType::NONE );
 
         mdiag.set_title( "！！！誤爆注意！！！" );
         mdiag.add_button( g_dgettext( GTK_DOMAIN, "_No" ), JDLIB::compat::ResponseType::NO );
@@ -202,7 +202,7 @@ std::string MessageViewNew::create_message( const bool utf8_post )
     }
 
     SKELETON::MsgDiag mdiag( get_parent_win(),
-                             "新スレを作成しますか？", false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
+                             "新スレを作成しますか？", false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
     if( mdiag.run() == JDLIB::compat::ResponseType::YES ) {
         return DBTREE::create_newarticle_message( get_url(), subject, name, mail, msg, utf8_post );
     }

@@ -1060,7 +1060,7 @@ CORE::DATA_INFO_LIST EditTreeView::append_info( const CORE::DATA_INFO_LIST& list
                 SKELETON::MsgCheckDiag mdiag( get_parent_win(),
                                               info.name + "\n\nは既に含まれています。追加しますか？",
                                               "今後表示しない(常に追加しない) (_D)",
-                                              JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO, JDLIB::compat::ResponseType::NO );
+                                              JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO, JDLIB::compat::ResponseType::NO );
                 mdiag.set_title( "お気に入り追加確認" );
 
                 const int ret = mdiag.run();
@@ -1174,7 +1174,7 @@ void EditTreeView::delete_selected_rows( const bool force )
 
         if( is_dir( iter ) ){
             SKELETON::MsgDiag mdiag( get_parent_win(), "ディレクトリを削除するとディレクトリ内の行も全て削除されます。削除しますか？",
-                                      false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
+                                      false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
             if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
             break;
         }

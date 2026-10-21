@@ -381,7 +381,7 @@ void BBSListViewBase::close_view()
 //
 void BBSListViewBase::delete_view()
 {
-    SKELETON::MsgDiag mdiag( get_parent_win(), "削除しますか？", false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
+    SKELETON::MsgDiag mdiag( get_parent_win(), "削除しますか？", false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
     if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
     delete_view_impl();
@@ -1483,7 +1483,7 @@ void BBSListViewBase::slot_select_all_dir()
 //
 void BBSListViewBase::slot_select_all()
 {
-    SKELETON::MsgDiag mdiag( get_parent_win(), "全ての行を選択しますか？\n\n(注意) ディレクトリは全て展開されます。", false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
+    SKELETON::MsgDiag mdiag( get_parent_win(), "全ての行を選択しますか？\n\n(注意) ディレクトリは全て展開されます。", false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
     mdiag.set_default_response( JDLIB::compat::ResponseType::NO );
     if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
@@ -1769,7 +1769,7 @@ bool BBSListViewBase::open_row( Gtk::TreePath& path, const bool tab )
 
             if( DBIMG::get_abone( url ) ) {
                 SKELETON::MsgDiag mdiag( get_parent_win(), "あぼ〜んされています", false,
-                                         JDLIB::compat::MessageType::INFO, Gtk::BUTTONS_YES_NO );
+                                         JDLIB::compat::MessageType::INFO, JDLIB::compat::ButtonsType::YES_NO );
                 std::string abone_reason = DBIMG::get_img_abone_reason( url );
                 if( ! abone_reason.empty() ) {
                     abone_reason = MISC::replace_str( abone_reason, "<br>", "\n" );
@@ -2505,7 +2505,7 @@ void BBSListViewBase::replace_thread( const std::string& url, const std::string&
                         SKELETON::MsgCheckDiag mdiag( get_parent_win(),
                                                       "お気に入りに前スレが登録されています。\n\n名前とアドレスを新スレの物に置き換えますか？"
                                                       , "今後表示しない(_D)",
-                                                      JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_NONE
+                                                      JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::NONE
                             );
 
                         mdiag.add_default_button( g_dgettext( GTK_DOMAIN, "_No" ), JDLIB::compat::ResponseType::NO );

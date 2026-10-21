@@ -193,7 +193,7 @@ void BBSListViewMain::delete_view()
         return;
     }
 
-    SKELETON::MsgDiag mdiag( get_parent_win(), "削除しますか？", false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
+    SKELETON::MsgDiag mdiag( get_parent_win(), "削除しますか？", false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
     if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
     delete_view_impl();

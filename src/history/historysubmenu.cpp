@@ -177,7 +177,7 @@ bool HistorySubMenu::open_history( const unsigned int i )
 
                 if( DBIMG::get_abone( url )){
                     SKELETON::MsgDiag mdiag( nullptr, "あぼ〜んされています", false,
-                                             JDLIB::compat::MessageType::INFO, Gtk::BUTTONS_YES_NO );
+                                             JDLIB::compat::MessageType::INFO, JDLIB::compat::ButtonsType::YES_NO );
                     std::string abone_reason = DBIMG::get_img_abone_reason( url );
                     if( ! abone_reason.empty() ) {
                         abone_reason = MISC::replace_str( abone_reason, "<br>", "\n" );

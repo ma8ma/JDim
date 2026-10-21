@@ -23,7 +23,7 @@ namespace SKELETON
                  const Glib::ustring& message,
                  bool use_markup = false,
                  Gtk::MessageType type = JDLIB::compat::MessageType::INFO,
-                 Gtk::ButtonsType buttons = Gtk::BUTTONS_OK,
+                 Gtk::ButtonsType buttons = JDLIB::compat::ButtonsType::OK,
                  bool modal = false);
 
         // parent がポインタの時は  nullptr かどうかで場合分け
@@ -31,7 +31,7 @@ namespace SKELETON
                  const Glib::ustring& message,
                  bool use_markup = false,
                  Gtk::MessageType type = JDLIB::compat::MessageType::INFO,
-                 Gtk::ButtonsType buttons = Gtk::BUTTONS_OK,
+                 Gtk::ButtonsType buttons = JDLIB::compat::ButtonsType::OK,
                  bool modal = false);
 
         ~MsgDiag() noexcept override;
@@ -64,7 +64,7 @@ namespace SKELETON
                       const Glib::ustring& message,
                       const Glib::ustring& message_check,
                       Gtk::MessageType type = JDLIB::compat::MessageType::INFO,
-                      Gtk::ButtonsType buttons = Gtk::BUTTONS_OK,
+                      Gtk::ButtonsType buttons = JDLIB::compat::ButtonsType::OK,
                       const int default_response = -1
             );
         ~MsgCheckDiag() noexcept override;

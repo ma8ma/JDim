@@ -1444,7 +1444,7 @@ void Core::set_command( const COMMAND_ARGS& command )
         if( command.command == "open_board_showalllog" ){
 
             SKELETON::MsgDiag mdiag( nullptr, "全ログの一覧表示はかなり時間がかかります。\n\n本当に表示しますか？",
-                                     false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
+                                     false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
             if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
             url = URL_ALLLOG;
@@ -1569,7 +1569,7 @@ void Core::set_command( const COMMAND_ARGS& command )
         if( command.arg1 == "show_diag" ){
 
             SKELETON::MsgDiag mdiag( nullptr, "「"+ DBTREE::board_name( command.url ) + "」\n\nにdatファイルをインポートしますか？",
-                                     false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
+                                     false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
             if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
         }
 
@@ -1813,7 +1813,7 @@ void Core::set_command( const COMMAND_ARGS& command )
 
                 SKELETON::MsgDiag mdiag( nullptr, "スレのサイズが" + std::to_string( max_lng )
                                                   + "Kバイトを越えています。\n\n本当に書き込みますか？",
-                                         false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
+                                         false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
                 if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
             }
 

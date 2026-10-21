@@ -366,7 +366,7 @@ void Root::receive_finish()
     if( get_code() == HTTP_NOT_MODIFIED ){
 
         std::string msg = get_str_code() + "\n\nサーバー上の板一覧は更新されていません。強制的に再読み込みをしますか？";
-        SKELETON::MsgDiag mdiag( nullptr, msg, false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
+        SKELETON::MsgDiag mdiag( nullptr, msg, false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
         mdiag.set_default_response( JDLIB::compat::ResponseType::YES );
         if( mdiag.run() == JDLIB::compat::ResponseType::YES ){
             set_date_modified( std::string() );
@@ -380,7 +380,7 @@ void Root::receive_finish()
             && ! location().empty() ){
 
         const std::string msg = get_str_code() + "\n\n板一覧が " + location() + " に移転しました。更新しますか？";
-        SKELETON::MsgDiag mdiag( nullptr, msg, false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
+        SKELETON::MsgDiag mdiag( nullptr, msg, false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
         mdiag.set_default_response( JDLIB::compat::ResponseType::YES );
         if( mdiag.run() == JDLIB::compat::ResponseType::YES ){
             set_date_modified( std::string() );

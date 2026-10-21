@@ -8,6 +8,7 @@
 
 #include <gtkmm/box.h>
 #include <gtkmm/dialog.h>
+#include <gtkmm/messagedialog.h>
 
 
 namespace JDLIB::compat {
@@ -91,6 +92,29 @@ inline void box_append_expand_nofill( Gtk::Box& box, Gtk::Widget& widget, guint 
     box.pack_start( widget, true, false, padding );
 #endif
 }
+
+/**
+ * @brief Gtk::ButtonsType の alias
+ *
+ * @note 未使用またはコメントアウトされている enum 値は alias を作成していません。
+ */
+namespace ButtonsType {
+using type = Gtk::ButtonsType;
+
+#ifdef USE_GTKMM4
+using Gtk::ButtonsType::NONE;
+using Gtk::ButtonsType::OK;
+using Gtk::ButtonsType::CANCEL;
+using Gtk::ButtonsType::YES_NO;
+using Gtk::ButtonsType::OK_CANCEL;
+#else
+constexpr type NONE = Gtk::BUTTONS_NONE;
+constexpr type OK = Gtk::BUTTONS_OK;
+constexpr type CANCEL = Gtk::BUTTONS_CANCEL;
+constexpr type YES_NO = Gtk::BUTTONS_YES_NO;
+constexpr type OK_CANCEL = Gtk::BUTTONS_OK_CANCEL;
+#endif
+} // ButtonsType
 
 /**
  * @brief Gtk::MessageType の alias

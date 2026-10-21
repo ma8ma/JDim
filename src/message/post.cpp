@@ -129,8 +129,8 @@ void Post::show_writingdiag( const bool show_buttons )
     Gtk::Window* toplevel = dynamic_cast< Gtk::Window* >( m_parent->get_toplevel() );
     if( ! toplevel ) return;
 
-    Gtk::ButtonsType buttons = Gtk::BUTTONS_NONE;
-    if( show_buttons ) buttons = Gtk::BUTTONS_OK;
+    Gtk::ButtonsType buttons = JDLIB::compat::ButtonsType::NONE;
+    if( show_buttons ) buttons = JDLIB::compat::ButtonsType::OK;
 
     if( ! m_writingdiag ){
         m_writingdiag = std::make_unique<SKELETON::MsgDiag>( *toplevel, "書き込み中・・・", false, JDLIB::compat::MessageType::INFO,

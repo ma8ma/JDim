@@ -346,7 +346,7 @@ void ImageViewBase::delete_view_impl( const bool show_diag )
                                           "画像を削除しますか？",
                                           "今後表示しない(常に削除) (_D)",
                                           JDLIB::compat::MessageType::QUESTION,
-                                          Gtk::BUTTONS_YES_NO,
+                                          JDLIB::compat::ButtonsType::YES_NO,
                                           JDLIB::compat::ResponseType::NO
                 );
 
@@ -665,7 +665,7 @@ void ImageViewBase::slot_cancel_mosaic()
 
         SKELETON::MsgDiag mdiag( get_parent_win(),
                                  "拡張子が偽装されています。" + type + "\n\nモザイクを解除しますか？",
-                                 false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
+                                 false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
 
         mdiag.set_default_response( JDLIB::compat::ResponseType::NO );
         if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;

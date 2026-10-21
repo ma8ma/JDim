@@ -482,7 +482,7 @@ void ArticleViewBase::delete_open_view()
     }
 
     if( DBTREE::article_status( m_url_article ) & STATUS_OLD ){
-        SKELETON::MsgDiag mdiag( get_parent_win(), "DAT落ちしています。\n\nログが消える恐れがあります。実行しますか？", false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
+        SKELETON::MsgDiag mdiag( get_parent_win(), "DAT落ちしています。\n\nログが消える恐れがあります。実行しますか？", false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
         mdiag.set_default_response( JDLIB::compat::ResponseType::NO );
         if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
     }
@@ -621,7 +621,7 @@ bool ArticleViewBase::operate_view( const int control )
             SKELETON::MsgCheckDiag mdiag( get_parent_win(),
                                           "ログを削除しますか？\n\n「スレ再取得」を押すと\nあぼ〜んなどのスレ情報を削除せずにスレを再取得します。",
                                           "今後表示しない(常に削除)(_D)",
-                                          JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_NONE );
+                                          JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::NONE );
             mdiag.add_button( g_dgettext( GTK_DOMAIN, "_No" ), JDLIB::compat::ResponseType::NO );
             mdiag.add_default_button( g_dgettext( GTK_DOMAIN, "_Yes" ), JDLIB::compat::ResponseType::YES );
 
@@ -2247,7 +2247,7 @@ bool ArticleViewBase::click_url( std::string url, int res_number, GdkEventButton
 
         else if( DBIMG::get_abone( url )){
             SKELETON::MsgDiag mdiag( get_parent_win(), "あぼ〜んされています", false,
-                                     JDLIB::compat::MessageType::INFO, Gtk::BUTTONS_YES_NO );
+                                     JDLIB::compat::MessageType::INFO, JDLIB::compat::ButtonsType::YES_NO );
             std::string abone_reason = DBIMG::get_img_abone_reason( url );
             if( ! abone_reason.empty() ) {
                 abone_reason = MISC::replace_str( abone_reason, "<br>", "\n" );
@@ -3174,7 +3174,7 @@ void ArticleViewBase::slot_cancel_mosaic()
     if( DBIMG::is_fake( m_url_tmp ) ){
 
         SKELETON::MsgDiag mdiag( get_parent_win(),
-                                 "拡張子が偽装されています。モザイクを解除しますか？", false, JDLIB::compat::MessageType::QUESTION, Gtk::BUTTONS_YES_NO );
+                                 "拡張子が偽装されています。モザイクを解除しますか？", false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
 
         mdiag.set_default_response( JDLIB::compat::ResponseType::NO );
         if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
