@@ -65,8 +65,8 @@ enum
 
 MessageViewBase::MessageViewBase( const std::string& url )
     : SKELETON::View( url )
-    , m_msgview{ Gtk::ORIENTATION_VERTICAL, 0 }
-    , m_toolbar_name_mail{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_msgview{ JDLIB::compat::Orientation::VERTICAL, 0 }
+    , m_toolbar_name_mail{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_entry_name( CORE::COMP_NAME )
     , m_entry_mail( CORE::COMP_MAIL )
     , m_enable_focus( true )

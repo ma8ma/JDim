@@ -8,6 +8,7 @@
 
 #include "config/globalconf.h"
 #include "history/historymanager.h"
+#include "jdlib/gtk_compat.h"
 #include "jdlib/miscgtk.h"
 #include "jdlib/miscmsg.h"
 
@@ -18,7 +19,7 @@
 using namespace SKELETON;
 
 View::View( const std::string& url, const std::string& arg1 ,const std::string& arg2 )
-    : Gtk::Box{ Gtk::ORIENTATION_VERTICAL, 0 }
+    : Gtk::Box{ JDLIB::compat::Orientation::VERTICAL, 0 }
     , m_url( url )
     , m_autoreload_mode( AUTORELOAD_NOT )
     , m_lockable( true )

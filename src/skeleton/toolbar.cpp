@@ -31,10 +31,10 @@ using namespace SKELETON;
 
 
 ToolBar::ToolBar( Admin* admin )
-    : Gtk::Box{ Gtk::ORIENTATION_VERTICAL, 0 }
+    : Gtk::Box{ JDLIB::compat::Orientation::VERTICAL, 0 }
     , m_admin( admin )
     , m_enable_slot{ true }
-    , m_buttonbar{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_buttonbar{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
 {
     m_buttonbar.set_border_width( 0 );
 }
@@ -257,7 +257,7 @@ void ToolBar::set_relief()
 // 区切り追加
 void ToolBar::pack_separator()
 {
-    auto* sep = Gtk::make_managed<Gtk::Separator>( Gtk::ORIENTATION_VERTICAL ); // delete は unpack_buttons() で行う
+    auto* sep = Gtk::make_managed<Gtk::Separator>( JDLIB::compat::Orientation::VERTICAL ); // delete は unpack_buttons() で行う
     JDLIB::compat::box_append_shrink( m_buttonbar, *sep, 0 );
 }
 
@@ -333,7 +333,7 @@ void ToolBar::set_color( const std::string& color )
 Gtk::Box* ToolBar::get_searchbar()
 {
     if( ! m_searchbar ){
-        m_searchbar = Gtk::make_managed<Gtk::Box>( Gtk::ORIENTATION_HORIZONTAL, 0 );
+        m_searchbar = Gtk::make_managed<Gtk::Box>( JDLIB::compat::Orientation::HORIZONTAL, 0 );
     }
 
     return m_searchbar;

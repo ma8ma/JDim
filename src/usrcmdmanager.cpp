@@ -55,7 +55,7 @@ public:
 
     ReplaceTextDiag( Gtk::Window* parent, const std::string& title )
         : SKELETON::PrefDiag( parent, "" )
-        , m_vbox{ Gtk::ORIENTATION_VERTICAL, 0 }
+        , m_vbox{ JDLIB::compat::Orientation::VERTICAL, 0 }
         , m_label( title + "を置き換えるテキストを入力してください。" )
     {
         resize( 640, 1 );

@@ -148,7 +148,7 @@ ReplaceStrPref::ReplaceStrPref( Gtk::Window* parent, const std::string& url )
     , m_button_bottom( g_dpgettext( GTK_DOMAIN, "Stock label, navigation\x04_Bottom", 24 ), true )
     , m_button_delete( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Delete", 12 ), true )
     , m_button_add( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Add", 12 ), true )
-    , m_vbuttonbox{ Gtk::ORIENTATION_VERTICAL }
+    , m_vbuttonbox{ JDLIB::compat::Orientation::VERTICAL }
 {
     const bool use_symbolic = CONFIG::get_use_symbolic_icon();
     m_button_top.set_image_from_icon_name( use_symbolic ? "go-top-symbolic" : "go-top" );

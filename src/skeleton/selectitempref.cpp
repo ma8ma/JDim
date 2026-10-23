@@ -26,15 +26,15 @@ SelectItemPref::SelectItemPref( Gtk::Window* parent, const std::string& url )
     , m_button_down( g_dpgettext( GTK_DOMAIN, "Stock label, navigation\x04_Down", 24 ), true )
     , m_button_bottom( g_dpgettext( GTK_DOMAIN, "Stock label, navigation\x04_Bottom", 24 ), true )
 #ifdef USE_GTKMM4
-    , m_vbuttonbox_v{ Gtk::ORIENTATION_VERTICAL, 4 }
-    , m_vbuttonbox_h{ Gtk::ORIENTATION_VERTICAL, 4 }
+    , m_vbuttonbox_v{ JDLIB::compat::Orientation::VERTICAL, 4 }
+    , m_vbuttonbox_h{ JDLIB::compat::Orientation::VERTICAL, 4 }
 #endif
     , m_button_default( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Revert", 12 ), true )
 #ifdef USE_GTKMM4
-    , m_vbuttonbox_action{ Gtk::ORIENTATION_VERTICAL, 4 }
+    , m_vbuttonbox_action{ JDLIB::compat::Orientation::VERTICAL, 4 }
 #endif
-    , m_vbox{ Gtk::ORIENTATION_VERTICAL, 0 }
-    , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_vbox{ JDLIB::compat::Orientation::VERTICAL, 0 }
+    , m_hbox{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
 {
     m_list_default_data.clear();
 

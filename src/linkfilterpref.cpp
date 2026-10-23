@@ -25,9 +25,9 @@ using namespace CORE;
 
 LinkFilterDiag::LinkFilterDiag( Gtk::Window* parent, const std::string& url, const std::string& cmd )
     : SKELETON::PrefDiag( parent, "" )
-    , m_vbox{ Gtk::ORIENTATION_VERTICAL, 0 }
+    , m_vbox{ JDLIB::compat::Orientation::VERTICAL, 0 }
     , m_label_url( "アドレス", JDLIB::compat::Align::START )
-    , m_hbox_cmd{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_hbox_cmd{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_label_cmd( "実行するコマンド", JDLIB::compat::Align::START )
     , m_button_manual( "オンラインマニュアルの置換文字一覧を表示" )
 {
@@ -43,7 +43,7 @@ LinkFilterDiag::LinkFilterDiag( Gtk::Window* parent, const std::string& url, con
     JDLIB::compat::box_append_shrink( m_vbox, m_entry_url );
 
     JDLIB::compat::box_append_shrink( m_hbox_cmd, m_label_cmd );
-    auto* spacer = Gtk::make_managed<Gtk::Box>( Gtk::ORIENTATION_HORIZONTAL, 0 );
+    auto* spacer = Gtk::make_managed<Gtk::Box>( JDLIB::compat::Orientation::HORIZONTAL, 0 );
     JDLIB::compat::box_append_expand( m_hbox_cmd, *spacer );
     JDLIB::compat::box_append_shrink( m_hbox_cmd, m_button_manual );
     JDLIB::compat::box_append_shrink( m_vbox, m_hbox_cmd );
@@ -78,9 +78,9 @@ LinkFilterPref::LinkFilterPref( Gtk::Window* parent, const std::string& url )
     , m_button_delete( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Delete", 12 ), true )
     , m_button_add( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Add", 12 ), true )
 #ifdef USE_GTKMM4
-    , m_vbuttonbox{ Gtk::ORIENTATION_VERTICAL, 4 }
+    , m_vbuttonbox{ JDLIB::compat::Orientation::VERTICAL, 4 }
 #endif
-    , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_hbox{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
 {
     const bool use_symbolic = CONFIG::get_use_symbolic_icon();
     m_button_top.set_image_from_icon_name( use_symbolic ? "go-top-symbolic" : "go-top" );

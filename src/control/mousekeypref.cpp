@@ -32,7 +32,7 @@ InputDiag::InputDiag( Gtk::Window* parent, const std::string& url,
     , m_mode( mode )
     , m_controlmode( CONTROL::get_mode( m_id ) )
     , m_label( target + "を入力して下さい。" )
-    , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_hbox{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
 {
     add_events( Gdk::BUTTON_PRESS_MASK | Gdk::BUTTON_RELEASE_MASK | Gdk::POINTER_MOTION_MASK );
 
@@ -276,9 +276,9 @@ MouseKeyDiag::MouseKeyDiag( Gtk::Window* parent, const std::string& url,
     , m_button_add( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Add", 12 ), true )
     , m_button_reset( "デフォルト" )
 #ifdef USE_GTKMM4
-    , m_vbuttonbox{ Gtk::ORIENTATION_VERTICAL, 4 }
+    , m_vbuttonbox{ JDLIB::compat::Orientation::VERTICAL, 4 }
 #endif
-    , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_hbox{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
 {
     m_liststore = Gtk::ListStore::create( m_columns );
     m_treeview.set_model( m_liststore );
@@ -510,8 +510,8 @@ void MouseKeyDiag::slot_reset()
 //
 MouseKeyPref::MouseKeyPref( Gtk::Window* parent, const std::string& url, const std::string& target  )
     : SKELETON::PrefDiag( parent, url )
-    , m_hbox_search{ Gtk::ORIENTATION_HORIZONTAL, 0 }
-    , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_hbox_search{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
+    , m_hbox{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_button_reset{ "全てデフォルト設定に戻す" }
     , m_label{ "編集したい" + target + "設定をダブルクリックして下さい。" }
 {

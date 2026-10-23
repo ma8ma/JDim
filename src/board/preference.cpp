@@ -27,7 +27,7 @@ using namespace BOARD;
 Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std::string& command )
     : SKELETON::PrefDiag( parent, url )
     , m_frame_write( "書き込み設定" )
-    , m_hbox_write{ Gtk::ORIENTATION_HORIZONTAL, 10 }
+    , m_hbox_write{ JDLIB::compat::Orientation::HORIZONTAL, 10 }
     , m_label_writename{ "名前:" }
     , m_label_writemail{ "メール:" }
     , m_check_utf8_post( "(実験的な機能) UTF-8で書き込む" )
@@ -38,16 +38,16 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     , m_frame_cookie( "クッキーと書き込みキーワード" )
     , m_button_cookie( "削除" )
 
-    , m_hbox_live{ Gtk::ORIENTATION_HORIZONTAL, 10 }
+    , m_hbox_live{ JDLIB::compat::Orientation::HORIZONTAL, 10 }
     , m_label_live{ "実況時の更新間隔(秒):" }
     , m_check_live( "実況する" )
 
-    , m_hbox_charset{ Gtk::ORIENTATION_HORIZONTAL, 10 }
+    , m_hbox_charset{ JDLIB::compat::Orientation::HORIZONTAL, 10 }
     , m_label_charset{ "テキストエンコーディング:" }
-    , m_vbox_encoding_analysis_method{ Gtk::ORIENTATION_VERTICAL, 2 }
+    , m_vbox_encoding_analysis_method{ JDLIB::compat::Orientation::VERTICAL, 2 }
 
-    , m_vbox_network{ Gtk::ORIENTATION_VERTICAL, 8 }
-    , m_hbox_agent{ Gtk::ORIENTATION_HORIZONTAL, 2 }
+    , m_vbox_network{ JDLIB::compat::Orientation::VERTICAL, 8 }
+    , m_hbox_agent{ JDLIB::compat::Orientation::HORIZONTAL, 2 }
     , m_label_agent{ "_User-Agent：", true }
     , m_proxy_frame( "読み込み用" )
     , m_proxy_frame_w( "書き込み用" )
@@ -66,23 +66,23 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     , m_label_max_subject_byte{ "スレタイトルの最大バイト数:" }
     , m_label_maxres{ "最大レス数 (0 : 未設定):" }
     , m_label_last_access{ "最終アクセス日時:" }
-    , m_hbox_modified{ Gtk::ORIENTATION_HORIZONTAL, 10 }
+    , m_hbox_modified{ JDLIB::compat::Orientation::HORIZONTAL, 10 }
     , m_label_modified{ "最終更新日時:" }
     , m_button_clearmodified( "日時クリア" )
-    , m_hbox_samba{ Gtk::ORIENTATION_HORIZONTAL, 10 }
+    , m_hbox_samba{ JDLIB::compat::Orientation::HORIZONTAL, 10 }
     , m_label_samba{ "書き込み規制秒数 (Samba24):" }
     , m_button_clearsamba( "秒数クリア" )
     , m_check_oldlog( "過去ログを表示する" )
-    , m_vbox_abone_general{ Gtk::ORIENTATION_VERTICAL, 0 }
-    , m_sep_general{ Gtk::ORIENTATION_HORIZONTAL }
-    , m_hbox_abone_consecutive{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_vbox_abone_general{ JDLIB::compat::Orientation::VERTICAL, 0 }
+    , m_sep_general{ JDLIB::compat::Orientation::HORIZONTAL }
+    , m_hbox_abone_consecutive{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_label_abone_consecutive{ "(実験的な機能) 連続投稿したIDをスレのNG IDに追加する (0 : 未設定)：" }
     , m_label_abone_consecutive_over_n_times{ " 回以上" }
-    , m_vbox_abone_thread{ Gtk::ORIENTATION_VERTICAL, 0 }
-    , m_hbox_low_number{ Gtk::ORIENTATION_HORIZONTAL, 4 }
-    , m_hbox_high_number{ Gtk::ORIENTATION_HORIZONTAL, 4 }
-    , m_hbox_hour{ Gtk::ORIENTATION_HORIZONTAL, 0 }
-    , m_vbox_abone_title{ Gtk::ORIENTATION_VERTICAL, 0 }
+    , m_vbox_abone_thread{ JDLIB::compat::Orientation::VERTICAL, 0 }
+    , m_hbox_low_number{ JDLIB::compat::Orientation::HORIZONTAL, 4 }
+    , m_hbox_high_number{ JDLIB::compat::Orientation::HORIZONTAL, 4 }
+    , m_hbox_hour{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
+    , m_vbox_abone_title{ JDLIB::compat::Orientation::VERTICAL, 0 }
     , m_button_remove_old_title( "dat落ちしたスレのタイトルを削除する" )
 {
     m_edit_cookies.set_editable( false );

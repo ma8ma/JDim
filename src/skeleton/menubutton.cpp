@@ -24,7 +24,7 @@ MenuButton::MenuButton( const bool show_arrow, Gtk::Widget* label, bool expand, 
     : m_label{ label }
     , m_enable_sig_clicked{ true }
 {
-    Gtk::Box* hbox = Gtk::manage( new Gtk::Box( Gtk::ORIENTATION_HORIZONTAL ) );
+    Gtk::Box* hbox = Gtk::manage( new Gtk::Box( JDLIB::compat::Orientation::HORIZONTAL ) );
 
     hbox->set_spacing( 4 );
     if( m_label ) {

@@ -28,11 +28,11 @@ enum
 AboutDiag::AboutDiag( const Glib::ustring& title )
     : Gtk::Dialog( title, ENVIRONMENT::get_dialog_use_header_bar() ? Gtk::DIALOG_USE_HEADER_BAR
                                                                    : Gtk::DialogFlags{} )
-    , m_vbox_info{ Gtk::ORIENTATION_VERTICAL, 0 }
-    , m_hbox_url{ Gtk::ORIENTATION_HORIZONTAL, 0 }
-    , m_vbox_environment{ Gtk::ORIENTATION_VERTICAL, 0 }
+    , m_vbox_info{ JDLIB::compat::Orientation::VERTICAL, 0 }
+    , m_hbox_url{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
+    , m_vbox_environment{ JDLIB::compat::Orientation::VERTICAL, 0 }
 #ifdef USE_GTKMM4
-    , m_hbuttonbox_environment{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_hbuttonbox_environment{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
 #endif
     , m_button_copy_environment( "クリップボードへコピー" )
 {

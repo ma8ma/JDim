@@ -30,7 +30,7 @@ using namespace BBSLIST;
 
 BBSListToolBar::BBSListToolBar()
     : SKELETON::ToolBar( BBSLIST::get_admin() )
-    , m_tool_label{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_tool_label{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_button_toggle( true, m_label )
 {
     m_button_toggle.set_tooltip_arrow( "ページ切り替え\n\nマウスホイール回転でも切り替え可能" );

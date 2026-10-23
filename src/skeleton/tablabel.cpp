@@ -23,7 +23,7 @@ enum
 
 TabLabel::TabLabel( const std::string& url )
     : m_url( url )
-    , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_hbox{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_id_icon( ICON::NUM_ICONS )
 {
 #ifdef _DEBUG

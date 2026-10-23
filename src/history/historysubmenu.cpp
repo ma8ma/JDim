@@ -73,11 +73,11 @@ HistorySubMenu::HistorySubMenu( const std::string& url_history )
         Gtk::Label *label_motion = Gtk::manage( new Gtk::Label() );
         if( i == 0 ) label_motion->set_text( CONTROL::get_str_motions( CONTROL::RestoreLastTab ) );
 
-        Gtk::Box* hbox = Gtk::make_managed<Gtk::Box>( Gtk::ORIENTATION_HORIZONTAL, 0 );
+        Gtk::Box* hbox = Gtk::make_managed<Gtk::Box>( JDLIB::compat::Orientation::HORIZONTAL, 0 );
         hbox->set_spacing( SPACING_MENU );
         JDLIB::compat::box_append_shrink( *hbox, *image );
         JDLIB::compat::box_append_shrink( *hbox, *label );
-        auto* spacer = Gtk::make_managed<Gtk::Box>( Gtk::ORIENTATION_HORIZONTAL, 0 );
+        auto* spacer = Gtk::make_managed<Gtk::Box>( JDLIB::compat::Orientation::HORIZONTAL, 0 );
         JDLIB::compat::box_append_expand( *hbox, *spacer );
         JDLIB::compat::box_append_shrink( *hbox, *label_motion );
 

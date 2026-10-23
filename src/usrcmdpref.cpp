@@ -26,9 +26,9 @@ using namespace CORE;
 
 UsrCmdDiag::UsrCmdDiag( Gtk::Window* parent, const Glib::ustring& name, const Glib::ustring& cmd )
     : SKELETON::PrefDiag( parent, "" )
-    , m_vbox{ Gtk::ORIENTATION_VERTICAL, 0 }
+    , m_vbox{ JDLIB::compat::Orientation::VERTICAL, 0 }
     , m_label_name( "コマンド名", JDLIB::compat::Align::START )
-    , m_hbox_cmd{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_hbox_cmd{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_label_cmd( "実行するコマンド", JDLIB::compat::Align::START )
     , m_button_manual( "オンラインマニュアルの置換文字一覧を表示" )
 {
@@ -44,7 +44,7 @@ UsrCmdDiag::UsrCmdDiag( Gtk::Window* parent, const Glib::ustring& name, const Gl
     JDLIB::compat::box_append_shrink( m_vbox, m_entry_name );
 
     JDLIB::compat::box_append_shrink( m_hbox_cmd, m_label_cmd );
-    auto* spacer = Gtk::make_managed<Gtk::Box>( Gtk::ORIENTATION_HORIZONTAL, 0 );
+    auto* spacer = Gtk::make_managed<Gtk::Box>( JDLIB::compat::Orientation::HORIZONTAL, 0 );
     JDLIB::compat::box_append_expand( m_hbox_cmd, *spacer );
     JDLIB::compat::box_append_shrink( m_hbox_cmd, m_button_manual );
     JDLIB::compat::box_append_shrink( m_vbox, m_hbox_cmd );

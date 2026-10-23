@@ -159,6 +159,23 @@ constexpr type ERROR = Gtk::MESSAGE_ERROR;
 } // MessageType
 
 /**
+ * @brief Gtk::Orientation の alias
+ *
+ * @note 未使用またはコメントアウトされている enum 値は alias を作成していません。
+ */
+namespace Orientation {
+using type = Gtk::Orientation;
+
+#ifdef USE_GTKMM4
+using Gtk::Orientation::HORIZONTAL;
+using Gtk::Orientation::VERTICAL;
+#else
+constexpr type HORIZONTAL = Gtk::ORIENTATION_HORIZONTAL;
+constexpr type VERTICAL = Gtk::ORIENTATION_VERTICAL;
+#endif
+} // Orientation
+
+/**
  * @brief Gtk::ResponseType の alias
  *
  * @note 未使用またはコメントアウトされている enum 値は alias を作成していません。

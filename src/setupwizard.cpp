@@ -348,7 +348,7 @@ SetupWizard::SetupWizard()
     // 現時点ではコンパイル可能にすることを優先し、
     // ボタンは content_area に配置する。
     // ボタン配置の最終調整は GTK4 UI 移行時に行う。
-    auto hbox = Gtk::make_managed<Gtk::Box>( Gtk::ORIENTATION_HORIZONTAL, SPACING_SIZE / 2 );
+    auto hbox = Gtk::make_managed<Gtk::Box>( JDLIB::compat::Orientation::HORIZONTAL, SPACING_SIZE / 2 );
     hbox->set_halign( JDLIB::compat::Align::END );
     JDLIB::compat::box_append_expand( *hbox, m_back );
     JDLIB::compat::box_append_expand( *hbox, m_next );

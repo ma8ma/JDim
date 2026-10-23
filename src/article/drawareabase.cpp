@@ -119,7 +119,7 @@ struct LAYOUT_TABLE
 
 
 DrawAreaBase::DrawAreaBase( const std::string& url )
-    : Gtk::Box{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    : Gtk::Box{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_url( url )
     , m_backscreen( nullptr, cairo_surface_destroy )
     , m_enable_draw{ true }
@@ -286,7 +286,7 @@ void DrawAreaBase::create_scrbar()
 
     // そのままHBoxにスクロールバーをパックすると、スクロールしたときに何故かHBox全体が
     // 再描画されて負荷が高くなるのでEventBoxを間に挟む
-    m_vscrbar = Gtk::manage( new Gtk::Scrollbar( Glib::RefPtr<Gtk::Adjustment>{}, Gtk::ORIENTATION_VERTICAL ) );
+    m_vscrbar = Gtk::manage( new Gtk::Scrollbar( Glib::RefPtr<Gtk::Adjustment>{}, JDLIB::compat::Orientation::VERTICAL ) );
     m_event = Gtk::manage( new Gtk::EventBox() );
     assert( m_vscrbar );
     assert( m_event );
@@ -5420,7 +5420,7 @@ void DrawAreaBase::setup_event_controller()
     m_gesture_multipress->signal_pressed().connect( sigc::mem_fun( *this, &DrawAreaBase::slot_multipress_pressed ) );
     m_gesture_multipress->signal_released().connect( sigc::mem_fun( *this, &DrawAreaBase::slot_multipress_released ) );
 
-    m_gesture_pan = Gtk::GesturePan::create( m_view, Gtk::ORIENTATION_VERTICAL );
+    m_gesture_pan = Gtk::GesturePan::create( m_view, JDLIB::compat::Orientation::VERTICAL );
     m_gesture_pan->set_touch_only( true );
     m_gesture_pan->signal_drag_begin().connect( sigc::mem_fun( *this, &DrawAreaBase::slot_pan_begin ) );
     m_gesture_pan->signal_drag_update().connect( sigc::mem_fun( *this, &DrawAreaBase::slot_pan_update ) );

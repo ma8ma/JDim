@@ -101,14 +101,14 @@ public:
 
     explicit ImageHashTab( Gtk::Window* parent )
         : m_parent{ parent }
-        , m_box{ Gtk::ORIENTATION_VERTICAL, 8 }
-        , m_hbox_check_enable_hash{ Gtk::ORIENTATION_HORIZONTAL, 8 }
-        , m_vbox_check_enable_hash{ Gtk::ORIENTATION_VERTICAL, 0 }
+        , m_box{ JDLIB::compat::Orientation::VERTICAL, 8 }
+        , m_hbox_check_enable_hash{ JDLIB::compat::Orientation::HORIZONTAL, 8 }
+        , m_vbox_check_enable_hash{ JDLIB::compat::Orientation::VERTICAL, 0 }
         , m_label_enable_hash{ "(実験的な機能) NG 画像ハッシュを有効にする(_A)", true }
-        , m_hbox_initial_threshold{ Gtk::ORIENTATION_HORIZONTAL, 8 }
+        , m_hbox_initial_threshold{ JDLIB::compat::Orientation::HORIZONTAL, 8 }
         , m_label_initial_threshold{ "初期設定のしきい値(_I):", true }
         , m_button_reset_initial_threshold{ "リセット" }
-        , m_box_tool{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+        , m_box_tool{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
         , m_label_tool{ "選択した行に対する操作:" }
         , m_button_delete{ "削除(_D)", true }
         , m_menu_set_threshold{ Gio::Menu::create() }
@@ -172,7 +172,7 @@ public:
         JDLIB::compat::box_append_shrink( m_hbox_initial_threshold, m_spin_initial_threshold );
         JDLIB::compat::box_append_shrink( m_hbox_initial_threshold, m_button_reset_initial_threshold );
         {
-            auto* spacer = Gtk::make_managed<Gtk::Box>( Gtk::ORIENTATION_HORIZONTAL, 0 );
+            auto* spacer = Gtk::make_managed<Gtk::Box>( JDLIB::compat::Orientation::HORIZONTAL, 0 );
             JDLIB::compat::box_append_expand( m_hbox_initial_threshold, *spacer );
         }
         JDLIB::compat::box_append_shrink( m_hbox_initial_threshold, m_link_manual );
@@ -222,7 +222,7 @@ public:
         JDLIB::compat::box_append_shrink( m_box_tool, m_button_set_threshold );
         JDLIB::compat::box_append_shrink( m_box_tool, m_button_copy );
         {
-            auto* spacer = Gtk::make_managed<Gtk::Box>( Gtk::ORIENTATION_HORIZONTAL, 0 );
+            auto* spacer = Gtk::make_managed<Gtk::Box>( JDLIB::compat::Orientation::HORIZONTAL, 0 );
             JDLIB::compat::box_append_expand( m_box_tool, *spacer );
         }
         JDLIB::compat::box_append_shrink( m_box_tool, m_label_num_of_items );
