@@ -352,7 +352,7 @@ void FontColorPref::pack_widget()
 
     m_bt_reset_all_colors.signal_clicked().connect( sigc::mem_fun( *this, &FontColorPref::slot_reset_all_colors ) );
     m_bt_reset_all_colors_dark.signal_clicked().connect( sigc::mem_fun( *this, &FontColorPref::slot_reset_all_colors_dark ) );
-    m_label_reset_all_colors.set_xalign( Gtk::ALIGN_END );
+    m_label_reset_all_colors.set_xalign( 1.0 );
     m_bt_reset_all_colors.set_hexpand( false );
     m_bt_reset_all_colors_dark.set_hexpand( false );
     m_bt_reset_all_colors_dark.set_tooltip_text(
