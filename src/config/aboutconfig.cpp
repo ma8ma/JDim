@@ -34,7 +34,7 @@ using namespace CONFIG;
 
 AboutConfig::AboutConfig( Gtk::Window* parent )
     : SKELETON::PrefDiag( parent, "", true )
-    , m_hbox_search{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_hbox_search{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_label{ "動作保証外です。高度な設定を変更するとJDimが誤作動する場合があります。", false }
 {
     CONFIG::bkup_conf();

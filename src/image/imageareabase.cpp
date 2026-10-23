@@ -5,6 +5,7 @@
 
 #include "imageareabase.h"
 
+#include "jdlib/gtk_compat.h"
 #include "jdlib/miscgtk.h"
 #include "jdlib/miscmsg.h"
 
@@ -64,8 +65,8 @@ ImageAreaBase::ImageAreaBase( const std::string& url, const int interptype )
     if( interptype == 1 ) m_interptype = Gdk::INTERP_BILINEAR;
     else if( interptype >= 2 ) m_interptype = Gdk::INTERP_HYPER;
 
-    set_halign( Gtk::ALIGN_CENTER );
-    set_valign( Gtk::ALIGN_CENTER );
+    set_halign( JDLIB::compat::Align::CENTER );
+    set_valign( JDLIB::compat::Align::CENTER );
 }
 
 

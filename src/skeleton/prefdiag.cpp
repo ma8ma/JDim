@@ -33,17 +33,28 @@ PrefDiag::PrefDiag( Gtk::Window* parent, const std::string& url, const bool add_
             get_header_bar()->pack_start( m_bt_apply );
         }
         else {
+#ifdef USE_GTKMM4
+            // TODO: GTK4では Gtk::Dialog::get_action_area() が削除されている。
+            // 現時点ではコンパイル可能にすることを優先し、
+            // ボタンは content_area に配置する。
+            // ボタン配置の最終調整は GTK4 UI 移行時に行う。
+            auto hbox = Gtk::make_managed<Gtk::Box>();
+            hbox->set_halign( JDLIB::compat::Align::END );
+            JDLIB::compat::box_append_expand( *hbox, m_bt_apply );
+            get_content_area()->pack_end( *hbox );
+#else
             JDLIB::compat::box_append_expand( *get_action_area(), m_bt_apply );
+#endif
         }
     }
 
     if( add_cancel ){
-        add_button( g_dgettext( GTK_DOMAIN, "_Cancel" ), Gtk::RESPONSE_CANCEL )
+        add_button( g_dgettext( GTK_DOMAIN, "_Cancel" ), JDLIB::compat::ResponseType::CANCEL )
         ->signal_clicked().connect( sigc::mem_fun(*this, &PrefDiag::slot_cancel_clicked ) );
     }
 
-    if( add_open ) m_bt_ok = add_button( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Open", 12 ), Gtk::RESPONSE_OK );
-    else m_bt_ok = add_button( g_dgettext( GTK_DOMAIN, "_OK" ), Gtk::RESPONSE_OK );
+    if( add_open ) m_bt_ok = add_button( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Open", 12 ), JDLIB::compat::ResponseType::OK );
+    else m_bt_ok = add_button( g_dgettext( GTK_DOMAIN, "_OK" ), JDLIB::compat::ResponseType::OK );
 
     m_bt_ok->signal_clicked().connect( sigc::mem_fun(*this, &PrefDiag::slot_ok_clicked ) );
 
@@ -89,7 +100,7 @@ void PrefDiag::slot_activate_entry()
 #endif
 
     slot_ok_clicked();
-    response( Gtk::RESPONSE_OK );
+    response( JDLIB::compat::ResponseType::OK );
 }
 
 

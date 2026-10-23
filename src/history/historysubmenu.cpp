@@ -73,11 +73,11 @@ HistorySubMenu::HistorySubMenu( const std::string& url_history )
         Gtk::Label *label_motion = Gtk::manage( new Gtk::Label() );
         if( i == 0 ) label_motion->set_text( CONTROL::get_str_motions( CONTROL::RestoreLastTab ) );
 
-        Gtk::Box* hbox = Gtk::make_managed<Gtk::Box>( Gtk::ORIENTATION_HORIZONTAL, 0 );
+        Gtk::Box* hbox = Gtk::make_managed<Gtk::Box>( JDLIB::compat::Orientation::HORIZONTAL, 0 );
         hbox->set_spacing( SPACING_MENU );
         JDLIB::compat::box_append_shrink( *hbox, *image );
         JDLIB::compat::box_append_shrink( *hbox, *label );
-        auto* spacer = Gtk::make_managed<Gtk::Box>( Gtk::ORIENTATION_HORIZONTAL, 0 );
+        auto* spacer = Gtk::make_managed<Gtk::Box>( JDLIB::compat::Orientation::HORIZONTAL, 0 );
         JDLIB::compat::box_append_expand( *hbox, *spacer );
         JDLIB::compat::box_append_shrink( *hbox, *label_motion );
 
@@ -177,7 +177,7 @@ bool HistorySubMenu::open_history( const unsigned int i )
 
                 if( DBIMG::get_abone( url )){
                     SKELETON::MsgDiag mdiag( nullptr, "あぼ〜んされています", false,
-                                             Gtk::MESSAGE_INFO, Gtk::BUTTONS_YES_NO );
+                                             JDLIB::compat::MessageType::INFO, JDLIB::compat::ButtonsType::YES_NO );
                     std::string abone_reason = DBIMG::get_img_abone_reason( url );
                     if( ! abone_reason.empty() ) {
                         abone_reason = MISC::replace_str( abone_reason, "<br>", "\n" );
@@ -187,7 +187,7 @@ bool HistorySubMenu::open_history( const unsigned int i )
                     mdiag.set_secondary_text( abone_reason );
 
                     const int response = mdiag.run();
-                    if( response == Gtk::RESPONSE_YES ) {
+                    if( response == JDLIB::compat::ResponseType::YES ) {
                         open_image = true;
                         open_mode = "force_mosaic";
                     }

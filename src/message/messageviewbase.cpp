@@ -65,7 +65,8 @@ enum
 
 MessageViewBase::MessageViewBase( const std::string& url )
     : SKELETON::View( url )
-    , m_msgview{ Gtk::ORIENTATION_VERTICAL, 0 }
+    , m_msgview{ JDLIB::compat::Orientation::VERTICAL, 0 }
+    , m_toolbar_name_mail{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_entry_name( CORE::COMP_NAME )
     , m_entry_mail( CORE::COMP_MAIL )
     , m_enable_focus( true )
@@ -423,23 +424,15 @@ void MessageViewBase::pack_widget()
     set_name();
     set_mail();
 
-    m_tool_name.add( m_label_name );
-    m_tool_mail.add( m_label_mail );
-    m_tool_fixname.add( m_check_fixname );
-    m_tool_fixmail.add( m_check_fixmail );
-    m_tool_entry_name.add( m_entry_name );
-    m_tool_entry_mail.add( m_entry_mail );
-    m_tool_entry_name.set_expand( true );
-    m_tool_entry_mail.set_expand( true );
+    m_entry_name.set_hexpand( true );
+    m_entry_mail.set_hexpand( true );
 
-    m_toolbar_name_mail.set_icon_size( Gtk::ICON_SIZE_MENU );
-    m_toolbar_name_mail.set_toolbar_style( Gtk::TOOLBAR_ICONS );
-    m_toolbar_name_mail.append( m_tool_name );
-    m_toolbar_name_mail.append( m_tool_fixname );
-    m_toolbar_name_mail.append( m_tool_entry_name );
-    m_toolbar_name_mail.append( m_tool_mail );
-    m_toolbar_name_mail.append( m_tool_fixmail );
-    m_toolbar_name_mail.append( m_tool_entry_mail );
+    JDLIB::compat::box_append_shrink( m_toolbar_name_mail, m_label_name );
+    JDLIB::compat::box_append_shrink( m_toolbar_name_mail, m_check_fixname );
+    JDLIB::compat::box_append_expand( m_toolbar_name_mail, m_entry_name );
+    JDLIB::compat::box_append_shrink( m_toolbar_name_mail, m_label_mail );
+    JDLIB::compat::box_append_shrink( m_toolbar_name_mail, m_check_fixmail );
+    JDLIB::compat::box_append_expand( m_toolbar_name_mail, m_entry_mail );
 
     JDLIB::compat::box_append_shrink( m_msgview, m_toolbar_name_mail );
 
@@ -629,7 +622,7 @@ void MessageViewBase::write()
 
     if( reason ) {
         SKELETON::MsgDiag mdiag( get_parent_win(), "投稿がキャンセルされました。" );
-        mdiag.property_message_type() = Gtk::MESSAGE_WARNING;
+        mdiag.property_message_type() = JDLIB::compat::MessageType::WARNING;
         mdiag.set_secondary_text( reason );
         mdiag.run();
         return;
@@ -654,8 +647,8 @@ void MessageViewBase::write()
 
             SKELETON::MsgDiag mdiag( get_parent_win(),
                                      "ユニコード文字が含まれていますが、この板ではユニコード文字は文字化けします(BBS_UNICODE=change)。\n\n書き込みますか？",
-                                     false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
-            if( mdiag.run() != Gtk::RESPONSE_YES ) return;
+                                     false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
+            if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
         }
     }
 

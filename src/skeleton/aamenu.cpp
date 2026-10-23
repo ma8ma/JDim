@@ -24,11 +24,15 @@ AAMenu::AAMenu( Gtk::Window& parent )
 
     Pango::FontDescription pfd( CONFIG::get_fontname( FONT_MESSAGE ) );
     pfd.set_weight( Pango::WEIGHT_NORMAL );
+#ifndef USE_GTKMM4
+    // GTK4ではoverride_*()が廃止されているため、フェーズ1では省略する。
+    // TODO: GTK4 StyleContext/CssProvider等を利用したスタイル設定に移行する。
     m_textview.override_font( pfd );
     m_textview.override_color( Gdk::RGBA( CONFIG::get_color( COLOR_CHAR_SELECTION ) ),
                                Gtk::STATE_FLAG_NORMAL );
     m_textview.override_background_color( Gdk::RGBA( CONFIG::get_color( COLOR_BACK_SELECTION ) ),
                                           Gtk::STATE_FLAG_NORMAL );
+#endif
 
     m_popup.set_transient_for( m_parent );
     m_popup.sig_configured().connect( sigc::mem_fun( *this, &AAMenu::slot_configured_popup ) );
@@ -238,7 +242,21 @@ bool AAMenu::on_key_press_event( GdkEventKey* event )
 //
 void AAMenu::slot_configured_popup( int width, int height )
 {
+#ifdef USE_GTKMM4
+    // TODO: GTK4 GtkPopoverベースで再設計予定。
+    // Wayland と X11 で挙動が一致していない。
+    // GTK4移行のため最低限動作する実装としている。
+    Gdk::Rectangle rect;
+    {
+        const auto toplevel = get_toplevel();
+        const auto display = Gdk::Display::get_default();
+        const auto monitor = display->get_monitor_at_window( toplevel->get_window() );
+        monitor->get_geometry( rect );
+    }
+    int sw = rect.get_width();
+#else
     int sw = get_screen()->get_width();
+#endif
     int x, y;
     get_window()->get_root_coords( 0, 0, x, y );
 
@@ -252,7 +270,11 @@ void AAMenu::slot_configured_popup( int width, int height )
     y -= height;
     if( x + width > sw  ) x = sw -  width;
 
+#ifdef USE_GTKMM4
+    m_popup.move( x - 5, y - 7 ); // XXX: GTK4 Wayland 向けに応急処置の調整
+#else
     m_popup.move( x, y );
+#endif
 }
 
 

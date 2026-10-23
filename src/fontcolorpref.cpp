@@ -29,17 +29,17 @@ using namespace CORE;
 
 FontColorPref::FontColorPref( Gtk::Window* parent, const std::string& url )
     : SKELETON::PrefDiag( parent, url, true, true )
-    , m_hbox_font{ Gtk::ORIENTATION_HORIZONTAL, 8 }
+    , m_hbox_font{ JDLIB::compat::Orientation::HORIZONTAL, 8 }
     , m_label_aafont{ "AAレスと判定する正規表現(_R):", true }
     , m_bt_reset_font{ "フォントの設定を全てデフォルトに戻す(_F)", true }
 
-    , m_vbox_color{ Gtk::ORIENTATION_VERTICAL, 0 }
-    , m_hbox_change_color{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_vbox_color{ JDLIB::compat::Orientation::VERTICAL, 0 }
+    , m_hbox_change_color{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_label_reset_color{ "選択行の色をデフォルトに戻す:", false }
     , m_bt_change_color{ "選択行の色を設定する(_S)", true }
     , m_bt_reset_color{ "ライト(_R)", true }
     , m_bt_reset_color_dark{ "ダーク(_A)", true }
-    , m_hbox_reset_all_colors{ Gtk::ORIENTATION_HORIZONTAL, 8 }
+    , m_hbox_reset_all_colors{ JDLIB::compat::Orientation::HORIZONTAL, 8 }
     , m_label_reset_all_colors{ "色の設定を全てデフォルトに戻す:", false }
     , m_bt_reset_all_colors{ "ライトテーマ(_D)", true }
     , m_bt_reset_all_colors_dark{ "ダークテーマ(_K)", true }
@@ -236,11 +236,11 @@ void FontColorPref::pack_widget()
     m_spin_space.set_range( 0.1, 10.0 );
     m_spin_space.set_increments( 0.1, 0.1 );
     m_spin_space.set_value( CONFIG::get_adjust_line_space() );
-    m_spin_space.set_halign( Gtk::ALIGN_START );
+    m_spin_space.set_halign( JDLIB::compat::Align::START );
     m_spin_space.set_hexpand( true );
     m_label_space.set_text_with_mnemonic( "スレビューの文字列の行の高さ(_H):" );
     m_label_space.set_mnemonic_widget( m_spin_space );
-    m_label_space.set_halign( Gtk::ALIGN_START );
+    m_label_space.set_halign( JDLIB::compat::Align::START );
 
     m_grid_font.attach( m_label_space, 0, 2, 1, 1 );
     m_grid_font.attach( m_spin_space, 1, 2, 1, 1 );
@@ -253,11 +253,11 @@ void FontColorPref::pack_widget()
     m_spin_ubar.set_range( 0.1, 10.0 );
     m_spin_ubar.set_increments( 0.1, 0.1 );
     m_spin_ubar.set_value( CONFIG::get_adjust_underline_pos() );
-    m_spin_ubar.set_halign( Gtk::ALIGN_START );
+    m_spin_ubar.set_halign( JDLIB::compat::Align::START );
     m_spin_ubar.set_hexpand( true );
     m_label_ubar.set_text_with_mnemonic( "スレビューの文字列の下線位置(_U):" );
     m_label_ubar.set_mnemonic_widget( m_spin_ubar );
-    m_label_ubar.set_halign( Gtk::ALIGN_START );
+    m_label_ubar.set_halign( JDLIB::compat::Align::START );
 
     m_grid_font.attach( m_label_ubar, 0, 3, 1, 1 );
     m_grid_font.attach( m_spin_ubar, 1, 3, 1, 1 );
@@ -267,7 +267,7 @@ void FontColorPref::pack_widget()
 
     // AAレスと判定する正規表現
     m_entry_aafont.set_text( CONFIG::get_regex_res_aa() );
-    m_label_aafont.set_halign( Gtk::ALIGN_START );
+    m_label_aafont.set_halign( JDLIB::compat::Align::START );
     m_label_aafont.set_mnemonic_widget( m_entry_aafont );
 
     m_grid_font.attach( m_label_aafont, 0, 4, 1, 1 );
@@ -280,7 +280,7 @@ void FontColorPref::pack_widget()
     set_activate_entry( m_entry_aafont );
 
     // フォントのリセット
-    m_bt_reset_font.set_valign( Gtk::ALIGN_END  );
+    m_bt_reset_font.set_valign( JDLIB::compat::Align::END  );
     m_bt_reset_font.set_vexpand( true );
     m_bt_reset_font.signal_clicked().connect( sigc::mem_fun( *this, &FontColorPref::slot_reset_font ) );
     m_grid_font.attach( m_bt_reset_font, 0, 10, 2, 1 );
@@ -331,7 +331,7 @@ void FontColorPref::pack_widget()
     JDLIB::compat::box_append_shrink( m_hbox_change_color, m_label_reset_color );
     JDLIB::compat::box_append_shrink( m_hbox_change_color, m_bt_reset_color );
     JDLIB::compat::box_append_shrink( m_hbox_change_color, m_bt_reset_color_dark );
-    m_hbox_change_color.set_halign( Gtk::ALIGN_END );
+    m_hbox_change_color.set_halign( JDLIB::compat::Align::END );
     JDLIB::compat::box_append_shrink( m_vbox_color, m_hbox_change_color );
 
     m_chk_use_gtktheme_message.add_label( "書き込みビューの配色設定に GTKテーマ を用いる(_W)", true );
@@ -352,7 +352,7 @@ void FontColorPref::pack_widget()
 
     m_bt_reset_all_colors.signal_clicked().connect( sigc::mem_fun( *this, &FontColorPref::slot_reset_all_colors ) );
     m_bt_reset_all_colors_dark.signal_clicked().connect( sigc::mem_fun( *this, &FontColorPref::slot_reset_all_colors_dark ) );
-    m_label_reset_all_colors.set_xalign( Gtk::ALIGN_END );
+    m_label_reset_all_colors.set_xalign( 1.0 );
     m_bt_reset_all_colors.set_hexpand( false );
     m_bt_reset_all_colors_dark.set_hexpand( false );
     m_bt_reset_all_colors_dark.set_tooltip_text(
@@ -361,7 +361,7 @@ void FontColorPref::pack_widget()
     JDLIB::compat::box_append_shrink( m_hbox_reset_all_colors, m_label_reset_all_colors );
     JDLIB::compat::box_append_shrink( m_hbox_reset_all_colors, m_bt_reset_all_colors );
     JDLIB::compat::box_append_shrink( m_hbox_reset_all_colors, m_bt_reset_all_colors_dark );
-    m_hbox_reset_all_colors.set_halign( Gtk::ALIGN_END );
+    m_hbox_reset_all_colors.set_halign( JDLIB::compat::Align::END );
     JDLIB::compat::box_append_shrink( m_vbox_color, m_hbox_reset_all_colors );
 
     // ディスプレイ解像度が小さい環境で表示できるようにスクロール可能にする
@@ -371,11 +371,11 @@ void FontColorPref::pack_widget()
     m_notebook.append_page( m_scroll_color, "色の設定" );
 
     // テーマ
-    m_label_gtk_theme.set_halign( Gtk::ALIGN_START );
+    m_label_gtk_theme.set_halign( JDLIB::compat::Align::START );
     m_label_gtk_theme.set_mnemonic_widget( m_combo_theme );
     m_combo_theme.set_hexpand( true );
-    m_check_system_theme.set_halign( Gtk::ALIGN_START );
-    m_label_dark_theme.set_halign( Gtk::ALIGN_START );
+    m_check_system_theme.set_halign( JDLIB::compat::Align::START );
+    m_label_dark_theme.set_halign( JDLIB::compat::Align::START );
 
     m_grid_theme.property_margin() = 8;
     m_grid_theme.set_column_spacing( 10 );
@@ -387,11 +387,11 @@ void FontColorPref::pack_widget()
     m_grid_theme.attach( m_check_dark_theme, 1, 2, 1, 1 );
 
     // アイコン
-    m_label_icon_theme.set_halign( Gtk::ALIGN_START );
+    m_label_icon_theme.set_halign( JDLIB::compat::Align::START );
     m_label_icon_theme.set_mnemonic_widget( m_combo_icon );
-    m_label_use_symbolic_icon.set_halign( Gtk::ALIGN_START );
+    m_label_use_symbolic_icon.set_halign( JDLIB::compat::Align::START );
     m_combo_icon.set_hexpand( true );
-    m_check_system_icon.set_halign( Gtk::ALIGN_START );
+    m_check_system_icon.set_halign( JDLIB::compat::Align::START );
     m_check_use_symbolic_icon.signal_toggled().connect(
         sigc::mem_fun( *this, &FontColorPref::slot_toggled_symbolic ) );
 
@@ -405,10 +405,10 @@ void FontColorPref::pack_widget()
     m_scroll_note.set_policy( Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC );
     m_label_note_title.set_markup(
         "<b>注意</b>\nテーマの設定は実験的なサポートのため、変更または廃止の可能性があります。\n" );
-    m_label_note_title.set_halign( Gtk::ALIGN_CENTER );
+    m_label_note_title.set_halign( JDLIB::compat::Align::CENTER );
     m_label_note_title.set_justify( Gtk::JUSTIFY_CENTER );
-    m_label_note.set_halign( Gtk::ALIGN_CENTER );
-    m_label_note.set_valign( Gtk::ALIGN_CENTER );
+    m_label_note.set_halign( JDLIB::compat::Align::CENTER );
+    m_label_note.set_valign( JDLIB::compat::Align::CENTER );
     m_label_note.set_line_wrap( true );
     m_label_note.set_vexpand( true );
 
@@ -662,15 +662,25 @@ void FontColorPref::slot_change_color()
         if( colorid == COLOR_NONE ) return;
     }
 
+#ifdef USE_GTKMM4
+    // TODO: GTK4 - ColorChooserDialog も GTK 4.10 以降 deprecated になる。 Gtk::ColorDialog へ移行する。
+    // ColorChooserDialog ではKDE環境のスポイトが利用できない
+    Gtk::ColorChooserDialog colordiag;
+    colordiag.set_use_alpha( false );
+    if( colorid != COLOR_NONE ) {
+        colordiag.set_rgba( Gdk::RGBA( CONFIG::get_color( colorid ) ) );
+    }
+#else
     Gtk::ColorSelectionDialog colordiag;
     if( colorid != COLOR_NONE ) {
         Gtk::ColorSelection* sel = colordiag.get_color_selection();
         sel->set_current_rgba( Gdk::RGBA( CONFIG::get_color( colorid ) ) );
     }
+#endif
     colordiag.set_transient_for( *CORE::get_mainwindow() );
     const int ret = colordiag.run();
 
-    if( ret == Gtk::RESPONSE_OK ){
+    if( ret == JDLIB::compat::ResponseType::OK ){
 
         for( const Gtk::TreePath& path : selection_path ) {
 
@@ -679,8 +689,13 @@ void FontColorPref::slot_change_color()
 
             colorid = row[ m_columns_color.m_col_colorid ];
             if( colorid != COLOR_NONE ) {
+#ifdef USE_GTKMM4
+                const Gdk::RGBA rgba = colordiag.get_rgba();
+                CONFIG::set_color( colorid, MISC::color_to_str( rgba ) );
+#else
                 Gtk::ColorSelection* sel = colordiag.get_color_selection();
                 CONFIG::set_color( colorid, MISC::color_to_str( sel->get_current_rgba() ) );
+#endif
             }
         }
     }

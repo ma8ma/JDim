@@ -28,17 +28,20 @@ enum
 AboutDiag::AboutDiag( const Glib::ustring& title )
     : Gtk::Dialog( title, ENVIRONMENT::get_dialog_use_header_bar() ? Gtk::DIALOG_USE_HEADER_BAR
                                                                    : Gtk::DialogFlags{} )
-    , m_vbox_info{ Gtk::ORIENTATION_VERTICAL, 0 }
-    , m_hbox_url{ Gtk::ORIENTATION_HORIZONTAL, 0 }
-    , m_vbox_environment{ Gtk::ORIENTATION_VERTICAL, 0 }
+    , m_vbox_info{ JDLIB::compat::Orientation::VERTICAL, 0 }
+    , m_hbox_url{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
+    , m_vbox_environment{ JDLIB::compat::Orientation::VERTICAL, 0 }
+#ifdef USE_GTKMM4
+    , m_hbuttonbox_environment{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
+#endif
     , m_button_copy_environment( "クリップボードへコピー" )
 {
     set_transient_for( *CORE::get_mainwindow() );
     set_resizable( false );
 
-    add_button( g_dgettext( GTK_DOMAIN, "_Close" ), Gtk::RESPONSE_CLOSE );
+    add_button( g_dgettext( GTK_DOMAIN, "_Close" ), JDLIB::compat::ResponseType::CLOSE );
 
-    set_default_response( Gtk::RESPONSE_CLOSE );
+    set_default_response( JDLIB::compat::ResponseType::CLOSE );
 
     set_logo( ICON::get_pixbuf( ICON::JD96 ) );
     set_version( ENVIRONMENT::get_jdversion() );
@@ -133,7 +136,11 @@ void AboutDiag::init()
 
     // クリップボードへコピーのボタン
     m_button_copy_environment.signal_clicked().connect( sigc::mem_fun( *this, &AboutDiag::slot_copy_environment ) );
+#ifdef USE_GTKMM4
+    m_hbuttonbox_environment.set_halign( JDLIB::compat::Align::END );
+#else
     m_hbuttonbox_environment.set_layout( Gtk::BUTTONBOX_END );
+#endif
     JDLIB::compat::box_append_shrink( m_hbuttonbox_environment, m_button_copy_environment );
     JDLIB::compat::box_append_shrink( m_vbox_environment, m_hbuttonbox_environment );
 

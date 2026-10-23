@@ -49,20 +49,20 @@ namespace CORE
             set_row_spacing( 16 );
             set_vexpand( true );
 
-            m_label_id.set_halign( Gtk::ALIGN_START );
+            m_label_id.set_halign( JDLIB::compat::Align::START );
             m_label_id.set_mnemonic_widget( entry_id );
             entry_id.set_hexpand( true );
 
-            m_label_passwd.set_halign( Gtk::ALIGN_START );
+            m_label_passwd.set_halign( JDLIB::compat::Align::START );
             m_label_passwd.set_mnemonic_widget( entry_passwd );
             entry_passwd.set_hexpand( true );
             entry_passwd.set_visibility( false );
 
-            m_label_sid_2ch.set_halign( Gtk::ALIGN_START );
-            m_label_sid_2ch.set_valign( Gtk::ALIGN_END );
+            m_label_sid_2ch.set_halign( JDLIB::compat::Align::START );
+            m_label_sid_2ch.set_valign( JDLIB::compat::Align::END );
             m_label_sid_2ch_value.set_ellipsize( Pango::ELLIPSIZE_END );
-            m_label_sid_2ch_value.set_halign( Gtk::ALIGN_START );
-            m_label_sid_2ch_value.set_valign( Gtk::ALIGN_END );
+            m_label_sid_2ch_value.set_halign( JDLIB::compat::Align::START );
+            m_label_sid_2ch_value.set_valign( JDLIB::compat::Align::END );
             m_label_sid_2ch_value.set_hexpand( true );
             m_label_sid_2ch_value.set_selectable( true );
 
@@ -132,12 +132,12 @@ namespace CORE
             entry_passwd.set_visibility( false );
             m_label_passwd.set_mnemonic_widget( entry_passwd );
 
-            m_label_id.set_halign( Gtk::ALIGN_START );
-            m_label_passwd.set_halign( Gtk::ALIGN_START );
-            m_label_dmdm.set_halign( Gtk::ALIGN_START );
-            m_label_dmdm_value.set_halign( Gtk::ALIGN_START );
-            m_label_mdmd.set_halign( Gtk::ALIGN_START );
-            m_label_mdmd_value.set_halign( Gtk::ALIGN_START );
+            m_label_id.set_halign( JDLIB::compat::Align::START );
+            m_label_passwd.set_halign( JDLIB::compat::Align::START );
+            m_label_dmdm.set_halign( JDLIB::compat::Align::START );
+            m_label_dmdm_value.set_halign( JDLIB::compat::Align::START );
+            m_label_mdmd.set_halign( JDLIB::compat::Align::START );
+            m_label_mdmd_value.set_halign( JDLIB::compat::Align::START );
 
             m_label_dmdm_value.set_ellipsize( Pango::ELLIPSIZE_END );
             m_label_mdmd_value.set_ellipsize( Pango::ELLIPSIZE_END );
@@ -197,13 +197,13 @@ namespace CORE
             entry_passwd.set_visibility( false );
             m_label_passwd.set_mnemonic_widget( entry_passwd );
 
-            m_label_id.set_halign( Gtk::ALIGN_START );
+            m_label_id.set_halign( JDLIB::compat::Align::START );
             m_label_id.set_tooltip_text( mail_addr_tooltip );
-            m_label_passwd.set_halign( Gtk::ALIGN_START );
-            m_label_account.set_halign( Gtk::ALIGN_START );
-            m_label_account_value.set_halign( Gtk::ALIGN_START );
-            m_label_cookie.set_halign( Gtk::ALIGN_START );
-            m_label_cookie_value.set_halign( Gtk::ALIGN_START );
+            m_label_passwd.set_halign( JDLIB::compat::Align::START );
+            m_label_account.set_halign( JDLIB::compat::Align::START );
+            m_label_account_value.set_halign( JDLIB::compat::Align::START );
+            m_label_cookie.set_halign( JDLIB::compat::Align::START );
+            m_label_cookie_value.set_halign( JDLIB::compat::Align::START );
 
             m_label_account_value.set_ellipsize( Pango::ELLIPSIZE_END );
             m_label_cookie_value.set_ellipsize( Pango::ELLIPSIZE_END );

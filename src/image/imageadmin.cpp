@@ -51,8 +51,8 @@ using namespace IMAGE;
 
 ImageAdmin::ImageAdmin( const std::string& url )
     : SKELETON::Admin( url )
-    , m_tab{ Gtk::ORIENTATION_HORIZONTAL, 0 }
-    , m_iconbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_tab{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
+    , m_iconbox{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_scroll( SCROLL_NO )
 {
     m_scrwin.add( m_iconbox );
@@ -1145,7 +1145,7 @@ void ImageAdmin::save_all()
 
     diag.set_current_folder( SESSION::dir_img_save() );
     
-    if( diag.run() == Gtk::RESPONSE_ACCEPT ){
+    if( diag.run() == JDLIB::compat::ResponseType::ACCEPT ){
 
         diag.hide();
 
@@ -1161,7 +1161,7 @@ void ImageAdmin::save_all()
 
             SESSION::set_dir_img_save( path_dir );
 
-            int overwrite = Gtk::RESPONSE_NO;
+            int overwrite = JDLIB::compat::ResponseType::NO;
             bool use_name_in_cache = false;
 
             const std::vector<std::string> list_urls = get_URLs();
@@ -1219,17 +1219,17 @@ void ImageAdmin::save_all()
                                     break;
 
                                     // 名前変更
-                                case Gtk::RESPONSE_YES:
+                                case JDLIB::compat::ResponseType::YES:
                                 {
                                     SKELETON::MsgDiag mdiag_name( get_win(),
                                                                   "ファイル名として画像キャッシュでのファイル名を使用しますか？\n\nいいえを選ぶとファイル選択ダイアログを開きます。",
-                                                                  false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+                                                                  false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
 
                                     mdiag_name.add_button( "すべてはい", SKELETON::OVERWRITE_YES_ALL );
-                                    mdiag_name.set_default_response( Gtk::RESPONSE_YES );
+                                    mdiag_name.set_default_response( JDLIB::compat::ResponseType::YES );
                                     const int ret = mdiag_name.run();
 
-                                    if( ret == Gtk::RESPONSE_YES || ret == SKELETON::OVERWRITE_YES_ALL ){
+                                    if( ret == JDLIB::compat::ResponseType::YES || ret == SKELETON::OVERWRITE_YES_ALL ){
 
                                         if( ret == SKELETON::OVERWRITE_YES_ALL ) use_name_in_cache = true;
                                         if( ! copy_file( url, path_from, path_dir + CACHE::filename_img( url ) ) ) return;

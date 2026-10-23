@@ -25,9 +25,16 @@ SelectItemPref::SelectItemPref( Gtk::Window* parent, const std::string& url )
     , m_button_up( g_dpgettext( GTK_DOMAIN, "Stock label, navigation\x04_Up", 24 ), true )
     , m_button_down( g_dpgettext( GTK_DOMAIN, "Stock label, navigation\x04_Down", 24 ), true )
     , m_button_bottom( g_dpgettext( GTK_DOMAIN, "Stock label, navigation\x04_Bottom", 24 ), true )
+#ifdef USE_GTKMM4
+    , m_vbuttonbox_v{ JDLIB::compat::Orientation::VERTICAL, 4 }
+    , m_vbuttonbox_h{ JDLIB::compat::Orientation::VERTICAL, 4 }
+#endif
     , m_button_default( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Revert", 12 ), true )
-    , m_vbox{ Gtk::ORIENTATION_VERTICAL, 0 }
-    , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+#ifdef USE_GTKMM4
+    , m_vbuttonbox_action{ JDLIB::compat::Orientation::VERTICAL, 4 }
+#endif
+    , m_vbox{ JDLIB::compat::Orientation::VERTICAL, 0 }
+    , m_hbox{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
 {
     m_list_default_data.clear();
 
@@ -113,16 +120,30 @@ void SelectItemPref::pack_widgets()
 
     JDLIB::compat::box_append_expand( m_hbox, m_scroll_shown );
 
+#ifdef USE_GTKMM4
+    m_vbuttonbox_v.set_valign( JDLIB::compat::Align::START );
+#else
     m_vbuttonbox_v.set_layout( Gtk::BUTTONBOX_START );
     m_vbuttonbox_v.set_spacing( 4 );
+#endif
     JDLIB::compat::box_append_expand( m_vbox, m_vbuttonbox_v );
 
+#ifdef USE_GTKMM4
+    // TODO: GTK4 - Gtk::BUTTONBOX_EDGE の再現（set_valign では端寄せができないため、
+    // 実際に画面描画を確認するフェーズで CSS/Grid または伸縮用 Spacer Box の追加を検討する）
+    m_vbuttonbox_h.set_valign( JDLIB::compat::Align::FILL );
+#else
     m_vbuttonbox_h.set_layout( Gtk::BUTTONBOX_EDGE );
     m_vbuttonbox_h.set_spacing( 4 );
+#endif
     JDLIB::compat::box_append_shrink( m_vbox, m_vbuttonbox_h );
 
+#ifdef USE_GTKMM4
+    m_vbuttonbox_action.set_valign( JDLIB::compat::Align::END );
+#else
     m_vbuttonbox_action.set_layout( Gtk::BUTTONBOX_END );
     m_vbuttonbox_action.set_spacing( 4 );
+#endif
     JDLIB::compat::box_append_expand( m_vbox, m_vbuttonbox_action );
 
     JDLIB::compat::box_append_shrink( m_hbox, m_vbox, 4 );

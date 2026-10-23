@@ -148,7 +148,7 @@ ReplaceStrPref::ReplaceStrPref( Gtk::Window* parent, const std::string& url )
     , m_button_bottom( g_dpgettext( GTK_DOMAIN, "Stock label, navigation\x04_Bottom", 24 ), true )
     , m_button_delete( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Delete", 12 ), true )
     , m_button_add( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Add", 12 ), true )
-    , m_vbuttonbox{ Gtk::ORIENTATION_VERTICAL }
+    , m_vbuttonbox{ JDLIB::compat::Orientation::VERTICAL }
 {
     const bool use_symbolic = CONFIG::get_use_symbolic_icon();
     m_button_top.set_image_from_icon_name( use_symbolic ? "go-top-symbolic" : "go-top" );
@@ -175,20 +175,20 @@ ReplaceStrPref::ReplaceStrPref( Gtk::Window* parent, const std::string& url )
 
     columns[0] = Gtk::manage( new Gtk::TreeViewColumn( "有効", m_columns.m_col_active ) );
     columns[0]->set_fixed_width( 35 );
-    columns[0]->set_alignment( Gtk::ALIGN_CENTER );
+    columns[0]->set_alignment( JDLIB::compat::Align::CENTER );
     // 正規と大小は設定の関係性から元になったパッチから変更して列を入れ替えた
     columns[1] = Gtk::manage( new Gtk::TreeViewColumn( "正規", m_columns.m_col_regex ) );
     columns[1]->set_fixed_width( 35 );
-    columns[1]->set_alignment( Gtk::ALIGN_CENTER );
+    columns[1]->set_alignment( JDLIB::compat::Align::CENTER );
     columns[2] = Gtk::manage( new Gtk::TreeViewColumn( "大小", m_columns.m_col_icase ) );
     columns[2]->set_fixed_width( 35 );
-    columns[2]->set_alignment( Gtk::ALIGN_CENTER );
+    columns[2]->set_alignment( JDLIB::compat::Align::CENTER );
     columns[3] = Gtk::manage( new Gtk::TreeViewColumn( "全角", m_columns.m_col_wchar ) );
     columns[3]->set_fixed_width( 35 );
-    columns[3]->set_alignment( Gtk::ALIGN_CENTER );
+    columns[3]->set_alignment( JDLIB::compat::Align::CENTER );
     columns[4] = Gtk::manage( new Gtk::TreeViewColumn( "互換", m_columns.m_col_norm ) );
     columns[4]->set_fixed_width( 35 );
-    columns[4]->set_alignment( Gtk::ALIGN_CENTER );
+    columns[4]->set_alignment( JDLIB::compat::Align::CENTER );
     columns[5] = Gtk::manage( new Gtk::TreeViewColumn( "置換パターン", m_columns.m_col_pattern ) );
     columns[5]->set_fixed_width( 220 );
     columns[6] = Gtk::manage( new Gtk::TreeViewColumn( "置換文字列", m_columns.m_col_replace ) );
@@ -227,7 +227,7 @@ ReplaceStrPref::ReplaceStrPref( Gtk::Window* parent, const std::string& url )
     m_grid_head.attach( m_link_manual, 2, 0, 1, 1 );
     m_grid_head.attach( m_check_chref, 0, 1, 2, 1 );
     m_grid_head.set_hexpand( true );
-    m_link_manual.set_halign( Gtk::ALIGN_END );
+    m_link_manual.set_halign( JDLIB::compat::Align::END );
     m_link_manual.set_hexpand( true );
     m_link_manual.set_use_underline( true );
 
@@ -378,7 +378,7 @@ void ReplaceStrPref::slot_row_activated( const Gtk::TreeModel::Path& path, Gtk::
     const ReplaceStrCondition condition{ active, icase, regex, wchar, norm };
 
     ReplaceStrDiag dlg( this, condition, row[ m_columns.m_col_pattern ], row[ m_columns.m_col_replace ] );
-    if( dlg.run() == Gtk::RESPONSE_OK ) {
+    if( dlg.run() == JDLIB::compat::ResponseType::OK ) {
         row.set_value( m_columns.m_col_active, dlg.get_active() );
         row.set_value( m_columns.m_col_icase, dlg.get_icase() );
         row.set_value( m_columns.m_col_regex, dlg.get_regex() );
@@ -395,7 +395,7 @@ void ReplaceStrPref::slot_row_activated( const Gtk::TreeModel::Path& path, Gtk::
             if( ! ptn.set( dlg.get_pattern(), dlg.get_icase(), newline, migemo, dlg.get_wchar(), dlg.get_norm() ) ) {
                 const std::string msg = ptn.errstr() + "\n\n" + dlg.get_pattern();
 
-                SKELETON::MsgDiag mdlg( *this, msg, false, Gtk::MESSAGE_WARNING, Gtk::BUTTONS_OK );
+                SKELETON::MsgDiag mdlg( *this, msg, false, JDLIB::compat::MessageType::WARNING, JDLIB::compat::ButtonsType::OK );
                 mdlg.run();
             }
         }
@@ -514,8 +514,8 @@ void ReplaceStrPref::slot_delete()
     Gtk::TreeModel::iterator it = get_selected_row();
     if( ! it ) return;
 
-    SKELETON::MsgDiag mdiag( *this, "削除しますか？", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
-    if( mdiag.run() != Gtk::RESPONSE_YES ) return;
+    SKELETON::MsgDiag mdiag( *this, "削除しますか？", false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
+    if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
     auto it_next = std::next( it );
 
@@ -536,7 +536,7 @@ void ReplaceStrPref::slot_add()
 {
     constexpr ReplaceStrCondition condition{ true, false, false, false, false };
     ReplaceStrDiag dlg( this, condition, "", "" );
-    if( dlg.run() == Gtk::RESPONSE_OK ) {
+    if( dlg.run() == JDLIB::compat::ResponseType::OK ) {
         append_row( m_current_store, dlg.get_condition(),
                     dlg.get_pattern(), dlg.get_replace() );
     }

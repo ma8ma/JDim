@@ -13,7 +13,7 @@ AboutConfigDiagStr::AboutConfigDiagStr( Gtk::Window* parent, std::string* value,
     : SKELETON::PrefDiag( parent, "", true )
     , m_value( value )
     , m_defaultval( defaultval )
-    , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_hbox{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_button_default( "デフォルト" )
 {
     resize( 600, 1 );
@@ -53,7 +53,7 @@ AboutConfigDiagInt::AboutConfigDiagInt( Gtk::Window* parent, int* value, const i
     : SKELETON::PrefDiag( parent, "", true )
     , m_value( value )
     , m_defaultval( defaultval )
-    , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_hbox{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_button_default( "デフォルト" )
 {
     resize( 200, 1 );
@@ -93,7 +93,7 @@ AboutConfigDiagBool::AboutConfigDiagBool( Gtk::Window* parent, bool* value, cons
     : SKELETON::PrefDiag( parent, "", true )
     , m_value( value )
     , m_defaultval( defaultval )
-    , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_hbox{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_radio_true( "はい" )
     , m_radio_false( "いいえ" )
     , m_button_default( "デフォルト" )
