@@ -95,7 +95,7 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     }
     else {
         // エンコーディング設定は安全でないので無効のときは設定欄(コンボボックス)を表示しない
-        m_label_charset_value.set_halign( Gtk::ALIGN_START );
+        m_label_charset_value.set_halign( JDLIB::compat::Align::START );
         m_label_charset_value.set_hexpand( true );
         m_label_charset_value.set_text( tmpcharset );
 
@@ -117,11 +117,11 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     m_label_write_name_value.set_ellipsize( Pango::ELLIPSIZE_END );
     m_label_write_mail_value.set_ellipsize( Pango::ELLIPSIZE_END );
 
-    m_label_maxres.set_halign( Gtk::ALIGN_START );
-    m_label_charset.set_halign( Gtk::ALIGN_START );
+    m_label_maxres.set_halign( JDLIB::compat::Align::START );
+    m_label_charset.set_halign( JDLIB::compat::Align::START );
 
-    m_button_clearmodified.set_halign( Gtk::ALIGN_END );
-    m_bt_clear_post_history.set_halign( Gtk::ALIGN_END );
+    m_button_clearmodified.set_halign( JDLIB::compat::Align::END );
+    m_bt_clear_post_history.set_halign( JDLIB::compat::Align::END );
 
     m_grid_info.property_margin() = 16;
     m_grid_info.set_column_spacing( 10 );
@@ -162,11 +162,11 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     for( int y = 0; y < 10; ++y ) {
         // label column
         Gtk::Widget* child = m_grid_info.get_child_at( 0, y );
-        child->set_halign( Gtk::ALIGN_START );
+        child->set_halign( JDLIB::compat::Align::START );
 
         // value column
         child = m_grid_info.get_child_at( 1, y );
-        child->set_halign( Gtk::ALIGN_START );
+        child->set_halign( JDLIB::compat::Align::START );
         child->set_hexpand( true );
         static_cast<Gtk::Label*>( child )->set_selectable( true );
     }

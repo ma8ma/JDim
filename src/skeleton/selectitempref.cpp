@@ -121,7 +121,7 @@ void SelectItemPref::pack_widgets()
     JDLIB::compat::box_append_expand( m_hbox, m_scroll_shown );
 
 #ifdef USE_GTKMM4
-    m_vbuttonbox_v.set_valign( Gtk::ALIGN_START );
+    m_vbuttonbox_v.set_valign( JDLIB::compat::Align::START );
 #else
     m_vbuttonbox_v.set_layout( Gtk::BUTTONBOX_START );
     m_vbuttonbox_v.set_spacing( 4 );
@@ -131,7 +131,7 @@ void SelectItemPref::pack_widgets()
 #ifdef USE_GTKMM4
     // TODO: GTK4 - Gtk::BUTTONBOX_EDGE の再現（set_valign では端寄せができないため、
     // 実際に画面描画を確認するフェーズで CSS/Grid または伸縮用 Spacer Box の追加を検討する）
-    m_vbuttonbox_h.set_valign( Gtk::ALIGN_FILL );
+    m_vbuttonbox_h.set_valign( JDLIB::compat::Align::FILL );
 #else
     m_vbuttonbox_h.set_layout( Gtk::BUTTONBOX_EDGE );
     m_vbuttonbox_h.set_spacing( 4 );
@@ -139,7 +139,7 @@ void SelectItemPref::pack_widgets()
     JDLIB::compat::box_append_shrink( m_vbox, m_vbuttonbox_h );
 
 #ifdef USE_GTKMM4
-    m_vbuttonbox_action.set_valign( Gtk::ALIGN_END );
+    m_vbuttonbox_action.set_valign( JDLIB::compat::Align::END );
 #else
     m_vbuttonbox_action.set_layout( Gtk::BUTTONBOX_END );
     m_vbuttonbox_action.set_spacing( 4 );

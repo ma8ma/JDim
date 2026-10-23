@@ -39,7 +39,7 @@ PrefDiag::PrefDiag( Gtk::Window* parent, const std::string& url, const bool add_
             // ボタンは content_area に配置する。
             // ボタン配置の最終調整は GTK4 UI 移行時に行う。
             auto hbox = Gtk::make_managed<Gtk::Box>();
-            hbox->set_halign( Gtk::ALIGN_END );
+            hbox->set_halign( JDLIB::compat::Align::END );
             JDLIB::compat::box_append_expand( *hbox, m_bt_apply );
             get_content_area()->pack_end( *hbox );
 #else

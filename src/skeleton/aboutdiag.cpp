@@ -137,7 +137,7 @@ void AboutDiag::init()
     // クリップボードへコピーのボタン
     m_button_copy_environment.signal_clicked().connect( sigc::mem_fun( *this, &AboutDiag::slot_copy_environment ) );
 #ifdef USE_GTKMM4
-    m_hbuttonbox_environment.set_halign( Gtk::ALIGN_END );
+    m_hbuttonbox_environment.set_halign( JDLIB::compat::Align::END );
 #else
     m_hbuttonbox_environment.set_layout( Gtk::BUTTONBOX_END );
 #endif

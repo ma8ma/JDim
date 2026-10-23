@@ -39,7 +39,7 @@ MainToolBar::MainToolBar()
     , m_button_image( ICON::IMAGEVIEW )
 {
     m_entry_url.set_hexpand( true );
-    m_entry_url.set_halign( Gtk::ALIGN_FILL );
+    m_entry_url.set_halign( JDLIB::compat::Align::FILL );
 
     set_tooltip( m_button_go, ITEM_NAME_GO );
 

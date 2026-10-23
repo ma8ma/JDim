@@ -77,9 +77,9 @@ SelectListDialog::SelectListDialog( Gtk::Window* parent, const std::string& url,
 #endif 
     m_combo_dirs.set_active( active_row );
 
-    m_label_name.set_halign( Gtk::ALIGN_START );
+    m_label_name.set_halign( JDLIB::compat::Align::START );
     m_entry_name.set_hexpand( true );
-    m_label_dirs.set_halign( Gtk::ALIGN_START );
+    m_label_dirs.set_halign( JDLIB::compat::Align::START );
     m_combo_dirs.set_hexpand( true );
 
     m_bt_show_tree.signal_clicked().connect( sigc::mem_fun( *this, &SelectListDialog::slot_show_tree ) );

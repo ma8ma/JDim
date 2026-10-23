@@ -29,10 +29,10 @@ AddEtcDialog::AddEtcDialog( const bool move, const std::string& url, const std::
     m_label_id.set_xalign( 0.0 );
     m_label_pw.set_xalign( 0.0 );
 #else
-    m_label_name.set_alignment( Gtk::ALIGN_START );
-    m_label_url.set_alignment( Gtk::ALIGN_START );
-    m_label_id.set_alignment( Gtk::ALIGN_START );
-    m_label_pw.set_alignment( Gtk::ALIGN_START );
+    m_label_name.set_alignment( JDLIB::compat::Align::START );
+    m_label_url.set_alignment( JDLIB::compat::Align::START );
+    m_label_id.set_alignment( JDLIB::compat::Align::START );
+    m_label_pw.set_alignment( JDLIB::compat::Align::START );
 #endif
 
     m_label_name.set_mnemonic_widget( m_entry_name );
@@ -115,8 +115,8 @@ AddEtcBBSMenuDialog::AddEtcBBSMenuDialog( Gtk::Window* parent, const bool edit,
     m_label_name.set_xalign( 0.0 );
     m_label_url.set_xalign( 0.0 );
 #else
-    m_label_name.set_alignment( Gtk::ALIGN_START );
-    m_label_url.set_alignment( Gtk::ALIGN_START );
+    m_label_name.set_alignment( JDLIB::compat::Align::START );
+    m_label_url.set_alignment( JDLIB::compat::Align::START );
 #endif
     m_label_name.set_mnemonic_widget( m_entry_name );
     m_label_url.set_mnemonic_widget( m_entry_url );

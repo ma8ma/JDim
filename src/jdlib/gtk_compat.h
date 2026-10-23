@@ -94,6 +94,27 @@ inline void box_append_expand_nofill( Gtk::Box& box, Gtk::Widget& widget, guint 
 }
 
 /**
+ * @brief Gtk::Align の alias
+ *
+ * @note 未使用またはコメントアウトされている enum 値は alias を作成していません。
+ */
+namespace Align {
+using type = Gtk::Align;
+
+#ifdef USE_GTKMM4
+using Gtk::Align::FILL;
+using Gtk::Align::START;
+using Gtk::Align::END;
+using Gtk::Align::CENTER;
+#else
+constexpr type FILL = Gtk::ALIGN_FILL;
+constexpr type START = Gtk::ALIGN_START;
+constexpr type END = Gtk::ALIGN_END;
+constexpr type CENTER = Gtk::ALIGN_CENTER;
+#endif
+} // Align
+
+/**
  * @brief Gtk::ButtonsType の alias
  *
  * @note 未使用またはコメントアウトされている enum 値は alias を作成していません。

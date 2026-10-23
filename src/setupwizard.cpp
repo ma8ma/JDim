@@ -24,11 +24,11 @@ enum
 PageStart::PageStart()
     : Gtk::Grid()
     , m_icon( ICON::get_icon_manager()->get_pixbuf( ICON::JD48 ) )
-    , m_label( "１/６．JDim セットアップ開始", Gtk::ALIGN_START )
+    , m_label( "１/６．JDim セットアップ開始", JDLIB::compat::Align::START )
     , m_label2( "JDimセットアップウィザードへようこそ\n\n"
                 "このウィザードでネットワークとフォント等の設定をおこないます\n\n"
                 "設定を始めるには［次へ］を押してください",
-                Gtk::ALIGN_START )
+                JDLIB::compat::Align::START )
 {
     set_column_spacing( SPACING_SIZE );
     set_row_spacing( SPACING_SIZE );
@@ -49,11 +49,11 @@ PageNet::PageNet( Gtk::Window* parent )
     : Gtk::Grid()
     , m_parent{ parent }
     , m_icon( ICON::get_icon_manager()->get_pixbuf( ICON::JD48 ) )
-    , m_label( "２/６．ネットワークの設定をします", Gtk::ALIGN_START )
+    , m_label( "２/６．ネットワークの設定をします", JDLIB::compat::Align::START )
     , m_proxy( "プロキシ設定(_P)", true )
     , m_browser( "ブラウザ設定(_W)", true )
     , m_frame( "ブラウザ起動コマンド" ) // フレーム
-    , m_label_browser( CONFIG::get_command_openurl(), Gtk::ALIGN_START )
+    , m_label_browser( CONFIG::get_command_openurl(), JDLIB::compat::Align::START )
 {
     m_label_browser.property_margin() = SPACING_SIZE;
     m_frame.add( m_label_browser );
@@ -104,11 +104,11 @@ void PageNet::slot_setup_browser()
 PageFont::PageFont()
     : Gtk::Grid()
     , m_icon( ICON::get_icon_manager()->get_pixbuf( ICON::JD48 ) )
-    , m_label( "３/６．フォントの設定をします", Gtk::ALIGN_START )
-    , m_label_res( "スレ(_T)", Gtk::ALIGN_START, Gtk::ALIGN_CENTER, true )
-    , m_label_mail( "メール(_U)", Gtk::ALIGN_START, Gtk::ALIGN_CENTER, true )
-    , m_label_popup( "ポップアップ(_P)", Gtk::ALIGN_START, Gtk::ALIGN_CENTER, true )
-    , m_label_tree( "板／スレ一覧(_O)", Gtk::ALIGN_START, Gtk::ALIGN_CENTER, true )
+    , m_label( "３/６．フォントの設定をします", JDLIB::compat::Align::START )
+    , m_label_res( "スレ(_T)", JDLIB::compat::Align::START, JDLIB::compat::Align::CENTER, true )
+    , m_label_mail( "メール(_U)", JDLIB::compat::Align::START, JDLIB::compat::Align::CENTER, true )
+    , m_label_popup( "ポップアップ(_P)", JDLIB::compat::Align::START, JDLIB::compat::Align::CENTER, true )
+    , m_label_tree( "板／スレ一覧(_O)", JDLIB::compat::Align::START, JDLIB::compat::Align::CENTER, true )
     , m_font_res( "スレフォント" )
     , m_font_mail( "メール欄フォント" )
     , m_font_popup( "ポップアップフォント" )
@@ -191,10 +191,10 @@ void PageFont::slot_font_tree()
 PageTheme::PageTheme()
     : Gtk::Grid()
     , m_icon( ICON::get_icon_manager()->get_pixbuf( ICON::JD48 ) )
-    , m_label( "４/６．テーマの設定をします", Gtk::ALIGN_START )
+    , m_label( "４/６．テーマの設定をします", JDLIB::compat::Align::START )
     , m_system_theme( m_radiogroup, "システム設定(_S)", true )
     , m_dark_theme( m_radiogroup, "ダークテーマ(_D)", true )
-    , m_label_inst( "", Gtk::ALIGN_START )
+    , m_label_inst( "", JDLIB::compat::Align::START )
 {
     m_label_inst.set_line_wrap( true );
     m_label_inst.set_hexpand( false );
@@ -251,11 +251,11 @@ void PageTheme::slot_dark_theme()
 PagePane::PagePane()
     : Gtk::Grid()
     , m_icon( ICON::get_icon_manager()->get_pixbuf( ICON::JD48 ) )
-    , m_label( "５/６．ペイン表示設定をします", Gtk::ALIGN_START )
+    , m_label( "５/６．ペイン表示設定をします", JDLIB::compat::Align::START )
     , m_2pane( m_radiogroup, "２ペイン表示(_2)", true )
     , m_3pane( m_radiogroup, "３ペイン表示(_3)", true )
     , m_v3pane( m_radiogroup, "縦３ペイン表示(_V)", true )
-    , m_label_inst( "", Gtk::ALIGN_START )
+    , m_label_inst( "", JDLIB::compat::Align::START )
 {
     switch( SESSION::get_mode_pane() ){
         case SESSION::MODE_2PANE: m_2pane.set_active( true ); slot_2pane(); break;
@@ -310,11 +310,11 @@ void PagePane::slot_v3pane()
 PageEnd::PageEnd()
     : Gtk::Grid()
     , m_icon( ICON::get_icon_manager()->get_pixbuf( ICON::JD48 ) )
-    , m_label( "６/６．JDim セットアップ完了", Gtk::ALIGN_START )
+    , m_label( "６/６．JDim セットアップ完了", JDLIB::compat::Align::START )
     , m_label2( "その他の設定は起動後に設定及び表示メニューからおこなって下さい\n\n"
                 "完了を押すとJDimを起動して板一覧のリストをロードします\n"
                 "板一覧が表示されるまでしばらくお待ち下さい",
-                Gtk::ALIGN_START )
+                JDLIB::compat::Align::START )
 {
     set_column_spacing( SPACING_SIZE );
     set_row_spacing( SPACING_SIZE );
@@ -349,7 +349,7 @@ SetupWizard::SetupWizard()
     // ボタンは content_area に配置する。
     // ボタン配置の最終調整は GTK4 UI 移行時に行う。
     auto hbox = Gtk::make_managed<Gtk::Box>( Gtk::ORIENTATION_HORIZONTAL, SPACING_SIZE / 2 );
-    hbox->set_halign( Gtk::ALIGN_END );
+    hbox->set_halign( JDLIB::compat::Align::END );
     JDLIB::compat::box_append_expand( *hbox, m_back );
     JDLIB::compat::box_append_expand( *hbox, m_next );
     // GTK4では action area がないため、ボタン用のBoxを content area に配置する。

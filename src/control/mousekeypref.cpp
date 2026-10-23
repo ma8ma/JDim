@@ -300,7 +300,7 @@ MouseKeyDiag::MouseKeyDiag( Gtk::Window* parent, const std::string& url,
     JDLIB::compat::box_append_shrink( m_vbuttonbox, m_button_add );
     JDLIB::compat::box_append_shrink( m_vbuttonbox, m_button_reset );
 #ifdef USE_GTKMM4
-    m_vbuttonbox.set_valign( Gtk::ALIGN_START );
+    m_vbuttonbox.set_valign( JDLIB::compat::Align::START );
 #else
     m_vbuttonbox.set_layout( Gtk::BUTTONBOX_START );
     m_vbuttonbox.set_spacing( 4 );

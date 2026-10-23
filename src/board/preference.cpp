@@ -114,24 +114,24 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
 
     m_bt_set_default_namemail.signal_clicked().connect( sigc::mem_fun(*this, &Preferences::slot_set_default_namemail ) );
 
-    m_label_samba.set_halign( Gtk::ALIGN_START );
+    m_label_samba.set_halign( JDLIB::compat::Align::START );
     m_label_samba_value.set_ellipsize( Pango::ELLIPSIZE_END );
-    m_label_samba_value.set_halign( Gtk::ALIGN_START );
+    m_label_samba_value.set_halign( JDLIB::compat::Align::START );
     m_label_samba_value.set_hexpand( true );
     m_label_samba_value.set_selectable( true );
-    m_button_clearsamba.set_halign( Gtk::ALIGN_END );
+    m_button_clearsamba.set_halign( JDLIB::compat::Align::END );
 
     JDLIB::compat::box_append_expand( m_hbox_samba, m_label_samba_value );
     JDLIB::compat::box_append_shrink( m_hbox_samba, m_button_clearsamba );
 
-    m_check_utf8_post.set_halign( Gtk::ALIGN_START );
-    m_check_noname.set_halign( Gtk::ALIGN_START );
-    m_bt_clear_post_history.set_halign( Gtk::ALIGN_END );
+    m_check_utf8_post.set_halign( JDLIB::compat::Align::START );
+    m_check_noname.set_halign( JDLIB::compat::Align::START );
+    m_bt_clear_post_history.set_halign( JDLIB::compat::Align::END );
 
-    m_label_writename.set_halign( Gtk::ALIGN_START );
+    m_label_writename.set_halign( JDLIB::compat::Align::START );
     m_entry_writename.set_hexpand( true );
-    m_label_writemail.set_halign( Gtk::ALIGN_START );
-    m_bt_set_default_namemail.set_halign( Gtk::ALIGN_END );
+    m_label_writemail.set_halign( JDLIB::compat::Align::START );
+    m_bt_set_default_namemail.set_halign( JDLIB::compat::Align::END );
 
     JDLIB::compat::box_append_shrink( m_hbox_write, m_label_writename );
     JDLIB::compat::box_append_expand( m_hbox_write, m_entry_writename );
@@ -178,7 +178,7 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     m_grid_cookie.property_margin() = 8;
     m_grid_cookie.attach( m_edit_cookies, 0, 0, 1, 1 );
     m_grid_cookie.attach( m_button_cookie, 1, 0, 1, 1 );
-    m_button_cookie.set_valign( Gtk::ALIGN_END );
+    m_button_cookie.set_valign( JDLIB::compat::Align::END );
     m_button_cookie.signal_clicked().connect( sigc::mem_fun(*this, &Preferences::slot_delete_cookie ) );
 
     m_frame_cookie.add( m_grid_cookie );
@@ -209,7 +209,7 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
         m_combo_charset.append( MISC::encoding_to_cstr( Encoding::eucjp ) );
         m_combo_charset.set_active_text( tmpcharset );
 
-        m_combo_charset.set_halign( Gtk::ALIGN_START );
+        m_combo_charset.set_halign( JDLIB::compat::Align::START );
         m_combo_charset.set_hexpand( true );
 
         JDLIB::compat::box_append_expand( m_hbox_charset, m_combo_charset );
@@ -224,16 +224,16 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
         m_toggle_encoding.set_tooltip_text(
             "このオプションは実験的なサポートのため変更または廃止の可能性があります。" );
 
-        m_label_charset_value.set_halign( Gtk::ALIGN_START );
+        m_label_charset_value.set_halign( JDLIB::compat::Align::START );
         m_label_charset_value.set_hexpand( true );
         m_label_charset_value.set_selectable( true );
-        m_toggle_encoding.set_halign( Gtk::ALIGN_END );
+        m_toggle_encoding.set_halign( JDLIB::compat::Align::END );
 
         JDLIB::compat::box_append_expand( m_hbox_charset, m_label_charset_value );
         JDLIB::compat::box_append_shrink( m_hbox_charset, m_toggle_encoding );
 
         m_label_encoding_analysis_method.set_markup( "<b>テキストエンコーディングを判定する方法</b>" );
-        m_label_encoding_analysis_method.set_halign( Gtk::ALIGN_START );
+        m_label_encoding_analysis_method.set_halign( JDLIB::compat::Align::START );
 
         m_radio_encoding_default.set_group( m_group_encoding );
         m_radio_encoding_default.set_label( "デフォルト設定を使う" );
@@ -309,25 +309,25 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     m_label_cache_value.set_ellipsize( Pango::ELLIPSIZE_END );
     m_label_noname_value.set_ellipsize( Pango::ELLIPSIZE_END );
 
-    m_spin_maxres.set_halign( Gtk::ALIGN_START );
+    m_spin_maxres.set_halign( JDLIB::compat::Align::START );
     m_spin_maxres.set_hexpand( true );
 
     m_label_last_access_value.set_ellipsize( Pango::ELLIPSIZE_END );
-    m_label_last_access_value.set_halign( Gtk::ALIGN_START );
+    m_label_last_access_value.set_halign( JDLIB::compat::Align::START );
     m_label_last_access_value.set_hexpand( true );
     m_label_last_access_value.set_selectable( true );
 
     m_label_modified_value.set_ellipsize( Pango::ELLIPSIZE_END );
-    m_label_modified_value.set_halign( Gtk::ALIGN_START );
+    m_label_modified_value.set_halign( JDLIB::compat::Align::START );
     m_label_modified_value.set_hexpand( true );
     m_label_modified_value.set_selectable( true );
-    m_button_clearmodified.set_halign( Gtk::ALIGN_END );
+    m_button_clearmodified.set_halign( JDLIB::compat::Align::END );
 
     JDLIB::compat::box_append_expand( m_hbox_modified, m_label_modified_value );
     JDLIB::compat::box_append_shrink( m_hbox_modified, m_button_clearmodified );
 
-    m_spin_live.set_halign( Gtk::ALIGN_START );
-    m_check_live.set_halign( Gtk::ALIGN_START );
+    m_spin_live.set_halign( JDLIB::compat::Align::START );
+    m_check_live.set_halign( JDLIB::compat::Align::START );
     m_check_live.set_hexpand( true );
 
     JDLIB::compat::box_append_shrink( m_hbox_live, m_spin_live );
@@ -372,11 +372,11 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     for( int y = 0; y < 7; ++y ) {
         // label column
         Gtk::Widget* child = m_grid_general.get_child_at( 0, y );
-        child->set_halign( Gtk::ALIGN_START );
+        child->set_halign( JDLIB::compat::Align::START );
 
         // value column
         child = m_grid_general.get_child_at( 1, y );
-        child->set_halign( Gtk::ALIGN_START );
+        child->set_halign( JDLIB::compat::Align::START );
         child->set_hexpand( true );
         static_cast<Gtk::Label*>( child )->set_selectable( true );
     }
@@ -384,7 +384,7 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     for( int y = 7; y < 12; ++y ) {
         // label column
         Gtk::Widget* child = m_grid_general.get_child_at( 0, y );
-        child->set_halign( Gtk::ALIGN_START );
+        child->set_halign( JDLIB::compat::Align::START );
     }
 
     // ローカルルール

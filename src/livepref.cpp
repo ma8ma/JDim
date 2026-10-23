@@ -40,7 +40,7 @@ LivePref::LivePref( Gtk::Window* parent, const std::string& url )
     m_spin_speed.set_value( CONFIG::get_live_speed() );
     m_label_speed.set_text_with_mnemonic( "可変モードでの最低速度/一定モードでの速度(_S):" );
     m_label_speed.set_mnemonic_widget( m_spin_speed );
-    m_label_speed.set_halign( Gtk::ALIGN_START );
+    m_label_speed.set_halign( JDLIB::compat::Align::START );
 
     set_activate_entry( m_spin_speed );
 
@@ -50,7 +50,7 @@ LivePref::LivePref( Gtk::Window* parent, const std::string& url )
     m_spin_th.set_value( CONFIG::get_live_threshold() );
     m_label_th.set_text_with_mnemonic( "しきい値(_T):" );
     m_label_th.set_mnemonic_widget( m_spin_th );
-    m_label_th.set_halign( Gtk::ALIGN_START );
+    m_label_th.set_halign( JDLIB::compat::Align::START );
 
     set_activate_entry( m_spin_th );
 

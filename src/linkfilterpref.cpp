@@ -26,9 +26,9 @@ using namespace CORE;
 LinkFilterDiag::LinkFilterDiag( Gtk::Window* parent, const std::string& url, const std::string& cmd )
     : SKELETON::PrefDiag( parent, "" )
     , m_vbox{ Gtk::ORIENTATION_VERTICAL, 0 }
-    , m_label_url( "アドレス", Gtk::ALIGN_START )
+    , m_label_url( "アドレス", JDLIB::compat::Align::START )
     , m_hbox_cmd{ Gtk::ORIENTATION_HORIZONTAL, 0 }
-    , m_label_cmd( "実行するコマンド", Gtk::ALIGN_START )
+    , m_label_cmd( "実行するコマンド", JDLIB::compat::Align::START )
     , m_button_manual( "オンラインマニュアルの置換文字一覧を表示" )
 {
     resize( 640, 1 );
@@ -123,7 +123,7 @@ LinkFilterPref::LinkFilterPref( Gtk::Window* parent, const std::string& url )
     JDLIB::compat::box_append_shrink( m_vbuttonbox, m_button_delete );
     JDLIB::compat::box_append_shrink( m_vbuttonbox, m_button_add );
 #ifdef USE_GTKMM4
-    m_vbuttonbox.set_valign( Gtk::ALIGN_START );
+    m_vbuttonbox.set_valign( JDLIB::compat::Align::START );
 #else
     m_vbuttonbox.set_layout( Gtk::BUTTONBOX_START );
     m_vbuttonbox.set_spacing( 4 );

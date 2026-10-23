@@ -125,8 +125,8 @@ namespace CORE
             JDLIB::compat::box_append_shrink( m_hbox_port, m_label_port );
             JDLIB::compat::box_append_shrink( m_hbox_port, entry_port );
 
-            fallback_proxy_check.set_halign( Gtk::ALIGN_START );
-            m_toggle_notice.set_halign( Gtk::ALIGN_END );
+            fallback_proxy_check.set_halign( JDLIB::compat::Align::START );
+            m_toggle_notice.set_halign( JDLIB::compat::Align::END );
 
             m_revealer_notice.add( notice_label );
             m_revealer_notice.set_reveal_child( false );

@@ -175,20 +175,20 @@ ReplaceStrPref::ReplaceStrPref( Gtk::Window* parent, const std::string& url )
 
     columns[0] = Gtk::manage( new Gtk::TreeViewColumn( "有効", m_columns.m_col_active ) );
     columns[0]->set_fixed_width( 35 );
-    columns[0]->set_alignment( Gtk::ALIGN_CENTER );
+    columns[0]->set_alignment( JDLIB::compat::Align::CENTER );
     // 正規と大小は設定の関係性から元になったパッチから変更して列を入れ替えた
     columns[1] = Gtk::manage( new Gtk::TreeViewColumn( "正規", m_columns.m_col_regex ) );
     columns[1]->set_fixed_width( 35 );
-    columns[1]->set_alignment( Gtk::ALIGN_CENTER );
+    columns[1]->set_alignment( JDLIB::compat::Align::CENTER );
     columns[2] = Gtk::manage( new Gtk::TreeViewColumn( "大小", m_columns.m_col_icase ) );
     columns[2]->set_fixed_width( 35 );
-    columns[2]->set_alignment( Gtk::ALIGN_CENTER );
+    columns[2]->set_alignment( JDLIB::compat::Align::CENTER );
     columns[3] = Gtk::manage( new Gtk::TreeViewColumn( "全角", m_columns.m_col_wchar ) );
     columns[3]->set_fixed_width( 35 );
-    columns[3]->set_alignment( Gtk::ALIGN_CENTER );
+    columns[3]->set_alignment( JDLIB::compat::Align::CENTER );
     columns[4] = Gtk::manage( new Gtk::TreeViewColumn( "互換", m_columns.m_col_norm ) );
     columns[4]->set_fixed_width( 35 );
-    columns[4]->set_alignment( Gtk::ALIGN_CENTER );
+    columns[4]->set_alignment( JDLIB::compat::Align::CENTER );
     columns[5] = Gtk::manage( new Gtk::TreeViewColumn( "置換パターン", m_columns.m_col_pattern ) );
     columns[5]->set_fixed_width( 220 );
     columns[6] = Gtk::manage( new Gtk::TreeViewColumn( "置換文字列", m_columns.m_col_replace ) );
@@ -227,7 +227,7 @@ ReplaceStrPref::ReplaceStrPref( Gtk::Window* parent, const std::string& url )
     m_grid_head.attach( m_link_manual, 2, 0, 1, 1 );
     m_grid_head.attach( m_check_chref, 0, 1, 2, 1 );
     m_grid_head.set_hexpand( true );
-    m_link_manual.set_halign( Gtk::ALIGN_END );
+    m_link_manual.set_halign( JDLIB::compat::Align::END );
     m_link_manual.set_hexpand( true );
     m_link_manual.set_use_underline( true );
 

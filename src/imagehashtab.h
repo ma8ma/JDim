@@ -131,9 +131,9 @@ public:
         // 設定オプションのセットアップ
         m_switch_enable_hash.set_active( CONFIG::get_enable_img_hash() );
         m_switch_enable_hash.set_hexpand( false );
-        m_switch_enable_hash.set_valign( Gtk::ALIGN_CENTER );
+        m_switch_enable_hash.set_valign( JDLIB::compat::Align::CENTER );
         m_switch_enable_hash.show();
-        m_label_enable_hash.set_halign( Gtk::ALIGN_START );
+        m_label_enable_hash.set_halign( JDLIB::compat::Align::START );
         m_label_enable_hash.set_hexpand( true );
         m_label_enable_hash.set_line_wrap( true );
         m_label_enable_hash.set_mnemonic_widget( m_switch_enable_hash );
@@ -154,7 +154,7 @@ public:
         m_listbox.signal_row_activated().connect( sigc::mem_fun( *this, &ImageHashTab::slot_listbox_row_activated ) );
         m_listbox.show();
 
-        m_label_initial_threshold.set_halign( Gtk::ALIGN_START );
+        m_label_initial_threshold.set_halign( JDLIB::compat::Align::START );
         m_label_initial_threshold.set_ellipsize( Pango::ELLIPSIZE_END );
         m_label_initial_threshold.set_mnemonic_widget( m_spin_initial_threshold );
         m_label_initial_threshold.show();
@@ -166,7 +166,7 @@ public:
         m_button_reset_initial_threshold.show();
         m_button_reset_initial_threshold.signal_clicked().connect(
             sigc::mem_fun( *this, &ImageHashTab::slot_reset_initial_threshold ) );
-        m_link_manual.set_halign( Gtk::ALIGN_END );
+        m_link_manual.set_halign( JDLIB::compat::Align::END );
         m_link_manual.set_use_underline( true );
         m_link_manual.show();
         JDLIB::compat::box_append_shrink( m_hbox_initial_threshold, m_spin_initial_threshold );
@@ -178,7 +178,7 @@ public:
         JDLIB::compat::box_append_shrink( m_hbox_initial_threshold, m_link_manual );
         m_hbox_initial_threshold.show();
 
-        m_label_tool.set_halign( Gtk::ALIGN_START );
+        m_label_tool.set_halign( JDLIB::compat::Align::START );
         m_label_tool.show();
         m_button_delete.signal_clicked().connect( sigc::mem_fun( *this, &ImageHashTab::slot_delete ) );
         m_button_delete.show();
