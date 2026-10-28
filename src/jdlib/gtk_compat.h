@@ -8,7 +8,12 @@
 
 #include <gtkmm/box.h>
 #include <gtkmm/dialog.h>
+#include <gtkmm/entry.h>
+#include <gtkmm/filechooser.h>
+#include <gtkmm/gesture.h>
 #include <gtkmm/messagedialog.h>
+#include <gtkmm/textview.h>
+#include <gtkmm/treeviewcolumn.h>
 
 
 namespace JDLIB::compat {
@@ -138,6 +143,109 @@ constexpr type OK_CANCEL = Gtk::BUTTONS_OK_CANCEL;
 } // ButtonsType
 
 /**
+ * @brief Gtk::IconPosition の alias
+ */
+namespace Entry::IconPosition {
+
+#ifdef USE_GTKMM4
+using type = Gtk::Entry::IconPosition;
+using Gtk::Entry::IconPosition::PRIMARY;
+using Gtk::Entry::IconPosition::SECONDARY;
+#else
+using type = Gtk::EntryIconPosition;
+constexpr type PRIMARY = Gtk::ENTRY_ICON_PRIMARY;
+constexpr type SECONDARY = Gtk::ENTRY_ICON_SECONDARY;
+#endif
+} // IconPosition
+
+/**
+ * @brief Gtk::EventSequenceState の alias
+ */
+namespace EventSequenceState {
+using type = Gtk::EventSequenceState;
+
+#ifdef USE_GTKMM4
+using Gtk::EventSequenceState::NONE;
+using Gtk::EventSequenceState::CLAIMED;
+using Gtk::EventSequenceState::DENIED;
+#else
+constexpr type NONE = Gtk::EVENT_SEQUENCE_NONE;
+constexpr type CLAIMED = Gtk::EVENT_SEQUENCE_CLAIMED;
+constexpr type DENIED = Gtk::EVENT_SEQUENCE_DENIED;
+#endif
+} // EventSequenceState
+
+/**
+ * @brief Gtk::FileChooser::Action の alias
+ */
+namespace FileChooser::Action {
+
+#ifdef USE_GTKMM4
+using type = Gtk::FileChooser::Action;
+using Gtk::FileChooser::Action::OPEN;
+using Gtk::FileChooser::Action::SAVE;
+using Gtk::FileChooser::Action::SELECT_FOLDER;
+#else
+using type = Gtk::FileChooserAction;
+constexpr type OPEN = Gtk::FILE_CHOOSER_ACTION_OPEN;
+constexpr type SAVE = Gtk::FILE_CHOOSER_ACTION_SAVE;
+constexpr type SELECT_FOLDER = Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER;
+constexpr type CREATE_FOLDER = Gtk::FILE_CHOOSER_ACTION_CREATE_FOLDER;
+#endif
+} // FileChooser::Action
+
+/**
+ * @brief Gtk::InputPurpose の alias
+ */
+namespace InputPurpose {
+using type = Gtk::InputPurpose;
+
+#ifdef USE_GTKMM4
+using Gtk::InputPurpose::FREE_FORM;
+using Gtk::InputPurpose::ALPHA;
+using Gtk::InputPurpose::DIGITS;
+using Gtk::InputPurpose::NUMBER;
+using Gtk::InputPurpose::PHONE;
+using Gtk::InputPurpose::URL;
+using Gtk::InputPurpose::EMAIL;
+using Gtk::InputPurpose::NAME;
+using Gtk::InputPurpose::PASSWORD;
+using Gtk::InputPurpose::PIN;
+using Gtk::InputPurpose::TERMINAL;
+#else
+constexpr type FREE_FORM = Gtk::INPUT_PURPOSE_FREE_FORM;
+constexpr type ALPHA = Gtk::INPUT_PURPOSE_ALPHA;
+constexpr type DIGITS = Gtk::INPUT_PURPOSE_DIGITS;
+constexpr type NUMBER = Gtk::INPUT_PURPOSE_NUMBER;
+constexpr type PHONE = Gtk::INPUT_PURPOSE_PHONE;
+constexpr type URL = Gtk::INPUT_PURPOSE_URL;
+constexpr type EMAIL = Gtk::INPUT_PURPOSE_EMAIL;
+constexpr type NAME = Gtk::INPUT_PURPOSE_NAME;
+constexpr type PASSWORD = Gtk::INPUT_PURPOSE_PASSWORD;
+constexpr type PIN = Gtk::INPUT_PURPOSE_PIN;
+#endif
+} // InputPurpose
+
+/**
+ * @brief Gtk::Justification の alias
+ */
+namespace Justification {
+using type = Gtk::Justification;
+
+#ifdef USE_GTKMM4
+using Gtk::Justification::LEFT;
+using Gtk::Justification::RIGHT;
+using Gtk::Justification::CENTER;
+using Gtk::Justification::FILL;
+#else
+constexpr type LEFT = Gtk::JUSTIFY_LEFT;
+constexpr type RIGHT = Gtk::JUSTIFY_RIGHT;
+constexpr type CENTER = Gtk::JUSTIFY_CENTER;
+constexpr type FILL = Gtk::JUSTIFY_FILL;
+#endif
+} // Justification
+
+/**
  * @brief Gtk::MessageType の alias
  *
  * @note 未使用またはコメントアウトされている enum 値は alias を作成していません。
@@ -176,6 +284,25 @@ constexpr type VERTICAL = Gtk::ORIENTATION_VERTICAL;
 } // Orientation
 
 /**
+ * @brief Gtk::PolicyType の alias
+ */
+namespace PolicyType {
+using type = Gtk::PolicyType;
+
+#ifdef USE_GTKMM4
+using Gtk::PolicyType::ALWAYS;
+using Gtk::PolicyType::AUTOMATIC;
+using Gtk::PolicyType::NEVER;
+using Gtk::PolicyType::EXTERNAL;
+#else
+constexpr type ALWAYS = Gtk::POLICY_ALWAYS;
+constexpr type AUTOMATIC = Gtk::POLICY_AUTOMATIC;
+constexpr type NEVER = Gtk::POLICY_NEVER;
+constexpr type EXTERNAL = Gtk::POLICY_EXTERNAL;
+#endif
+} // PolicyType
+
+/**
  * @brief Gtk::ResponseType の alias
  *
  * @note 未使用またはコメントアウトされている enum 値は alias を作成していません。
@@ -199,6 +326,142 @@ constexpr type YES = Gtk::RESPONSE_YES;
 constexpr type NO = Gtk::RESPONSE_NO;
 #endif
 } // ResponseType
+
+/**
+ * @brief Gtk::SelectionMode の alias
+ */
+namespace SelectionMode {
+using type = Gtk::SelectionMode;
+
+#ifdef USE_GTKMM4
+using Gtk::SelectionMode::NONE;
+using Gtk::SelectionMode::SINGLE;
+using Gtk::SelectionMode::BROWSE;
+using Gtk::SelectionMode::MULTIPLE;
+#else
+constexpr type NONE = Gtk::SELECTION_NONE;
+constexpr type SINGLE = Gtk::SELECTION_SINGLE;
+constexpr type BROWSE = Gtk::SELECTION_BROWSE;
+constexpr type MULTIPLE = Gtk::SELECTION_MULTIPLE;
+#endif
+} // SelectionMode
+
+/**
+ * @brief Gtk::SortType の alias
+ */
+namespace SortType {
+using type = Gtk::SortType;
+
+#ifdef USE_GTKMM4
+using Gtk::SortType::ASCENDING;
+using Gtk::SortType::DESCENDING;
+#else
+constexpr type ASCENDING = Gtk::SORT_ASCENDING;
+constexpr type DESCENDING = Gtk::SORT_DESCENDING;
+#endif
+} // SortType
+
+/**
+ * @brief Gtk::StateFlags の alias
+ */
+namespace StateFlags {
+using type = Gtk::StateFlags;
+
+#ifdef USE_GTKMM4
+using Gtk::StateFlags::NORMAL;
+using Gtk::StateFlags::ACTIVE;
+using Gtk::StateFlags::PRELIGHT;
+using Gtk::StateFlags::SELECTED;
+using Gtk::StateFlags::INSENSITIVE;
+using Gtk::StateFlags::INCONSISTENT;
+using Gtk::StateFlags::FOCUSED;
+using Gtk::StateFlags::BACKDROP;
+using Gtk::StateFlags::DIR_LTR;
+using Gtk::StateFlags::DIR_RTL;
+using Gtk::StateFlags::LINK;
+using Gtk::StateFlags::VISITED;
+using Gtk::StateFlags::CHECKED;
+using Gtk::StateFlags::DROP_ACTIVE;
+using Gtk::StateFlags::FOCUS_VISIBLE;
+using Gtk::StateFlags::FOCUS_WITHIN;
+#else
+constexpr type NORMAL = Gtk::STATE_FLAG_NORMAL;
+constexpr type ACTIVE = Gtk::STATE_FLAG_ACTIVE;
+constexpr type PRELIGHT = Gtk::STATE_FLAG_PRELIGHT;
+constexpr type SELECTED = Gtk::STATE_FLAG_SELECTED;
+constexpr type INSENSITIVE = Gtk::STATE_FLAG_INSENSITIVE;
+constexpr type INCONSISTENT = Gtk::STATE_FLAG_INCONSISTENT;
+constexpr type FOCUSED = Gtk::STATE_FLAG_FOCUSED;
+constexpr type BACKDROP = Gtk::STATE_FLAG_BACKDROP;
+constexpr type DIR_LTR = Gtk::STATE_FLAG_DIR_LTR;
+constexpr type DIR_RTL = Gtk::STATE_FLAG_DIR_RTL;
+constexpr type LINK = Gtk::STATE_FLAG_LINK;
+constexpr type VISITED = Gtk::STATE_FLAG_VISITED;
+constexpr type CHECKED = Gtk::STATE_FLAG_CHECKED;
+constexpr type DROP_ACTIVE = Gtk::STATE_FLAG_DROP_ACTIVE;
+#endif
+} // StateFlags
+
+/**
+ * @brief Gtk::TextWindowType の alias
+ */
+namespace TextWindowType {
+using type = Gtk::TextWindowType;
+
+#ifdef USE_GTKMM4
+using Gtk::TextWindowType::WIDGET;
+using Gtk::TextWindowType::TEXT;
+using Gtk::TextWindowType::LEFT;
+using Gtk::TextWindowType::RIGHT;
+using Gtk::TextWindowType::TOP;
+using Gtk::TextWindowType::BOTTOM;
+#else
+constexpr type PRIVATE = Gtk::TEXT_WINDOW_PRIVATE;
+constexpr type WIDGET = Gtk::TEXT_WINDOW_WIDGET;
+constexpr type TEXT = Gtk::TEXT_WINDOW_TEXT;
+constexpr type LEFT = Gtk::TEXT_WINDOW_LEFT;
+constexpr type RIGHT = Gtk::TEXT_WINDOW_RIGHT;
+constexpr type TOP = Gtk::TEXT_WINDOW_TOP;
+constexpr type BOTTOM = Gtk::TEXT_WINDOW_BOTTOM;
+#endif
+} // TextWindowType
+
+/**
+ * @brief Gtk::TreeViewColumn::Sizing の alias
+ */
+namespace TreeViewColumn::Sizing {
+
+#ifdef USE_GTKMM4
+using type = Gtk::TreeViewColumn::Sizing;
+using Gtk::TreeViewColumn::Sizing::GROW_ONLY;
+using Gtk::TreeViewColumn::Sizing::AUTOSIZE;
+using Gtk::TreeViewColumn::Sizing::FIXED;
+#else
+using type = Gtk::TreeViewColumnSizing;
+constexpr type GROW_ONLY = Gtk::TREE_VIEW_COLUMN_GROW_ONLY;
+constexpr type AUTOSIZE =  Gtk::TREE_VIEW_COLUMN_AUTOSIZE;
+constexpr type FIXED =  Gtk::TREE_VIEW_COLUMN_FIXED;
+#endif
+} // TreeViewColumn::Sizing
+
+/**
+ * @brief Gtk::WrapMode の alias
+ */
+namespace WrapMode {
+using type = Gtk::WrapMode;
+
+#ifdef USE_GTKMM4
+using Gtk::WrapMode::NONE;
+using Gtk::WrapMode::CHAR;
+using Gtk::WrapMode::WORD;
+using Gtk::WrapMode::WORD_CHAR;
+#else
+constexpr type NONE = Gtk::WRAP_NONE;
+constexpr type CHAR = Gtk::WRAP_CHAR;
+constexpr type WORD = Gtk::WRAP_WORD;
+constexpr type WORD_CHAR = Gtk::WRAP_WORD_CHAR;
+#endif
+} // WrapMode
 
 } // JDLIB::compat
 
