@@ -20,7 +20,6 @@ namespace CORE
     {
         friend class Core;
 
-        Gtk::ToolItem m_tool_url;
         Gtk::Entry m_entry_url;
         SKELETON::ImgToolButton m_button_go;
 

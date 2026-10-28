@@ -28,17 +28,20 @@ enum
 AboutDiag::AboutDiag( const Glib::ustring& title )
     : Gtk::Dialog( title, ENVIRONMENT::get_dialog_use_header_bar() ? Gtk::DIALOG_USE_HEADER_BAR
                                                                    : Gtk::DialogFlags{} )
-    , m_vbox_info{ Gtk::ORIENTATION_VERTICAL, 0 }
-    , m_hbox_url{ Gtk::ORIENTATION_HORIZONTAL, 0 }
-    , m_vbox_environment{ Gtk::ORIENTATION_VERTICAL, 0 }
+    , m_vbox_info{ JDLIB::compat::Orientation::VERTICAL, 0 }
+    , m_hbox_url{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
+    , m_vbox_environment{ JDLIB::compat::Orientation::VERTICAL, 0 }
+#ifdef USE_GTKMM4
+    , m_hbuttonbox_environment{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
+#endif
     , m_button_copy_environment( "クリップボードへコピー" )
 {
     set_transient_for( *CORE::get_mainwindow() );
     set_resizable( false );
 
-    add_button( g_dgettext( GTK_DOMAIN, "_Close" ), Gtk::RESPONSE_CLOSE );
+    add_button( g_dgettext( GTK_DOMAIN, "_Close" ), JDLIB::compat::ResponseType::CLOSE );
 
-    set_default_response( Gtk::RESPONSE_CLOSE );
+    set_default_response( JDLIB::compat::ResponseType::CLOSE );
 
     set_logo( ICON::get_pixbuf( ICON::JD96 ) );
     set_version( ENVIRONMENT::get_jdversion() );
@@ -106,7 +109,7 @@ void AboutDiag::init()
     // コピーライト
     if( ! get_copyright().empty() )
     {
-        m_label_copyright.set_justify( Gtk::JUSTIFY_CENTER );
+        m_label_copyright.set_justify( JDLIB::compat::Justification::CENTER );
         JDLIB::compat::box_append_shrink( m_vbox_info, m_label_copyright );
     }
     // Webサイト
@@ -133,7 +136,11 @@ void AboutDiag::init()
 
     // クリップボードへコピーのボタン
     m_button_copy_environment.signal_clicked().connect( sigc::mem_fun( *this, &AboutDiag::slot_copy_environment ) );
+#ifdef USE_GTKMM4
+    m_hbuttonbox_environment.set_halign( JDLIB::compat::Align::END );
+#else
     m_hbuttonbox_environment.set_layout( Gtk::BUTTONBOX_END );
+#endif
     JDLIB::compat::box_append_shrink( m_hbuttonbox_environment, m_button_copy_environment );
     JDLIB::compat::box_append_shrink( m_vbox_environment, m_hbuttonbox_environment );
 
@@ -264,8 +271,8 @@ void AboutDiag::set_license( const Glib::ustring& license )
     m_textview_license.set_editable( false );
     m_textview_license.set_cursor_visible( false );
     m_textview_license.set_accepts_tab( false );
-    m_textview_license.set_wrap_mode( Gtk::WRAP_WORD_CHAR );
-    m_scrollwindow_license.set_policy( Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC );
+    m_textview_license.set_wrap_mode( JDLIB::compat::WrapMode::WORD_CHAR );
+    m_scrollwindow_license.set_policy( JDLIB::compat::PolicyType::AUTOMATIC, JDLIB::compat::PolicyType::AUTOMATIC );
     m_scrollwindow_license.add( m_textview_license );
 }
 

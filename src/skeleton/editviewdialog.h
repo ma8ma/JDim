@@ -24,7 +24,7 @@ namespace SKELETON
             m_edit.set_text( str );
             m_edit.set_editable( editable );
 
-            add_button( g_dgettext( GTK_DOMAIN, "_OK" ), Gtk::RESPONSE_OK );
+            add_button( g_dgettext( GTK_DOMAIN, "_OK" ), JDLIB::compat::ResponseType::OK );
             JDLIB::compat::box_append_expand( *get_content_area(), m_edit );
             set_title( title );
             show_all_children();

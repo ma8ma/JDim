@@ -12,7 +12,7 @@ using namespace SKELETON;
 
 
 LabelEntry::LabelEntry( const bool editable, const std::string& label, const std::string& text )
-    : Gtk::Box{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    : Gtk::Box{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_editable( editable )
 {
     set_label( label );

@@ -59,7 +59,7 @@ JDWindow::JDWindow( const bool fold_when_focusout, const bool need_mginfo )
     , m_boot( true )
     , m_enable_fold( m_fold_when_focusout )
     , m_mode( JDWIN_INIT )
-    , m_statbar{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_statbar{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
 {
     // ステータスバー
     m_label_stat.set_size_request( 0, -1 );
@@ -124,7 +124,7 @@ void JDWindow::init_win()
         m_vbox_view = std::make_unique<SKELETON::JDVBox>();
 
         m_scrwin->set_size_request( 0, 0 );
-        m_scrwin->set_policy( Gtk::POLICY_EXTERNAL, Gtk::POLICY_EXTERNAL );
+        m_scrwin->set_policy( JDLIB::compat::PolicyType::EXTERNAL, JDLIB::compat::PolicyType::EXTERNAL );
         m_scrwin->add( *m_vbox_view );
         m_vbox.pack_remove_start( false, *m_scrwin, true, true );
 

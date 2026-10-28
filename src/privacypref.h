@@ -52,14 +52,14 @@ namespace CORE
 
         PrivacyPref( Gtk::Window* parent, const std::string& url )
             : SKELETON::PrefDiag( parent, url )
-            , m_vbox{ Gtk::ORIENTATION_VERTICAL, 0 }
+            , m_vbox{ JDLIB::compat::Orientation::VERTICAL, 0 }
             , m_bt_board( "板履歴(_B)", true )
             , m_bt_thread( "スレ履歴(_T)", true )
             , m_bt_close( "最近閉じたスレの履歴(_R)", true )
             , m_bt_search( "検索履歴(_F)", true )
             , m_bt_name( "書き込みビューの名前履歴(_N)", true )
             , m_bt_mail( "書き込みビューのメール履歴(_E)", true )
-            , m_hbox_selectall{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+            , m_hbox_selectall{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
             , m_bt_selectall( "全て選択(_A)", true )
         {
             m_vbox.set_spacing( 8 );

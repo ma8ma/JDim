@@ -27,7 +27,7 @@ using namespace BOARD;
 Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std::string& command )
     : SKELETON::PrefDiag( parent, url )
     , m_frame_write( "書き込み設定" )
-    , m_hbox_write{ Gtk::ORIENTATION_HORIZONTAL, 10 }
+    , m_hbox_write{ JDLIB::compat::Orientation::HORIZONTAL, 10 }
     , m_label_writename{ "名前:" }
     , m_label_writemail{ "メール:" }
     , m_check_utf8_post( "(実験的な機能) UTF-8で書き込む" )
@@ -38,16 +38,16 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     , m_frame_cookie( "クッキーと書き込みキーワード" )
     , m_button_cookie( "削除" )
 
-    , m_hbox_live{ Gtk::ORIENTATION_HORIZONTAL, 10 }
+    , m_hbox_live{ JDLIB::compat::Orientation::HORIZONTAL, 10 }
     , m_label_live{ "実況時の更新間隔(秒):" }
     , m_check_live( "実況する" )
 
-    , m_hbox_charset{ Gtk::ORIENTATION_HORIZONTAL, 10 }
+    , m_hbox_charset{ JDLIB::compat::Orientation::HORIZONTAL, 10 }
     , m_label_charset{ "テキストエンコーディング:" }
-    , m_vbox_encoding_analysis_method{ Gtk::ORIENTATION_VERTICAL, 2 }
+    , m_vbox_encoding_analysis_method{ JDLIB::compat::Orientation::VERTICAL, 2 }
 
-    , m_vbox_network{ Gtk::ORIENTATION_VERTICAL, 8 }
-    , m_hbox_agent{ Gtk::ORIENTATION_HORIZONTAL, 2 }
+    , m_vbox_network{ JDLIB::compat::Orientation::VERTICAL, 8 }
+    , m_hbox_agent{ JDLIB::compat::Orientation::HORIZONTAL, 2 }
     , m_label_agent{ "_User-Agent：", true }
     , m_proxy_frame( "読み込み用" )
     , m_proxy_frame_w( "書き込み用" )
@@ -66,23 +66,23 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     , m_label_max_subject_byte{ "スレタイトルの最大バイト数:" }
     , m_label_maxres{ "最大レス数 (0 : 未設定):" }
     , m_label_last_access{ "最終アクセス日時:" }
-    , m_hbox_modified{ Gtk::ORIENTATION_HORIZONTAL, 10 }
+    , m_hbox_modified{ JDLIB::compat::Orientation::HORIZONTAL, 10 }
     , m_label_modified{ "最終更新日時:" }
     , m_button_clearmodified( "日時クリア" )
-    , m_hbox_samba{ Gtk::ORIENTATION_HORIZONTAL, 10 }
+    , m_hbox_samba{ JDLIB::compat::Orientation::HORIZONTAL, 10 }
     , m_label_samba{ "書き込み規制秒数 (Samba24):" }
     , m_button_clearsamba( "秒数クリア" )
     , m_check_oldlog( "過去ログを表示する" )
-    , m_vbox_abone_general{ Gtk::ORIENTATION_VERTICAL, 0 }
-    , m_sep_general{ Gtk::ORIENTATION_HORIZONTAL }
-    , m_hbox_abone_consecutive{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_vbox_abone_general{ JDLIB::compat::Orientation::VERTICAL, 0 }
+    , m_sep_general{ JDLIB::compat::Orientation::HORIZONTAL }
+    , m_hbox_abone_consecutive{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_label_abone_consecutive{ "(実験的な機能) 連続投稿したIDをスレのNG IDに追加する (0 : 未設定)：" }
     , m_label_abone_consecutive_over_n_times{ " 回以上" }
-    , m_vbox_abone_thread{ Gtk::ORIENTATION_VERTICAL, 0 }
-    , m_hbox_low_number{ Gtk::ORIENTATION_HORIZONTAL, 4 }
-    , m_hbox_high_number{ Gtk::ORIENTATION_HORIZONTAL, 4 }
-    , m_hbox_hour{ Gtk::ORIENTATION_HORIZONTAL, 0 }
-    , m_vbox_abone_title{ Gtk::ORIENTATION_VERTICAL, 0 }
+    , m_vbox_abone_thread{ JDLIB::compat::Orientation::VERTICAL, 0 }
+    , m_hbox_low_number{ JDLIB::compat::Orientation::HORIZONTAL, 4 }
+    , m_hbox_high_number{ JDLIB::compat::Orientation::HORIZONTAL, 4 }
+    , m_hbox_hour{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
+    , m_vbox_abone_title{ JDLIB::compat::Orientation::VERTICAL, 0 }
     , m_button_remove_old_title( "dat落ちしたスレのタイトルを削除する" )
 {
     m_edit_cookies.set_editable( false );
@@ -114,24 +114,24 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
 
     m_bt_set_default_namemail.signal_clicked().connect( sigc::mem_fun(*this, &Preferences::slot_set_default_namemail ) );
 
-    m_label_samba.set_halign( Gtk::ALIGN_START );
+    m_label_samba.set_halign( JDLIB::compat::Align::START );
     m_label_samba_value.set_ellipsize( Pango::ELLIPSIZE_END );
-    m_label_samba_value.set_halign( Gtk::ALIGN_START );
+    m_label_samba_value.set_halign( JDLIB::compat::Align::START );
     m_label_samba_value.set_hexpand( true );
     m_label_samba_value.set_selectable( true );
-    m_button_clearsamba.set_halign( Gtk::ALIGN_END );
+    m_button_clearsamba.set_halign( JDLIB::compat::Align::END );
 
     JDLIB::compat::box_append_expand( m_hbox_samba, m_label_samba_value );
     JDLIB::compat::box_append_shrink( m_hbox_samba, m_button_clearsamba );
 
-    m_check_utf8_post.set_halign( Gtk::ALIGN_START );
-    m_check_noname.set_halign( Gtk::ALIGN_START );
-    m_bt_clear_post_history.set_halign( Gtk::ALIGN_END );
+    m_check_utf8_post.set_halign( JDLIB::compat::Align::START );
+    m_check_noname.set_halign( JDLIB::compat::Align::START );
+    m_bt_clear_post_history.set_halign( JDLIB::compat::Align::END );
 
-    m_label_writename.set_halign( Gtk::ALIGN_START );
+    m_label_writename.set_halign( JDLIB::compat::Align::START );
     m_entry_writename.set_hexpand( true );
-    m_label_writemail.set_halign( Gtk::ALIGN_START );
-    m_bt_set_default_namemail.set_halign( Gtk::ALIGN_END );
+    m_label_writemail.set_halign( JDLIB::compat::Align::START );
+    m_bt_set_default_namemail.set_halign( JDLIB::compat::Align::END );
 
     JDLIB::compat::box_append_shrink( m_hbox_write, m_label_writename );
     JDLIB::compat::box_append_expand( m_hbox_write, m_entry_writename );
@@ -178,7 +178,7 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     m_grid_cookie.property_margin() = 8;
     m_grid_cookie.attach( m_edit_cookies, 0, 0, 1, 1 );
     m_grid_cookie.attach( m_button_cookie, 1, 0, 1, 1 );
-    m_button_cookie.set_valign( Gtk::ALIGN_END );
+    m_button_cookie.set_valign( JDLIB::compat::Align::END );
     m_button_cookie.signal_clicked().connect( sigc::mem_fun(*this, &Preferences::slot_delete_cookie ) );
 
     m_frame_cookie.add( m_grid_cookie );
@@ -209,7 +209,7 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
         m_combo_charset.append( MISC::encoding_to_cstr( Encoding::eucjp ) );
         m_combo_charset.set_active_text( tmpcharset );
 
-        m_combo_charset.set_halign( Gtk::ALIGN_START );
+        m_combo_charset.set_halign( JDLIB::compat::Align::START );
         m_combo_charset.set_hexpand( true );
 
         JDLIB::compat::box_append_expand( m_hbox_charset, m_combo_charset );
@@ -224,16 +224,16 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
         m_toggle_encoding.set_tooltip_text(
             "このオプションは実験的なサポートのため変更または廃止の可能性があります。" );
 
-        m_label_charset_value.set_halign( Gtk::ALIGN_START );
+        m_label_charset_value.set_halign( JDLIB::compat::Align::START );
         m_label_charset_value.set_hexpand( true );
         m_label_charset_value.set_selectable( true );
-        m_toggle_encoding.set_halign( Gtk::ALIGN_END );
+        m_toggle_encoding.set_halign( JDLIB::compat::Align::END );
 
         JDLIB::compat::box_append_expand( m_hbox_charset, m_label_charset_value );
         JDLIB::compat::box_append_shrink( m_hbox_charset, m_toggle_encoding );
 
         m_label_encoding_analysis_method.set_markup( "<b>テキストエンコーディングを判定する方法</b>" );
-        m_label_encoding_analysis_method.set_halign( Gtk::ALIGN_START );
+        m_label_encoding_analysis_method.set_halign( JDLIB::compat::Align::START );
 
         m_radio_encoding_default.set_group( m_group_encoding );
         m_radio_encoding_default.set_label( "デフォルト設定を使う" );
@@ -309,25 +309,25 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     m_label_cache_value.set_ellipsize( Pango::ELLIPSIZE_END );
     m_label_noname_value.set_ellipsize( Pango::ELLIPSIZE_END );
 
-    m_spin_maxres.set_halign( Gtk::ALIGN_START );
+    m_spin_maxres.set_halign( JDLIB::compat::Align::START );
     m_spin_maxres.set_hexpand( true );
 
     m_label_last_access_value.set_ellipsize( Pango::ELLIPSIZE_END );
-    m_label_last_access_value.set_halign( Gtk::ALIGN_START );
+    m_label_last_access_value.set_halign( JDLIB::compat::Align::START );
     m_label_last_access_value.set_hexpand( true );
     m_label_last_access_value.set_selectable( true );
 
     m_label_modified_value.set_ellipsize( Pango::ELLIPSIZE_END );
-    m_label_modified_value.set_halign( Gtk::ALIGN_START );
+    m_label_modified_value.set_halign( JDLIB::compat::Align::START );
     m_label_modified_value.set_hexpand( true );
     m_label_modified_value.set_selectable( true );
-    m_button_clearmodified.set_halign( Gtk::ALIGN_END );
+    m_button_clearmodified.set_halign( JDLIB::compat::Align::END );
 
     JDLIB::compat::box_append_expand( m_hbox_modified, m_label_modified_value );
     JDLIB::compat::box_append_shrink( m_hbox_modified, m_button_clearmodified );
 
-    m_spin_live.set_halign( Gtk::ALIGN_START );
-    m_check_live.set_halign( Gtk::ALIGN_START );
+    m_spin_live.set_halign( JDLIB::compat::Align::START );
+    m_check_live.set_halign( JDLIB::compat::Align::START );
     m_check_live.set_hexpand( true );
 
     JDLIB::compat::box_append_shrink( m_hbox_live, m_spin_live );
@@ -372,11 +372,11 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     for( int y = 0; y < 7; ++y ) {
         // label column
         Gtk::Widget* child = m_grid_general.get_child_at( 0, y );
-        child->set_halign( Gtk::ALIGN_START );
+        child->set_halign( JDLIB::compat::Align::START );
 
         // value column
         child = m_grid_general.get_child_at( 1, y );
-        child->set_halign( Gtk::ALIGN_START );
+        child->set_halign( JDLIB::compat::Align::START );
         child->set_hexpand( true );
         static_cast<Gtk::Label*>( child )->set_selectable( true );
     }
@@ -384,7 +384,7 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     for( int y = 7; y < 12; ++y ) {
         // label column
         Gtk::Widget* child = m_grid_general.get_child_at( 0, y );
-        child->set_halign( Gtk::ALIGN_START );
+        child->set_halign( JDLIB::compat::Align::START );
     }
 
     // ローカルルール
@@ -402,7 +402,7 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     m_label_agent.set_mnemonic_widget( m_entry_agent );
 
     m_entry_agent.property_truncate_multiline() = true;
-    m_entry_agent.set_input_purpose( Gtk::INPUT_PURPOSE_ALPHA );
+    m_entry_agent.set_input_purpose( JDLIB::compat::InputPurpose::ALPHA );
     m_entry_agent.set_max_length( 200 );
     m_entry_agent.set_placeholder_text( "空欄のときは about:config の設定が使われます" );
     const std::string& board_agent = DBTREE::board_get_board_agent( get_url() );
@@ -579,9 +579,9 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
 
     // ディスプレイ解像度が小さい環境で表示できるようにスクロール可能にする
     m_scroll_vbox.add( m_grid_general );
-    m_scroll_vbox.set_policy( Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC );
+    m_scroll_vbox.set_policy( JDLIB::compat::PolicyType::NEVER, JDLIB::compat::PolicyType::AUTOMATIC );
     m_scroll_network.add( m_vbox_network );
-    m_scroll_network.set_policy( Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC );
+    m_scroll_network.set_policy( JDLIB::compat::PolicyType::NEVER, JDLIB::compat::PolicyType::AUTOMATIC );
     m_notebook.set_scrollable( true );
 
     m_notebook.append_page( m_scroll_vbox, "一般" );
@@ -630,8 +630,8 @@ void Preferences::slot_clear_samba()
 void Preferences::slot_clear_post_history()
 {
     SKELETON::MsgDiag mdiag( nullptr, "この板にある全てのスレの書き込み履歴を削除しますか？\n\nスレ数によっては時間がかかります。",
-                             false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
-    if( mdiag.run() != Gtk::RESPONSE_YES ) return;
+                             false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
+    if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
     DBTREE::board_clear_all_post_history( get_url() );
 
@@ -666,7 +666,7 @@ void Preferences::slot_check_live()
                                  "実況を許された板以外では実況しないようにして下さい。\n\n"
                                  "実況状態のまま閉じたスレはJDim終了時に削除されます。"
                                  "詳しくはマニュアルの実況の項目を参照して下さい。",
-                                 false, Gtk::MESSAGE_WARNING );
+                                 false, JDLIB::compat::MessageType::WARNING );
         mdiag.run();
     }
     else m_spin_live.set_sensitive( false );
@@ -677,7 +677,7 @@ void Preferences::slot_remove_old_title()
 {
 
     if( ! DBTREE::board_list_subject( get_url() ).size() ){
-        SKELETON::MsgDiag mdiag( nullptr, "再読み込みしてスレ一覧を更新して下さい。", false, Gtk::MESSAGE_WARNING );
+        SKELETON::MsgDiag mdiag( nullptr, "再読み込みしてスレ一覧を更新して下さい。", false, JDLIB::compat::MessageType::WARNING );
         mdiag.run();
         return;
     }

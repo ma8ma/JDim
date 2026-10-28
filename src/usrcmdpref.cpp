@@ -26,10 +26,10 @@ using namespace CORE;
 
 UsrCmdDiag::UsrCmdDiag( Gtk::Window* parent, const Glib::ustring& name, const Glib::ustring& cmd )
     : SKELETON::PrefDiag( parent, "" )
-    , m_vbox{ Gtk::ORIENTATION_VERTICAL, 0 }
-    , m_label_name( "コマンド名", Gtk::ALIGN_START )
-    , m_hbox_cmd{ Gtk::ORIENTATION_HORIZONTAL, 0 }
-    , m_label_cmd( "実行するコマンド", Gtk::ALIGN_START )
+    , m_vbox{ JDLIB::compat::Orientation::VERTICAL, 0 }
+    , m_label_name( "コマンド名", JDLIB::compat::Align::START )
+    , m_hbox_cmd{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
+    , m_label_cmd( "実行するコマンド", JDLIB::compat::Align::START )
     , m_button_manual( "オンラインマニュアルの置換文字一覧を表示" )
 {
     resize( 640, 1 );
@@ -44,7 +44,7 @@ UsrCmdDiag::UsrCmdDiag( Gtk::Window* parent, const Glib::ustring& name, const Gl
     JDLIB::compat::box_append_shrink( m_vbox, m_entry_name );
 
     JDLIB::compat::box_append_shrink( m_hbox_cmd, m_label_cmd );
-    auto* spacer = Gtk::make_managed<Gtk::Box>( Gtk::ORIENTATION_HORIZONTAL, 0 );
+    auto* spacer = Gtk::make_managed<Gtk::Box>( JDLIB::compat::Orientation::HORIZONTAL, 0 );
     JDLIB::compat::box_append_expand( m_hbox_cmd, *spacer );
     JDLIB::compat::box_append_shrink( m_hbox_cmd, m_button_manual );
     JDLIB::compat::box_append_shrink( m_vbox, m_hbox_cmd );
@@ -88,7 +88,7 @@ UsrCmdPref::UsrCmdPref( Gtk::Window* parent, const std::string& url )
     m_treeview.sig_key_release().connect( sigc::mem_fun(*this, &UsrCmdPref::slot_key_release ) );
 
     m_scrollwin.add( m_treeview );
-    m_scrollwin.set_policy( Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS );
+    m_scrollwin.set_policy( JDLIB::compat::PolicyType::AUTOMATIC, JDLIB::compat::PolicyType::ALWAYS );
     m_scrollwin.set_size_request( 640, 400 );
 
     get_content_area()->set_spacing( 8 );
@@ -255,7 +255,7 @@ void UsrCmdPref::show_popupmenu()
 void UsrCmdPref::slot_newcmd()
 {
     UsrCmdDiag diag( this, "", "" );
-    if( diag.run() == Gtk::RESPONSE_OK ){
+    if( diag.run() == JDLIB::compat::ResponseType::OK ){
 
         if( diag.get_name().empty() || diag.get_cmd().empty() ) return;
 
@@ -317,8 +317,8 @@ void UsrCmdPref::slot_newsepa()
 //
 void UsrCmdPref::delete_row()
 {
-    SKELETON::MsgDiag mdiag( nullptr, "削除しますか？", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
-    if( mdiag.run() != Gtk::RESPONSE_YES ) return;
+    SKELETON::MsgDiag mdiag( nullptr, "削除しますか？", false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
+    if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
     slot_delete();
 }
@@ -348,7 +348,7 @@ void UsrCmdPref::slot_row_activated( const Gtk::TreeModel::Path& path, Gtk::Tree
     if( row[ m_columns.m_type ] != TYPE_USRCMD ) return;
 
     UsrCmdDiag diag( this, row[ m_columns.m_name ], row[ m_columns.m_data ] );
-    if( diag.run() == Gtk::RESPONSE_OK ){
+    if( diag.run() == JDLIB::compat::ResponseType::OK ){
         row[ m_columns.m_name ] = diag.get_name();
         row[ m_columns.m_data ] = diag.get_cmd();
         static_cast<void>( row ); // cppcheck: unreadVariable

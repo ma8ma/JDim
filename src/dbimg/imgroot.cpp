@@ -9,6 +9,7 @@
 #include "imginterface.h"
 
 #include "jdlib/confloader.h"
+#include "jdlib/gtk_compat.h"
 #include "jdlib/miscgtk.h"
 
 #ifdef _DEBUG
@@ -401,7 +402,7 @@ void ImgRoot::delete_all_files()
 
     auto pref = CORE::PrefDiagFactory( nullptr, CORE::PREFDIAG_DELIMG, "" );
     int ret = pref->run();
-    if( ret != Gtk::RESPONSE_OK ) return;
+    if( ret != JDLIB::compat::ResponseType::OK ) return;
 
     // 画像キャッシュ削除ダイアログ表示
     DelImgCacheDiag deldiag;

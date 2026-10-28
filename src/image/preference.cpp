@@ -78,7 +78,7 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url )
         m_button_copy->signal_clicked().connect( sigc::mem_fun( *this, &IMAGE::Preferences::slot_copy_clicked ) );
 
         m_check_abone = Gtk::make_managed<Gtk::CheckButton>( "NG 画像ハッシュに追加する (この画像もあぼ〜んされる)" );
-        m_check_abone->set_halign( Gtk::ALIGN_START );
+        m_check_abone->set_halign( JDLIB::compat::Align::START );
 
         m_check_protect.signal_toggled().connect( sigc::mem_fun( *this, &IMAGE::Preferences::slot_toggled_protect ) );
 
@@ -91,13 +91,13 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url )
         abone_reason = MISC::replace_str( abone_reason, "<br>", "\n" );
         label_abone_reason_value = Gtk::make_managed<Gtk::Label>( abone_reason );
         label_abone_reason_value->set_ellipsize( Pango::ELLIPSIZE_END );
-        label_abone_reason_value->set_halign( Gtk::ALIGN_START );
+        label_abone_reason_value->set_halign( JDLIB::compat::Align::START );
         label_abone_reason_value->set_hexpand( true );
         label_abone_reason_value->set_selectable( true );
 
         label_abone_reason = Gtk::make_managed<Gtk::Label>( "備考:" );
-        label_abone_reason->set_halign( Gtk::ALIGN_START );
-        label_abone_reason->set_valign( Gtk::ALIGN_START );
+        label_abone_reason->set_halign( JDLIB::compat::Align::START );
+        label_abone_reason->set_valign( JDLIB::compat::Align::START );
     }
 
     m_check_protect.set_active( DBIMG::is_protected( get_url() ) );
@@ -142,11 +142,11 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url )
     for( int y = 0; y < 8; ++y ) {
         // label column
         Gtk::Widget* child = m_grid_info.get_child_at( 0, y );
-        child->set_halign( Gtk::ALIGN_START );
+        child->set_halign( JDLIB::compat::Align::START );
 
         // value column
         child = m_grid_info.get_child_at( 1, y );
-        child->set_halign( Gtk::ALIGN_START );
+        child->set_halign( JDLIB::compat::Align::START );
         child->set_hexpand( true );
         static_cast<Gtk::Label*>( child )->set_selectable( true );
         static_cast<Gtk::Label*>( child )->set_ellipsize( Pango::ELLIPSIZE_END );
@@ -200,7 +200,7 @@ void Preferences::slot_open_ref()
 
     CORE::core_set_command( "open_article_res", url, ss.str(), std::to_string( center ) );
 
-    response( Gtk::RESPONSE_CANCEL );
+    response( JDLIB::compat::ResponseType::CANCEL );
 }
 
 

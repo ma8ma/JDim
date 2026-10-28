@@ -12,6 +12,7 @@
 
 #include "dbtree/interface.h"
 
+#include "jdlib/gtk_compat.h"
 #include "jdlib/miscutil.h"
 #include "jdlib/miscgtk.h"
 
@@ -2704,21 +2705,21 @@ bool Admin::back_forward_viewhistory( const std::string& url, const bool back, c
                 else enable_next = HISTORY::get_history_manager()->can_forward_viewhistory( url, count +1 );
 
                 SKELETON::MsgDiag mdiag( get_win(), historyitem->title + "\n\nは既にタブで開いています",
-                                         false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_NONE );
-                mdiag.add_button( "タブを開く(_T)", Gtk::RESPONSE_YES );
-                if( enable_next ) mdiag.add_button( "次を開く(_N)", Gtk::RESPONSE_NO );
-                mdiag.add_button( g_dgettext( GTK_DOMAIN, "_Cancel" ), Gtk::RESPONSE_CANCEL );
+                                         false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::NONE );
+                mdiag.add_button( "タブを開く(_T)", JDLIB::compat::ResponseType::YES );
+                if( enable_next ) mdiag.add_button( "次を開く(_N)", JDLIB::compat::ResponseType::NO );
+                mdiag.add_button( g_dgettext( GTK_DOMAIN, "_Cancel" ), JDLIB::compat::ResponseType::CANCEL );
 
                 int ret = mdiag.run();
                 mdiag.hide();
 
                 switch( ret ){
 
-                    case Gtk::RESPONSE_YES:
+                    case JDLIB::compat::ResponseType::YES:
                         switch_view( historyitem->url );
                         return false;
 
-                    case Gtk::RESPONSE_NO:
+                    case JDLIB::compat::ResponseType::NO:
                         return back_forward_viewhistory( url, back, count + 1 );
 
                     default:

@@ -14,6 +14,7 @@
 #include "environment.h"
 #include "session.h"
 
+#include "jdlib/gtk_compat.h"
 #include "jdlib/misccharcode.h"
 #include "jdlib/miscutil.h"
 #include "config/globalconf.h"
@@ -633,8 +634,8 @@ Gdk::Rectangle EditTextView::get_cursor_root_origin()
     int x, y;
 
     get_iter_location( get_buffer()->get_insert()->get_iter(), rect );
-    buffer_to_window_coords( Gtk::TEXT_WINDOW_TEXT,  rect.get_x(), rect.get_y(), wx, wy );
-    get_window( Gtk::TEXT_WINDOW_TEXT )->get_origin( x, y );
+    buffer_to_window_coords( JDLIB::compat::TextWindowType::TEXT,  rect.get_x(), rect.get_y(), wx, wy );
+    get_window( JDLIB::compat::TextWindowType::TEXT )->get_origin( x, y );
 
     rect.set_x( x + wx );
     rect.set_y( y + wy );
@@ -656,9 +657,27 @@ void EditTextView::show_aalist_popup()
         m_aapopupmenu->signal_map().connect( sigc::mem_fun( *this, &EditTextView::slot_map_aamenu ) ); 
         m_aapopupmenu->signal_hide().connect( sigc::mem_fun( *this, &EditTextView::slot_hide_aamenu ) );
 
+#ifdef USE_GTKMM4
+        // FIXME: GTK4 popup_at_rect() による位置合わせは
+        // Wayland と X11 で挙動が一致していない。
+        // GTK4移行のため最低限動作する実装としている。
+        const Gdk::Rectangle rect_origin = get_cursor_root_origin();
+        const auto toplevel = get_toplevel();
+
+        Gdk::Rectangle menu_pos;
+        menu_pos.set_x( rect_origin.get_x() );
+        menu_pos.set_y( rect_origin.get_y() + rect_origin.get_height() );
+        menu_pos.set_width( 1 );
+        menu_pos.set_height( 1 );
+
+        m_aapopupmenu->property_anchor_hints() = Gdk::ANCHOR_SLIDE_X | Gdk::ANCHOR_SLIDE_Y;
+        m_aapopupmenu->popup_at_rect( toplevel->get_window(), menu_pos,
+                                      Gdk::GRAVITY_SOUTH_WEST, Gdk::GRAVITY_NORTH_WEST, nullptr );
+#else
         m_aapopupmenu->popup( Gtk::Menu::SlotPositionCalc(
                             sigc::mem_fun( *this, &EditTextView::slot_popup_aamenu_pos ) ),
                             0, gtk_get_current_event_time() );
+#endif
     }
 }
 
@@ -668,6 +687,7 @@ void EditTextView::show_aalist_popup()
 //
 void EditTextView::slot_popup_aamenu_pos( int& x, int& y, bool& push_in )
 {
+#ifndef USE_GTKMM4
     push_in = false;
 
     const Gdk::Rectangle rect = get_cursor_root_origin();
@@ -680,6 +700,7 @@ void EditTextView::slot_popup_aamenu_pos( int& x, int& y, bool& push_in )
 
     // 最低でも MIN_AAMENU_LINES 行よりも表示領域が高くなるようにする
     if( y + min_height > sh ) y = sh - min_height;
+#endif
 }
 
 
@@ -768,7 +789,7 @@ static gboolean EditTextView_slot_extend_selection( GtkTextView*,
 EditView::EditView()
     : Gtk::ScrolledWindow()
 {
-    set_policy( Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC );
+    set_policy( JDLIB::compat::PolicyType::AUTOMATIC, JDLIB::compat::PolicyType::AUTOMATIC );
     add( m_textview );
     auto context = m_textview.get_style_context();
     context->add_class( s_css_classname );

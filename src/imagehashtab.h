@@ -101,14 +101,14 @@ public:
 
     explicit ImageHashTab( Gtk::Window* parent )
         : m_parent{ parent }
-        , m_box{ Gtk::ORIENTATION_VERTICAL, 8 }
-        , m_hbox_check_enable_hash{ Gtk::ORIENTATION_HORIZONTAL, 8 }
-        , m_vbox_check_enable_hash{ Gtk::ORIENTATION_VERTICAL, 0 }
+        , m_box{ JDLIB::compat::Orientation::VERTICAL, 8 }
+        , m_hbox_check_enable_hash{ JDLIB::compat::Orientation::HORIZONTAL, 8 }
+        , m_vbox_check_enable_hash{ JDLIB::compat::Orientation::VERTICAL, 0 }
         , m_label_enable_hash{ "(実験的な機能) NG 画像ハッシュを有効にする(_A)", true }
-        , m_hbox_initial_threshold{ Gtk::ORIENTATION_HORIZONTAL, 8 }
+        , m_hbox_initial_threshold{ JDLIB::compat::Orientation::HORIZONTAL, 8 }
         , m_label_initial_threshold{ "初期設定のしきい値(_I):", true }
         , m_button_reset_initial_threshold{ "リセット" }
-        , m_box_tool{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+        , m_box_tool{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
         , m_label_tool{ "選択した行に対する操作:" }
         , m_button_delete{ "削除(_D)", true }
         , m_menu_set_threshold{ Gio::Menu::create() }
@@ -131,9 +131,9 @@ public:
         // 設定オプションのセットアップ
         m_switch_enable_hash.set_active( CONFIG::get_enable_img_hash() );
         m_switch_enable_hash.set_hexpand( false );
-        m_switch_enable_hash.set_valign( Gtk::ALIGN_CENTER );
+        m_switch_enable_hash.set_valign( JDLIB::compat::Align::CENTER );
         m_switch_enable_hash.show();
-        m_label_enable_hash.set_halign( Gtk::ALIGN_START );
+        m_label_enable_hash.set_halign( JDLIB::compat::Align::START );
         m_label_enable_hash.set_hexpand( true );
         m_label_enable_hash.set_line_wrap( true );
         m_label_enable_hash.set_mnemonic_widget( m_switch_enable_hash );
@@ -150,11 +150,11 @@ public:
         JDLIB::compat::box_append_expand( m_vbox_check_enable_hash, m_revealer_notes );
         m_vbox_check_enable_hash.show();
         m_listbox.append( m_vbox_check_enable_hash );
-        m_listbox.set_selection_mode( Gtk::SELECTION_NONE );
+        m_listbox.set_selection_mode( JDLIB::compat::SelectionMode::NONE );
         m_listbox.signal_row_activated().connect( sigc::mem_fun( *this, &ImageHashTab::slot_listbox_row_activated ) );
         m_listbox.show();
 
-        m_label_initial_threshold.set_halign( Gtk::ALIGN_START );
+        m_label_initial_threshold.set_halign( JDLIB::compat::Align::START );
         m_label_initial_threshold.set_ellipsize( Pango::ELLIPSIZE_END );
         m_label_initial_threshold.set_mnemonic_widget( m_spin_initial_threshold );
         m_label_initial_threshold.show();
@@ -166,19 +166,19 @@ public:
         m_button_reset_initial_threshold.show();
         m_button_reset_initial_threshold.signal_clicked().connect(
             sigc::mem_fun( *this, &ImageHashTab::slot_reset_initial_threshold ) );
-        m_link_manual.set_halign( Gtk::ALIGN_END );
+        m_link_manual.set_halign( JDLIB::compat::Align::END );
         m_link_manual.set_use_underline( true );
         m_link_manual.show();
         JDLIB::compat::box_append_shrink( m_hbox_initial_threshold, m_spin_initial_threshold );
         JDLIB::compat::box_append_shrink( m_hbox_initial_threshold, m_button_reset_initial_threshold );
         {
-            auto* spacer = Gtk::make_managed<Gtk::Box>( Gtk::ORIENTATION_HORIZONTAL, 0 );
+            auto* spacer = Gtk::make_managed<Gtk::Box>( JDLIB::compat::Orientation::HORIZONTAL, 0 );
             JDLIB::compat::box_append_expand( m_hbox_initial_threshold, *spacer );
         }
         JDLIB::compat::box_append_shrink( m_hbox_initial_threshold, m_link_manual );
         m_hbox_initial_threshold.show();
 
-        m_label_tool.set_halign( Gtk::ALIGN_START );
+        m_label_tool.set_halign( JDLIB::compat::Align::START );
         m_label_tool.show();
         m_button_delete.signal_clicked().connect( sigc::mem_fun( *this, &ImageHashTab::slot_delete ) );
         m_button_delete.show();
@@ -222,7 +222,7 @@ public:
         JDLIB::compat::box_append_shrink( m_box_tool, m_button_set_threshold );
         JDLIB::compat::box_append_shrink( m_box_tool, m_button_copy );
         {
-            auto* spacer = Gtk::make_managed<Gtk::Box>( Gtk::ORIENTATION_HORIZONTAL, 0 );
+            auto* spacer = Gtk::make_managed<Gtk::Box>( JDLIB::compat::Orientation::HORIZONTAL, 0 );
             JDLIB::compat::box_append_expand( m_box_tool, *spacer );
         }
         JDLIB::compat::box_append_shrink( m_box_tool, m_label_num_of_items );
@@ -231,12 +231,12 @@ public:
         // あぼーん設定一覧のセットアップ
         m_list_store = Gtk::ListStore::create( m_columns );
         m_list_store->set_sort_column( Gtk::TreeSortable::DEFAULT_UNSORTED_COLUMN_ID,
-                                       Gtk::SortType::SORT_ASCENDING );
+                                       JDLIB::compat::SortType::ASCENDING );
         m_list_store->set_sort_func( 2, sigc::mem_fun( *this, &ImageHashTab::slot_compare_row_threshold ) );
         m_list_store->set_sort_func( 3, sigc::mem_fun( *this, &ImageHashTab::slot_compare_row_last_matched ) );
         m_list_store->set_sort_func( 4, sigc::mem_fun( *this, &ImageHashTab::slot_compare_row_source_url ) );
         m_treeview.set_model( m_list_store );
-        m_treeview.get_selection()->set_mode( Gtk::SELECTION_MULTIPLE );
+        m_treeview.get_selection()->set_mode( JDLIB::compat::SelectionMode::MULTIPLE );
 
         m_treeview.append_column_numeric( "ハッシュA", m_columns.m_col_hash_row, "%" PRIX64 );
         m_treeview.append_column_numeric( "ハッシュB", m_columns.m_col_hash_col, "%" PRIX64 );
@@ -351,9 +351,9 @@ private:
         std::vector<Gtk::TreeModel::Path> paths = m_treeview.get_selection()->get_selected_rows();
         if( paths.empty() ) return;
 
-        SKELETON::MsgDiag mdiag( *m_parent, "削除しますか？", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+        SKELETON::MsgDiag mdiag( *m_parent, "削除しますか？", false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
         mdiag.set_secondary_text( "ハッシュ値を削除しても画像のあぼ〜んは維持されるため個別に解除する必要があります。" );
-        if( mdiag.run() != Gtk::RESPONSE_YES ) return;
+        if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
         // 先頭のiterから削除すると後続のイテレーターが指すiterがずれるため末尾のiterから削除していく
         Gtk::TreeModel::iterator it_next = Gtk::TreeModel::const_iterator();
@@ -483,16 +483,16 @@ private:
     void slot_col_clicked( const int col )
     {
         if( m_col != col ) {
-            m_list_store->set_sort_column( col, Gtk::SORT_ASCENDING );
-            m_previous_sortmode = Gtk::SORT_ASCENDING;
+            m_list_store->set_sort_column( col, JDLIB::compat::SortType::ASCENDING );
+            m_previous_sortmode = JDLIB::compat::SortType::ASCENDING;
         }
-        else if(  m_previous_sortmode == Gtk::SORT_ASCENDING ) {
-            m_list_store->set_sort_column( col, Gtk::SORT_DESCENDING );
-            m_previous_sortmode = Gtk::SORT_DESCENDING;
+        else if(  m_previous_sortmode == JDLIB::compat::SortType::ASCENDING ) {
+            m_list_store->set_sort_column( col, JDLIB::compat::SortType::DESCENDING );
+            m_previous_sortmode = JDLIB::compat::SortType::DESCENDING;
         }
         else {
-            m_list_store->set_sort_column( col, Gtk::SORT_ASCENDING );
-            m_previous_sortmode = Gtk::SORT_ASCENDING;
+            m_list_store->set_sort_column( col, JDLIB::compat::SortType::ASCENDING );
+            m_previous_sortmode = JDLIB::compat::SortType::ASCENDING;
         }
         m_col = col;
     }

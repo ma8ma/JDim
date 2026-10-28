@@ -13,6 +13,7 @@
 
 #include "jdlib/confloader.h"
 #include "jdlib/cookiemanager.h"
+#include "jdlib/gtk_compat.h"
 #include "jdlib/jdiconv.h"
 #include "jdlib/jdregex.h"
 #include "jdlib/loaderdata.h"
@@ -1180,7 +1181,7 @@ void BoardBase::receive_finish()
                     if( pos != std::string::npos )
                         new_url.insert( 0, tmp_url.substr( 0, pos + 1 ) );
                 }
-                int ret = Gtk::RESPONSE_YES;
+                int ret = JDLIB::compat::ResponseType::YES;
 
                 if( CONFIG::get_show_movediag() ){
 
@@ -1189,14 +1190,14 @@ void BoardBase::receive_finish()
                     SKELETON::MsgCheckDiag mdiag( nullptr,
                                                   msg,
                                                   "今後表示しない(常に更新)(_D)",
-                                                  Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+                                                  JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
 
                     mdiag.set_title( "更新確認" );
                     ret = mdiag.run();
-                    if( ret == Gtk::RESPONSE_YES && mdiag.get_chkbutton().get_active() ) CONFIG::set_show_movediag( false );
+                    if( ret == JDLIB::compat::ResponseType::YES && mdiag.get_chkbutton().get_active() ) CONFIG::set_show_movediag( false );
                 }
 
-                if( ret == Gtk::RESPONSE_YES ){
+                if( ret == JDLIB::compat::ResponseType::YES ){
 
                     if( DBTREE::move_board( url_boardbase(), new_url ) ){
 
@@ -1208,9 +1209,9 @@ void BoardBase::receive_finish()
             }
         }
         else{
-            SKELETON::MsgDiag mdiag( nullptr, "移転しました\n\n板一覧を更新しますか？", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
-            mdiag.set_default_response( Gtk::RESPONSE_YES );
-            if( mdiag.run() == Gtk::RESPONSE_YES ) CORE::core_set_command( "reload_bbsmenu" );
+            SKELETON::MsgDiag mdiag( nullptr, "移転しました\n\n板一覧を更新しますか？", false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
+            mdiag.set_default_response( JDLIB::compat::ResponseType::YES );
+            if( mdiag.run() == JDLIB::compat::ResponseType::YES ) CORE::core_set_command( "reload_bbsmenu" );
         }
 
         clear();
@@ -1627,23 +1628,23 @@ void BoardBase::remove_old_abone_thread()
         SKELETON::MsgCheckDiag mdiag( nullptr,
                                       "NGスレタイトルに登録したスレがdat落ちしました。\n\nNGスレタイトルから除外しますか？\n後で板のプロパティから削除する事も可能です。",
                                       "今後表示しない(_D)",
-                                      Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_NONE );
+                                      JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::NONE );
 
-        mdiag.add_default_button( g_dgettext( GTK_DOMAIN, "_No" ), Gtk::RESPONSE_NO );
-        mdiag.add_button( g_dgettext( GTK_DOMAIN, "_Yes" ), Gtk::RESPONSE_YES );
+        mdiag.add_default_button( g_dgettext( GTK_DOMAIN, "_No" ), JDLIB::compat::ResponseType::NO );
+        mdiag.add_button( g_dgettext( GTK_DOMAIN, "_Yes" ), JDLIB::compat::ResponseType::YES );
 
         const int ret = mdiag.run();
 
         // 一度いいえを選択したらあとは再起動するまでダイアログを表示しない
-        if( ret != Gtk::RESPONSE_YES ) m_cancel_remove_abone_thread = true; 
+        if( ret != JDLIB::compat::ResponseType::YES ) m_cancel_remove_abone_thread = true;
 
         if( mdiag.get_chkbutton().get_active() ){
 
-            if( ret == Gtk::RESPONSE_YES ) CONFIG::set_remove_old_abone_thread( 1 );
+            if( ret == JDLIB::compat::ResponseType::YES ) CONFIG::set_remove_old_abone_thread( 1 );
             else CONFIG::set_remove_old_abone_thread( 2 );
         }
 
-        if( ret != Gtk::RESPONSE_YES ) return;
+        if( ret != JDLIB::compat::ResponseType::YES ) return;
     }
 
     // dat落ちしたスレタイトルをNGリストから取り除く

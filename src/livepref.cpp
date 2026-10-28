@@ -17,7 +17,7 @@ using namespace CORE;
 LivePref::LivePref( Gtk::Window* parent, const std::string& url )
     : SKELETON::PrefDiag( parent, url )
     , m_label_inst( "実況を行うには始めに板のプロパティで更新間隔を設定して下さい。\n速度を0にするとスクロールしません。" )
-    , m_vbox_mode{ Gtk::ORIENTATION_VERTICAL, 0 }
+    , m_vbox_mode{ JDLIB::compat::Orientation::VERTICAL, 0 }
     , m_mode1( m_radiogroup, "速度可変、速度がしきい値を越えると行単位でスクロール(_1)", true )
     , m_mode2( m_radiogroup, "速度一定、遅れがしきい値を越えると行単位でスクロール(_2)", true )
     , m_bt_reset( "設定を全てデフォルトに戻す(_F)", true )
@@ -40,7 +40,7 @@ LivePref::LivePref( Gtk::Window* parent, const std::string& url )
     m_spin_speed.set_value( CONFIG::get_live_speed() );
     m_label_speed.set_text_with_mnemonic( "可変モードでの最低速度/一定モードでの速度(_S):" );
     m_label_speed.set_mnemonic_widget( m_spin_speed );
-    m_label_speed.set_halign( Gtk::ALIGN_START );
+    m_label_speed.set_halign( JDLIB::compat::Align::START );
 
     set_activate_entry( m_spin_speed );
 
@@ -50,7 +50,7 @@ LivePref::LivePref( Gtk::Window* parent, const std::string& url )
     m_spin_th.set_value( CONFIG::get_live_threshold() );
     m_label_th.set_text_with_mnemonic( "しきい値(_T):" );
     m_label_th.set_mnemonic_widget( m_spin_th );
-    m_label_th.set_halign( Gtk::ALIGN_START );
+    m_label_th.set_halign( JDLIB::compat::Align::START );
 
     set_activate_entry( m_spin_th );
 

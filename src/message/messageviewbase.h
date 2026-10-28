@@ -7,7 +7,6 @@
 
 #include "skeleton/view.h"
 #include "skeleton/compentry.h"
-#include "skeleton/jdtoolbar.h"
 
 #include <memory>
 #include <string_view>
@@ -39,14 +38,7 @@ namespace MESSAGE
         std::unique_ptr<SKELETON::View> m_preview;
         Gtk::Box m_msgview;
 
-        SKELETON::JDToolbar m_toolbar_name_mail;
-
-        Gtk::ToolItem m_tool_name;
-        Gtk::ToolItem m_tool_mail;
-        Gtk::ToolItem m_tool_fixname;
-        Gtk::ToolItem m_tool_fixmail;
-        Gtk::ToolItem m_tool_entry_name;
-        Gtk::ToolItem m_tool_entry_mail;
+        Gtk::Box m_toolbar_name_mail;
 
         Gtk::Label m_label_name;
         Gtk::Label m_label_mail;

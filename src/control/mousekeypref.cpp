@@ -32,7 +32,7 @@ InputDiag::InputDiag( Gtk::Window* parent, const std::string& url,
     , m_mode( mode )
     , m_controlmode( CONTROL::get_mode( m_id ) )
     , m_label( target + "を入力して下さい。" )
-    , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_hbox{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
 {
     add_events( Gdk::BUTTON_PRESS_MASK | Gdk::BUTTON_RELEASE_MASK | Gdk::POINTER_MOTION_MASK );
 
@@ -275,7 +275,10 @@ MouseKeyDiag::MouseKeyDiag( Gtk::Window* parent, const std::string& url,
     , m_button_delete( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Delete", 12 ), true )
     , m_button_add( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Add", 12 ), true )
     , m_button_reset( "デフォルト" )
-    , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+#ifdef USE_GTKMM4
+    , m_vbuttonbox{ JDLIB::compat::Orientation::VERTICAL, 4 }
+#endif
+    , m_hbox{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
 {
     m_liststore = Gtk::ListStore::create( m_columns );
     m_treeview.set_model( m_liststore );
@@ -287,7 +290,7 @@ MouseKeyDiag::MouseKeyDiag( Gtk::Window* parent, const std::string& url,
     m_treeview.append_column( *column );
 
     m_scrollwin.add( m_treeview );
-    m_scrollwin.set_policy( Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS );
+    m_scrollwin.set_policy( JDLIB::compat::PolicyType::AUTOMATIC, JDLIB::compat::PolicyType::ALWAYS );
 
     m_button_delete.signal_clicked().connect( sigc::mem_fun( *this, &MouseKeyDiag::slot_delete ) );
     m_button_add.signal_clicked().connect( sigc::mem_fun( *this, &MouseKeyDiag::slot_add ) );
@@ -296,8 +299,12 @@ MouseKeyDiag::MouseKeyDiag( Gtk::Window* parent, const std::string& url,
     JDLIB::compat::box_append_shrink( m_vbuttonbox, m_button_delete );
     JDLIB::compat::box_append_shrink( m_vbuttonbox, m_button_add );
     JDLIB::compat::box_append_shrink( m_vbuttonbox, m_button_reset );
+#ifdef USE_GTKMM4
+    m_vbuttonbox.set_valign( JDLIB::compat::Align::START );
+#else
     m_vbuttonbox.set_layout( Gtk::BUTTONBOX_START );
     m_vbuttonbox.set_spacing( 4 );
+#endif
 
     JDLIB::compat::box_append_expand( m_hbox, m_scrollwin );
     JDLIB::compat::box_append_shrink( m_hbox, m_vbuttonbox );
@@ -370,7 +377,7 @@ std::string MouseKeyDiag::show_inputdiag( bool is_append )
     std::unique_ptr<InputDiag> diag = create_inputdiag();
     if( diag == nullptr ) return std::string();
 
-    while( diag->run() == Gtk::RESPONSE_OK ){
+    while( diag->run() == JDLIB::compat::ResponseType::OK ){
 
         // 設定が重複していないかチェック
         bool conflict = false;
@@ -503,8 +510,8 @@ void MouseKeyDiag::slot_reset()
 //
 MouseKeyPref::MouseKeyPref( Gtk::Window* parent, const std::string& url, const std::string& target  )
     : SKELETON::PrefDiag( parent, url )
-    , m_hbox_search{ Gtk::ORIENTATION_HORIZONTAL, 0 }
-    , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_hbox_search{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
+    , m_hbox{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_button_reset{ "全てデフォルト設定に戻す" }
     , m_label{ "編集したい" + target + "設定をダブルクリックして下さい。" }
 {
@@ -537,14 +544,14 @@ MouseKeyPref::MouseKeyPref( Gtk::Window* parent, const std::string& url, const s
     m_treeview.set_search_entry( m_search_entry );
     m_treeview.set_size_request( 640, 400 );
     m_scrollwin.set_margin_bottom( 8 );
-    m_scrollwin.set_policy( Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS );
+    m_scrollwin.set_policy( JDLIB::compat::PolicyType::AUTOMATIC, JDLIB::compat::PolicyType::ALWAYS );
     m_scrollwin.set_propagate_natural_height( true );
     m_scrollwin.set_propagate_natural_width( true );
     m_treeview.signal_row_activated().connect( sigc::mem_fun( *this, &MouseKeyPref::slot_row_activated ) );
 
     Gtk::TreeViewColumn* column = Gtk::manage( new Gtk::TreeViewColumn( "コマンド", m_columns.m_col_label ) );
     column->set_fixed_width( 220 );
-    column->set_sizing( Gtk::TREE_VIEW_COLUMN_FIXED );
+    column->set_sizing( JDLIB::compat::TreeViewColumn::Sizing::FIXED );
     column->set_resizable( true );
     m_treeview.append_column( *column );
 
@@ -555,7 +562,7 @@ MouseKeyPref::MouseKeyPref( Gtk::Window* parent, const std::string& url, const s
     if( cell ) column->set_cell_data_func( *cell, sigc::mem_fun( *this, &MouseKeyPref::slot_cell_data ) );
 
     m_scrollwin.add( m_treeview );
-    m_scrollwin.set_policy( Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS );
+    m_scrollwin.set_policy( JDLIB::compat::PolicyType::AUTOMATIC, JDLIB::compat::PolicyType::ALWAYS );
     m_scrollwin.set_propagate_natural_height( true );
     m_scrollwin.set_propagate_natural_width( true );
 
@@ -650,7 +657,7 @@ void MouseKeyPref::slot_row_activated( const Gtk::TreeModel::Path& path, Gtk::Tr
     if( id == CONTROL::NoOperation ) return;
 
     std::unique_ptr<MouseKeyDiag> diag = create_setting_diag( id, row[ get_colums().m_col_motions ] );
-    if( diag->run() == Gtk::RESPONSE_OK ){
+    if( diag->run() == JDLIB::compat::ResponseType::OK ){
 
         const std::string motions = diag->get_str_motions();
 

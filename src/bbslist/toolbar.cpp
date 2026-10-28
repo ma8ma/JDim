@@ -30,9 +30,10 @@ using namespace BBSLIST;
 
 BBSListToolBar::BBSListToolBar()
     : SKELETON::ToolBar( BBSLIST::get_admin() )
-    , m_button_toggle( "ページ切り替え", true, true, m_label )
+    , m_tool_label{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
+    , m_button_toggle( true, m_label )
 {
-    m_button_toggle.get_button()->set_tooltip_arrow( "ページ切り替え\n\nマウスホイール回転でも切り替え可能" );
+    m_button_toggle.set_tooltip_arrow( "ページ切り替え\n\nマウスホイール回転でも切り替え可能" );
 
     m_label.set_xalign( 0 );
     m_label.set_ellipsize( Pango::ELLIPSIZE_END );
@@ -44,15 +45,13 @@ BBSListToolBar::BBSListToolBar()
     menu.push_back( ITEM_NAME_HIST_CLOSEVIEW );
     menu.push_back( ITEM_NAME_HIST_CLOSEBOARDVIEW );
     menu.push_back( ITEM_NAME_HIST_CLOSEIMGVIEW );
-    m_button_toggle.get_button()->append_menu( menu );
-    m_button_toggle.get_button()->signal_selected().connect( sigc::mem_fun(*this, &BBSListToolBar::slot_toggle ) );
-    m_button_toggle.get_button()->signal_scroll_event().connect(  sigc::mem_fun( *this, &BBSListToolBar::slot_scroll_event ));
-    m_button_toggle.get_button()->set_enable_sig_clicked( false );
+    m_button_toggle.append_menu( menu );
+    m_button_toggle.signal_selected().connect( sigc::mem_fun(*this, &BBSListToolBar::slot_toggle ) );
+    m_button_toggle.signal_scroll_event().connect(  sigc::mem_fun( *this, &BBSListToolBar::slot_scroll_event ));
+    m_button_toggle.set_enable_sig_clicked( false );
 
-    m_tool_label.set_icon_size( Gtk::ICON_SIZE_MENU );
-    m_tool_label.set_toolbar_style( Gtk::TOOLBAR_ICONS );
-    m_tool_label.append( m_button_toggle );
-    m_tool_label.append( *get_button_close() );
+    JDLIB::compat::box_append_expand( m_tool_label, m_button_toggle );
+    JDLIB::compat::box_append_shrink( m_tool_label, *get_button_close() );
     JDLIB::compat::box_append_shrink( *this, m_tool_label );
 
     BBSListToolBar::pack_buttons();
@@ -76,40 +75,38 @@ void BBSListToolBar::pack_buttons()
         switch( item ){
 
             case ITEM_SEARCHBOX:
-                get_buttonbar().append( *get_tool_search( CORE::COMP_SEARCH_BBSLIST ) );
+                JDLIB::compat::box_append_expand( get_buttonbar(), *get_tool_search( CORE::COMP_SEARCH_BBSLIST ) );
                 break;
 
             case ITEM_CHECK_UPDATE_ROOT:
                 if( ! m_button_check_update_root ){
-                    m_button_check_update_root = Gtk::manage( new SKELETON::ImgToolButton(
-                        ICON::CHECK_UPDATE_ROOT, CONTROL::CheckUpdateRoot ) );
+                    m_button_check_update_root = Gtk::manage( new SKELETON::ImgToolButton( ICON::CHECK_UPDATE_ROOT ) );
                     m_button_check_update_root->signal_clicked().connect( sigc::mem_fun(*this, &BBSListToolBar::slot_check_update_root ) );
                     set_tooltip( *m_button_check_update_root, CONTROL::get_label_motions( CONTROL::CheckUpdateRoot ) );
                 }
-                get_buttonbar().append( *m_button_check_update_root );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *m_button_check_update_root );
                 break;
 
             case ITEM_CHECK_UPDATE_OPEN_ROOT:
                 if( ! m_button_check_update_open_root ){
-                    m_button_check_update_open_root = Gtk::manage( new SKELETON::ImgToolButton(
-                        ICON::CHECK_UPDATE_OPEN_ROOT, CONTROL::CheckUpdateOpenRoot ) );
+                    m_button_check_update_open_root = Gtk::manage( new SKELETON::ImgToolButton( ICON::CHECK_UPDATE_OPEN_ROOT ) );
                     m_button_check_update_open_root->signal_clicked().connect( sigc::mem_fun(*this, &BBSListToolBar::slot_check_update_open_root ) );
                     set_tooltip( *m_button_check_update_open_root, CONTROL::get_label_motions( CONTROL::CheckUpdateOpenRoot ) );
                 }
-                get_buttonbar().append( *m_button_check_update_open_root );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *m_button_check_update_open_root );
                 break;
 
             case ITEM_STOPLOADING:
                 if( ! m_button_stop_check_update ) m_button_stop_check_update = get_button_stop();
-                get_buttonbar().append( *m_button_stop_check_update );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *m_button_stop_check_update );
                 break;
 
             case ITEM_SEARCH_NEXT:
-                get_buttonbar().append( *get_button_down_search() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_down_search() );
                 break;
 
             case ITEM_SEARCH_PREV:
-                get_buttonbar().append( *get_button_up_search() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_up_search() );
                 break;
 
             case ITEM_SEPARATOR:
@@ -253,14 +250,14 @@ EditListToolBar::EditListToolBar() :
 // virtual
 void EditListToolBar::pack_buttons()
 {
-    get_buttonbar().append( *get_tool_search( CORE::COMP_SEARCH_BBSLIST ) );
-    get_buttonbar().append( *get_button_down_search() );
-    get_buttonbar().append( *get_button_up_search() );
+    JDLIB::compat::box_append_expand( get_buttonbar(), *get_tool_search( CORE::COMP_SEARCH_BBSLIST ) );
+    JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_down_search() );
+    JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_up_search() );
     add_search_control_mode( CONTROL::MODE_BBSLIST );
 
-    get_buttonbar().append( *get_button_undo() );
-    get_buttonbar().append( *get_button_redo() );
-    get_buttonbar().append( *get_button_close() );
+    JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_undo() );
+    JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_redo() );
+    JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_close() );
 
     set_relief();
     show_all_children();

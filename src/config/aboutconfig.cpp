@@ -34,7 +34,7 @@ using namespace CONFIG;
 
 AboutConfig::AboutConfig( Gtk::Window* parent )
     : SKELETON::PrefDiag( parent, "", true )
-    , m_hbox_search{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_hbox_search{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_label{ "動作保証外です。高度な設定を変更するとJDimが誤作動する場合があります。", false }
 {
     CONFIG::bkup_conf();
@@ -81,14 +81,14 @@ void AboutConfig::pack_widgets()
 
     Gtk::TreeViewColumn* column = Gtk::manage( new Gtk::TreeViewColumn( "設定名", m_columns.m_col_name ) );
     column->set_fixed_width( 540 );
-    column->set_sizing( Gtk::TREE_VIEW_COLUMN_FIXED );
+    column->set_sizing( JDLIB::compat::TreeViewColumn::Sizing::FIXED );
     column->set_resizable( true );
     m_treeview.append_column( *column );
     Gtk::CellRenderer *cell = column->get_first_cell();
     if( cell ) column->set_cell_data_func( *cell, sigc::mem_fun( *this, &AboutConfig::slot_cell_data ) );
 
     column = Gtk::manage( new Gtk::TreeViewColumn( "値", m_columns.m_col_value ) );
-    column->set_sizing( Gtk::TREE_VIEW_COLUMN_FIXED );
+    column->set_sizing( JDLIB::compat::TreeViewColumn::Sizing::FIXED );
     column->set_resizable( true );
     m_treeview.append_column( *column );
     cell = column->get_first_cell();
@@ -96,7 +96,7 @@ void AboutConfig::pack_widgets()
 
     m_scrollwin.add( m_treeview );
     m_scrollwin.set_margin_bottom( 8 );
-    m_scrollwin.set_policy( Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS );
+    m_scrollwin.set_policy( JDLIB::compat::PolicyType::AUTOMATIC, JDLIB::compat::PolicyType::ALWAYS );
     m_scrollwin.set_propagate_natural_height( true );
     m_scrollwin.set_propagate_natural_width( true );
 
