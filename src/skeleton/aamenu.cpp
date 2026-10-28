@@ -7,6 +7,7 @@
 #include "aamenu.h"
 
 #include "config/globalconf.h"
+#include "jdlib/gtk_compat.h"
 
 #include "fontid.h"
 #include "colorid.h"
@@ -29,9 +30,9 @@ AAMenu::AAMenu( Gtk::Window& parent )
     // TODO: GTK4 StyleContext/CssProvider等を利用したスタイル設定に移行する。
     m_textview.override_font( pfd );
     m_textview.override_color( Gdk::RGBA( CONFIG::get_color( COLOR_CHAR_SELECTION ) ),
-                               Gtk::STATE_FLAG_NORMAL );
+                               JDLIB::compat::StateFlags::NORMAL );
     m_textview.override_background_color( Gdk::RGBA( CONFIG::get_color( COLOR_BACK_SELECTION ) ),
-                                          Gtk::STATE_FLAG_NORMAL );
+                                          JDLIB::compat::StateFlags::NORMAL );
 #endif
 
     m_popup.set_transient_for( m_parent );

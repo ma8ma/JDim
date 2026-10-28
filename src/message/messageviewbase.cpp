@@ -489,8 +489,8 @@ void MessageViewBase::set_wrap()
 {
     if( ! m_text_message ) return;
 
-    if( CONFIG::get_message_wrap() ) m_text_message->set_wrap_mode( Gtk::WRAP_CHAR );
-    else m_text_message->set_wrap_mode( Gtk::WRAP_NONE );
+    if( CONFIG::get_message_wrap() ) m_text_message->set_wrap_mode( JDLIB::compat::WrapMode::CHAR );
+    else m_text_message->set_wrap_mode( JDLIB::compat::WrapMode::NONE );
 }
 
 

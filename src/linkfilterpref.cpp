@@ -103,18 +103,18 @@ LinkFilterPref::LinkFilterPref( Gtk::Window* parent, const std::string& url )
 
     Gtk::TreeViewColumn* column = Gtk::manage( new Gtk::TreeViewColumn( "アドレス", m_columns.m_col_url ) );
     column->set_fixed_width( 240 );
-    column->set_sizing( Gtk::TREE_VIEW_COLUMN_FIXED );
+    column->set_sizing( JDLIB::compat::TreeViewColumn::Sizing::FIXED );
     column->set_resizable( true );
     m_treeview.append_column( *column );
 
     column = Gtk::manage( new Gtk::TreeViewColumn( "コマンド", m_columns.m_col_cmd ) );
     column->set_fixed_width( 240 );
-    column->set_sizing( Gtk::TREE_VIEW_COLUMN_FIXED );
+    column->set_sizing( JDLIB::compat::TreeViewColumn::Sizing::FIXED );
     column->set_resizable( true );
     m_treeview.append_column( *column );
 
     m_scrollwin.add( m_treeview );
-    m_scrollwin.set_policy( Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS );
+    m_scrollwin.set_policy( JDLIB::compat::PolicyType::AUTOMATIC, JDLIB::compat::PolicyType::ALWAYS );
 
     JDLIB::compat::box_append_shrink( m_vbuttonbox, m_button_top );
     JDLIB::compat::box_append_shrink( m_vbuttonbox, m_button_up );

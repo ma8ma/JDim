@@ -17,7 +17,8 @@ namespace SKELETON
 {
     class FileDiag : public Gtk::FileChooserDialog
     {
-        Gtk::FileChooserAction m_action;
+        using FileChooserAction = JDLIB::compat::FileChooser::Action::type;
+        FileChooserAction m_action;
 
       public:
 
@@ -26,7 +27,7 @@ namespace SKELETON
 
             add_button( g_dgettext( GTK_DOMAIN, "_Cancel" ), JDLIB::compat::ResponseType::CANCEL );
 
-            if( m_action == Gtk::FILE_CHOOSER_ACTION_OPEN ) {
+            if( m_action == JDLIB::compat::FileChooser::Action::OPEN ) {
                 add_button( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Open", 12 ), JDLIB::compat::ResponseType::ACCEPT );
             }
             else add_button( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Save", 12 ), JDLIB::compat::ResponseType::ACCEPT );
@@ -34,14 +35,14 @@ namespace SKELETON
             set_default_response( JDLIB::compat::ResponseType::ACCEPT );
         }
 
-        FileDiag( Gtk::Window& parent, const Glib::ustring& title, Gtk::FileChooserAction action = Gtk::FILE_CHOOSER_ACTION_OPEN )
+        FileDiag( Gtk::Window& parent, const Glib::ustring& title, FileChooserAction action = JDLIB::compat::FileChooser::Action::OPEN )
         : Gtk::FileChooserDialog( parent, title, action ), m_action( action )
         {
             add_buttons();
         }
 
         // parent がポインタの時は  nullptr かどうかで場合分け
-        FileDiag( Gtk::Window* parent, const Glib::ustring& title, Gtk::FileChooserAction action = Gtk::FILE_CHOOSER_ACTION_OPEN )
+        FileDiag( Gtk::Window* parent, const Glib::ustring& title, FileChooserAction action = JDLIB::compat::FileChooser::Action::OPEN )
         : Gtk::FileChooserDialog( title, action ), m_action( action )
         {
             add_buttons();

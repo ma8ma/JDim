@@ -302,16 +302,16 @@ void FontColorPref::pack_widget()
     m_liststore_color = Gtk::ListStore::create( m_columns_color );
     m_treeview_color.set_model( m_liststore_color );
     m_treeview_color.set_size_request( 480, 280 );
-    m_treeview_color.get_selection()->set_mode( Gtk::SELECTION_MULTIPLE );
+    m_treeview_color.get_selection()->set_mode( JDLIB::compat::SelectionMode::MULTIPLE );
     m_treeview_color.signal_row_activated().connect( sigc::mem_fun( *this, &FontColorPref::slot_row_activated ) );
     m_scrollwin_color.add( m_treeview_color );
     m_scrollwin_color.set_min_content_height( 180 );
-    m_scrollwin_color.set_policy( Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS );
+    m_scrollwin_color.set_policy( JDLIB::compat::PolicyType::AUTOMATIC, JDLIB::compat::PolicyType::ALWAYS );
     JDLIB::compat::box_append_expand( m_vbox_color, m_scrollwin_color );
 
     Gtk::TreeViewColumn* column = Gtk::manage( new Gtk::TreeViewColumn( "設定名", m_columns_color.m_col_name ) );
     column->set_fixed_width( 430 );
-    column->set_sizing( Gtk::TREE_VIEW_COLUMN_FIXED );
+    column->set_sizing( JDLIB::compat::TreeViewColumn::Sizing::FIXED );
     column->set_resizable( true );
     m_treeview_color.append_column( *column );
     Gtk::CellRenderer *cell = column->get_first_cell();
@@ -366,7 +366,7 @@ void FontColorPref::pack_widget()
 
     // ディスプレイ解像度が小さい環境で表示できるようにスクロール可能にする
     m_scroll_color.add( m_vbox_color );
-    m_scroll_color.set_policy( Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC );
+    m_scroll_color.set_policy( JDLIB::compat::PolicyType::NEVER, JDLIB::compat::PolicyType::AUTOMATIC );
 
     m_notebook.append_page( m_scroll_color, "色の設定" );
 
@@ -402,11 +402,11 @@ void FontColorPref::pack_widget()
     m_grid_theme.attach( m_check_use_symbolic_icon, 1, 5, 1, 1 );
 
     m_scroll_note.add( m_label_note );
-    m_scroll_note.set_policy( Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC );
+    m_scroll_note.set_policy( JDLIB::compat::PolicyType::NEVER, JDLIB::compat::PolicyType::AUTOMATIC );
     m_label_note_title.set_markup(
         "<b>注意</b>\nテーマの設定は実験的なサポートのため、変更または廃止の可能性があります。\n" );
     m_label_note_title.set_halign( JDLIB::compat::Align::CENTER );
-    m_label_note_title.set_justify( Gtk::JUSTIFY_CENTER );
+    m_label_note_title.set_justify( JDLIB::compat::Justification::CENTER );
     m_label_note.set_halign( JDLIB::compat::Align::CENTER );
     m_label_note.set_valign( JDLIB::compat::Align::CENTER );
     m_label_note.set_line_wrap( true );

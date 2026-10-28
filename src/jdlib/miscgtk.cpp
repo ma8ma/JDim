@@ -3,6 +3,7 @@
 //#define _DEBUG
 #include "jddebug.h"
 
+#include "gtk_compat.h"
 #include "miscgtk.h"
 #include "miscutil.h"
 #include "imgloader.h"
@@ -288,7 +289,7 @@ std::string MISC::get_entry_font()
 std::string MISC::get_entry_color_text()
 {
     Gtk::Entry entry;
-    auto rgba = entry.get_style_context()->get_color( Gtk::STATE_FLAG_NORMAL );
+    auto rgba = entry.get_style_context()->get_color( JDLIB::compat::StateFlags::NORMAL );
     return color_to_str( rgba );
 }
 

@@ -80,7 +80,7 @@ BBSListViewBase::BBSListViewBase( const std::string& url, const std::string& arg
     , m_jump_y{ -1 }
 {
     m_scrwin.add( m_treeview );
-    m_scrwin.set_policy( Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC );
+    m_scrwin.set_policy( JDLIB::compat::PolicyType::AUTOMATIC, JDLIB::compat::PolicyType::AUTOMATIC );
 
     JDLIB::compat::box_append_expand( *this, m_scrwin );
     show_all_children();
@@ -92,7 +92,7 @@ BBSListViewBase::BBSListViewBase( const std::string& url, const std::string& arg
 /*
 #if GTK_CHECK_VERSION(2,6,0)
     // セルを固定の高さにする
-    // append_column する前に columnに対して set_sizing( Gtk::TREE_VIEW_COLUMN_FIXED ) すること
+    // append_column する前に columnに対して set_sizing( JDLIB::compat::TreeViewColumn::Sizing::FIXED ) すること
     m_treeview.set_fixed_height_mode( true );
 
 #ifdef _DEBUG

@@ -150,7 +150,7 @@ public:
         JDLIB::compat::box_append_expand( m_vbox_check_enable_hash, m_revealer_notes );
         m_vbox_check_enable_hash.show();
         m_listbox.append( m_vbox_check_enable_hash );
-        m_listbox.set_selection_mode( Gtk::SELECTION_NONE );
+        m_listbox.set_selection_mode( JDLIB::compat::SelectionMode::NONE );
         m_listbox.signal_row_activated().connect( sigc::mem_fun( *this, &ImageHashTab::slot_listbox_row_activated ) );
         m_listbox.show();
 
@@ -231,12 +231,12 @@ public:
         // あぼーん設定一覧のセットアップ
         m_list_store = Gtk::ListStore::create( m_columns );
         m_list_store->set_sort_column( Gtk::TreeSortable::DEFAULT_UNSORTED_COLUMN_ID,
-                                       Gtk::SortType::SORT_ASCENDING );
+                                       JDLIB::compat::SortType::ASCENDING );
         m_list_store->set_sort_func( 2, sigc::mem_fun( *this, &ImageHashTab::slot_compare_row_threshold ) );
         m_list_store->set_sort_func( 3, sigc::mem_fun( *this, &ImageHashTab::slot_compare_row_last_matched ) );
         m_list_store->set_sort_func( 4, sigc::mem_fun( *this, &ImageHashTab::slot_compare_row_source_url ) );
         m_treeview.set_model( m_list_store );
-        m_treeview.get_selection()->set_mode( Gtk::SELECTION_MULTIPLE );
+        m_treeview.get_selection()->set_mode( JDLIB::compat::SelectionMode::MULTIPLE );
 
         m_treeview.append_column_numeric( "ハッシュA", m_columns.m_col_hash_row, "%" PRIX64 );
         m_treeview.append_column_numeric( "ハッシュB", m_columns.m_col_hash_col, "%" PRIX64 );
@@ -483,16 +483,16 @@ private:
     void slot_col_clicked( const int col )
     {
         if( m_col != col ) {
-            m_list_store->set_sort_column( col, Gtk::SORT_ASCENDING );
-            m_previous_sortmode = Gtk::SORT_ASCENDING;
+            m_list_store->set_sort_column( col, JDLIB::compat::SortType::ASCENDING );
+            m_previous_sortmode = JDLIB::compat::SortType::ASCENDING;
         }
-        else if(  m_previous_sortmode == Gtk::SORT_ASCENDING ) {
-            m_list_store->set_sort_column( col, Gtk::SORT_DESCENDING );
-            m_previous_sortmode = Gtk::SORT_DESCENDING;
+        else if(  m_previous_sortmode == JDLIB::compat::SortType::ASCENDING ) {
+            m_list_store->set_sort_column( col, JDLIB::compat::SortType::DESCENDING );
+            m_previous_sortmode = JDLIB::compat::SortType::DESCENDING;
         }
         else {
-            m_list_store->set_sort_column( col, Gtk::SORT_ASCENDING );
-            m_previous_sortmode = Gtk::SORT_ASCENDING;
+            m_list_store->set_sort_column( col, JDLIB::compat::SortType::ASCENDING );
+            m_previous_sortmode = JDLIB::compat::SortType::ASCENDING;
         }
         m_col = col;
     }

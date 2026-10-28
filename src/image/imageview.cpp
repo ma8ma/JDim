@@ -58,8 +58,8 @@ ImageViewMain::ImageViewMain( const std::string& url )
     m_scrwin = Gtk::manage( new Gtk::ScrolledWindow() );
     assert( m_scrwin );
 
-    m_scrwin->property_vscrollbar_policy() = Gtk::POLICY_AUTOMATIC;
-    m_scrwin->property_hscrollbar_policy() = Gtk::POLICY_AUTOMATIC;
+    m_scrwin->property_vscrollbar_policy() = JDLIB::compat::PolicyType::AUTOMATIC;
+    m_scrwin->property_hscrollbar_policy() = JDLIB::compat::PolicyType::AUTOMATIC;
     m_scrwin->add( get_event() );
     JDLIB::compat::box_append_expand( *this, *m_scrwin );
 

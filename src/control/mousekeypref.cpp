@@ -290,7 +290,7 @@ MouseKeyDiag::MouseKeyDiag( Gtk::Window* parent, const std::string& url,
     m_treeview.append_column( *column );
 
     m_scrollwin.add( m_treeview );
-    m_scrollwin.set_policy( Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS );
+    m_scrollwin.set_policy( JDLIB::compat::PolicyType::AUTOMATIC, JDLIB::compat::PolicyType::ALWAYS );
 
     m_button_delete.signal_clicked().connect( sigc::mem_fun( *this, &MouseKeyDiag::slot_delete ) );
     m_button_add.signal_clicked().connect( sigc::mem_fun( *this, &MouseKeyDiag::slot_add ) );
@@ -544,14 +544,14 @@ MouseKeyPref::MouseKeyPref( Gtk::Window* parent, const std::string& url, const s
     m_treeview.set_search_entry( m_search_entry );
     m_treeview.set_size_request( 640, 400 );
     m_scrollwin.set_margin_bottom( 8 );
-    m_scrollwin.set_policy( Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS );
+    m_scrollwin.set_policy( JDLIB::compat::PolicyType::AUTOMATIC, JDLIB::compat::PolicyType::ALWAYS );
     m_scrollwin.set_propagate_natural_height( true );
     m_scrollwin.set_propagate_natural_width( true );
     m_treeview.signal_row_activated().connect( sigc::mem_fun( *this, &MouseKeyPref::slot_row_activated ) );
 
     Gtk::TreeViewColumn* column = Gtk::manage( new Gtk::TreeViewColumn( "コマンド", m_columns.m_col_label ) );
     column->set_fixed_width( 220 );
-    column->set_sizing( Gtk::TREE_VIEW_COLUMN_FIXED );
+    column->set_sizing( JDLIB::compat::TreeViewColumn::Sizing::FIXED );
     column->set_resizable( true );
     m_treeview.append_column( *column );
 
@@ -562,7 +562,7 @@ MouseKeyPref::MouseKeyPref( Gtk::Window* parent, const std::string& url, const s
     if( cell ) column->set_cell_data_func( *cell, sigc::mem_fun( *this, &MouseKeyPref::slot_cell_data ) );
 
     m_scrollwin.add( m_treeview );
-    m_scrollwin.set_policy( Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS );
+    m_scrollwin.set_policy( JDLIB::compat::PolicyType::AUTOMATIC, JDLIB::compat::PolicyType::ALWAYS );
     m_scrollwin.set_propagate_natural_height( true );
     m_scrollwin.set_propagate_natural_width( true );
 

@@ -88,10 +88,10 @@ enum
 
 #define DELETE_COLUMN(col) do{ if( ! col ) { delete col; col = nullptr; } }while(0)
 
-// set_sizing( Gtk::TREE_VIEW_COLUMN_FIXED ) を指定して append_columnする
+// set_sizing( JDLIB::compat::TreeViewColumn::Sizing::FIXED ) を指定して append_columnする
 #define APPEND_COLUMN(col,title,model) do{                    \
 col = Gtk::manage( new Gtk::TreeViewColumn( title, model ) );   \
-col->set_sizing( Gtk::TREE_VIEW_COLUMN_FIXED ); \
+col->set_sizing( JDLIB::compat::TreeViewColumn::Sizing::FIXED ); \
 m_treeview.append_column( *col ); \
 }while(0)
 
@@ -114,7 +114,7 @@ BoardViewBase::BoardViewBase( const std::string& url, const bool show_col_board 
     else m_url_board = DBTREE::url_boardbase( url );
 
     m_scrwin.add( m_treeview );
-    m_scrwin.set_policy( Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS );
+    m_scrwin.set_policy( JDLIB::compat::PolicyType::AUTOMATIC, JDLIB::compat::PolicyType::ALWAYS );
 
     JDLIB::compat::box_append_expand( *this, m_scrwin );
     show_all_children();
@@ -123,7 +123,7 @@ BoardViewBase::BoardViewBase( const std::string& url, const bool show_col_board 
     m_liststore = Gtk::ListStore::create( m_columns );
 
     // セルを固定の高さにする
-    // append_column する前に columnに対して set_sizing( Gtk::TREE_VIEW_COLUMN_FIXED ) すること
+    // append_column する前に columnに対して set_sizing( JDLIB::compat::TreeViewColumn::Sizing::FIXED ) すること
     m_treeview.set_fixed_height_mode( true );
 
 #ifdef _DEBUG
@@ -459,7 +459,7 @@ int BoardViewBase::get_row_size() const
 void BoardViewBase::unsorted_column()
 {
     m_liststore->set_sort_column( Gtk::TreeSortable::DEFAULT_UNSORTED_COLUMN_ID,
-                                  Gtk::SortType::SORT_ASCENDING );
+                                  JDLIB::compat::SortType::ASCENDING );
 }
 
 
@@ -523,7 +523,7 @@ void BoardViewBase::update_columns()
                     auto* render_pixbuf = Gtk::make_managed<Gtk::CellRendererPixbuf>();
                     col->pack_start( *render_pixbuf, false );
                     col->add_attribute( *render_pixbuf, "gicon", 0 );
-                    col->set_sizing( Gtk::TREE_VIEW_COLUMN_FIXED );
+                    col->set_sizing( JDLIB::compat::TreeViewColumn::Sizing::FIXED );
                     m_treeview.append_column( *col );
                     m_col_mark = col;
                 }
@@ -874,8 +874,8 @@ void BoardViewBase::exec_sort()
         m_sortmode = SORTMODE_ASCEND;
     }
 
-    m_liststore->set_sort_column( -2, Gtk::SORT_ASCENDING );
-    m_liststore->set_sort_column( m_col, Gtk::SORT_ASCENDING );
+    m_liststore->set_sort_column( -2, JDLIB::compat::SortType::ASCENDING );
+    m_liststore->set_sort_column( m_col, JDLIB::compat::SortType::ASCENDING );
 }
 
 
@@ -2858,7 +2858,7 @@ void BoardViewBase::slot_save_dat()
     int overwrite = JDLIB::compat::ResponseType::NO;
 
     // ディレクトリ選択
-    SKELETON::FileDiag diag( get_parent_win(), "保存先選択", Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER );
+    SKELETON::FileDiag diag( get_parent_win(), "保存先選択", JDLIB::compat::FileChooser::Action::SELECT_FOLDER );
     diag.set_current_folder( SESSION::get_dir_dat() );
     if( diag.run() != JDLIB::compat::ResponseType::ACCEPT ) return;
 

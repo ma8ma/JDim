@@ -996,7 +996,7 @@ std::vector< std::string > CACHE::open_load_diag( Gtk::Window* parent, const std
     std::string dir = MISC::get_dir( open_path );
     if( dir.empty() ) dir = MISC::getenv_limited( ENV_HOME, MAX_SAFE_PATH );
 
-    SKELETON::FileDiag diag( parent, "ファイルを開く", Gtk::FILE_CHOOSER_ACTION_OPEN );
+    SKELETON::FileDiag diag( parent, "ファイルを開く", JDLIB::compat::FileChooser::Action::OPEN );
 
     diag.set_select_multiple( multi );
     diag.set_current_folder( dir );
@@ -1028,7 +1028,7 @@ std::string CACHE::open_save_diag( Gtk::Window* parent, const std::string& dir, 
     std::cout << "name = " << name << std::endl;
 #endif
 
-    SKELETON::FileDiag diag( parent, "保存先選択", Gtk::FILE_CHOOSER_ACTION_SAVE );
+    SKELETON::FileDiag diag( parent, "保存先選択", JDLIB::compat::FileChooser::Action::SAVE );
     if( dir.empty() )
     {
         const std::string home = MISC::getenv_limited( ENV_HOME, MAX_SAFE_PATH );

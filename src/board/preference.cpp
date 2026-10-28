@@ -402,7 +402,7 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     m_label_agent.set_mnemonic_widget( m_entry_agent );
 
     m_entry_agent.property_truncate_multiline() = true;
-    m_entry_agent.set_input_purpose( Gtk::INPUT_PURPOSE_ALPHA );
+    m_entry_agent.set_input_purpose( JDLIB::compat::InputPurpose::ALPHA );
     m_entry_agent.set_max_length( 200 );
     m_entry_agent.set_placeholder_text( "空欄のときは about:config の設定が使われます" );
     const std::string& board_agent = DBTREE::board_get_board_agent( get_url() );
@@ -579,9 +579,9 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
 
     // ディスプレイ解像度が小さい環境で表示できるようにスクロール可能にする
     m_scroll_vbox.add( m_grid_general );
-    m_scroll_vbox.set_policy( Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC );
+    m_scroll_vbox.set_policy( JDLIB::compat::PolicyType::NEVER, JDLIB::compat::PolicyType::AUTOMATIC );
     m_scroll_network.add( m_vbox_network );
-    m_scroll_network.set_policy( Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC );
+    m_scroll_network.set_policy( JDLIB::compat::PolicyType::NEVER, JDLIB::compat::PolicyType::AUTOMATIC );
     m_notebook.set_scrollable( true );
 
     m_notebook.append_page( m_scroll_vbox, "一般" );

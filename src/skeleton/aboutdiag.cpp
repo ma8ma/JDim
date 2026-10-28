@@ -109,7 +109,7 @@ void AboutDiag::init()
     // コピーライト
     if( ! get_copyright().empty() )
     {
-        m_label_copyright.set_justify( Gtk::JUSTIFY_CENTER );
+        m_label_copyright.set_justify( JDLIB::compat::Justification::CENTER );
         JDLIB::compat::box_append_shrink( m_vbox_info, m_label_copyright );
     }
     // Webサイト
@@ -271,8 +271,8 @@ void AboutDiag::set_license( const Glib::ustring& license )
     m_textview_license.set_editable( false );
     m_textview_license.set_cursor_visible( false );
     m_textview_license.set_accepts_tab( false );
-    m_textview_license.set_wrap_mode( Gtk::WRAP_WORD_CHAR );
-    m_scrollwindow_license.set_policy( Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC );
+    m_textview_license.set_wrap_mode( JDLIB::compat::WrapMode::WORD_CHAR );
+    m_scrollwindow_license.set_policy( JDLIB::compat::PolicyType::AUTOMATIC, JDLIB::compat::PolicyType::AUTOMATIC );
     m_scrollwindow_license.add( m_textview_license );
 }
 

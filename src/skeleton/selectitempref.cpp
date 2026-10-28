@@ -59,7 +59,7 @@ void SelectItemPref::pack_widgets()
     // 同一カラムにアイコンと項目名の両方を表示するので、手動で列を作成する
 
     // 表示項目リスト
-    m_tree_shown.get_selection()->set_mode( Gtk::SELECTION_MULTIPLE );
+    m_tree_shown.get_selection()->set_mode( JDLIB::compat::SelectionMode::MULTIPLE );
     m_tree_shown.signal_focus_in_event().connect( sigc::mem_fun( *this, &SelectItemPref::slot_focus_in_shown ) );
     m_store_shown = Gtk::ListStore::create( m_columns_shown );
     m_tree_shown.set_model( m_store_shown );
@@ -97,7 +97,7 @@ void SelectItemPref::pack_widgets()
 
 
     // 非表示項目リスト
-    m_tree_hidden.get_selection()->set_mode( Gtk::SELECTION_MULTIPLE );
+    m_tree_hidden.get_selection()->set_mode( JDLIB::compat::SelectionMode::MULTIPLE );
     m_tree_hidden.signal_focus_in_event().connect( sigc::mem_fun( *this, &SelectItemPref::slot_focus_in_hidden ) );
     m_store_hidden = Gtk::ListStore::create( m_columns_hidden );
     m_tree_hidden.set_model( m_store_hidden );
@@ -116,7 +116,7 @@ void SelectItemPref::pack_widgets()
     // 全体のパッキング
     m_scroll_shown.add( m_tree_shown );
     m_scroll_shown.set_size_request( 250, 300 );
-    m_scroll_shown.set_policy( Gtk::POLICY_NEVER, Gtk::POLICY_ALWAYS );
+    m_scroll_shown.set_policy( JDLIB::compat::PolicyType::NEVER, JDLIB::compat::PolicyType::ALWAYS );
 
     JDLIB::compat::box_append_expand( m_hbox, m_scroll_shown );
 
@@ -150,7 +150,7 @@ void SelectItemPref::pack_widgets()
 
     m_scroll_hidden.add( m_tree_hidden );
     m_scroll_hidden.set_size_request( 250, 300 );
-    m_scroll_hidden.set_policy( Gtk::POLICY_NEVER, Gtk::POLICY_ALWAYS );
+    m_scroll_hidden.set_policy( JDLIB::compat::PolicyType::NEVER, JDLIB::compat::PolicyType::ALWAYS );
 
     JDLIB::compat::box_append_expand( m_hbox, m_scroll_hidden );
 

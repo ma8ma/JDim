@@ -88,7 +88,7 @@ UsrCmdPref::UsrCmdPref( Gtk::Window* parent, const std::string& url )
     m_treeview.sig_key_release().connect( sigc::mem_fun(*this, &UsrCmdPref::slot_key_release ) );
 
     m_scrollwin.add( m_treeview );
-    m_scrollwin.set_policy( Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS );
+    m_scrollwin.set_policy( JDLIB::compat::PolicyType::AUTOMATIC, JDLIB::compat::PolicyType::ALWAYS );
     m_scrollwin.set_size_request( 640, 400 );
 
     get_content_area()->set_spacing( 8 );

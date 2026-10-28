@@ -124,7 +124,7 @@ void JDWindow::init_win()
         m_vbox_view = std::make_unique<SKELETON::JDVBox>();
 
         m_scrwin->set_size_request( 0, 0 );
-        m_scrwin->set_policy( Gtk::POLICY_EXTERNAL, Gtk::POLICY_EXTERNAL );
+        m_scrwin->set_policy( JDLIB::compat::PolicyType::EXTERNAL, JDLIB::compat::PolicyType::EXTERNAL );
         m_scrwin->add( *m_vbox_view );
         m_vbox.pack_remove_start( false, *m_scrwin, true, true );
 

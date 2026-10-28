@@ -56,9 +56,9 @@ ImageAdmin::ImageAdmin( const std::string& url )
     , m_scroll( SCROLL_NO )
 {
     m_scrwin.add( m_iconbox );
-    // Gtk::POLICY_NEVERだとスクロール機能自体がなくなり
+    // JDLIB::compat::PolicyType::NEVERだとスクロール機能自体がなくなり
     // コンテンツに合わせてGtk::ScrolledWindowのサイズが拡大してしまう
-    m_scrwin.set_policy( Gtk::POLICY_EXTERNAL, Gtk::POLICY_NEVER );
+    m_scrwin.set_policy( JDLIB::compat::PolicyType::EXTERNAL, JDLIB::compat::PolicyType::NEVER );
     m_scrwin.set_size_request( ICON_SIZE ,  ICON_SIZE + 4);
 
     m_left.set_label( "<" );
@@ -1141,7 +1141,7 @@ void ImageAdmin::save_all()
 #endif
 
     // ディレクトリ選択
-    SKELETON::FileDiag diag( get_win(), "保存先選択", Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER );
+    SKELETON::FileDiag diag( get_win(), "保存先選択", JDLIB::compat::FileChooser::Action::SELECT_FOLDER );
 
     diag.set_current_folder( SESSION::dir_img_save() );
     

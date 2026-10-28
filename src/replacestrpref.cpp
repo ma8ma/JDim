@@ -195,13 +195,13 @@ ReplaceStrPref::ReplaceStrPref( Gtk::Window* parent, const std::string& url )
     columns[6]->set_fixed_width( 200 );
 
     for( Gtk::TreeViewColumn* col : columns ) {
-        col->set_sizing( Gtk::TREE_VIEW_COLUMN_FIXED );
+        col->set_sizing( JDLIB::compat::TreeViewColumn::Sizing::FIXED );
         col->set_resizable( true );
         m_treeview.append_column( *col );
     }
 
     m_scrollwin.add( m_treeview );
-    m_scrollwin.set_policy( Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS );
+    m_scrollwin.set_policy( JDLIB::compat::PolicyType::AUTOMATIC, JDLIB::compat::PolicyType::ALWAYS );
     m_scrollwin.set_size_request( 640, 400 );
 
     JDLIB::compat::box_append_shrink( m_vbuttonbox, m_button_top );

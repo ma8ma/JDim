@@ -49,7 +49,7 @@ CompletionEntry::CompletionEntry( const int mode )
     m_treeview.sig_button_release().connect( sigc::mem_fun(*this, &CompletionEntry::slot_treeview_button_release ) );
 
     m_scr_win.add( m_treeview );
-    m_scr_win.set_policy( Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC );
+    m_scr_win.set_policy( JDLIB::compat::PolicyType::NEVER, JDLIB::compat::PolicyType::AUTOMATIC );
     m_scr_win.set_size_request( 1, 1 );
 
     m_popup_win.add( m_scr_win );

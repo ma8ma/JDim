@@ -14,6 +14,7 @@
 #include "environment.h"
 #include "session.h"
 
+#include "jdlib/gtk_compat.h"
 #include "jdlib/misccharcode.h"
 #include "jdlib/miscutil.h"
 #include "config/globalconf.h"
@@ -633,8 +634,8 @@ Gdk::Rectangle EditTextView::get_cursor_root_origin()
     int x, y;
 
     get_iter_location( get_buffer()->get_insert()->get_iter(), rect );
-    buffer_to_window_coords( Gtk::TEXT_WINDOW_TEXT,  rect.get_x(), rect.get_y(), wx, wy );
-    get_window( Gtk::TEXT_WINDOW_TEXT )->get_origin( x, y );
+    buffer_to_window_coords( JDLIB::compat::TextWindowType::TEXT,  rect.get_x(), rect.get_y(), wx, wy );
+    get_window( JDLIB::compat::TextWindowType::TEXT )->get_origin( x, y );
 
     rect.set_x( x + wx );
     rect.set_y( y + wy );
@@ -788,7 +789,7 @@ static gboolean EditTextView_slot_extend_selection( GtkTextView*,
 EditView::EditView()
     : Gtk::ScrolledWindow()
 {
-    set_policy( Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC );
+    set_policy( JDLIB::compat::PolicyType::AUTOMATIC, JDLIB::compat::PolicyType::AUTOMATIC );
     add( m_textview );
     auto context = m_textview.get_style_context();
     context->add_class( s_css_classname );

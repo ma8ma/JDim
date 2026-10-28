@@ -10,6 +10,7 @@
 
 #include "config/globalconf.h"
 
+#include "jdlib/gtk_compat.h"
 #include "jdlib/miscutil.h"
 
 #include "control/controlid.h"
@@ -54,7 +55,7 @@ DragTreeView::DragTreeView( const std::string& url, const std::string& dndtarget
         init_font( fontname );
     }
 
-    get_selection()->set_mode( Gtk::SELECTION_MULTIPLE );
+    get_selection()->set_mode( JDLIB::compat::SelectionMode::MULTIPLE );
     get_selection()->signal_changed().connect( sigc::mem_fun( *this, &DragTreeView::slot_selection_changed ) );
 
     // D&D 設定
