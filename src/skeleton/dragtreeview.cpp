@@ -92,7 +92,7 @@ void DragTreeView::set_enable_drop_uri_list()
     targets_drop.push_back( Gtk::TargetEntry( "text/uri-list" ) );
 
     // ドロップされると on_drag_data_received() が呼び出される
-    drag_dest_set( targets_drop, Gtk::DEST_DEFAULT_ALL, Gdk::ACTION_COPY );
+    drag_dest_set( targets_drop, Gtk::DEST_DEFAULT_ALL, JDLIB::compat::DragAction::COPY );
 }
 
 

@@ -601,7 +601,7 @@ DBIMG::DHash ImgRoot::calc_dhash_from_pixbuf( const Gdk::Pixbuf& pixbuf )
 
     // グレースケール画像を縮小する
     constexpr int bit_map_size = 9;
-    auto bit_map = gray->scale_simple( bit_map_size, bit_map_size, Gdk::INTERP_BILINEAR );
+    auto bit_map = gray->scale_simple( bit_map_size, bit_map_size, JDLIB::compat::InterpType::BILINEAR );
 
     // ピクセルデータの取得
     const guint8* pixels = bit_map->get_pixels();

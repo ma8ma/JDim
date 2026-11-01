@@ -10,6 +10,7 @@
 #include "cache.h"
 
 #include "config/globalconf.h"
+#include "jdlib/gtk_compat.h"
 #include "jdlib/miscmsg.h"
 
 #include <algorithm>
@@ -281,7 +282,7 @@ void ICON_Manager::load_theme()
                 auto pixbuf = Gdk::Pixbuf::create_from_file( CACHE::path_theme_icon_root() + filename );
                 constexpr int size_menu = 24; // Gtk::ICON_SIZE_LARGE_TOOLBAR
                 if( pixbuf->get_width() > size_menu || pixbuf->get_height() > size_menu ) {
-                    m_list_icons[id] = pixbuf->scale_simple( size_menu, size_menu, Gdk::INTERP_HYPER );
+                    m_list_icons[id] = pixbuf->scale_simple( size_menu, size_menu, JDLIB::compat::InterpType::HYPER );
                 }
                 else {
                     m_list_icons[id] = pixbuf;
@@ -345,7 +346,7 @@ void ICON_Manager::load_builtin_icons( std::vector<Glib::RefPtr<Gio::Icon>>& lis
     // その他
     list_icons[ ICON::DOWN ] = list_icons[ ICON::OLD ];
 
-    auto pixbuf = Gdk::Pixbuf::create( Gdk::COLORSPACE_RGB, true, 8, 1, 1 );
+    auto pixbuf = Gdk::Pixbuf::create( JDLIB::compat::Colorspace::RGB, true, 8, 1, 1 );
     pixbuf->fill( 0 );
     list_icons[ ICON::TRANSPARENT ] = std::move( pixbuf );
 

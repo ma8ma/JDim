@@ -216,7 +216,7 @@ void View::show_popupmenu( const std::string& url, PopupMenuPosition position, G
             // viewの左上とメニューの左上を揃える
             // メニューのサイズが大きく、ディスプレイの外にはみ出す場合でも、
             // 自動的に画面内に収まるように調整します。
-            popupmenu->popup_at_widget( this, Gdk::GRAVITY_NORTH_WEST, Gdk::GRAVITY_NORTH_WEST, nullptr );
+            popupmenu->popup_at_widget( this, JDLIB::compat::Gravity::NORTH_WEST, JDLIB::compat::Gravity::NORTH_WEST, nullptr );
         }
         else if( position == PopupMenuPosition::mouse_pointer ) {
             // 現在のイベントに関連するマウスポインターの座標にメニューを表示する
@@ -227,7 +227,7 @@ void View::show_popupmenu( const std::string& url, PopupMenuPosition position, G
             // anchor_widgetの右下とメニューの右上を揃える
             // メニューのサイズが大きく、ディスプレイの外にはみ出す場合でも、
             // 自動的に画面内に収まるように調整します。
-            popupmenu->popup_at_widget( anchor_widget, Gdk::GRAVITY_SOUTH_EAST, Gdk::GRAVITY_NORTH_EAST, nullptr );
+            popupmenu->popup_at_widget( anchor_widget, JDLIB::compat::Gravity::SOUTH_EAST, JDLIB::compat::Gravity::NORTH_EAST, nullptr );
         }
         else {
             std::string errmsg = "View::show_popupmenu: Incorrect argument value: position=";

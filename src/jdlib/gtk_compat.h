@@ -463,6 +463,137 @@ constexpr type WORD_CHAR = Gtk::WRAP_WORD_CHAR;
 #endif
 } // WrapMode
 
+/**
+ * @brief Gdk::DragAction の alias
+ */
+namespace DragAction {
+using type = Gdk::DragAction;
+#ifdef USE_GTKMM4
+using Gdk::DragAction::COPY;
+using Gdk::DragAction::MOVE;
+using Gdk::DragAction::LINK;
+using Gdk::DragAction::ASK;
+#else
+constexpr type COPY = Gdk::ACTION_COPY;
+constexpr type MOVE = Gdk::ACTION_MOVE;
+constexpr type LINK = Gdk::ACTION_LINK;
+constexpr type ASK = Gdk::ACTION_ASK;
+#endif
+} // DragAction
+
+/**
+ * @brief Gdk::AnchorHints の alias
+ */
+namespace AnchorHints {
+using type = Gdk::AnchorHints;
+#ifdef USE_GTKMM4
+using Gdk::AnchorHints::FLIP_X;
+using Gdk::AnchorHints::FLIP_Y;
+using Gdk::AnchorHints::SLIDE_X;
+using Gdk::AnchorHints::SLIDE_Y;
+using Gdk::AnchorHints::RESIZE_X;
+using Gdk::AnchorHints::RESIZE_Y;
+using Gdk::AnchorHints::FLIP;
+using Gdk::AnchorHints::SLIDE;
+using Gdk::AnchorHints::RESIZE;
+#else
+constexpr type FLIP_X = Gdk::ANCHOR_FLIP_X;
+constexpr type FLIP_Y = Gdk::ANCHOR_FLIP_Y;
+constexpr type SLIDE_X = Gdk::ANCHOR_SLIDE_X;
+constexpr type SLIDE_Y = Gdk::ANCHOR_SLIDE_Y;
+constexpr type RESIZE_X = Gdk::ANCHOR_RESIZE_X;
+constexpr type RESIZE_Y = Gdk::ANCHOR_RESIZE_Y;
+constexpr type FLIP = Gdk::ANCHOR_FLIP;
+constexpr type SLIDE = Gdk::ANCHOR_SLIDE;
+constexpr type RESIZE = Gdk::ANCHOR_RESIZE;
+#endif
+} // AnchorHints
+
+/**
+ * @brief Gdk::Colorspace の alias
+ */
+namespace Colorspace {
+using type = Gdk::Colorspace;
+#ifdef USE_GTKMM4
+using Gdk::Colorspace::RGB;
+#else
+constexpr type RGB = Gdk::COLORSPACE_RGB;
+#endif
+} // Colorspace
+
+/**
+ * @brief Gdk::Gravity の alias
+ */
+namespace Gravity {
+using type = Gdk::Gravity;
+#ifdef USE_GTKMM4
+using Gdk::Gravity::NORTH_WEST;
+using Gdk::Gravity::NORTH;
+using Gdk::Gravity::NORTH_EAST;
+using Gdk::Gravity::WEST;
+using Gdk::Gravity::CENTER;
+using Gdk::Gravity::EAST;
+using Gdk::Gravity::SOUTH_WEST;
+using Gdk::Gravity::SOUTH;
+using Gdk::Gravity::SOUTH_EAST;
+using Gdk::Gravity::STATIC;
+#else
+constexpr type NORTH_WEST = Gdk::GRAVITY_NORTH_WEST;
+constexpr type NORTH = Gdk::GRAVITY_NORTH;
+constexpr type NORTH_EAST = Gdk::GRAVITY_NORTH_EAST;
+constexpr type WEST = Gdk::GRAVITY_WEST;
+constexpr type CENTER = Gdk::GRAVITY_CENTER;
+constexpr type EAST = Gdk::GRAVITY_EAST;
+constexpr type SOUTH_WEST = Gdk::GRAVITY_SOUTH_WEST;
+constexpr type SOUTH = Gdk::GRAVITY_SOUTH;
+constexpr type SOUTH_EAST = Gdk::GRAVITY_SOUTH_EAST;
+constexpr type STATIC = Gdk::GRAVITY_STATIC;
+#endif
+} // Gravity
+
+/**
+ * @brief Gdk::InterpType の alias
+ */
+namespace InterpType {
+using type = Gdk::InterpType;
+#ifdef USE_GTKMM4
+using Gdk::InterpType::NEAREST;
+using Gdk::InterpType::TILES;
+using Gdk::InterpType::BILINEAR;
+using Gdk::InterpType::HYPER;
+#else
+constexpr type NEAREST = Gdk::INTERP_NEAREST;
+constexpr type TILES = Gdk::INTERP_TILES;
+constexpr type BILINEAR = Gdk::INTERP_BILINEAR;
+constexpr type HYPER = Gdk::INTERP_HYPER;
+#endif
+} // InterpType
+
+/**
+ * @brief Gdk::InputSource の alias
+ */
+namespace InputSource {
+using type = Gdk::InputSource;
+#ifdef USE_GTKMM4
+using Gdk::InputSource::MOUSE;
+using Gdk::InputSource::PEN;
+using Gdk::InputSource::KEYBOARD;
+using Gdk::InputSource::TOUCHSCREEN;
+using Gdk::InputSource::TOUCHPAD;
+using Gdk::InputSource::TRACKPOINT;
+using Gdk::InputSource::TABLET_PAD;
+#else
+constexpr type MOUSE = Gdk::SOURCE_MOUSE;
+constexpr type PEN = Gdk::SOURCE_PEN;
+constexpr type KEYBOARD = Gdk::SOURCE_KEYBOARD;
+constexpr type TOUCHSCREEN = Gdk::SOURCE_TOUCHSCREEN;
+constexpr type TOUCHPAD = Gdk::SOURCE_TOUCHPAD;
+constexpr type TRACKPOINT = Gdk::SOURCE_TRACKPOINT;
+constexpr type TABLET_PAD = Gdk::SOURCE_TABLET_PAD;
+#endif
+
+} // InputSource
+
 } // JDLIB::compat
 
 #endif // JDLIB_GTK_COMPAT_H

@@ -2233,7 +2233,7 @@ void Admin::slot_show_tabswitchmenu()
 
     // Specify the current event by nullptr.
     m_tabswitchmenu.popup_at_widget( &( m_notebook->get_tabswitch_button() ),
-                                     Gdk::GRAVITY_SOUTH_EAST, Gdk::GRAVITY_NORTH_EAST, nullptr );
+                                     JDLIB::compat::Gravity::SOUTH_EAST, JDLIB::compat::Gravity::NORTH_EAST, nullptr );
 }
 
 

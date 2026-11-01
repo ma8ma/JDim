@@ -670,9 +670,9 @@ void EditTextView::show_aalist_popup()
         menu_pos.set_width( 1 );
         menu_pos.set_height( 1 );
 
-        m_aapopupmenu->property_anchor_hints() = Gdk::ANCHOR_SLIDE_X | Gdk::ANCHOR_SLIDE_Y;
+        m_aapopupmenu->property_anchor_hints() = JDLIB::compat::AnchorHints::SLIDE_X | JDLIB::compat::AnchorHints::SLIDE_Y;
         m_aapopupmenu->popup_at_rect( toplevel->get_window(), menu_pos,
-                                      Gdk::GRAVITY_SOUTH_WEST, Gdk::GRAVITY_NORTH_WEST, nullptr );
+                                      JDLIB::compat::Gravity::SOUTH_WEST, JDLIB::compat::Gravity::NORTH_WEST, nullptr );
 #else
         m_aapopupmenu->popup( Gtk::Menu::SlotPositionCalc(
                             sigc::mem_fun( *this, &EditTextView::slot_popup_aamenu_pos ) ),

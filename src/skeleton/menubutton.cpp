@@ -138,7 +138,7 @@ void MenuButton::show_popupmenu()
     if( ! m_popupmenu ) return;
 
     // Specify the current event by nullptr.
-    m_popupmenu->popup_at_widget( this, Gdk::GRAVITY_SOUTH_WEST, Gdk::GRAVITY_NORTH_WEST, nullptr );
+    m_popupmenu->popup_at_widget( this, JDLIB::compat::Gravity::SOUTH_WEST, JDLIB::compat::Gravity::NORTH_WEST, nullptr );
 }
 
 

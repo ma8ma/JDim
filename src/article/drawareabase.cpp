@@ -2714,9 +2714,9 @@ bool DrawAreaBase::draw_one_img_node( LAYOUT* layout, const CLIPINFO& ci )
                         }
 
                         Glib::RefPtr< Gdk::Pixbuf > pixbuf2;
-                        pixbuf2 = pixbuf->scale_simple( moswidth, mosheight, Gdk::INTERP_NEAREST );
+                        pixbuf2 = pixbuf->scale_simple( moswidth, mosheight, JDLIB::compat::InterpType::NEAREST );
                         paint_backscreen( pixbuf2->scale_simple( pixbuf->get_width(), pixbuf->get_height(),
-                                                                 Gdk::INTERP_NEAREST ),
+                                                                 JDLIB::compat::InterpType::NEAREST ),
                                           0, s_top, rect->x + 1, ( rect->y + 1 ) - ci.pos_y + s_top,
                                           pixbuf->get_width(), height );
                     }
@@ -5455,7 +5455,7 @@ void DrawAreaBase::slot_multipress_pressed( int n_press, double, double )
     if( n_press == 2 ) {
         button_event.type = GDK_DOUBLE_BUTTON_PRESS;
     }
-    else if( n_press == 3 && ( device && device->get_source() != Gdk::SOURCE_TOUCHSCREEN ) ) {
+    else if( n_press == 3 && ( device && device->get_source() != JDLIB::compat::InputSource::TOUCHSCREEN ) ) {
         button_event.type = GDK_TRIPLE_BUTTON_PRESS;
     }
     if( n_points == 2 ) {
