@@ -6,6 +6,7 @@
 #ifndef JDLIB_GTK_COMPAT_H
 #define JDLIB_GTK_COMPAT_H
 
+#include <giomm/application.h>
 #include <glibmm/binding.h>
 #include <glibmm/fileutils.h>
 #include <glibmm/iochannel.h>
@@ -674,6 +675,37 @@ constexpr type ENDOFFILE = Glib::IO_STATUS_EOF;
 constexpr type AGAIN = Glib::IO_STATUS_AGAIN;
 #endif
 } // IOStatus
+
+/**
+ * @brief Gio::Application::Flags の alias
+ */
+namespace Application::Flags {
+#ifdef USE_GTKMM4
+using type = Gio::Application::Flags;
+using Gio::Application::Flags::NONE;
+using Gio::Application::Flags::IS_SERVICE;
+using Gio::Application::Flags::IS_LAUNCHER;
+using Gio::Application::Flags::HANDLES_OPEN;
+using Gio::Application::Flags::HANDLES_COMMAND_LINE;
+using Gio::Application::Flags::SEND_ENVIRONMENT;
+using Gio::Application::Flags::NON_UNIQUE;
+using Gio::Application::Flags::CAN_OVERRIDE_APP_ID;
+using Gio::Application::Flags::ALLOW_REPLACEMENT;
+using Gio::Application::Flags::REPLACE;
+#else
+using type = Gio::ApplicationFlags;
+constexpr type NONE = Gio::APPLICATION_FLAGS_NONE;
+constexpr type IS_SERVICE = Gio::APPLICATION_IS_SERVICE;
+constexpr type IS_LAUNCHER = Gio::APPLICATION_IS_LAUNCHER;
+constexpr type HANDLES_OPEN = Gio::APPLICATION_HANDLES_OPEN;
+constexpr type HANDLES_COMMAND_LINE = Gio::APPLICATION_HANDLES_COMMAND_LINE;
+constexpr type SEND_ENVIRONMENT = Gio::APPLICATION_SEND_ENVIRONMENT;
+constexpr type NON_UNIQUE = Gio::APPLICATION_NON_UNIQUE;
+constexpr type CAN_OVERRIDE_APP_ID = Gio::APPLICATION_CAN_OVERRIDE_APP_ID;
+constexpr type ALLOW_REPLACEMENT = Gio::APPLICATION_ALLOW_REPLACEMENT;
+constexpr type REPLACE = Gio::APPLICATION_REPLACE;
+#endif
+} // Application::Flags
 
 } // JDLIB::compat
 

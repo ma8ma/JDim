@@ -252,7 +252,7 @@ App::App()
 {
     Glib::ustring app_id = "com.github.jdimproved.jdim";
     // アプリケーションの排他制御は {Gtk,Gio}::Application ではなくロックファイルで行う
-    const auto flags = Gio::APPLICATION_NON_UNIQUE | Gio::APPLICATION_HANDLES_OPEN;
+    const auto flags = JDLIB::compat::Application::Flags::NON_UNIQUE | JDLIB::compat::Application::Flags::HANDLES_OPEN;
 
     if( gtk_init_check( nullptr, nullptr ) ) {
         m_app = Gtk::Application::create( app_id, flags );
