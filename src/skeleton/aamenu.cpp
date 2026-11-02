@@ -24,7 +24,7 @@ AAMenu::AAMenu( Gtk::Window& parent )
 #endif
 
     Pango::FontDescription pfd( CONFIG::get_fontname( FONT_MESSAGE ) );
-    pfd.set_weight( Pango::WEIGHT_NORMAL );
+    pfd.set_weight( JDLIB::compat::Weight::NORMAL );
 #ifndef USE_GTKMM4
     // GTK4ではoverride_*()が廃止されているため、フェーズ1では省略する。
     // TODO: GTK4 StyleContext/CssProvider等を利用したスタイル設定に移行する。

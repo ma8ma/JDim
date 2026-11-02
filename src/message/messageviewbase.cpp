@@ -202,7 +202,7 @@ void MessageViewBase::setup_view()
 void MessageViewBase::init_font( const std::string& fontname )
 {
     Pango::FontDescription pfd( fontname );
-    pfd.set_weight( Pango::WEIGHT_NORMAL );
+    pfd.set_weight( JDLIB::compat::Weight::NORMAL );
 
     m_entry_name.modify_font( pfd );
     m_entry_mail.modify_font( pfd );

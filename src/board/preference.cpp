@@ -115,7 +115,7 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     m_bt_set_default_namemail.signal_clicked().connect( sigc::mem_fun(*this, &Preferences::slot_set_default_namemail ) );
 
     m_label_samba.set_halign( JDLIB::compat::Align::START );
-    m_label_samba_value.set_ellipsize( Pango::ELLIPSIZE_END );
+    m_label_samba_value.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
     m_label_samba_value.set_halign( JDLIB::compat::Align::START );
     m_label_samba_value.set_hexpand( true );
     m_label_samba_value.set_selectable( true );
@@ -304,20 +304,20 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     }
     else m_check_oldlog.set_active( DBTREE::board_show_oldlog( get_url() ) );
 
-    m_label_name_value.set_ellipsize( Pango::ELLIPSIZE_END );
-    m_label_url_value.set_ellipsize( Pango::ELLIPSIZE_END );
-    m_label_cache_value.set_ellipsize( Pango::ELLIPSIZE_END );
-    m_label_noname_value.set_ellipsize( Pango::ELLIPSIZE_END );
+    m_label_name_value.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
+    m_label_url_value.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
+    m_label_cache_value.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
+    m_label_noname_value.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
 
     m_spin_maxres.set_halign( JDLIB::compat::Align::START );
     m_spin_maxres.set_hexpand( true );
 
-    m_label_last_access_value.set_ellipsize( Pango::ELLIPSIZE_END );
+    m_label_last_access_value.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
     m_label_last_access_value.set_halign( JDLIB::compat::Align::START );
     m_label_last_access_value.set_hexpand( true );
     m_label_last_access_value.set_selectable( true );
 
-    m_label_modified_value.set_ellipsize( Pango::ELLIPSIZE_END );
+    m_label_modified_value.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
     m_label_modified_value.set_halign( JDLIB::compat::Align::START );
     m_label_modified_value.set_hexpand( true );
     m_label_modified_value.set_selectable( true );

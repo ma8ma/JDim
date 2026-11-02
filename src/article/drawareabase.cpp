@@ -398,7 +398,7 @@ void DrawAreaBase::init_fontinfo( FONTINFO& fi, std::string& fontname )
     
     // layoutにフォントをセット
     fi.pfd = Pango::FontDescription( fontname );
-    fi.pfd.set_weight( Pango::WEIGHT_NORMAL );
+    fi.pfd.set_weight( JDLIB::compat::Weight::NORMAL );
     m_pango_layout->set_font_description( fi.pfd );
 
     // フォント情報取得

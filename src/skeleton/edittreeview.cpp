@@ -458,7 +458,7 @@ Gtk::TreeViewColumn* EditTreeView::create_column( const int ypad )
     m_ren_text = Gtk::manage( new Gtk::CellRendererText() );
     m_ren_text->signal_edited().connect( sigc::mem_fun( *this, &EditTreeView::slot_ren_text_on_edited ) );
     m_ren_text->signal_editing_canceled().connect( sigc::mem_fun( *this, &EditTreeView::slot_ren_text_on_canceled ) );
-    m_ren_text->property_underline() = Pango::UNDERLINE_SINGLE;
+    m_ren_text->property_underline() = JDLIB::compat::Underline::SINGLE;
 
     // 行間スペース
     if( ypad >= 0 ) m_ren_text->property_ypad() = ypad;

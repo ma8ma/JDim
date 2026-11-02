@@ -60,7 +60,7 @@ namespace CORE
 
             m_label_sid_2ch.set_halign( JDLIB::compat::Align::START );
             m_label_sid_2ch.set_valign( JDLIB::compat::Align::END );
-            m_label_sid_2ch_value.set_ellipsize( Pango::ELLIPSIZE_END );
+            m_label_sid_2ch_value.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
             m_label_sid_2ch_value.set_halign( JDLIB::compat::Align::START );
             m_label_sid_2ch_value.set_valign( JDLIB::compat::Align::END );
             m_label_sid_2ch_value.set_hexpand( true );
@@ -139,8 +139,8 @@ namespace CORE
             m_label_mdmd.set_halign( JDLIB::compat::Align::START );
             m_label_mdmd_value.set_halign( JDLIB::compat::Align::START );
 
-            m_label_dmdm_value.set_ellipsize( Pango::ELLIPSIZE_END );
-            m_label_mdmd_value.set_ellipsize( Pango::ELLIPSIZE_END );
+            m_label_dmdm_value.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
+            m_label_mdmd_value.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
             m_label_dmdm_value.set_selectable( true );
             m_label_mdmd_value.set_selectable( true );
 
@@ -205,8 +205,8 @@ namespace CORE
             m_label_cookie.set_halign( JDLIB::compat::Align::START );
             m_label_cookie_value.set_halign( JDLIB::compat::Align::START );
 
-            m_label_account_value.set_ellipsize( Pango::ELLIPSIZE_END );
-            m_label_cookie_value.set_ellipsize( Pango::ELLIPSIZE_END );
+            m_label_account_value.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
+            m_label_cookie_value.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
             m_label_account_value.set_selectable( true );
             m_label_cookie_value.set_selectable( true );
 

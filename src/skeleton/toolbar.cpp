@@ -281,7 +281,7 @@ Gtk::Label* ToolBar::get_label()
 
         m_label = Gtk::manage( new Gtk::Label );
 
-        m_label->set_ellipsize( Pango::ELLIPSIZE_END );
+        m_label->set_ellipsize( JDLIB::compat::EllipsizeMode::END );
         m_label->set_xalign( 0 );
         m_label->set_selectable( true );
         m_label->set_hexpand( true );

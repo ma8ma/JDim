@@ -150,7 +150,7 @@ void DragTreeView::init_color( const int colorid_text, const int colorid_bg, con
 void DragTreeView::init_font( const std::string& fontname )
 {
     Pango::FontDescription pfd( fontname );
-    pfd.set_weight( Pango::WEIGHT_NORMAL );
+    pfd.set_weight( JDLIB::compat::Weight::NORMAL );
 #ifndef USE_GTKMM4
     override_font( pfd );
 #endif

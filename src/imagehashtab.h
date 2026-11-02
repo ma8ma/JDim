@@ -139,7 +139,7 @@ public:
         m_label_enable_hash.set_mnemonic_widget( m_switch_enable_hash );
         m_label_enable_hash.show();
 
-        m_label_enable_hash.set_ellipsize( Pango::ELLIPSIZE_END );
+        m_label_enable_hash.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
 
         JDLIB::compat::box_append_expand( m_hbox_check_enable_hash, m_label_enable_hash );
         JDLIB::compat::box_append_shrink( m_hbox_check_enable_hash, m_switch_enable_hash );
@@ -155,7 +155,7 @@ public:
         m_listbox.show();
 
         m_label_initial_threshold.set_halign( JDLIB::compat::Align::START );
-        m_label_initial_threshold.set_ellipsize( Pango::ELLIPSIZE_END );
+        m_label_initial_threshold.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
         m_label_initial_threshold.set_mnemonic_widget( m_spin_initial_threshold );
         m_label_initial_threshold.show();
         m_spin_initial_threshold.set_increments( 1, 1 );
@@ -204,7 +204,7 @@ public:
 
         m_toggle_notes.set_label( "注意事項" );
         m_toggle_notes.show();
-        m_label_notes.set_ellipsize( Pango::ELLIPSIZE_END );
+        m_label_notes.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
         m_label_notes.property_margin() = 4;
         m_label_notes.show();
         m_revealer_notes.add( m_label_notes );
@@ -213,7 +213,7 @@ public:
         m_binding_notes = Glib::Binding::bind_property( m_toggle_notes.property_active(),
                                                         m_revealer_notes.property_reveal_child() );
 
-        m_label_num_of_items.set_ellipsize( Pango::ELLIPSIZE_END );
+        m_label_num_of_items.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
         m_label_num_of_items.set_hexpand( false );
         m_label_num_of_items.show();
 

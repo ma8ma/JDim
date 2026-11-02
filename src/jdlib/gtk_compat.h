@@ -18,6 +18,8 @@
 #include <gtkmm/messagedialog.h>
 #include <gtkmm/textview.h>
 #include <gtkmm/treeviewcolumn.h>
+#include <pangomm/fontdescription.h>
+#include <pangomm/layout.h>
 
 
 namespace JDLIB::compat {
@@ -706,6 +708,84 @@ constexpr type ALLOW_REPLACEMENT = Gio::APPLICATION_ALLOW_REPLACEMENT;
 constexpr type REPLACE = Gio::APPLICATION_REPLACE;
 #endif
 } // Application::Flags
+
+/**
+ * @brief Pango::EllipsizeMode の alias
+ */
+namespace EllipsizeMode {
+using type = Pango::EllipsizeMode;
+#ifdef USE_GTKMM4
+using Pango::EllipsizeMode::NONE;
+using Pango::EllipsizeMode::START;
+using Pango::EllipsizeMode::MIDDLE;
+using Pango::EllipsizeMode::END;
+#else
+constexpr type NONE = Pango::ELLIPSIZE_NONE;
+constexpr type START = Pango::ELLIPSIZE_START;
+constexpr type MIDDLE = Pango::ELLIPSIZE_MIDDLE;
+constexpr type END = Pango::ELLIPSIZE_END;
+#endif
+} // EllipsizeMode
+
+/**
+ * @brief Pango::Underline の alias
+ */
+namespace Underline {
+using type = Pango::Underline;
+#ifdef USE_GTKMM4
+using Pango::Underline::NONE;
+using Pango::Underline::SINGLE;
+using Pango::Underline::DOUBLE;
+using Pango::Underline::LOW;
+using Pango::Underline::ERROR;
+using Pango::Underline::SINGLE_LINE;
+using Pango::Underline::DOUBLE_LINE;
+using Pango::Underline::ERROR_LINE;
+#else
+constexpr type NONE = Pango::UNDERLINE_NONE;
+constexpr type SINGLE = Pango::UNDERLINE_SINGLE;
+constexpr type DOUBLE = Pango::UNDERLINE_DOUBLE;
+constexpr type LOW = Pango::UNDERLINE_LOW;
+constexpr type ERROR = Pango::UNDERLINE_ERROR;
+constexpr type SINGLE_LINE = Pango::UNDERLINE_SINGLE_LINE;
+constexpr type DOUBLE_LINE = Pango::UNDERLINE_DOUBLE_LINE;
+constexpr type ERROR_LINE = Pango::UNDERLINE_ERROR_LINE;
+#endif
+} // Underline
+
+/**
+ * @brief Pango::Weight の alias
+ */
+namespace Weight {
+using type = Pango::Weight;
+#ifdef USE_GTKMM4
+using Pango::Weight::THIN;
+using Pango::Weight::ULTRALIGHT;
+using Pango::Weight::LIGHT;
+using Pango::Weight::SEMILIGHT;
+using Pango::Weight::BOOK;
+using Pango::Weight::NORMAL;
+using Pango::Weight::MEDIUM;
+using Pango::Weight::SEMIBOLD;
+using Pango::Weight::BOLD;
+using Pango::Weight::ULTRABOLD;
+using Pango::Weight::HEAVY;
+using Pango::Weight::ULTRAHEAVY;
+#else
+constexpr type THIN = Pango::WEIGHT_THIN;
+constexpr type ULTRALIGHT = Pango::WEIGHT_ULTRALIGHT;
+constexpr type LIGHT = Pango::WEIGHT_LIGHT;
+constexpr type SEMILIGHT = Pango::WEIGHT_SEMILIGHT;
+constexpr type BOOK = Pango::WEIGHT_BOOK;
+constexpr type NORMAL = Pango::WEIGHT_NORMAL;
+constexpr type MEDIUM = Pango::WEIGHT_MEDIUM;
+constexpr type SEMIBOLD = Pango::WEIGHT_SEMIBOLD;
+constexpr type BOLD = Pango::WEIGHT_BOLD;
+constexpr type ULTRABOLD = Pango::WEIGHT_ULTRABOLD;
+constexpr type HEAVY = Pango::WEIGHT_HEAVY;
+constexpr type ULTRAHEAVY = Pango::WEIGHT_ULTRAHEAVY;
+#endif
+} // Weight
 
 } // JDLIB::compat
 

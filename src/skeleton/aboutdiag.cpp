@@ -180,7 +180,7 @@ void AboutDiag::set_version( const Glib::ustring& version )
     m_label_version.set_label( version );
 
     auto scale = Pango::Attribute::create_attr_scale( 5.0 / 3.0 );
-    auto weight = Pango::Attribute::create_attr_weight( Pango::WEIGHT_BOLD );
+    auto weight = Pango::Attribute::create_attr_weight( JDLIB::compat::Weight::BOLD );
     Pango::AttrList list;
     list.insert( scale );
     list.insert( weight );

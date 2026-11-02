@@ -109,13 +109,13 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url, const std
     m_spin_maxres.set_increments( 1, 1 );
     m_spin_maxres.set_value( max_res );
 
-    m_label_name_value.set_ellipsize( Pango::ELLIPSIZE_END );
-    m_label_url_value.set_ellipsize( Pango::ELLIPSIZE_END );
-    m_label_url_dat_value.set_ellipsize( Pango::ELLIPSIZE_END );
-    m_label_cache_value.set_ellipsize( Pango::ELLIPSIZE_END );
-    m_label_size_value.set_ellipsize( Pango::ELLIPSIZE_END );
-    m_label_write_name_value.set_ellipsize( Pango::ELLIPSIZE_END );
-    m_label_write_mail_value.set_ellipsize( Pango::ELLIPSIZE_END );
+    m_label_name_value.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
+    m_label_url_value.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
+    m_label_url_dat_value.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
+    m_label_cache_value.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
+    m_label_size_value.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
+    m_label_write_name_value.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
+    m_label_write_mail_value.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
 
     m_label_maxres.set_halign( JDLIB::compat::Align::START );
     m_label_charset.set_halign( JDLIB::compat::Align::START );

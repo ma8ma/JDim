@@ -90,7 +90,7 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url )
     if( ! abone_reason.empty() ) {
         abone_reason = MISC::replace_str( abone_reason, "<br>", "\n" );
         label_abone_reason_value = Gtk::make_managed<Gtk::Label>( abone_reason );
-        label_abone_reason_value->set_ellipsize( Pango::ELLIPSIZE_END );
+        label_abone_reason_value->set_ellipsize( JDLIB::compat::EllipsizeMode::END );
         label_abone_reason_value->set_halign( JDLIB::compat::Align::START );
         label_abone_reason_value->set_hexpand( true );
         label_abone_reason_value->set_selectable( true );
@@ -149,7 +149,7 @@ Preferences::Preferences( Gtk::Window* parent, const std::string& url )
         child->set_halign( JDLIB::compat::Align::START );
         child->set_hexpand( true );
         static_cast<Gtk::Label*>( child )->set_selectable( true );
-        static_cast<Gtk::Label*>( child )->set_ellipsize( Pango::ELLIPSIZE_END );
+        static_cast<Gtk::Label*>( child )->set_ellipsize( JDLIB::compat::EllipsizeMode::END );
     }
 
     set_title( "画像のプロパティ" );
