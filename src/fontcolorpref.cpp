@@ -180,20 +180,20 @@ FontColorPref::FontColorPref( Gtk::Window* parent, const std::string& url )
         // ComboBoxText に内容を追加した後でバインドしないとデスクトップのシステム設定と同期しない
         m_binding_theme = Glib::Binding::bind_property( Gtk::Settings::get_default()->property_gtk_theme_name(),
                                                         m_combo_theme.property_active_id(),
-                                                        Glib::BINDING_BIDIRECTIONAL | Glib::BINDING_SYNC_CREATE );
+                                                        JDLIB::compat::Binding::Flags::BIDIRECTIONAL | JDLIB::compat::Binding::Flags::SYNC_CREATE );
         m_binding_system = Glib::Binding::bind_property( m_check_system_theme.property_active(),
                                                          m_combo_theme.property_sensitive(),
-                                                         Glib::BINDING_INVERT_BOOLEAN | Glib::BINDING_SYNC_CREATE );
+                                                         JDLIB::compat::Binding::Flags::INVERT_BOOLEAN | JDLIB::compat::Binding::Flags::SYNC_CREATE );
         m_binding_dark = Glib::Binding::bind_property(
             Gtk::Settings::get_default()->property_gtk_application_prefer_dark_theme(),
-            m_check_dark_theme.property_active(), Glib::BINDING_BIDIRECTIONAL | Glib::BINDING_SYNC_CREATE );
+            m_check_dark_theme.property_active(), JDLIB::compat::Binding::Flags::BIDIRECTIONAL | JDLIB::compat::Binding::Flags::SYNC_CREATE );
     }
     m_binding_icon = Glib::Binding::bind_property( Gtk::Settings::get_default()->property_gtk_icon_theme_name(),
                                                    m_combo_icon.property_active_id(),
-                                                   Glib::BINDING_BIDIRECTIONAL | Glib::BINDING_SYNC_CREATE );
+                                                   JDLIB::compat::Binding::Flags::BIDIRECTIONAL | JDLIB::compat::Binding::Flags::SYNC_CREATE );
     m_binding_system_icon = Glib::Binding::bind_property( m_check_system_icon.property_active(),
                                                           m_combo_icon.property_sensitive(),
-                                                          Glib::BINDING_INVERT_BOOLEAN | Glib::BINDING_SYNC_CREATE );
+                                                          JDLIB::compat::Binding::Flags::INVERT_BOOLEAN | JDLIB::compat::Binding::Flags::SYNC_CREATE );
 
     set_title( "フォントと色の詳細設定" );
     // ウインドウの自然なサイズを設定するがディスプレイに合わせて調整される

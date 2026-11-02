@@ -58,7 +58,7 @@ void AboutConfig::pack_widgets()
     // m_toggle_search 以外にも m_search_bar を閉じる操作があるため双方向にバインドする
     m_binding_search = Glib::Binding::bind_property( m_toggle_search.property_active(),
                                                      m_search_bar.property_search_mode_enabled(),
-                                                     Glib::BINDING_BIDIRECTIONAL );
+                                                     JDLIB::compat::Binding::Flags::BIDIRECTIONAL );
 
     m_search_bar.add( m_search_entry );
     m_search_bar.connect_entry( m_search_entry );

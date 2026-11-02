@@ -6,6 +6,9 @@
 #ifndef JDLIB_GTK_COMPAT_H
 #define JDLIB_GTK_COMPAT_H
 
+#include <glibmm/binding.h>
+#include <glibmm/fileutils.h>
+#include <glibmm/iochannel.h>
 #include <gtkmm/box.h>
 #include <gtkmm/dialog.h>
 #include <gtkmm/entry.h>
@@ -591,8 +594,86 @@ constexpr type TOUCHPAD = Gdk::SOURCE_TOUCHPAD;
 constexpr type TRACKPOINT = Gdk::SOURCE_TRACKPOINT;
 constexpr type TABLET_PAD = Gdk::SOURCE_TABLET_PAD;
 #endif
-
 } // InputSource
+
+/**
+ * @brief Glib::Binding::Flags の alias
+ */
+namespace Binding::Flags {
+#ifdef USE_GTKMM4
+using type = Glib::Binding::Flags;
+using Glib::Binding::Flags::DEFAULT;
+using Glib::Binding::Flags::BIDIRECTIONAL;
+using Glib::Binding::Flags::SYNC_CREATE;
+using Glib::Binding::Flags::INVERT_BOOLEAN;
+#else
+using type = Glib::BindingFlags;
+constexpr type DEFAULT = Glib::BINDING_DEFAULT;
+constexpr type BIDIRECTIONAL = Glib::BINDING_BIDIRECTIONAL;
+constexpr type SYNC_CREATE = Glib::BINDING_SYNC_CREATE;
+constexpr type INVERT_BOOLEAN = Glib::BINDING_INVERT_BOOLEAN;
+#endif
+} // Binding::Flags
+
+/**
+ * @brief Glib::FileTest の alias
+ */
+namespace FileTest {
+using type = Glib::FileTest;
+#ifdef USE_GTKMM4
+using Glib::FileTest::IS_REGULAR;
+using Glib::FileTest::IS_SYMLINK;
+using Glib::FileTest::IS_DIR;
+using Glib::FileTest::IS_EXECUTABLE;
+using Glib::FileTest::EXISTS;
+#else
+constexpr type IS_REGULAR = Glib::FILE_TEST_IS_REGULAR;
+constexpr type IS_SYMLINK = Glib::FILE_TEST_IS_SYMLINK;
+constexpr type IS_DIR = Glib::FILE_TEST_IS_DIR;
+constexpr type IS_EXECUTABLE = Glib::FILE_TEST_IS_EXECUTABLE;
+constexpr type EXISTS = Glib::FILE_TEST_EXISTS;
+#endif
+} // FileTest
+
+/**
+ * @brief Glib::IOCondition の alias
+ */
+namespace IOCondition {
+using type = Glib::IOCondition;
+#ifdef USE_GTKMM4
+using Glib::IOCondition::IO_IN;
+using Glib::IOCondition::IO_OUT;
+using Glib::IOCondition::IO_PRI;
+using Glib::IOCondition::IO_ERR;
+using Glib::IOCondition::IO_HUP;
+using Glib::IOCondition::IO_NVAL;
+#else
+constexpr type IO_IN = Glib::IO_IN;
+constexpr type IO_OUT = Glib::IO_OUT;
+constexpr type IO_PRI = Glib::IO_PRI;
+constexpr type IO_ERR = Glib::IO_ERR;
+constexpr type IO_HUP = Glib::IO_HUP;
+constexpr type IO_NVAL = Glib::IO_NVAL;
+#endif
+} // IOCondition
+
+/**
+ * @brief Glib::IOStatus の alias
+ */
+namespace IOStatus {
+using type = Glib::IOStatus;
+#ifdef USE_GTKMM4
+using Glib::IOStatus::ERROR;
+using Glib::IOStatus::NORMAL;
+using Glib::IOStatus::ENDOFFILE;
+using Glib::IOStatus::AGAIN;
+#else
+constexpr type ERROR = Glib::IO_STATUS_ERROR;
+constexpr type NORMAL = Glib::IO_STATUS_NORMAL;
+constexpr type ENDOFFILE = Glib::IO_STATUS_EOF;
+constexpr type AGAIN = Glib::IO_STATUS_AGAIN;
+#endif
+} // IOStatus
 
 } // JDLIB::compat
 

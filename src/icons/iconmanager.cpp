@@ -84,12 +84,12 @@ std::vector<std::string> ICON::get_installed_gtk_theme_names()
     std::vector<std::string> names;
 
     auto fill_gtk = [&]( const auto& themes_dir ) {
-        if( ! Glib::file_test( themes_dir, Glib::FILE_TEST_IS_DIR ) ) return;
+        if( ! Glib::file_test( themes_dir, JDLIB::compat::FileTest::IS_DIR ) ) return;
 
         for( auto dir_name : Glib::Dir( themes_dir ) ) {
             for( int i = 0; i < minor; i += 2 ) {
                 auto file_path = Glib::ustring::compose( "%1/%2/gtk-3.%3/gtk.css", themes_dir, dir_name, i );
-                if( Glib::file_test( file_path, Glib::FILE_TEST_IS_REGULAR ) ) {
+                if( Glib::file_test( file_path, JDLIB::compat::FileTest::IS_REGULAR ) ) {
                     names.push_back( std::move( dir_name ) );
                     break;
                 }
@@ -132,7 +132,7 @@ std::vector<std::string> ICON::get_installed_icon_theme_names()
     std::vector<std::string> names;
 
     auto fill_icon = [&]( const auto& themes_dir ) {
-        if( ! Glib::file_test( themes_dir, Glib::FILE_TEST_IS_DIR ) ) return;
+        if( ! Glib::file_test( themes_dir, JDLIB::compat::FileTest::IS_DIR ) ) return;
 
         for( auto dir_name : Glib::Dir( themes_dir ) ) {
 
