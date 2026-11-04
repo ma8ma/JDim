@@ -7,6 +7,8 @@
 
 #include "prefdiag.h"
 
+#include "jdlib/sigc_compat.h"
+
 #include <string>
 #include <list>
 
@@ -83,8 +85,8 @@ namespace SKELETON
         Gtk::Box m_hbox;
 
         // キーフック用
-        typedef sigc::signal< bool, GdkEventKey* > SIG_KEY_PRESS;
-        typedef sigc::signal< bool, GdkEventKey* > SIG_KEY_RELEASE;
+        typedef JDLIB::compat::signal< bool(GdkEventKey*) > SIG_KEY_PRESS;
+        typedef JDLIB::compat::signal< bool(GdkEventKey*) > SIG_KEY_RELEASE;
         SIG_KEY_PRESS m_sig_key_press;
         SIG_KEY_RELEASE m_sig_key_release;
 

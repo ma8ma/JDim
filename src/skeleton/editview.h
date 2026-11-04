@@ -5,6 +5,8 @@
 
 #include "control/control.h"
 
+#include "jdlib/sigc_compat.h"
+
 #include <gtkmm.h>
 
 #include <memory>
@@ -14,9 +16,9 @@ namespace SKELETON
 {
     class AAMenu;
 
-    typedef sigc::signal< bool, GdkEventKey* > SIG_KEY_PRESS;
-    typedef sigc::signal< bool, GdkEventKey* > SIG_KEY_RELEASE;
-    typedef sigc::signal< bool, GdkEventButton* > SIG_BUTTON_PRESS;
+    typedef JDLIB::compat::signal< bool(GdkEventKey*) > SIG_KEY_PRESS;
+    typedef JDLIB::compat::signal< bool(GdkEventKey*) > SIG_KEY_RELEASE;
+    typedef JDLIB::compat::signal< bool(GdkEventButton*) > SIG_BUTTON_PRESS;
 
     // undo 用のバッファ
     struct UndoDatum

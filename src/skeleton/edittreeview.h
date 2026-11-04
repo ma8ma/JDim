@@ -13,6 +13,8 @@
 #include "type.h"
 #include "data_info.h"
 
+#include "jdlib/sigc_compat.h"
+
 #include <gtkmm.h>
 #include <list>
 
@@ -32,7 +34,7 @@ namespace SKELETON
     };
 
     // 他のwidgetからドロップされた
-    typedef sigc::signal< void, const CORE::DATA_INFO_LIST& > SIG_DROPPED_FROM_OTHER;
+    typedef JDLIB::compat::signal< void(const CORE::DATA_INFO_LIST&) > SIG_DROPPED_FROM_OTHER;
 
     class EditColumns;
     class UNDO_BUFFER;

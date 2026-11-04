@@ -3,6 +3,8 @@
 #ifndef _TABLABEL_H
 #define _TABLABEL_H
 
+#include "jdlib/sigc_compat.h"
+
 #include <gtkmm.h>
 
 #include <memory>
@@ -12,13 +14,13 @@
 namespace SKELETON
 {
     // マウス
-    typedef sigc::signal< void > SIG_TAB_MOTION_EVENT;
-    typedef sigc::signal< void > SIG_TAB_LEAVE_EVENT;
+    typedef JDLIB::compat::signal< void() > SIG_TAB_MOTION_EVENT;
+    typedef JDLIB::compat::signal< void() > SIG_TAB_LEAVE_EVENT;
 
     // D&D
-    typedef sigc::signal< void > SIG_TAB_DRAG_BEGIN;
-    typedef sigc::signal< void, Gtk::SelectionData& > SIG_TAB_DRAG_DATA_GET;
-    typedef sigc::signal< void > SIG_TAB_DRAG_END;
+    typedef JDLIB::compat::signal< void() > SIG_TAB_DRAG_BEGIN;
+    typedef JDLIB::compat::signal< void(Gtk::SelectionData&) > SIG_TAB_DRAG_DATA_GET;
+    typedef JDLIB::compat::signal< void() > SIG_TAB_DRAG_END;
 
     class TabLabel : public Gtk::EventBox
     {

@@ -18,6 +18,8 @@
 
 #include "control/control.h"
 
+#include "jdlib/sigc_compat.h"
+
 #include <gtkmm.h>
 
 #include <memory>
@@ -30,14 +32,14 @@ namespace SKELETON
     class TabLabel;
     class IconPopup;
 
-    typedef sigc::signal< void, Gtk::Widget*, int > SIG_SWITCH_PAGE;
-    typedef sigc::signal< void, int > SIG_TAB_CLICKED;
-    typedef sigc::signal< void, int > SIG_TAB_CLOSE;
-    typedef sigc::signal< void, int > SIG_TAB_RELOAD;
-    typedef sigc::signal< void, int, int , int > SIG_TAB_MENU;
-    typedef sigc::signal< void, GdkEventScroll* > SIG_TAB_SCROLLED;
+    typedef JDLIB::compat::signal< void(Gtk::Widget*, int) > SIG_SWITCH_PAGE;
+    typedef JDLIB::compat::signal< void(int) > SIG_TAB_CLICKED;
+    typedef JDLIB::compat::signal< void(int) > SIG_TAB_CLOSE;
+    typedef JDLIB::compat::signal< void(int) > SIG_TAB_RELOAD;
+    typedef JDLIB::compat::signal< void(int, int, int) > SIG_TAB_MENU;
+    typedef JDLIB::compat::signal< void(GdkEventScroll*) > SIG_TAB_SCROLLED;
 
-    typedef sigc::signal< void, Gtk::SelectionData&, const int > SIG_DRAG_DATA_GET;
+    typedef JDLIB::compat::signal< void(Gtk::SelectionData&, const int) > SIG_DRAG_DATA_GET;
 
     // DragableNoteBook を構成している各Notebookの高さ
     // 及びタブの高さや位置の情報

@@ -2374,7 +2374,7 @@ void Core::exec_command_after_boot()
     restore_focus( true, true );
 
     // タイマーセット
-    sigc::slot< bool > slt_timeout = sigc::bind( sigc::mem_fun(*this, &Core::slot_timeout), 0 );
+    JDLIB::compat::slot< bool() > slt_timeout = sigc::bind( sigc::mem_fun(*this, &Core::slot_timeout), 0 );
     m_conn_timer = JDLIB::Timeout::connect( slt_timeout, TIMER_TIMEOUT );
 
     // 2chログイン

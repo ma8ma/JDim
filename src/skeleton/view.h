@@ -8,6 +8,7 @@
 #include <set>
 
 #include "control/control.h"
+#include "jdlib/sigc_compat.h"
 
 namespace SKELETON
 {
@@ -22,11 +23,11 @@ namespace SKELETON
 
     // 自分がポップアップviewの時に(ポップアップウィンドウ( SKELETON::PopupWin ) 経由で)
     // 親widgetにhideを依頼するシグナル。PopupWin::PopupWin()でPopupWin::slot_hide_popup()にコネクトされる。
-    typedef sigc::signal< void > SIG_HIDE_POPUP;    
+    typedef JDLIB::compat::signal< void() > SIG_HIDE_POPUP;
 
     // 自分がポップアップviewでリサイズしたときに、明示的にポップアップウィンドウ( SKELETON::PopupWin )
     // にリサイズを依頼するシグナル。PopupWin::PopupWin()でPopupWin::slot_resize_popup()にコネクトされる。
-    typedef sigc::signal< void > SIG_RESIZE_POPUP;
+    typedef JDLIB::compat::signal< void() > SIG_RESIZE_POPUP;
     
     class View : public Gtk::Box
     {

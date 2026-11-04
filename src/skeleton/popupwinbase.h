@@ -7,6 +7,8 @@
 #ifndef POPUPWINBASE_H
 #define POPUPWINBASE_H
 
+#include "jdlib/sigc_compat.h"
+
 #include <gtkmm.h>
 
 
@@ -19,7 +21,7 @@ namespace SKELETON
     // Gtk::Windows は signal_configure_event()を発行しないようなので
     // 自前でconfigureイベントをフックしてシグナルを発行する
     //
-    using SIG_CONFIGURED_POPUP = sigc::signal< void, int, int >;
+    using SIG_CONFIGURED_POPUP = JDLIB::compat::signal< void(int, int) >;
 
     class PopupWinBase : public Gtk::Window
     {

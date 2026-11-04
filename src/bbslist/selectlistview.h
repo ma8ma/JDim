@@ -9,11 +9,13 @@
 
 #include "bbslistviewbase.h"
 
+#include "jdlib/sigc_compat.h"
+
 namespace BBSLIST
 {
     // 親の SelectListDialog や EditListWin に送る信号
-    typedef sigc::signal< void > SIG_CLOSE_DIALOG;
-    typedef sigc::signal< void > SIG_FOCUS_ENTRY_SEARCH;
+    typedef JDLIB::compat::signal< void() > SIG_CLOSE_DIALOG;
+    typedef JDLIB::compat::signal< void() > SIG_FOCUS_ENTRY_SEARCH;
 
     class SelectListView : public BBSListViewBase
     {
