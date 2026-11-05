@@ -157,13 +157,13 @@ void Admin::setup_menu()
 
     // アクセラレーターキーやマウスジェスチャーの追加は行わない
     // CONTROL::set_menu_motion() はGTK4で廃止されるGtk::MenuのAPIを使っている
-    m_model_popup = Glib::RefPtr<Gio::Menu>::cast_dynamic( builder->get_object( "popup_menu" ) );
+    m_model_popup = JDLIB::compat::dynamic_pointer_cast<Gio::Menu>( builder->get_object( "popup_menu" ) );
 
     // タブの切り替えメニュー
     m_model_tabswitch = SKELETON::TabSwitchMenu::create( m_notebook.get() );
 
     // 移動サブメニュー
-    auto submenu = Glib::RefPtr<Gio::Menu>::cast_dynamic( builder->get_object( "move_submenu" ) );
+    auto submenu = JDLIB::compat::dynamic_pointer_cast<Gio::Menu>( builder->get_object( "move_submenu" ) );
     submenu->append_section( m_model_tabswitch );
     m_item_sub = Gio::MenuItem::create( ITEM_NAME_GO, submenu );
 
@@ -2124,7 +2124,7 @@ void Admin::slot_tab_menu( int page, int x, int y )
     m_clicked_page = -1; // メニューのactive状態を変えたときにslot関数が呼び出されるのをキャンセル
 
     auto get_action = [this]( const char* name ) {
-        return Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( name ) );
+        return JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( name ) );
     };
 
     // ロック

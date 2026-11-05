@@ -227,7 +227,7 @@ Glib::RefPtr<Gio::Icon> ICON_Manager::get_icon( const int id )
  */
 Glib::RefPtr<Gdk::Pixbuf> ICON_Manager::get_pixbuf( const int id )
 {
-    return Glib::RefPtr<Gdk::Pixbuf>::cast_dynamic( m_list_icons[ id ] );
+    return JDLIB::compat::dynamic_pointer_cast<Gdk::Pixbuf>( m_list_icons[ id ] );
 }
 
 

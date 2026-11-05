@@ -887,7 +887,7 @@ static inline void toggle_sidebar_action( Glib::RefPtr< Gtk::ActionGroup >& grou
     Glib::RefPtr< Gtk::ToggleAction > tact;
 
     act = group->get_action( action );
-    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    tact = JDLIB::compat::dynamic_pointer_cast< Gtk::ToggleAction >( act );
     if( tact ){
 
         if( SESSION::show_sidebar() && SESSION::get_sidebar_current_url() == url ) tact->set_active( true );
@@ -918,7 +918,7 @@ void CORE::Core::slot_activate_menubar()
 
     // メニューバー
     act = m_action_group->get_action( "ShowMenuBar" );
-    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    tact = JDLIB::compat::dynamic_pointer_cast< Gtk::ToggleAction >( act );
     if( tact ){
         if( SESSION::show_menubar() ) tact->set_active( true );
         else tact->set_active( false );
@@ -926,7 +926,7 @@ void CORE::Core::slot_activate_menubar()
 
     // ボタンのrelief切り替え
     act = m_action_group->get_action( "ToggleFlatButton" );
-    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    tact = JDLIB::compat::dynamic_pointer_cast< Gtk::ToggleAction >( act );
     if( tact ){
         if( CONFIG::get_flat_button() ) tact->set_active( true );
         else tact->set_active( false );
@@ -934,7 +934,7 @@ void CORE::Core::slot_activate_menubar()
 
     // ツールバー背景描画
     act = m_action_group->get_action( "ToggleDrawToolbarback" );
-    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    tact = JDLIB::compat::dynamic_pointer_cast< Gtk::ToggleAction >( act );
     if( tact ){
         if( CONFIG::get_draw_toolbarback() ) tact->set_active( true );
         else tact->set_active( false );
@@ -942,25 +942,25 @@ void CORE::Core::slot_activate_menubar()
 
     // ツールバー
     act = m_action_group->get_action( "ShowToolBarMain" );
-    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    tact = JDLIB::compat::dynamic_pointer_cast< Gtk::ToggleAction >( act );
     if( tact ){
         if( SESSION::get_show_main_toolbar() ) tact->set_active( true );
         else tact->set_active( false );
     }
     act = m_action_group->get_action( "ShowToolBarBbslist" );
-    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    tact = JDLIB::compat::dynamic_pointer_cast< Gtk::ToggleAction >( act );
     if( tact ){
         if( SESSION::get_show_bbslist_toolbar() ) tact->set_active( true );
         else tact->set_active( false );
     }
     act = m_action_group->get_action( "ShowToolBarBoard" );
-    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    tact = JDLIB::compat::dynamic_pointer_cast< Gtk::ToggleAction >( act );
     if( tact ){
         if( SESSION::get_show_board_toolbar() ) tact->set_active( true );
         else tact->set_active( false );
     }
     act = m_action_group->get_action( "ShowToolBarArticle" );
-    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    tact = JDLIB::compat::dynamic_pointer_cast< Gtk::ToggleAction >( act );
     if( tact ){
         if( SESSION::get_show_article_toolbar() ) tact->set_active( true );
         else tact->set_active( false );
@@ -968,13 +968,13 @@ void CORE::Core::slot_activate_menubar()
 
     // タブ
     act = m_action_group->get_action( "TabBoard" );
-    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    tact = JDLIB::compat::dynamic_pointer_cast< Gtk::ToggleAction >( act );
     if( tact ){
         if( SESSION::get_show_board_tab() ) tact->set_active( true );
         else tact->set_active( false );
     }
     act = m_action_group->get_action( "TabArticle" );
-    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    tact = JDLIB::compat::dynamic_pointer_cast< Gtk::ToggleAction >( act );
     if( tact ){
         if( SESSION::get_show_article_tab() ) tact->set_active( true );
         else tact->set_active( false );
@@ -982,7 +982,7 @@ void CORE::Core::slot_activate_menubar()
 
     // フルスクリーン
     act = m_action_group->get_action( "FullScreen" );
-    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    tact = JDLIB::compat::dynamic_pointer_cast< Gtk::ToggleAction >( act );
     if( tact ){
         if( SESSION::is_full_win_main() ) tact->set_active( true );
         else tact->set_active( false );
@@ -990,7 +990,7 @@ void CORE::Core::slot_activate_menubar()
 
     // ステータスバー
     act = m_action_group->get_action( "ShowStatBar" );
-    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    tact = JDLIB::compat::dynamic_pointer_cast< Gtk::ToggleAction >( act );
     if( tact ){
         if( SESSION::get_show_main_statbar() ) tact->set_active( true );
         else tact->set_active( false );
@@ -998,7 +998,7 @@ void CORE::Core::slot_activate_menubar()
 
     // 2chログイン
     act = m_action_group->get_action( "Login2ch" );
-    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    tact = JDLIB::compat::dynamic_pointer_cast< Gtk::ToggleAction >( act );
     if( tact ){
 
         if( CORE::get_login2ch()->login_now() ) tact->set_active( true );
@@ -1007,7 +1007,7 @@ void CORE::Core::slot_activate_menubar()
 
     // BEログイン
     act = m_action_group->get_action( "LoginBe" );
-    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    tact = JDLIB::compat::dynamic_pointer_cast< Gtk::ToggleAction >( act );
     if( tact ){
 
         if( CORE::get_loginbe()->login_now() ) tact->set_active( true );
@@ -1016,7 +1016,7 @@ void CORE::Core::slot_activate_menubar()
 
     // どんぐりシステム メールアドレス登録警備員のログイン
     act = m_action_group->get_action( "LoginAcorn" );
-    tact = Glib::RefPtr<Gtk::ToggleAction>::cast_dynamic( act );
+    tact = JDLIB::compat::dynamic_pointer_cast<Gtk::ToggleAction>( act );
     if( tact ) {
         tact->set_active( CORE::get_loginacorn()->login_now() );
     }
@@ -1068,7 +1068,7 @@ void CORE::Core::slot_activate_menubar()
 
     // emacsモード
     act = m_action_group->get_action( "ToggleEmacsMode" );
-    tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+    tact = JDLIB::compat::dynamic_pointer_cast< Gtk::ToggleAction >( act );
     if( tact ){
         if( CONTROL::is_emacs_mode() ) tact->set_active( true );
         else tact->set_active( false );

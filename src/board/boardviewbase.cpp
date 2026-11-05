@@ -284,7 +284,7 @@ void BoardViewBase::setup_action()
 
 void BoardViewBase::setup_popupmenu( Gtk::Menu& menu, const Glib::RefPtr<Glib::Object>& model )
 {
-    menu.bind_model( Glib::RefPtr<Gio::MenuModel>::cast_dynamic( model ), true );
+    menu.bind_model( JDLIB::compat::dynamic_pointer_cast<Gio::MenuModel>( model ), true );
     menu.attach_to_widget( *this );
 }
 
@@ -1732,7 +1732,7 @@ void BoardViewBase::activate_act_before_popupmenu( const std::string& url )
     Glib::RefPtr<Gio::SimpleAction> act;
 
     // dat 保存
-    act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "SaveDat" ) );
+    act = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "SaveDat" ) );
     if( act ){
 
         act->set_enabled( false );

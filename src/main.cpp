@@ -452,7 +452,7 @@ JDWinMain* App::create_window()
     auto win = new JDWinMain( init, skip_setupdiag, init_w, init_h, init_x, init_y );
     win->signal_hide().connect( sigc::mem_fun( *this, &App::slot_hide_window ) );
     win->show_all();
-    Glib::RefPtr<Gtk::Application>::cast_dynamic( m_app )->add_window( *win );
+    JDLIB::compat::dynamic_pointer_cast<Gtk::Application>( m_app )->add_window( *win );
     return win;
 }
 

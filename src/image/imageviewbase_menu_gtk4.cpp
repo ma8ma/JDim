@@ -103,7 +103,7 @@ void IMAGE::ImageViewBase::setup_popupmenu()
 
     auto bind_menumodel = [this]( Gtk::Menu& menu, const Glib::RefPtr<Glib::Object>& menumodel ) {
         assert( menumodel );
-        menu.bind_model( Glib::RefPtr<Gio::MenuModel>::cast_dynamic( menumodel ), true );
+        menu.bind_model( JDLIB::compat::dynamic_pointer_cast<Gio::MenuModel>( menumodel ), true );
         menu.attach_to_widget( *this );
     };
 
@@ -132,22 +132,22 @@ void IMAGE::ImageViewBase::activate_act_before_popupmenu( [[maybe_unused]] const
     const bool current_protect = m_img->is_protected();
 
     // ロック
-    if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "LockTab" ) ) ) {
+    if( auto act = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "LockTab" ) ) ) {
         act->set_state( Glib::Variant<bool>::create( is_locked() ) );
     }
 
     // 閉じる
-    if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "Quit" ) ) ) {
+    if( auto act = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "Quit" ) ) ) {
         act->set_enabled( ! is_locked() );
     }
 
     // モザイク
-    if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "CancelMosaic" ) ) ) {
+    if( auto act = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "CancelMosaic" ) ) ) {
         act->set_enabled( m_img->is_cached() && m_img->get_mosaic() );
     }
 
     // サイズの大きい画像を表示
-    if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "ShowLargeImg" ) ) ) {
+    if( auto act = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "ShowLargeImg" ) ) ) {
         act->set_enabled( m_img->get_type() == DBIMG::T_LARGE );
     }
 
@@ -166,23 +166,23 @@ void IMAGE::ImageViewBase::activate_act_before_popupmenu( [[maybe_unused]] const
         "Size"
     };
     for( const char* menu : sizemenus ) {
-        if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( menu ) ) ) {
+        if( auto act = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( menu ) ) ) {
             act->set_enabled( m_img->is_cached() );
         }
     }
 
     // キャッシュをブラウザで開く
-    if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "OpenCacheBrowser" ) ) ) {
+    if( auto act = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "OpenCacheBrowser" ) ) ) {
         act->set_enabled( m_img->is_cached() );
     }
 
     // 参照元スレ
-    if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "OpenRef" ) ) ) {
+    if( auto act = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "OpenRef" ) ) ) {
         act->set_enabled( ! m_img->get_refurl().empty() );
     }
 
     // 保護
-    if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "ProtectImage" ) ) ) {
+    if( auto act = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "ProtectImage" ) ) ) {
 
         if( m_img->is_cached() ){
 
@@ -196,17 +196,17 @@ void IMAGE::ImageViewBase::activate_act_before_popupmenu( [[maybe_unused]] const
     // TODO: GTK4 GMenu ではサブメニュー親の sensitive が Action に連動しないため、
     // 「削除」サブメニュー自体は無効化せず、子の DeleteImage だけ enabled を落とします。
     // サブメニュー親の無効化をどうするかは後続のフェーズで決めます。
-    if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "DeleteImage" ) ) ) {
+    if( auto act = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "DeleteImage" ) ) ) {
         act->set_enabled(  m_img->get_code() != HTTP_INIT && ! m_img->is_protected() );
     }
 
     // ロード停止
-    if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "LoadStop" ) ) ) {
+    if( auto act = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "LoadStop" ) ) ) {
         act->set_enabled( m_img->is_loading() );
     }
 
     // あぼーん
-    if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "AboneImage" ) ) ) {
+    if( auto act = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "AboneImage" ) ) ) {
         act->set_enabled( ! m_img->is_protected() );
     }
 

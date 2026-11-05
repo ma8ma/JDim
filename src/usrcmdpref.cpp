@@ -226,7 +226,7 @@ void UsrCmdPref::show_popupmenu()
     const bool multi_selected{ list_it.size() > 1 };
 
     auto get_action = [this]( const char* name ) {
-        return Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( name ) );
+        return JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( name ) );
     };
     get_action( "NewCmd" )->set_enabled( ! multi_selected );
     get_action( "NewDir" )->set_enabled( ! multi_selected );

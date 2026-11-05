@@ -180,7 +180,7 @@ void ARTICLE::ArticleViewBase::setup_action()
     auto bind_menumodel = [this, &builder]( Gtk::Menu& menu, const Glib::ustring& menu_id ) {
         auto menumodel = builder->get_object( menu_id );
         assert( menumodel );
-        menu.bind_model( Glib::RefPtr<Gio::MenuModel>::cast_dynamic( menumodel ), true );
+        menu.bind_model( JDLIB::compat::dynamic_pointer_cast<Gio::MenuModel>( menumodel ), true );
         menu.attach_to_widget( *this );
     };
 
@@ -523,8 +523,8 @@ void ARTICLE::ArticleViewBase::activate_act_before_popupmenu( const std::string&
 
     // Action の状態を切り替える
 
-    auto copy_url_act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "CopyURL" ) );
-    auto open_browser_act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "OpenBrowser" ) );
+    auto copy_url_act = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "CopyURL" ) );
+    auto open_browser_act = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "OpenBrowser" ) );
 
     // url がセットされてない
     if( url.empty() ) {
@@ -567,7 +567,7 @@ void ARTICLE::ArticleViewBase::activate_act_before_popupmenu( const std::string&
 
     // Actionの設定を行うヘルパー関数
     auto set_action_enabled = [this]( const char* action_name, bool enabled ) {
-        if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( action_name ) ) ) {
+        if( auto act = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( action_name ) ) ) {
             act->set_enabled( enabled );
         }
     };
@@ -642,12 +642,12 @@ void ARTICLE::ArticleViewBase::activate_act_before_popupmenu( const std::string&
     set_action_enabled( "NextView", HISTORY::get_history_manager()->can_forward_viewhistory( get_url(), 1 ) );
 
     // 透明あぼーん
-    if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "TranspAbone" ) ) ) {
+    if( auto act = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "TranspAbone" ) ) ) {
         act->set_state( Glib::Variant<bool>::create( m_article->get_abone_transparent() ) );
     }
 
     // 透明/連鎖あぼーん
-    if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "TranspChainAbone" ) ) ) {
+    if( auto act = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "TranspChainAbone" ) ) ) {
         act->set_state( Glib::Variant<bool>::create(
                     m_article->get_abone_transparent() && m_article->get_abone_chain() ) );
     }
@@ -667,7 +667,7 @@ void ARTICLE::ArticleViewBase::activate_act_before_popupmenu( const std::string&
         set_action_enabled( "ShowLargeImg", DBIMG::get_type_real( url ) == DBIMG::T_LARGE );
 
         // 保護のトグル切替え
-        if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "ProtectImage" ) ) ) {
+        if( auto act = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "ProtectImage" ) ) ) {
             if( DBIMG::is_cached( url ) ) {
 
                 act->set_enabled( true );
@@ -689,7 +689,7 @@ void ARTICLE::ArticleViewBase::activate_act_before_popupmenu( const std::string&
         set_action_enabled( "PreferenceImage", has_cache );
 
         // あぼーん
-        if( auto act = Glib::RefPtr<Gio::SimpleAction>::cast_dynamic( m_action_group->lookup_action( "AboneImage" ) ) ) {
+        if( auto act = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "AboneImage" ) ) ) {
             if( DBIMG::is_protected( url ) ) {
                 act->set_enabled( false );
             }

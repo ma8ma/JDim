@@ -195,13 +195,13 @@ void ToolBar::reload_ui_icon()
 
     if( m_button_back ) {
         if( auto image = dynamic_cast<Gtk::Image*>(m_button_back->get_image()); image ) {
-            auto ptr = Glib::RefPtr<const Gio::Icon>::cast_const( ICON::get_icon( ICON::BACK ) );
+            auto ptr = JDLIB::compat::const_pointer_cast<const Gio::Icon>( ICON::get_icon( ICON::BACK ) );
             image->set( ptr, Gtk::ICON_SIZE_SMALL_TOOLBAR );
         }
     }
     if( m_button_forward ) {
         if( auto image = dynamic_cast<Gtk::Image*>(m_button_forward->get_image()); image ) {
-            auto ptr = Glib::RefPtr<const Gio::Icon>::cast_const( ICON::get_icon( ICON::FORWARD ) );
+            auto ptr = JDLIB::compat::const_pointer_cast<const Gio::Icon>( ICON::get_icon( ICON::FORWARD ) );
             image->set( ptr, Gtk::ICON_SIZE_SMALL_TOOLBAR );
         }
     }
@@ -1001,7 +1001,7 @@ void ToolBar::set_button_icon( Gtk::Button* button, const int iconid )
     if( ! button ) return;
 
     if( auto image = dynamic_cast<Gtk::Image*>(button->get_image()); image ) {
-        auto ptr = Glib::RefPtr<const Gio::Icon>::cast_const( ICON::get_icon( iconid ) );
+        auto ptr = JDLIB::compat::const_pointer_cast<const Gio::Icon>( ICON::get_icon( iconid ) );
         image->set( ptr, Gtk::ICON_SIZE_SMALL_TOOLBAR );
     }
 }

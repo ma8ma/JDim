@@ -328,7 +328,7 @@ void IMAGE::ImageViewBase::activate_act_before_popupmenu( const std::string& url
     act = action_group()->get_action( "LockTab" );
     if( act ){
 
-        auto tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+        auto tact = JDLIB::compat::dynamic_pointer_cast< Gtk::ToggleAction >( act );
         if( is_locked() ) tact->set_active( true );
         else tact->set_active( false );
     }
@@ -395,7 +395,7 @@ void IMAGE::ImageViewBase::activate_act_before_popupmenu( const std::string& url
 
             act->set_sensitive( true );
 
-            auto tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+            auto tact = JDLIB::compat::dynamic_pointer_cast< Gtk::ToggleAction >( act );
             if( tact ){
                 if( current_protect ) tact->set_active( true );
                 else tact->set_active( false );

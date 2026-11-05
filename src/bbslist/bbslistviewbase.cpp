@@ -588,14 +588,13 @@ bool BBSListViewBase::operate_view( const int control )
 //
 void BBSListViewBase::activate_act_before_popupmenu( const std::string& url )
 {
-    using P = Glib::RefPtr<Gio::SimpleAction>;
-    auto act_search = P::cast_dynamic( m_action_group->lookup_action( "SearchCacheBoard" ) );
-    auto act_import = P::cast_dynamic( m_action_group->lookup_action( "ImportDat" ) );
-    auto act_board = P::cast_dynamic( m_action_group->lookup_action( "PreferenceBoard" ) );
-    auto act_article = P::cast_dynamic( m_action_group->lookup_action( "PreferenceArticle" ) );
-    auto act_image = P::cast_dynamic( m_action_group->lookup_action( "PreferenceImage" ) );
-    auto act_opencache = P::cast_dynamic( m_action_group->lookup_action( "OpenCacheBrowser" ) );
-    auto act_opentab = P::cast_dynamic( m_action_group->lookup_action( "OpenTab" ) );
+    auto act_search = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "SearchCacheBoard" ) );
+    auto act_import = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "ImportDat" ) );
+    auto act_board = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "PreferenceBoard" ) );
+    auto act_article = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "PreferenceArticle" ) );
+    auto act_image = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "PreferenceImage" ) );
+    auto act_opencache = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "OpenCacheBrowser" ) );
+    auto act_opentab = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "OpenTab" ) );
 
     if( act_search ) act_search->set_enabled( false );
     if( act_import ) act_import->set_enabled( false );
@@ -643,7 +642,7 @@ Gtk::Menu* BBSListViewBase::id2popupmenu( const std::string& id )
     if( it == m_map_popupmenu.end() ) {
         // アクセラレーターキーやマウスジェスチャーの追加は行わない
         // CONTROL::set_menu_motion() はGTK4で廃止されるGtk::MenuのAPIを使っている
-        auto menumodel = Glib::RefPtr<Gio::MenuModel>::cast_dynamic( m_builder->get_object( id ) );
+        auto menumodel = JDLIB::compat::dynamic_pointer_cast<Gio::MenuModel>( m_builder->get_object( id ) );
         assert( menumodel );
         auto pair = m_map_popupmenu.emplace( id, menumodel );
         pair.first->second.attach_to_widget( *this );

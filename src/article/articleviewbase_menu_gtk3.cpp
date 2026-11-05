@@ -809,7 +809,7 @@ void ARTICLE::ArticleViewBase::activate_act_before_popupmenu( const std::string&
     act = action_group()->get_action( "TranspAbone" );
     if( act ){
 
-        Glib::RefPtr< Gtk::ToggleAction > tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+        Glib::RefPtr< Gtk::ToggleAction > tact = JDLIB::compat::dynamic_pointer_cast< Gtk::ToggleAction >( act );
         if( m_article->get_abone_transparent() ) tact->set_active( true );
         else tact->set_active( false );
     }
@@ -818,7 +818,7 @@ void ARTICLE::ArticleViewBase::activate_act_before_popupmenu( const std::string&
     act = action_group()->get_action( "TranspChainAbone" );
     if( act ){
 
-        Glib::RefPtr< Gtk::ToggleAction > tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+        Glib::RefPtr< Gtk::ToggleAction > tact = JDLIB::compat::dynamic_pointer_cast< Gtk::ToggleAction >( act );
         if( m_article->get_abone_transparent() && m_article->get_abone_chain() ) tact->set_active( true );
         else tact->set_active( false );
     }
@@ -856,7 +856,7 @@ void ARTICLE::ArticleViewBase::activate_act_before_popupmenu( const std::string&
 
                 act->set_sensitive( true );
 
-                Glib::RefPtr< Gtk::ToggleAction > tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+                Glib::RefPtr< Gtk::ToggleAction > tact = JDLIB::compat::dynamic_pointer_cast< Gtk::ToggleAction >( act );
                 if( DBIMG::is_protected( url ) ) tact->set_active( true );
                 else tact->set_active( false );
             }
@@ -896,7 +896,7 @@ void ARTICLE::ArticleViewBase::activate_act_before_popupmenu( const std::string&
 
                 act->set_sensitive( true );
 
-                Glib::RefPtr< Gtk::ToggleAction > tact = Glib::RefPtr< Gtk::ToggleAction >::cast_dynamic( act );
+                Glib::RefPtr< Gtk::ToggleAction > tact = JDLIB::compat::dynamic_pointer_cast< Gtk::ToggleAction >( act );
                 if( DBIMG::get_abone( url ) ) tact->set_active( true );
                 else tact->set_active( false );
             }

@@ -5,6 +5,7 @@
 
 #include "treeviewbase.h"
 
+#include "jdlib/gtk_compat.h"
 #include "jdlib/miscgtk.h"
 
 #include <algorithm>
@@ -140,10 +141,10 @@ void JDTreeViewBase::delete_selected_rows( const bool force )
     if( ! list_path.size() ) return;
 
     Glib::RefPtr< Gtk::ListStore > liststore;
-    Glib::RefPtr< Gtk::TreeStore > treestore = Glib::RefPtr< Gtk::TreeStore >::cast_dynamic( get_model() );
+    Glib::RefPtr< Gtk::TreeStore > treestore = JDLIB::compat::dynamic_pointer_cast< Gtk::TreeStore >( get_model() );
     if( ! treestore ){
 
-        liststore = Glib::RefPtr< Gtk::ListStore >::cast_dynamic( get_model() );
+        liststore = JDLIB::compat::dynamic_pointer_cast< Gtk::ListStore >( get_model() );
         if( ! liststore ) return;
     }
 

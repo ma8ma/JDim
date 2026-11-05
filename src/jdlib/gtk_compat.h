@@ -8,6 +8,8 @@
 
 #include <gtkmm/box.h>
 
+#include <memory>
+
 #include "enum_compat.h"
 
 namespace JDLIB::compat {
@@ -89,6 +91,50 @@ inline void box_append_expand_nofill( Gtk::Box& box, Gtk::Widget& widget, guint 
     box_append_packed( box, widget, true, false, padding );
 #else
     box.pack_start( widget, true, false, padding );
+#endif
+}
+
+
+/**
+ * @brief Glib::RefPtr を dynamic_pointer_cast する
+ *
+ * GTKMM3 と GTKMM4 の RefPtr に対する
+ * dynamic_pointer_cast の互換処理を行います。
+ *
+ * @tparam T キャスト先の型
+ * @tparam U キャスト元の型
+ * @param[in] src キャストする RefPtr
+ * @return キャストした RefPtr。
+ *         キャストに失敗した場合は空の RefPtr を返します。
+ */
+template<typename T, typename U>
+inline Glib::RefPtr<T> dynamic_pointer_cast( const Glib::RefPtr<U>& src )
+{
+#ifdef USE_GTKMM4
+    return std::dynamic_pointer_cast<T>( src );
+#else
+    return Glib::RefPtr<T>::cast_dynamic( src );
+#endif
+}
+
+/**
+ * @brief Glib::RefPtr を const_pointer_cast する
+ *
+ * GTKMM3 と GTKMM4 の RefPtr に対する
+ * const_pointer_cast の互換処理を行います。
+ *
+ * @tparam T キャスト先の型
+ * @tparam U キャスト元の型
+ * @param[in] src キャストする RefPtr
+ * @return const_pointer_cast した RefPtr
+ */
+template<typename T, typename U>
+inline Glib::RefPtr<T> const_pointer_cast( const Glib::RefPtr<U>& src )
+{
+#ifdef USE_GTKMM4
+    return std::const_pointer_cast<T>( src );
+#else
+    return Glib::RefPtr<T>::cast_const( src );
 #endif
 }
 

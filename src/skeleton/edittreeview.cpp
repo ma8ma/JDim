@@ -347,7 +347,7 @@ void EditTreeView::xml2tree( const XML::Document& document, Glib::RefPtr< Gtk::T
 //
 void EditTreeView::tree2xml( XML::Document& document, const std::string& root_name )
 {
-    Glib::RefPtr< Gtk::TreeStore > treestore = Glib::RefPtr< Gtk::TreeStore >::cast_dynamic( get_model() );
+    Glib::RefPtr< Gtk::TreeStore > treestore = JDLIB::compat::dynamic_pointer_cast< Gtk::TreeStore >( get_model() );
     if( ! treestore || treestore->children().empty() ){
         document.clear();
         return;
@@ -1528,7 +1528,7 @@ Gtk::TreePath EditTreeView::append_one_row( const std::string& url, const std::s
                                             const size_t dirid, const std::string& data,
                                             const Gtk::TreePath& path_dest, const bool before, const bool subdir )
 {
-    Glib::RefPtr< Gtk::TreeStore > treestore = Glib::RefPtr< Gtk::TreeStore >::cast_dynamic( get_model() );
+    Glib::RefPtr< Gtk::TreeStore > treestore = JDLIB::compat::dynamic_pointer_cast< Gtk::TreeStore >( get_model() );
     if( ! treestore ) return Gtk::TreePath();
 
 #ifdef _DEBUG
@@ -1677,7 +1677,7 @@ void EditTreeView::delete_rows( const CORE::DATA_INFO_LIST& list_info, const Gtk
 
     if( ! list_info.size() ) return;
 
-    Glib::RefPtr< Gtk::TreeStore > treestore = Glib::RefPtr< Gtk::TreeStore >::cast_dynamic( get_model() );
+    Glib::RefPtr< Gtk::TreeStore > treestore = JDLIB::compat::dynamic_pointer_cast< Gtk::TreeStore >( get_model() );
     if( ! treestore ) return;
 
     // あらかじめ path_select にカーソルを移動しておく
