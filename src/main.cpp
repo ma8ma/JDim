@@ -264,15 +264,15 @@ App::App()
     }
     Gio::Application::set_default( m_app );
 
-    m_app->add_main_option_entry( Gio::Application::OPTION_TYPE_BOOL,
+    m_app->add_main_option_entry( JDLIB::compat::Application::OptionType::BOOL,
                                   "multi", 'm', "Do not quit even if multiple sub-process" );
-    m_app->add_main_option_entry( Gio::Application::OPTION_TYPE_BOOL,
+    m_app->add_main_option_entry( JDLIB::compat::Application::OptionType::BOOL,
                                   "skip-setup", 's', "Skip the setup dialog" );
-    m_app->add_main_option_entry( Gio::Application::OPTION_TYPE_BOOL,
+    m_app->add_main_option_entry( JDLIB::compat::Application::OptionType::BOOL,
                                   "logfile", 'l', "Write message to msglog file" );
     m_app->add_main_option_entry( sigc::mem_fun( *this, &App::slot_option_geometry ),
                                   "geometry", 'g', "The initial size and location", "WxH-X+Y" );
-    m_app->add_main_option_entry( Gio::Application::OPTION_TYPE_BOOL,
+    m_app->add_main_option_entry( JDLIB::compat::Application::OptionType::BOOL,
                                   "version", 'V', "Display version of this program" );
 
     m_app->signal_handle_local_options().connect( sigc::mem_fun( *this, &App::slot_handle_local_options ) );

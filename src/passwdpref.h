@@ -84,7 +84,7 @@ namespace CORE
          * アイコンは現在の状態を表す (非表示の状態では非表示のアイコン、表示の状態では表示のアイコン)。
          * @param[in,out] entry パスワード入力欄
          */
-        static void slot_icon_release( Gtk::EntryIconPosition, const GdkEventButton*, Gtk::Entry* entry )
+        static void slot_icon_release( JDLIB::compat::Entry::IconPosition::type, const GdkEventButton*, Gtk::Entry* entry )
         {
             if( entry->get_visibility() ) {
                 entry->set_icon_from_icon_name( kViewConcealSymbolic, JDLIB::compat::Entry::IconPosition::SECONDARY );

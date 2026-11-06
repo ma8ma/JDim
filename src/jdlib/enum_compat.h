@@ -630,6 +630,32 @@ constexpr type REPLACE = Gio::APPLICATION_REPLACE;
 } // Application::Flags
 
 /**
+ * @brief Gio::Application::OptionType の alias
+ */
+namespace Application::OptionType {
+using type = Gio::Application::OptionType;
+#ifdef USE_GTKMM4
+using Gio::Application::OptionType::BOOL;
+using Gio::Application::OptionType::STRING;
+using Gio::Application::OptionType::INT;
+using Gio::Application::OptionType::FILENAME;
+using Gio::Application::OptionType::STRING_VECTOR;
+using Gio::Application::OptionType::FILENAME_VECTOR;
+using Gio::Application::OptionType::DOUBLE;
+using Gio::Application::OptionType::INT64;
+#else
+constexpr type BOOL = Gio::Application::OPTION_TYPE_BOOL;
+constexpr type STRING = Gio::Application::OPTION_TYPE_STRING;
+constexpr type INT = Gio::Application::OPTION_TYPE_INT;
+constexpr type FILENAME = Gio::Application::OPTION_TYPE_FILENAME;
+constexpr type STRING_VECTOR = Gio::Application::OPTION_TYPE_STRING_VECTOR;
+constexpr type FILENAME_VECTOR = Gio::Application::OPTION_TYPE_FILENAME_VECTOR;
+constexpr type DOUBLE = Gio::Application::OPTION_TYPE_DOUBLE;
+constexpr type INT64 = Gio::Application::OPTION_TYPE_INT64;
+#endif
+} // Application::OptionType
+
+/**
  * @brief Pango::EllipsizeMode の alias
  */
 namespace EllipsizeMode {
