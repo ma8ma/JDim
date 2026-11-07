@@ -5,6 +5,8 @@
 #ifndef _MENUBUTTON_H
 #define _MENUBUTTON_H
 
+#include "jdlib/sigc_compat.h"
+
 #include <gtkmm.h>
 
 #include <memory>
@@ -18,8 +20,8 @@ namespace SKELETON
 {
     class MenuButton : public Gtk::Button
     {
-        typedef sigc::signal< void > SIG_BUTTON_CLICKED;
-        typedef sigc::signal< void, const int > SIG_SELECTED;
+        typedef JDLIB::compat::signal< void() > SIG_BUTTON_CLICKED;
+        typedef JDLIB::compat::signal< void(const int) > SIG_SELECTED;
 
         SIG_BUTTON_CLICKED m_sig_clicked;
         SIG_SELECTED m_sig_selected;

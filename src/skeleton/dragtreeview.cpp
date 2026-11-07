@@ -10,6 +10,7 @@
 
 #include "config/globalconf.h"
 
+#include "jdlib/gtk_compat.h"
 #include "jdlib/miscutil.h"
 
 #include "control/controlid.h"
@@ -54,7 +55,7 @@ DragTreeView::DragTreeView( const std::string& url, const std::string& dndtarget
         init_font( fontname );
     }
 
-    get_selection()->set_mode( Gtk::SELECTION_MULTIPLE );
+    get_selection()->set_mode( JDLIB::compat::SelectionMode::MULTIPLE );
     get_selection()->signal_changed().connect( sigc::mem_fun( *this, &DragTreeView::slot_selection_changed ) );
 
     // D&D 設定
@@ -91,7 +92,7 @@ void DragTreeView::set_enable_drop_uri_list()
     targets_drop.push_back( Gtk::TargetEntry( "text/uri-list" ) );
 
     // ドロップされると on_drag_data_received() が呼び出される
-    drag_dest_set( targets_drop, Gtk::DEST_DEFAULT_ALL, Gdk::ACTION_COPY );
+    drag_dest_set( targets_drop, Gtk::DEST_DEFAULT_ALL, JDLIB::compat::DragAction::COPY );
 }
 
 
@@ -149,8 +150,10 @@ void DragTreeView::init_color( const int colorid_text, const int colorid_bg, con
 void DragTreeView::init_font( const std::string& fontname )
 {
     Pango::FontDescription pfd( fontname );
-    pfd.set_weight( Pango::WEIGHT_NORMAL );
+    pfd.set_weight( JDLIB::compat::Weight::NORMAL );
+#ifndef USE_GTKMM4
     override_font( pfd );
+#endif
 }
 
 

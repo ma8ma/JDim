@@ -22,7 +22,7 @@ OpenURLDialog::OpenURLDialog( const std::string& url )
     set_title( "URLを開く" );
     resize( 600, 1 );
 
-    set_default_response( Gtk::RESPONSE_OK );
+    set_default_response( JDLIB::compat::ResponseType::OK );
     show_all_children();
 
     m_label_url.grab_focus();

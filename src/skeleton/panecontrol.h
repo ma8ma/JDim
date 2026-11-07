@@ -6,6 +6,8 @@
 #ifndef _PANECONTROL_H
 #define _PANECONTROL_H
 
+#include "jdlib/sigc_compat.h"
+
 #include <gtkmm.h>
 
 namespace SKELETON
@@ -34,7 +36,7 @@ namespace SKELETON
     };
 
     // ペーン表示が切り替えられた
-    typedef sigc::signal< void, int > SIG_PANE_MODECHANGED;
+    typedef JDLIB::compat::signal< void(int) > SIG_PANE_MODECHANGED;
 
     class PaneControl
     {

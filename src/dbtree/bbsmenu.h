@@ -8,6 +8,7 @@
 
 #include "skeleton/loadable.h"
 #include "xml/document.h"
+#include "jdlib/sigc_compat.h"
 
 #include <string>
 #include <string_view>
@@ -35,7 +36,7 @@ class BBSMenu : public SKELETON::Loadable
      * @note Root は sigc::trackable を継承していないためsignalの接続解除が動作しない。
      * Root の寿命が尽きるとこのシグナルに接続された関数オブジェクトはdangling参照になるので注意。
      */
-    sigc::signal<void, BBSMenu&> m_sig_analyze_board_xml;
+    JDLIB::compat::signal<void(BBSMenu&)> m_sig_analyze_board_xml;
 
 public:
 

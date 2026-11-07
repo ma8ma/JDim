@@ -8,15 +8,17 @@
 
 #include "control/control.h"
 
+#include "jdlib/sigc_compat.h"
+
 #include <gtkmm.h>
 
 namespace SKELETON
 {
     class JDEntry : public Gtk::Entry
     {
-        typedef sigc::signal< void, GdkEventButton* > SIG_BUTTON_PRESS;
-        typedef sigc::signal< void, int > SIG_KEY_PRESS;
-        typedef sigc::signal< void, int > SIG_OPERATE;
+        typedef JDLIB::compat::signal< void(GdkEventButton*) > SIG_BUTTON_PRESS;
+        typedef JDLIB::compat::signal< void(int) > SIG_KEY_PRESS;
+        typedef JDLIB::compat::signal< void(int) > SIG_OPERATE;
 
         SIG_BUTTON_PRESS m_sig_button_press;
         SIG_KEY_PRESS m_sig_key_press;

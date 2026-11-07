@@ -14,3 +14,12 @@ jdim_ui_common_gresource_cpp = gnome.compile_resources(
   'jdim-ui-common.gresource.xml',
   source_dir: '.',
 )
+
+if use_gtkmm4
+  # GTK3 では使用しないので隔離する
+  jdim_ui_gresource_cpp = gnome.compile_resources(
+    'jdim_ui',
+    'jdim-ui.gresource.xml',
+    source_dir: '.',
+  )
+endif

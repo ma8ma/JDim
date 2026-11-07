@@ -29,8 +29,8 @@ namespace BOARD
         SKELETON::LabelEntry entry_port;
 
         explicit ProxyFrame( const std::string& title )
-            : m_vbox{ Gtk::ORIENTATION_VERTICAL, 0 }
-            , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+            : m_vbox{ JDLIB::compat::Orientation::VERTICAL, 0 }
+            , m_hbox{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
             , rd_global( "全体設定を使用する" )
             , rd_disable( "全体設定を無効にする" )
             , rd_local( "ローカル設定を使用する" )

@@ -8,6 +8,7 @@
 #include "dbimg/img.h"
 #include "dbimg/imginterface.h"
 
+#include "jdlib/gtk_compat.h"
 #include "jdlib/miscmsg.h"
 #include "jdlib/miscgtk.h"
 
@@ -20,7 +21,7 @@
 using namespace IMAGE;
 
 ImageAreaIcon::ImageAreaIcon( const std::string& url )
-    : ImageAreaBase( url, 0 ) // アイコンは常に Gdk::INTERP_NEAREST
+    : ImageAreaBase( url, 0 ) // アイコンは常に JDLIB::compat::InterpType::NEAREST
 {
 #ifdef _DEBUG    
     std::cout << "ImageAreaIcon::ImageAreaIcon url = " << url << std::endl;
@@ -116,7 +117,7 @@ void ImageAreaIcon::load_image_thread()
                 Glib::RefPtr<Gdk::Pixbuf> gray = MISC::convert_to_grayscale( *pixbuf.get() );
                 pixbuf = std::move( gray );
             }
-            m_pixbuf_icon = pixbuf->scale_simple( get_width(), get_height(), Gdk::INTERP_NEAREST );
+            m_pixbuf_icon = pixbuf->scale_simple( get_width(), get_height(), JDLIB::compat::InterpType::NEAREST );
         }
     }
     m_imgloader.reset();
@@ -167,9 +168,9 @@ void ImageAreaIcon::show_indicator( bool loading )
 
     if( ! m_pixbuf ){
 
-        m_pixbuf = Gdk::Pixbuf::create( Gdk::COLORSPACE_RGB, false, 8, get_width(), get_height() );
-        m_pixbuf_err = Gdk::Pixbuf::create( Gdk::COLORSPACE_RGB, false, 8, width_indicator(), height_indicator() );
-        m_pixbuf_loading = Gdk::Pixbuf::create( Gdk::COLORSPACE_RGB, false, 8, width_indicator(), height_indicator() );
+        m_pixbuf = Gdk::Pixbuf::create( JDLIB::compat::Colorspace::RGB, false, 8, get_width(), get_height() );
+        m_pixbuf_err = Gdk::Pixbuf::create( JDLIB::compat::Colorspace::RGB, false, 8, width_indicator(), height_indicator() );
+        m_pixbuf_loading = Gdk::Pixbuf::create( JDLIB::compat::Colorspace::RGB, false, 8, width_indicator(), height_indicator() );
 
         assert( m_pixbuf );
         assert( m_pixbuf_err );

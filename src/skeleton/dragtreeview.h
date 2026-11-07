@@ -16,6 +16,7 @@
 #include "treeviewbase.h"
 
 #include "control/control.h"
+#include "jdlib/sigc_compat.h"
 
 #include <gtkmm.h>
 
@@ -27,7 +28,7 @@ namespace SKELETON
     class View;
     class PopupWin;
 
-    typedef sigc::signal< void, const std::list< std::string >& > SIG_DROPPED_URI_LIST;
+    typedef JDLIB::compat::signal< void(const std::list< std::string >&) > SIG_DROPPED_URI_LIST;
 
     class DragTreeView : public JDTreeViewBase
     {

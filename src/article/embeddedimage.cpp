@@ -6,6 +6,7 @@
 #include "embeddedimage.h"
 #include "articleadmin.h"
 
+#include "jdlib/gtk_compat.h"
 #include "jdlib/imgloader.h"
 #include "jdlib/miscmsg.h"
 
@@ -145,9 +146,9 @@ void EmbeddedImage::resize_thread()
     m_imgloader = JDLIB::ImgLoader::get_loader( m_img->get_cache_path() );
     Glib::RefPtr<Gdk::Pixbuf> pixbuf = m_imgloader->get_pixbuf( pixbufonly );
     if( pixbuf ){
-        Gdk::InterpType interptype = Gdk::INTERP_NEAREST;
-        if( CONFIG::get_imgemb_interp() == 1 ) interptype = Gdk::INTERP_BILINEAR;
-        else if( CONFIG::get_imgemb_interp() >= 2 ) interptype = Gdk::INTERP_HYPER;
+        Gdk::InterpType interptype = JDLIB::compat::InterpType::NEAREST;
+        if( CONFIG::get_imgemb_interp() == 1 ) interptype = JDLIB::compat::InterpType::BILINEAR;
+        else if( CONFIG::get_imgemb_interp() >= 2 ) interptype = JDLIB::compat::InterpType::HYPER;
 
         m_pixbuf = pixbuf->scale_simple( width, height, interptype );
     }

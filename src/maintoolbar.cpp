@@ -12,6 +12,8 @@
 #include "control/controlutil.h"
 #include "control/controlid.h"
 
+#include "jdlib/gtk_compat.h"
+
 #include "session.h"
 #include "global.h"
 
@@ -20,25 +22,24 @@ using namespace CORE;
 
 MainToolBar::MainToolBar()
     : SKELETON::ToolBar( nullptr )
-    , m_button_go( ICON::GO, ITEM_NAME_GO )
+    , m_button_go( ICON::GO )
 
-    , m_button_bbslist( ICON::BBSLISTVIEW, ITEM_NAME_BBSLISTVIEW )
-    , m_button_favorite( ICON::FAVORITEVIEW, ITEM_NAME_FAVORITEVIEW )
-    , m_button_hist( ICON::HISTVIEW, ITEM_NAME_HISTVIEW )
-    , m_button_hist_board( ICON::HIST_BOARDVIEW, ITEM_NAME_HIST_BOARDVIEW )
-    , m_button_hist_close( ICON::HIST_CLOSEVIEW, ITEM_NAME_HIST_CLOSEVIEW )
-    , m_button_hist_closeboard( ICON::HIST_CLOSEBOARDVIEW, ITEM_NAME_HIST_CLOSEBOARDVIEW )
-    , m_button_hist_closeimg( ICON::HIST_CLOSEIMGVIEW, ITEM_NAME_HIST_CLOSEIMGVIEW )
+    , m_button_bbslist( ICON::BBSLISTVIEW )
+    , m_button_favorite( ICON::FAVORITEVIEW )
+    , m_button_hist( ICON::HISTVIEW )
+    , m_button_hist_board( ICON::HIST_BOARDVIEW )
+    , m_button_hist_close( ICON::HIST_CLOSEVIEW )
+    , m_button_hist_closeboard( ICON::HIST_CLOSEBOARDVIEW )
+    , m_button_hist_closeimg( ICON::HIST_CLOSEIMGVIEW )
 
-    , m_button_board( ICON::BOARDVIEW, ITEM_NAME_BOARDVIEW )
+    , m_button_board( ICON::BOARDVIEW )
 
-    , m_button_thread( ICON::ARTICLEVIEW, ITEM_NAME_ARTICLEVIEW )
+    , m_button_thread( ICON::ARTICLEVIEW )
 
-    , m_button_image( ICON::IMAGEVIEW, ITEM_NAME_IMAGEVIEW )
+    , m_button_image( ICON::IMAGEVIEW )
 {
-    m_entry_url.set_size_request( 0 );
-    m_tool_url.add( m_entry_url );
-    m_tool_url.set_expand( true );
+    m_entry_url.set_hexpand( true );
+    m_entry_url.set_halign( JDLIB::compat::Align::FILL );
 
     set_tooltip( m_button_go, ITEM_NAME_GO );
 
@@ -91,51 +92,51 @@ void MainToolBar::pack_buttons()
         switch( item ){
 
             case ITEM_BBSLISTVIEW:
-                get_buttonbar().append( m_button_bbslist );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), m_button_bbslist );
                 break;
 
             case ITEM_FAVORITEVIEW:
-                get_buttonbar().append( m_button_favorite );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), m_button_favorite );
                 break;
 
             case ITEM_HISTVIEW:
-                get_buttonbar().append( m_button_hist );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), m_button_hist );
                 break;
 
             case ITEM_HIST_BOARDVIEW:
-                get_buttonbar().append( m_button_hist_board );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), m_button_hist_board );
                 break;
 
             case ITEM_HIST_CLOSEVIEW:
-                get_buttonbar().append( m_button_hist_close );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), m_button_hist_close );
                 break;
 
             case ITEM_HIST_CLOSEBOARDVIEW:
-                get_buttonbar().append( m_button_hist_closeboard );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), m_button_hist_closeboard );
                 break;
 
             case ITEM_HIST_CLOSEIMGVIEW:
-                get_buttonbar().append( m_button_hist_closeimg );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), m_button_hist_closeimg );
                 break;
 
             case ITEM_BOARDVIEW:
-                get_buttonbar().append( m_button_board );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), m_button_board );
                 break;
 
             case ITEM_ARTICLEVIEW:
-                get_buttonbar().append( m_button_thread );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), m_button_thread );
                 break;
 
             case ITEM_IMAGEVIEW:
-                if( CONFIG::get_use_image_view() ) get_buttonbar().append( m_button_image );
+                if( CONFIG::get_use_image_view() ) JDLIB::compat::box_append_shrink( get_buttonbar(), m_button_image );
                 break;
 
             case ITEM_URL:
-                get_buttonbar().append( m_tool_url );
+                JDLIB::compat::box_append_expand( get_buttonbar(), m_entry_url );
                 break;
 
             case ITEM_GO:
-                get_buttonbar().append( m_button_go );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), m_button_go );
                 break;
 
             case ITEM_SEPARATOR:

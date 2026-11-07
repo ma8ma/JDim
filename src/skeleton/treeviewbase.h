@@ -6,6 +6,8 @@
 #ifndef _TREEVIEWBASE_H
 #define _TREEVIEWBASE_H
 
+#include "jdlib/sigc_compat.h"
+
 #include <gtkmm.h>
 #include <string>
 
@@ -13,13 +15,13 @@ namespace SKELETON
 {
     class JDTreeViewBase : public Gtk::TreeView
     {
-        typedef sigc::signal< bool, GdkEventKey* > SIG_KEY_PRESS;
-        typedef sigc::signal< bool, GdkEventKey* > SIG_KEY_RELEASE;
+        typedef JDLIB::compat::signal< bool(GdkEventKey*) > SIG_KEY_PRESS;
+        typedef JDLIB::compat::signal< bool(GdkEventKey*) > SIG_KEY_RELEASE;
 
-        typedef sigc::signal< bool, GdkEventScroll* > SIG_SCROLL_EVENT;
-        typedef sigc::signal< bool, GdkEventButton* > SIG_BUTTON_PRESS;
-        typedef sigc::signal< bool, GdkEventButton* > SIG_BUTTON_RELEASE;
-        typedef sigc::signal< bool, GdkEventMotion* > SIG_MOTION_NOTIFY;
+        typedef JDLIB::compat::signal< bool(GdkEventScroll*) > SIG_SCROLL_EVENT;
+        typedef JDLIB::compat::signal< bool(GdkEventButton*) > SIG_BUTTON_PRESS;
+        typedef JDLIB::compat::signal< bool(GdkEventButton*) > SIG_BUTTON_RELEASE;
+        typedef JDLIB::compat::signal< bool(GdkEventMotion*) > SIG_MOTION_NOTIFY;
 
         SIG_KEY_PRESS m_sig_key_press;
         SIG_KEY_RELEASE m_sig_key_release;

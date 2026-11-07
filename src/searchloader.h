@@ -8,6 +8,8 @@
 
 #include "skeleton/textloader.h"
 
+#include "jdlib/sigc_compat.h"
+
 #include <string>
 
 namespace CORE
@@ -15,7 +17,7 @@ namespace CORE
     class SearchLoader : public SKELETON::TextLoader
     {
         // 検索が終了するとemitされる
-        typedef sigc::signal< void > SIG_SEARCH_FIN;
+        typedef JDLIB::compat::signal< void() > SIG_SEARCH_FIN;
 
         SIG_SEARCH_FIN m_sig_search_fin;
 

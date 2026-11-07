@@ -23,7 +23,7 @@ ConfirmDiag::ConfirmDiag( const std::string& url, const std::string& message )
       m_chkbutton( "今後表示しない(常にOK)(_D)", true )
 {
     const int mrg = 16;
-    Gtk::Box* hbox = Gtk::make_managed<Gtk::Box>( Gtk::ORIENTATION_HORIZONTAL, 0 );
+    Gtk::Box* hbox = Gtk::make_managed<Gtk::Box>( JDLIB::compat::Orientation::HORIZONTAL, 0 );
     JDLIB::compat::box_append_expand( *hbox, m_chkbutton, mrg );
     JDLIB::compat::box_append_shrink( *get_content_area(), *hbox );
 

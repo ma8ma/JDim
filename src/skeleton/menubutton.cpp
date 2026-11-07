@@ -24,7 +24,7 @@ MenuButton::MenuButton( const bool show_arrow, Gtk::Widget* label, bool expand, 
     : m_label{ label }
     , m_enable_sig_clicked{ true }
 {
-    Gtk::Box* hbox = Gtk::manage( new Gtk::Box( Gtk::ORIENTATION_HORIZONTAL ) );
+    Gtk::Box* hbox = Gtk::manage( new Gtk::Box( JDLIB::compat::Orientation::HORIZONTAL ) );
 
     hbox->set_spacing( 4 );
     if( m_label ) {
@@ -138,7 +138,7 @@ void MenuButton::show_popupmenu()
     if( ! m_popupmenu ) return;
 
     // Specify the current event by nullptr.
-    m_popupmenu->popup_at_widget( this, Gdk::GRAVITY_SOUTH_WEST, Gdk::GRAVITY_NORTH_WEST, nullptr );
+    m_popupmenu->popup_at_widget( this, JDLIB::compat::Gravity::SOUTH_WEST, JDLIB::compat::Gravity::NORTH_WEST, nullptr );
 }
 
 

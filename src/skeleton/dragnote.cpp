@@ -24,11 +24,11 @@
 using namespace SKELETON;
 
 DragableNoteBook::DragableNoteBook()
-    : Gtk::Box{ Gtk::ORIENTATION_VERTICAL, 0 }
+    : Gtk::Box{ JDLIB::compat::Orientation::VERTICAL, 0 }
     , m_notebook_tab( this )
     , m_notebook_toolbar( this )
     , m_notebook_view( this )
-    , m_hbox_tab{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_hbox_tab{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_bt_tabswitch( this )
     , m_show_tabs{ true }
     , m_show_toolbar{ true }

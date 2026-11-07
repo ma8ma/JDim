@@ -12,9 +12,11 @@
 
 #include "popupwinbase.h"
 
+#include "jdlib/sigc_compat.h"
+
 namespace SKELETON
 {
-    typedef sigc::signal< void, const std::string& > SIG_AAMENU_SELECTED;
+    typedef JDLIB::compat::signal< void(const std::string&) > SIG_AAMENU_SELECTED;
 
     class AAMenu : public Gtk::Menu
     {

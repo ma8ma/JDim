@@ -23,7 +23,7 @@ enum
 
 TabLabel::TabLabel( const std::string& url )
     : m_url( url )
-    , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_hbox{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_id_icon( ICON::NUM_ICONS )
 {
 #ifdef _DEBUG
@@ -116,9 +116,13 @@ int TabLabel::get_label_margin() const
 {
     int label_margin;
 
+#ifdef USE_GTKMM4
+    label_margin = m_label.get_margin_start() + m_label.get_margin_end()
+#else
     int x_pad, y_pad;
     m_label.get_padding( x_pad, y_pad );
     label_margin = x_pad*2
+#endif
         + m_hbox.get_spacing() + m_hbox.get_border_width()*2
         + get_border_width()*2;
 

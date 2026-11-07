@@ -11,7 +11,7 @@ using namespace SKELETON;
 
 
 JDVBox::JDVBox()
-    : Gtk::Box{ Gtk::ORIENTATION_VERTICAL, 0 }
+    : Gtk::Box{ JDLIB::compat::Orientation::VERTICAL, 0 }
 {
 }
 

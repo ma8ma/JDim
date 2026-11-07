@@ -23,7 +23,7 @@ constexpr int kPopupSize = 5;
 
 
 CompletionEntry::CompletionEntry( const int mode )
-    : Gtk::Box{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    : Gtk::Box{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_mode( mode )
     , m_enable_changed( true )
     , m_popup_win( SKELETON::POPUPWIN_DRAWFRAME )
@@ -49,7 +49,7 @@ CompletionEntry::CompletionEntry( const int mode )
     m_treeview.sig_button_release().connect( sigc::mem_fun(*this, &CompletionEntry::slot_treeview_button_release ) );
 
     m_scr_win.add( m_treeview );
-    m_scr_win.set_policy( Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC );
+    m_scr_win.set_policy( JDLIB::compat::PolicyType::NEVER, JDLIB::compat::PolicyType::AUTOMATIC );
     m_scr_win.set_size_request( 1, 1 );
 
     m_popup_win.add( m_scr_win );
