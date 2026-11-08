@@ -573,7 +573,11 @@ void ImageAdmin::close_view( const std::string& url )
     // 現在表示中のviewを閉じた場合は次か前の画像に切り替える
     if( view && view == get_current_view() ){
 
+#ifdef USE_GTKMM4
+        m_view.remove( *m_view.get_first_child() );
+#else
         m_view.remove();
+#endif
 
         SKELETON::View* view_prev = nullptr;
         SKELETON::View* view_next = nullptr;
@@ -880,9 +884,19 @@ void ImageAdmin::switch_img( const std::string& url )
 #ifdef _DEBUG
                 std::cout << "view was toggled.\n";
 #endif
+#ifdef USE_GTKMM4
+                if( auto* child = m_view.get_first_child() ) {
+                    m_view.remove( *child );
+                }
+                view->set_hexpand( true );
+                view->set_vexpand( true );
+                m_view.append( *view );
+                view->show();
+#else
                 m_view.remove();
                 m_view.add( *view );
                 m_view.show_all_children();
+#endif
             }
             break;
         }
@@ -997,7 +1011,11 @@ SKELETON::View* ImageAdmin::get_view( const std::string& url )
 //
 SKELETON::View* ImageAdmin::get_current_view()
 {
+#ifdef USE_GTKMM4
+    return dynamic_cast< SKELETON::View* >( m_view.get_first_child() );
+#else
     return dynamic_cast< SKELETON::View* >( m_view.get_child() );
+#endif
 }
 
 
