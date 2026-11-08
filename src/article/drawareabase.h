@@ -136,7 +136,6 @@ namespace ARTICLE
 
         // HBoxに張り付けるウイジット
         Gtk::DrawingArea m_view;
-        Gtk::EventBox* m_event{};
         Gtk::Scrollbar* m_vscrbar{};
 
         // レイアウトツリー

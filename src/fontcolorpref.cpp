@@ -135,7 +135,7 @@ FontColorPref::FontColorPref( Gtk::Window* parent, const std::string& url )
 
     m_combo_font.set_active( 0 );
     m_fontbutton.set_font_name( CONFIG::get_fontname( m_font_tbl[ 0 ] ) );
-    m_event_font.set_tooltip_text( m_tooltips_font[ 0 ] );
+    m_combo_font.set_tooltip_text( m_tooltips_font[ 0 ] );
     m_fontbutton.set_tooltip_text( m_tooltips_font[ 0 ] );
 
     // GTKテーマの追加
@@ -218,10 +218,9 @@ void FontColorPref::pack_widget()
     m_grid_font.set_vexpand( true );
 
     // フォント
-    m_event_font.add( m_combo_font );
     m_combo_font.set_hexpand( false );
     m_fontbutton.set_hexpand( true );
-    JDLIB::compat::box_append_shrink( m_hbox_font, m_event_font );
+    JDLIB::compat::box_append_shrink( m_hbox_font, m_combo_font );
     JDLIB::compat::box_append_expand( m_hbox_font, m_fontbutton );
 
     m_grid_font.attach( m_hbox_font, 0, 0, 2, 1 );
@@ -526,7 +525,7 @@ void FontColorPref::slot_combo_font_changed()
 {
     const int num = m_combo_font.get_active_row_number();
     m_fontbutton.set_font_name( CONFIG::get_fontname( m_font_tbl[ num ] ) );
-    m_event_font.set_tooltip_text( m_tooltips_font[ num ] );
+    m_combo_font.set_tooltip_text( m_tooltips_font[ num ] );
     m_fontbutton.set_tooltip_text( m_tooltips_font[ num ] );
 }
 

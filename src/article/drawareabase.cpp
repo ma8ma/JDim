@@ -284,17 +284,12 @@ void DrawAreaBase::create_scrbar()
     std::cout << "DrawAreaBase::create_scrbar\n";
 #endif
 
-    // そのままHBoxにスクロールバーをパックすると、スクロールしたときに何故かHBox全体が
-    // 再描画されて負荷が高くなるのでEventBoxを間に挟む
     m_vscrbar = Gtk::manage( new Gtk::Scrollbar( Glib::RefPtr<Gtk::Adjustment>{}, JDLIB::compat::Orientation::VERTICAL ) );
-    m_event = Gtk::manage( new Gtk::EventBox() );
     assert( m_vscrbar );
-    assert( m_event );
 
     if( CONFIG::get_left_scrbar() ) remove( m_view );
 
-    m_event->add( *m_vscrbar );
-    JDLIB::compat::box_append_shrink( *this, *m_event );
+    JDLIB::compat::box_append_shrink( *this, *m_vscrbar );
 
     if( CONFIG::get_left_scrbar() ) JDLIB::compat::box_append_expand( *this, m_view );
 

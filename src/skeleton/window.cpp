@@ -68,14 +68,9 @@ JDWindow::JDWindow( const bool fold_when_focusout, const bool need_mginfo )
     m_label_stat.set_single_line_mode( true );
     m_label_stat.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
 
-    m_label_stat_ebox.add( m_label_stat );
-    m_label_stat_ebox.set_visible_window( false );
-
-    JDLIB::compat::box_append_expand( m_statbar, m_label_stat_ebox );
+    JDLIB::compat::box_append_expand( m_statbar, m_label_stat );
     if( need_mginfo ){
-        m_mginfo_ebox.add( m_mginfo );
-        m_mginfo_ebox.set_visible_window( false );
-        JDLIB::compat::box_append_shrink( m_statbar, m_mginfo_ebox );
+        JDLIB::compat::box_append_shrink( m_statbar, m_mginfo );
     }
 
     m_mginfo.set_width_chars( MGINFO_CHARS );
@@ -377,7 +372,7 @@ void JDWindow::set_status( const std::string& stat )
     m_status = stat;
 
     m_label_stat.set_text( stat );
-    m_label_stat_ebox.set_tooltip_text( stat );
+    m_label_stat.set_tooltip_text( stat );
 }
 
 
