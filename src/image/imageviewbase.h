@@ -40,7 +40,11 @@ namespace IMAGE
 
         bool m_wait{};
         bool m_loading{};
+#ifdef USE_GTKMM4
+        Gtk::Box m_event{ Gtk::Orientation::HORIZONTAL, 0 };
+#else
         Gtk::EventBox m_event;
+#endif
         bool m_dblclick{};
         bool m_under_mouse{};
 
@@ -71,7 +75,11 @@ namespace IMAGE
         bool is_loading() const override { return m_loading; }
         void set_loading( const bool loading ){ m_loading = loading; }
 
+#ifdef USE_GTKMM4
+        Gtk::Box& get_event(){ return m_event; }
+#else
         Gtk::EventBox& get_event(){ return  m_event; }
+#endif
 
       public:
 

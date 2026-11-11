@@ -91,6 +91,11 @@ void ImageViewBase::setup_common()
 
     // focus 可、モーションキャプチャ可
     m_event.set_can_focus( true );
+#ifdef USE_GTKMM4
+    m_event.set_focusable( true );
+    // TODO: GTK4 ではボタン、キー、スクロール、出入りを未接続にする。
+    //       クリック、ホイール、ホバーは動かない。EventController へ移す。
+#else
     m_event.add_events( Gdk::POINTER_MOTION_MASK );
     m_event.add_events( Gdk::SMOOTH_SCROLL_MASK );
 
@@ -101,6 +106,7 @@ void ImageViewBase::setup_common()
     m_event.signal_scroll_event().connect( sigc::mem_fun(*this, &ImageViewBase::slot_scroll_event ) );
     m_event.signal_enter_notify_event().connect(  sigc::mem_fun( *this, &ImageViewBase::slot_enter_notify_event ) );
     m_event.signal_leave_notify_event().connect(  sigc::mem_fun( *this, &ImageViewBase::slot_leave_notify_event ) );
+#endif
 
     m_event.grab_focus();
 
@@ -120,7 +126,13 @@ void ImageViewBase::set_imagearea( ImageAreaBase* imagearea )
 
     set_width_client( imagearea->get_width() );
     set_height_client( imagearea->get_height() );
+#ifdef USE_GTKMM4
+    m_imagearea->set_hexpand( true );
+    m_imagearea->set_vexpand( true );
+    m_event.append( *m_imagearea );
+#else
     m_event.add( *m_imagearea );
+#endif
 }
 
 
@@ -131,7 +143,11 @@ void ImageViewBase::set_imagearea( ImageAreaBase* imagearea )
 void ImageViewBase::remove_imagearea()
 {
     if( m_imagearea ){
+#ifdef USE_GTKMM4
+        m_event.remove( *m_imagearea );
+#else
         m_event.remove();
+#endif
         delete m_imagearea;
         m_imagearea = nullptr;
     }

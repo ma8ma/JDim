@@ -118,7 +118,11 @@ void ImageViewPopup::set_label( const std::string& status )
 {
     if( !m_label ){
         m_label = std::make_unique<Gtk::Label>( status );
+#ifdef USE_GTKMM4
+        get_event().append( *m_label );
+#else
         get_event().add( *m_label );
+#endif
 
         // $XDG_CONFIG_HOME/gtk-3.0/gtk.css から設定できるようにCSSセレクタを追加する (テスト用)
         m_label->set_name( "jdim-imageview-popup" );
@@ -136,7 +140,11 @@ void ImageViewPopup::set_label( const std::string& status )
 void ImageViewPopup::remove_label()
 {
     if( m_label ){
+#ifdef USE_GTKMM4
+        get_event().remove( *m_label );
+#else
         get_event().remove();
+#endif
         m_label.reset();
     }
 }
