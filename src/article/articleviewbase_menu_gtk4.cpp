@@ -355,7 +355,7 @@ bool ARTICLE::ArticleViewBase::add_menu_item( const int item, const Glib::RefPtr
                 auto submenu = Gio::Menu::create();
 
                 auto subsection = Gio::Menu::create();
-                // TODO: CONFIG::get_menu_search_web() の設定で項目名を変更できるがフェーズ1では省略します。
+                // TODO: GTK4 CONFIG::get_menu_search_web() の設定で項目名を変更できるがフェーズ1では省略します。
                 subsection->append( "WEB検索(_W)", "article.SearchWeb" );
                 submenu->append_section( subsection );
 
@@ -364,7 +364,7 @@ bool ARTICLE::ArticleViewBase::add_menu_item( const int item, const Glib::RefPtr
                 submenu->append_section( subsection );
 
                 subsection = Gio::Menu::create();
-                // TODO: CONFIG::get_menu_search_title() の設定で項目名を変更できるがフェーズ1では省略します。
+                // TODO: GTK4 CONFIG::get_menu_search_title() の設定で項目名を変更できるがフェーズ1では省略します。
                 subsection->append( "スレタイ検索(_T)", "article.SearchTitle" );
                 submenu->append_section( subsection );
 

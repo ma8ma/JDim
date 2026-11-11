@@ -212,7 +212,7 @@
         <attribute name="label" translatable="yes">キャッシュをブラウザで開く(_X)</attribute>
         <attribute name="action">article.OpenCacheBrowser</attribute>
       </item>
-      <!-- TODO: ユーザーコマンドの挿入位置 -->
+      <!-- TODO: GTK4 ユーザーコマンドの挿入位置 -->
     </section>
     <section>
       <item>

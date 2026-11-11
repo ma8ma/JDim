@@ -87,7 +87,7 @@
         <attribute name="action">image.OpenRef</attribute>
       </item>
     </section>
-    <!-- TODO: ユーザーコマンドの挿入位置 -->
+    <!-- TODO: GTK4 ユーザーコマンドの挿入位置 -->
     <section>
       <item>
         <attribute name="label" translatable="yes">URLをコピー(_U)</attribute>
