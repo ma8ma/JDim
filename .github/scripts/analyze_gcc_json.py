@@ -8,6 +8,7 @@ jsonファイルを解析しエラーを分類、カウントしてMarkdown形�
 import glob
 import json
 import os
+import subprocess
 import sys
 from collections import Counter
 
@@ -55,6 +56,89 @@ def parse_gcc_json_files(json_dir):
     return warnings, errors, analyzed_files
 
 
+def parse_gtk4_todos():
+    """git grep で GTK4 移行 TODO を抽出する。"""
+    command = [
+        "git",
+        "grep",
+        "-n",
+        "-e",
+        "TODO *: *GTK4",
+        "--",
+        "src/",
+        "test/",
+    ]
+
+    try:
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=False,
+        )
+    except OSError as e:
+        print(f"Failed to execute git grep: {e}", file=sys.stderr)
+        return []
+
+    # git grep: 0 = match found, 1 = no match, other = error
+    if result.returncode == 1:
+        return []
+    if result.returncode != 0:
+        print(f"git grep failed: {result.stderr}", file=sys.stderr)
+        return []
+
+    todos = []
+
+    for line in result.stdout.splitlines():
+        # git grep -n の出力形式: path:line_number:matching_line
+        path, separator, rest = line.partition(":")
+        if not separator:
+            continue
+
+        line_number, separator, comment = rest.partition(":")
+        if not separator:
+            continue
+
+        comment = comment.strip()[2:] # 空白をトリムして // や <! を除去
+        if comment.startswith('--'):
+            comment = comment[2:]
+        todos.append((path, line_number, comment))
+
+    return todos
+
+
+def escape_markdown(text):
+    """Markdown テーブル内で使用する文字をエスケープする。"""
+    return text.replace("\\", "\\\\").replace("|", "\\|").replace("`", "\\`")
+
+
+def print_gtk4_todos():
+    """GTK4 移行 TODO の一覧を Markdown 形式で出力する。"""
+    todos = parse_gtk4_todos()
+
+    print("\n### 📝 GTK4 Migration TODO\n")
+
+    print(f"* TODO count: {len(todos)}")
+    print(f"* Files affected: {len({path for path, _, _ in todos})}\n")
+
+    if not todos:
+        print("No GTK4 TODOs found.\n")
+        return
+
+    print("| File | Line | TODO |")
+    print("|---|---:|---|")
+
+    for path, line_number, comment in todos:
+        print(
+            f"| `{escape_markdown(path)}` "
+            f"| {line_number} "
+            f"| {escape_markdown(comment)} |"
+        )
+
+    print()
+
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         sys.exit("usage: analyze_gcc_json.py json_dir")
@@ -82,3 +166,6 @@ if __name__ == "__main__":
             print(f"| {count} | `{warn}` |")
     else:
         print("No warnings found!")
+
+    # GTK4 移行 TODO を追加
+    print_gtk4_todos()
