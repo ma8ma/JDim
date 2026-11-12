@@ -19,16 +19,25 @@ namespace SKELETON
 
     // D&D
     typedef JDLIB::compat::signal< void() > SIG_TAB_DRAG_BEGIN;
+    // TODO: GTK4 [DnD] Gtk::SelectionData は無い。Gdk::ContentProvider でタブの URL を渡す。
+#ifndef USE_GTKMM4
     typedef JDLIB::compat::signal< void(Gtk::SelectionData&) > SIG_TAB_DRAG_DATA_GET;
+#endif
     typedef JDLIB::compat::signal< void() > SIG_TAB_DRAG_END;
 
+#ifdef USE_GTKMM4
+    class TabLabel : public Gtk::Box
+#else
     class TabLabel : public Gtk::EventBox
+#endif
     {
         SIG_TAB_MOTION_EVENT m_sig_tab_motion_event;
         SIG_TAB_LEAVE_EVENT m_sig_tab_leave_event;
 
         SIG_TAB_DRAG_BEGIN m_sig_tab_drag_begin;
+#ifndef USE_GTKMM4
         SIG_TAB_DRAG_DATA_GET m_sig_tab_drag_data_get;
+#endif
         SIG_TAB_DRAG_END m_sig_tab_drag_end;
 
         int m_x{};
@@ -57,7 +66,9 @@ namespace SKELETON
         SIG_TAB_LEAVE_EVENT sig_tab_leave_event(){ return m_sig_tab_leave_event; }
 
         SIG_TAB_DRAG_BEGIN sig_tab_drag_begin() { return m_sig_tab_drag_begin; }
+#ifndef USE_GTKMM4
         SIG_TAB_DRAG_DATA_GET sig_tab_drag_data_get() { return m_sig_tab_drag_data_get; }
+#endif
         SIG_TAB_DRAG_END sig_tab_drag_end() { return m_sig_tab_drag_end; }
 
         int get_tab_x() const { return m_x; }
@@ -93,13 +104,17 @@ namespace SKELETON
 
       private:
 
+#ifndef USE_GTKMM4
+        // TODO: GTK4 [Mouse] Gtk::EventControllerMotion に移行する
         bool on_motion_notify_event( GdkEventMotion* event ) override;
         bool on_leave_notify_event( GdkEventCrossing* event ) override;
 
+        // TODO: GTK4 [DnD] Gtk::DragSource に移行する。
         void on_drag_begin( const Glib::RefPtr< Gdk::DragContext >& context ) override;
         void on_drag_data_get( const Glib::RefPtr< Gdk::DragContext >& context,
                                Gtk::SelectionData& selection_data, guint info, guint time ) override;
         void on_drag_end( const Glib::RefPtr< Gdk::DragContext>& context ) override;
+#endif
     }; 
 }
 

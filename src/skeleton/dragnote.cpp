@@ -379,7 +379,10 @@ SKELETON::TabLabel* DragableNoteBook::create_tablabel( const std::string& url )
     tablabel->set_dragable( m_dragable, event.button );
 
     tablabel->sig_tab_drag_begin().connect( sigc::mem_fun(*this, &DragableNoteBook::slot_drag_begin ) );
+    // TODO: GTK4 [DnD] SelectionData を使わないデータ提供方式へ移行する。
+#ifndef USE_GTKMM4
     tablabel->sig_tab_drag_data_get().connect( sigc::mem_fun(*this, &DragableNoteBook::slot_drag_data_get ) );
+#endif
     tablabel->sig_tab_drag_end().connect( sigc::mem_fun(*this, &DragableNoteBook::slot_drag_end ) );
     
     return tablabel;
