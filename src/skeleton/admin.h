@@ -250,7 +250,10 @@ namespace SKELETON
         void hide_popup();
         
         // タブをお気に入りにドロップした時にお気に入りがデータ送信を要求してきた
+        // TODO: GTK4 [DnD] タブをお気に入りへドロップできない。Gtk::SelectionData を廃止し、Gdk::ContentProvider でタブの URL を提供する。
+#ifndef USE_GTKMM4
         virtual void slot_drag_data_get( Gtk::SelectionData& selection_data, const int page ) = 0;
+#endif
 
         void open_list( const COMMAND_ARGS& command_list );
         virtual COMMAND_ARGS get_open_list_args( const std::string& url, const COMMAND_ARGS& command_list ){ return COMMAND_ARGS(); }
@@ -288,7 +291,10 @@ namespace SKELETON
         void slot_tab_clicked( const int page );
 
         // タブの上でホイールを回した
+        // TODO: GTK4 [Scroll] Gtk::EventControllerScroll に移行する。
+#ifndef USE_GTKMM4
         void slot_tab_scrolled( GdkEventScroll* event );
+#endif
 
         // タブを閉じる
         void slot_tab_close( const int page );

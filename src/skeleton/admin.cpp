@@ -56,7 +56,10 @@ Admin::Admin( const std::string& url )
     m_notebook->set_scrollable( true );
 
     m_notebook->sig_tab_clicked().connect( sigc::mem_fun( *this, &Admin::slot_tab_clicked ) );
+    // TODO: GTK4 [Scroll] Gtk::EventControllerScroll::signal_scroll に移行する。
+#ifndef USE_GTKMM4
     m_notebook->sig_tab_scrolled().connect( sigc::mem_fun( *this, &Admin::slot_tab_scrolled ) );
+#endif
     m_notebook->sig_tab_close().connect( sigc::mem_fun( *this, &Admin::slot_tab_close ) );
     m_notebook->sig_tab_reload().connect( sigc::mem_fun( *this, &Admin::slot_tab_reload ) );
     m_notebook->sig_tab_menu().connect( sigc::mem_fun( *this, &Admin::slot_tab_menu ) );
@@ -64,7 +67,10 @@ Admin::Admin( const std::string& url )
     m_notebook->get_tabswitch_button().signal_clicked().connect( sigc::mem_fun(*this, &Admin::slot_show_tabswitchmenu ) );
 
     // D&D
+    // TODO: GTK4 [DnD] Gtk::SelectionData を廃止し、Gdk::ContentProvider でタブの URL を提供する。
+#ifndef USE_GTKMM4
     m_notebook->sig_drag_data_get().connect( sigc::mem_fun(*this, &Admin::slot_drag_data_get ) );
+#endif
 
     m_list_command.clear();
 }
@@ -2070,6 +2076,8 @@ void Admin::slot_tab_clicked( const int page )
 
 
 // タブの上でホイールを回した
+// TODO: GTK4 [Scroll] タブ上のホイールは動かない。 Gtk::EventControllerScroll::signal_scroll に移行する。
+#ifndef USE_GTKMM4
 void Admin::slot_tab_scrolled( GdkEventScroll* event )
 {
 #ifdef _DEBUG
@@ -2078,6 +2086,7 @@ void Admin::slot_tab_scrolled( GdkEventScroll* event )
 
     if( ! m_focus ) switch_admin();
 }
+#endif
 
 
 //
