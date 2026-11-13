@@ -29,11 +29,17 @@ CompletionEntry::CompletionEntry( const int mode )
     , m_popup_win( SKELETON::POPUPWIN_DRAWFRAME )
 {
     m_entry.signal_key_press().connect( sigc::mem_fun( *this, &CompletionEntry::slot_entry_key_press ) );
+    // TODO: GTK4 [Mouse] Gtk::GestureClick::signal_pressed に移行する。
+#ifndef USE_GTKMM4
     m_entry.signal_button_press().connect( sigc::mem_fun(*this, &CompletionEntry::slot_entry_button_press ) );
+#endif
     m_entry.signal_operate().connect( sigc::mem_fun( *this, &CompletionEntry::slot_entry_operate ) );
     m_entry.signal_activate().connect( sigc::mem_fun( *this, &CompletionEntry::slot_entry_acivate ) );
     m_entry.signal_changed().connect( sigc::mem_fun( *this, &CompletionEntry::slot_entry_changed ) );
+    // TODO: GTK4 [Focus] Gtk::EventControllerFocus::signal_leave に移行する。
+#ifndef USE_GTKMM4
     m_entry.signal_focus_out_event().connect( sigc::mem_fun(*this, &CompletionEntry::slot_entry_focus_out ) );
+#endif
     m_entry.set_max_width_chars( 1 );
     m_entry.set_width_chars( 1 );
     m_entry.set_hexpand( true );
@@ -45,8 +51,14 @@ CompletionEntry::CompletionEntry( const int mode )
     m_treeview.set_model( m_liststore );
     m_treeview.append_column( "", m_column );
     m_treeview.set_headers_visible( false );
+    // TODO: GTK4 [Mouse] Gtk::EventControllerMotion::signal_motion に移行する。
+#ifndef USE_GTKMM4
     m_treeview.sig_motion_notify().connect( sigc::mem_fun(*this, &CompletionEntry::slot_treeview_motion ) );
+#endif
+    // TODO: GTK4 [Mouse] Gtk::GestureClick::signal_released に移行する。
+#ifndef USE_GTKMM4
     m_treeview.sig_button_release().connect( sigc::mem_fun(*this, &CompletionEntry::slot_treeview_button_release ) );
+#endif
 
     m_scr_win.add( m_treeview );
     m_scr_win.set_policy( JDLIB::compat::PolicyType::NEVER, JDLIB::compat::PolicyType::AUTOMATIC );
@@ -219,6 +231,8 @@ void CompletionEntry::slot_entry_key_press( int keyval )
 
 
 // entryでボタンを押した
+// TODO: GTK4 [Mouse] 入力欄のクリックは動かない。Gtk::GestureClick::signal_pressed に移行する。
+#ifndef USE_GTKMM4
 void CompletionEntry::slot_entry_button_press( GdkEventButton* event )
 {
     if( event->type != GDK_BUTTON_PRESS ) return;
@@ -236,6 +250,7 @@ void CompletionEntry::slot_entry_button_press( GdkEventButton* event )
 
     m_focused = true;
 }
+#endif
 
 
 // entry操作
@@ -292,6 +307,8 @@ void CompletionEntry::slot_entry_changed()
 
 
 // entryのフォーカスが外れた
+// TODO: GTK4 [Focus] フォーカスが外れても補完ポップアップは閉じない。Gtk::EventControllerFocus::signal_leave に移行する。
+#ifndef USE_GTKMM4
 bool CompletionEntry::slot_entry_focus_out( GdkEventFocus* )
 {
 #ifdef _DEBUG    
@@ -303,9 +320,12 @@ bool CompletionEntry::slot_entry_focus_out( GdkEventFocus* )
 
     return true;
 }
+#endif
 
 
 // ポップアップ内をマウスを動かした
+// TODO: GTK4 [Mouse] ポップアップ内をマウスでたどれない。Gtk::EventControllerMotion::signal_motion に移行する。
+#ifndef USE_GTKMM4
 bool CompletionEntry::slot_treeview_motion( GdkEventMotion* )
 {
     Gtk::TreeModel::Path path = m_treeview.get_path_under_mouse();
@@ -313,9 +333,12 @@ bool CompletionEntry::slot_treeview_motion( GdkEventMotion* )
 
     return true;
 }
+#endif
 
 
 // ポップアップクリック
+// TODO: GTK4 [Mouse] ポップアップのクリックで候補を確定できない。Gtk::GestureClick::signal_released に移行する。
+#ifndef USE_GTKMM4
 bool CompletionEntry::slot_treeview_button_release( GdkEventButton* )
 {
 #ifdef _DEBUG    
@@ -331,3 +354,4 @@ bool CompletionEntry::slot_treeview_button_release( GdkEventButton* )
 
     return true;
 }
+#endif

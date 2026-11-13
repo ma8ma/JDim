@@ -84,8 +84,11 @@ namespace SKELETON
         // entryでキーが押された
         void slot_entry_key_press( int keyval );
 
+#ifndef USE_GTKMM4
         // entryでボタンを押した
+        // TODO: GTK4 [Mouse] Gtk::GestureClick::signal_pressed に移行する。
         void slot_entry_button_press( GdkEventButton* event );
+#endif
 
         // entry操作
         void slot_entry_operate( int controlid );
@@ -96,14 +99,19 @@ namespace SKELETON
         // entry からsignal_changedを受け取った
         void slot_entry_changed();
 
+#ifndef USE_GTKMM4
         // entryのフォーカスが外れた
+        // TODO: GTK4 [Focus] Gtk::EventControllerFocus::signal_leave に移行する。
         bool slot_entry_focus_out( GdkEventFocus* );
 
         // ポップアップ内をマウスを動かした
+        // TODO: GTK4 [Mouse] Gtk::EventControllerMotion::signal_motion に移行する。
         bool slot_treeview_motion( GdkEventMotion* );
 
         // ポップアップクリック
+        // TODO: GTK4 [Mouse] Gtk::GestureClick::signal_released に移行する。
         bool slot_treeview_button_release( GdkEventButton* );
+#endif
     };
 }
 
