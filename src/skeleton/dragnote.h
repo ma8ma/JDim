@@ -37,9 +37,11 @@ namespace SKELETON
     typedef JDLIB::compat::signal< void(int) > SIG_TAB_CLOSE;
     typedef JDLIB::compat::signal< void(int) > SIG_TAB_RELOAD;
     typedef JDLIB::compat::signal< void(int, int, int) > SIG_TAB_MENU;
+#ifndef USE_GTKMM4
     typedef JDLIB::compat::signal< void(GdkEventScroll*) > SIG_TAB_SCROLLED;
 
     typedef JDLIB::compat::signal< void(Gtk::SelectionData&, const int) > SIG_DRAG_DATA_GET;
+#endif
 
     // DragableNoteBook を構成している各Notebookの高さ
     // 及びタブの高さや位置の情報
@@ -69,9 +71,11 @@ namespace SKELETON
         SIG_TAB_CLOSE m_sig_tab_close;
         SIG_TAB_RELOAD m_sig_tab_reload;
         SIG_TAB_MENU  m_sig_tab_menu;
+#ifndef USE_GTKMM4
         SIG_TAB_SCROLLED m_sig_tab_scrolled;
 
         SIG_DRAG_DATA_GET m_sig_drag_data_get;
+#endif
 
         // DragableNoteBook は 下の3つのノートブックから出来ている
         TabNotebook m_notebook_tab;  // タブ
@@ -107,9 +111,11 @@ namespace SKELETON
         SIG_TAB_CLOSE sig_tab_close() { return m_sig_tab_close; }
         SIG_TAB_RELOAD sig_tab_reload(){ return m_sig_tab_reload; }
         SIG_TAB_MENU sig_tab_menu() { return m_sig_tab_menu; }
+#ifndef USE_GTKMM4
         SIG_TAB_SCROLLED sig_tab_scrolled(){ return m_sig_tab_scrolled; }
 
         SIG_DRAG_DATA_GET sig_drag_data_get() { return m_sig_drag_data_get; }
+#endif
 
         DragableNoteBook();
         ~DragableNoteBook() noexcept override;
@@ -173,11 +179,13 @@ namespace SKELETON
         void slot_switch_page_tab( Gtk::Widget*, guint page );
 
         // notebook_tab の上でボタンを押した/離した
+#ifndef USE_GTKMM4
         bool slot_button_press_event( GdkEventButton* event );
         bool slot_button_release_event( GdkEventButton* event );
 
         // notebook_tab の上でホイールを回した
         bool slot_scroll_event( GdkEventScroll* event );
+#endif
 
       protected:
 
@@ -187,7 +195,9 @@ namespace SKELETON
         // タブのドラッグ・アンド・ドロップ処理
         void slot_drag_begin();
         void slot_drag_motion( const int page, const int tab_x, const int tab_y, const int tab_width );
+#ifndef USE_GTKMM4
         void slot_drag_data_get( Gtk::SelectionData& selection_data );
+#endif
         void slot_drag_end();
     };
 }

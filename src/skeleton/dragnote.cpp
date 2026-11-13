@@ -37,12 +37,19 @@ DragableNoteBook::DragableNoteBook()
     set_spacing( 0 );
 
     m_notebook_tab.signal_switch_page().connect( sigc::mem_fun( *this, &DragableNoteBook::slot_switch_page_tab ) );
+#ifndef USE_GTKMM4
+    // TODO: GTK4 [Mouse] タブをクリックしても動作しない。Gtk::GestureClick::signal_pressed に移行する。
     m_notebook_tab.sig_button_press().connect( sigc::mem_fun( *this, &DragableNoteBook::slot_button_press_event ) );
+    // TODO: GTK4 [Mouse] マウスボタンを離したときの動作が起こらない。Gtk::GestureClick::signal_released に移行する。
     m_notebook_tab.sig_button_release().connect( sigc::mem_fun( *this, &DragableNoteBook::slot_button_release_event ) );
+#endif
 
     m_notebook_tab.sig_tab_drag_motion().connect( sigc::mem_fun(*this, &DragableNoteBook::slot_drag_motion ) );
 
+#ifndef USE_GTKMM4
+    // TODO: GTK4 [Scroll] タブ上のホイールは動かない。Gtk::EventControllerScroll::signal_scroll に移行する。
     m_notebook_tab.sig_scroll_event().connect( sigc::mem_fun(*this, &DragableNoteBook::slot_scroll_event ) );
+#endif
 
     JDLIB::compat::box_append_expand( m_hbox_tab, m_notebook_tab );
     JDLIB::compat::box_append_shrink( m_hbox_tab, m_bt_tabswitch );
@@ -374,13 +381,16 @@ SKELETON::TabLabel* DragableNoteBook::create_tablabel( const std::string& url )
     SKELETON::TabLabel *tablabel = new SKELETON::TabLabel( url );
 
     // ドラッグ設定
+#ifndef USE_GTKMM4
+    // TODO: GTK4 [DnD] Gtk::DragSource のドラッグ開始ボタンを設定する。
     GdkEventButton event;
     m_control.get_eventbutton( CONTROL::DragStartButton, event );
     tablabel->set_dragable( m_dragable, event.button );
+#endif
 
     tablabel->sig_tab_drag_begin().connect( sigc::mem_fun(*this, &DragableNoteBook::slot_drag_begin ) );
-    // TODO: GTK4 [DnD] SelectionData を使わないデータ提供方式へ移行する。
 #ifndef USE_GTKMM4
+    // TODO: GTK4 [DnD] Gtk::SelectionData を廃止し、Gdk::ContentProvider でタブの URL を提供する。
     tablabel->sig_tab_drag_data_get().connect( sigc::mem_fun(*this, &DragableNoteBook::slot_drag_data_get ) );
 #endif
     tablabel->sig_tab_drag_end().connect( sigc::mem_fun(*this, &DragableNoteBook::slot_drag_end ) );
@@ -425,6 +435,7 @@ void DragableNoteBook::slot_switch_page_tab( Gtk::Widget* bookpage, guint page )
 //
 // タブの上でボタンを押した
 //
+#ifndef USE_GTKMM4
 bool DragableNoteBook::slot_button_press_event( GdkEventButton* event )
 {
     // ボタンを押した時点でのページ番号を記録しておく
@@ -457,11 +468,13 @@ bool DragableNoteBook::slot_button_press_event( GdkEventButton* event )
 
     return false;
 }
+#endif
 
 
 //
 // タブの上でボタンを離した
 //
+#ifndef USE_GTKMM4
 bool DragableNoteBook::slot_button_release_event( GdkEventButton* event )
 {
     const int page = m_notebook_tab.get_page_under_mouse();
@@ -508,10 +521,12 @@ bool DragableNoteBook::slot_button_release_event( GdkEventButton* event )
 
     return false;
 }
+#endif
 
 
 
 // notebook_tab の上でホイールを回した
+#ifndef USE_GTKMM4
 bool DragableNoteBook::slot_scroll_event( GdkEventScroll* event )
 {
 #ifdef _DEBUG
@@ -551,6 +566,7 @@ bool DragableNoteBook::slot_scroll_event( GdkEventScroll* event )
 
     return ret;
 }
+#endif
 
 
 
@@ -607,6 +623,7 @@ void DragableNoteBook::slot_drag_motion( const int page, const int tab_x, const 
 //
 // D&Dで受信側がデータ送信を要求してきた
 //
+#ifndef USE_GTKMM4
 void DragableNoteBook::slot_drag_data_get( Gtk::SelectionData& selection_data )
 {
 #ifdef _DEBUG
@@ -638,6 +655,7 @@ void DragableNoteBook::slot_drag_data_get( Gtk::SelectionData& selection_data )
         if( m_down_arrow ) m_down_arrow->hide();
     }
 }
+#endif
 
 
 //
