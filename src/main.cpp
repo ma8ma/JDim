@@ -252,7 +252,7 @@ App::App()
 {
     Glib::ustring app_id = "com.github.jdimproved.jdim";
     // アプリケーションの排他制御は {Gtk,Gio}::Application ではなくロックファイルで行う
-    const auto flags = Gio::APPLICATION_NON_UNIQUE | Gio::APPLICATION_HANDLES_OPEN;
+    const auto flags = JDLIB::compat::Application::Flags::NON_UNIQUE | JDLIB::compat::Application::Flags::HANDLES_OPEN;
 
     if( gtk_init_check( nullptr, nullptr ) ) {
         m_app = Gtk::Application::create( app_id, flags );
@@ -264,15 +264,15 @@ App::App()
     }
     Gio::Application::set_default( m_app );
 
-    m_app->add_main_option_entry( Gio::Application::OPTION_TYPE_BOOL,
+    m_app->add_main_option_entry( JDLIB::compat::Application::OptionType::BOOL,
                                   "multi", 'm', "Do not quit even if multiple sub-process" );
-    m_app->add_main_option_entry( Gio::Application::OPTION_TYPE_BOOL,
+    m_app->add_main_option_entry( JDLIB::compat::Application::OptionType::BOOL,
                                   "skip-setup", 's', "Skip the setup dialog" );
-    m_app->add_main_option_entry( Gio::Application::OPTION_TYPE_BOOL,
+    m_app->add_main_option_entry( JDLIB::compat::Application::OptionType::BOOL,
                                   "logfile", 'l', "Write message to msglog file" );
     m_app->add_main_option_entry( sigc::mem_fun( *this, &App::slot_option_geometry ),
                                   "geometry", 'g', "The initial size and location", "WxH-X+Y" );
-    m_app->add_main_option_entry( Gio::Application::OPTION_TYPE_BOOL,
+    m_app->add_main_option_entry( JDLIB::compat::Application::OptionType::BOOL,
                                   "version", 'V', "Display version of this program" );
 
     m_app->signal_handle_local_options().connect( sigc::mem_fun( *this, &App::slot_handle_local_options ) );
@@ -360,9 +360,9 @@ void App::slot_startup()
 
             std::string msg = "JDimの設定ファイル(" + CACHE::path_conf()
                               + ")は存在しますが読み込むことが出来ませんでした。\n\n起動しますか？";
-            Gtk::MessageDialog mdiag( msg, false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+            Gtk::MessageDialog mdiag( msg, false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
             const int ret = mdiag.run();
-            if( ret != Gtk::RESPONSE_YES ) return quit();
+            if( ret != JDLIB::compat::ResponseType::YES ) return quit();
         }
 
         // 初回起動時にルートを作る
@@ -422,7 +422,7 @@ bool App::setup_fifo( std::string url )
         if( CONFIG::get_show_diag_fifo_error() )
         {
             Gtk::MessageDialog mdiag( CACHE::path_lock() + "の作成またはオープンに問題があります。このまま起動しますか？",
-                                      false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+                                      false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
 
             Gtk::CheckButton chk_button( "今後表示しない" );
             JDLIB::compat::box_append_shrink( *mdiag.get_content_area(), chk_button );
@@ -432,7 +432,7 @@ bool App::setup_fifo( std::string url )
 
             CONFIG::set_show_diag_fifo_error( ! chk_button.get_active() );
 
-            if( ret != Gtk::RESPONSE_YES )
+            if( ret != JDLIB::compat::ResponseType::YES )
             {
                 CONFIG::save_conf();
                 return false;
@@ -452,7 +452,7 @@ JDWinMain* App::create_window()
     auto win = new JDWinMain( init, skip_setupdiag, init_w, init_h, init_x, init_y );
     win->signal_hide().connect( sigc::mem_fun( *this, &App::slot_hide_window ) );
     win->show_all();
-    Glib::RefPtr<Gtk::Application>::cast_dynamic( m_app )->add_window( *win );
+    JDLIB::compat::dynamic_pointer_cast<Gtk::Application>( m_app )->add_window( *win );
     return win;
 }
 

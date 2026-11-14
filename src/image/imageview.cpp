@@ -58,9 +58,13 @@ ImageViewMain::ImageViewMain( const std::string& url )
     m_scrwin = Gtk::manage( new Gtk::ScrolledWindow() );
     assert( m_scrwin );
 
-    m_scrwin->property_vscrollbar_policy() = Gtk::POLICY_AUTOMATIC;
-    m_scrwin->property_hscrollbar_policy() = Gtk::POLICY_AUTOMATIC;
+    m_scrwin->property_vscrollbar_policy() = JDLIB::compat::PolicyType::AUTOMATIC;
+    m_scrwin->property_hscrollbar_policy() = JDLIB::compat::PolicyType::AUTOMATIC;
+#ifdef USE_GTKMM4
+    m_scrwin->set_child( get_event() );
+#else
     m_scrwin->add( get_event() );
+#endif
     JDLIB::compat::box_append_expand( *this, *m_scrwin );
 
     setup_common();
@@ -223,7 +227,11 @@ void ImageViewMain::set_label()
 {
     if( !m_show_label ){
         m_label.set_text( get_status_local() );
+#ifdef USE_GTKMM4
+        get_event().append( m_label );
+#else
         get_event().add( m_label );
+#endif
         m_label.show();
         m_show_label = true;
     }
@@ -237,7 +245,11 @@ void ImageViewMain::set_label()
 void ImageViewMain::remove_label()
 {
     if( m_show_label ){
+#ifdef USE_GTKMM4
+        get_event().remove( m_label );
+#else
         get_event().remove();
+#endif
         m_show_label = false;
     }
 }
@@ -409,7 +421,7 @@ void ImageViewMain::add_tab_number()
 //
 Gtk::Menu* ImageViewMain::get_popupmenu( const std::string& url )
 {
-    Gtk::Menu* popupmenu = dynamic_cast< Gtk::Menu* >( ui_manager()->get_widget( "/popup_menu" ) );
+    Gtk::Menu* popupmenu = get_popupmenu_impl( "/popup_menu" );
     return popupmenu;
 }
 

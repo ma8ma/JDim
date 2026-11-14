@@ -7,6 +7,7 @@
 
 #include <gtkmm.h>
 
+#include "jdlib/gtk_compat.h"
 #include "jdlib/timeout.h"
 
 namespace SKELETON
@@ -21,16 +22,16 @@ namespace SKELETON
         MsgDiag( Gtk::Window& parent,
                  const Glib::ustring& message,
                  bool use_markup = false,
-                 Gtk::MessageType type = Gtk::MESSAGE_INFO,
-                 Gtk::ButtonsType buttons = Gtk::BUTTONS_OK,
+                 Gtk::MessageType type = JDLIB::compat::MessageType::INFO,
+                 Gtk::ButtonsType buttons = JDLIB::compat::ButtonsType::OK,
                  bool modal = false);
 
         // parent がポインタの時は  nullptr かどうかで場合分け
         MsgDiag( Gtk::Window* parent,
                  const Glib::ustring& message,
                  bool use_markup = false,
-                 Gtk::MessageType type = Gtk::MESSAGE_INFO,
-                 Gtk::ButtonsType buttons = Gtk::BUTTONS_OK,
+                 Gtk::MessageType type = JDLIB::compat::MessageType::INFO,
+                 Gtk::ButtonsType buttons = JDLIB::compat::ButtonsType::OK,
                  bool modal = false);
 
         ~MsgDiag() noexcept override;
@@ -62,8 +63,8 @@ namespace SKELETON
         MsgCheckDiag( Gtk::Window* parent,
                       const Glib::ustring& message,
                       const Glib::ustring& message_check,
-                      Gtk::MessageType type = Gtk::MESSAGE_INFO,
-                      Gtk::ButtonsType buttons = Gtk::BUTTONS_OK,
+                      Gtk::MessageType type = JDLIB::compat::MessageType::INFO,
+                      Gtk::ButtonsType buttons = JDLIB::compat::ButtonsType::OK,
                       const int default_response = -1
             );
         ~MsgCheckDiag() noexcept override;
@@ -78,9 +79,9 @@ namespace SKELETON
 
     enum
     {
-        OVERWRITE_YES = Gtk::RESPONSE_YES + 100,
-        OVERWRITE_YES_ALL = Gtk::RESPONSE_YES + 200,
-        OVERWRITE_NO_ALL = Gtk::RESPONSE_NO + 200
+        OVERWRITE_YES = JDLIB::compat::ResponseType::YES + 100,
+        OVERWRITE_YES_ALL = JDLIB::compat::ResponseType::YES + 200,
+        OVERWRITE_NO_ALL = JDLIB::compat::ResponseType::NO + 200
     };
 
     class MsgOverwriteDiag : public SKELETON::MsgDiag

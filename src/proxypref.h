@@ -40,9 +40,9 @@ namespace CORE
 
         ProxyFrame( const std::string& title, const Glib::ustring& ckbt_label, const Glib::ustring& send_label,
                     const Glib::ustring& host_label, const Glib::ustring& port_label )
-            : m_vbox{ Gtk::ORIENTATION_VERTICAL, 0 }
-            , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
-            , m_hbox_port{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+            : m_vbox{ JDLIB::compat::Orientation::VERTICAL, 0 }
+            , m_hbox{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
+            , m_hbox_port{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
             , m_label_port{ port_label, true }
             , ckbt( ckbt_label, true )
             , send_cookie_check( send_label, true )
@@ -102,12 +102,12 @@ namespace CORE
         ProxyFrameFallbackOption( const std::string& title, const Glib::ustring& ckbt_label,
                                   const Glib::ustring& send_label, const Glib::ustring& fallback_label,
                                   const Glib::ustring& host_label, const Glib::ustring& port_label )
-            : m_vbox( Gtk::ORIENTATION_VERTICAL, 0 )
-            , m_hbox( Gtk::ORIENTATION_HORIZONTAL, 8 )
-            , m_hbox_port{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+            : m_vbox( JDLIB::compat::Orientation::VERTICAL, 0 )
+            , m_hbox( JDLIB::compat::Orientation::HORIZONTAL, 8 )
+            , m_hbox_port{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
             , m_label_port{ port_label, true }
-            , m_vbox_exp_option( Gtk::ORIENTATION_VERTICAL, 0 )
-            , m_hbox_fallback_proxy( Gtk::ORIENTATION_HORIZONTAL, 0 )
+            , m_vbox_exp_option( JDLIB::compat::Orientation::VERTICAL, 0 )
+            , m_hbox_fallback_proxy( JDLIB::compat::Orientation::HORIZONTAL, 0 )
             , m_toggle_notice( "注意事項" )
             , ckbt( ckbt_label, true )
             , send_cookie_check( send_label, true )
@@ -125,8 +125,8 @@ namespace CORE
             JDLIB::compat::box_append_shrink( m_hbox_port, m_label_port );
             JDLIB::compat::box_append_shrink( m_hbox_port, entry_port );
 
-            fallback_proxy_check.set_halign( Gtk::ALIGN_START );
-            m_toggle_notice.set_halign( Gtk::ALIGN_END );
+            fallback_proxy_check.set_halign( JDLIB::compat::Align::START );
+            m_toggle_notice.set_halign( JDLIB::compat::Align::END );
 
             m_revealer_notice.add( notice_label );
             m_revealer_notice.set_reveal_child( false );
@@ -146,7 +146,7 @@ namespace CORE
             m_hbox_fallback_proxy.set_margin_start( 8 );
             m_hbox_fallback_proxy.set_margin_end( 8 );
             JDLIB::compat::box_append_shrink( m_hbox_fallback_proxy, fallback_proxy_check );
-            auto* spacer = Gtk::make_managed<Gtk::Box>( Gtk::ORIENTATION_HORIZONTAL, 0 );
+            auto* spacer = Gtk::make_managed<Gtk::Box>( JDLIB::compat::Orientation::HORIZONTAL, 0 );
             JDLIB::compat::box_append_expand( m_hbox_fallback_proxy, *spacer );
             JDLIB::compat::box_append_shrink( m_hbox_fallback_proxy, m_toggle_notice );
             JDLIB::compat::box_append_shrink( m_vbox_exp_option, m_hbox_fallback_proxy );

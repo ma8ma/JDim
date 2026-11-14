@@ -7,6 +7,8 @@
 
 #include "prefdiag.h"
 
+#include "jdlib/sigc_compat.h"
+
 #include <string>
 #include <list>
 
@@ -49,14 +51,26 @@ namespace SKELETON
         Gtk::Button m_button_up;
         Gtk::Button m_button_down;
         Gtk::Button m_button_bottom;
+#ifdef USE_GTKMM4
+        Gtk::Box m_vbuttonbox_v;
+#else
         Gtk::VButtonBox m_vbuttonbox_v;
+#endif
         // ボタン(横移動)
         Gtk::Button m_button_delete;
         Gtk::Button m_button_add;
+#ifdef USE_GTKMM4
+        Gtk::Box m_vbuttonbox_h;
+#else
         Gtk::VButtonBox m_vbuttonbox_h;
+#endif
         // ボタン(アクション)
         Gtk::Button m_button_default;
+#ifdef USE_GTKMM4
+        Gtk::Box m_vbuttonbox_action;
+#else
         Gtk::VButtonBox m_vbuttonbox_action;
+#endif
 
         // まとめ( m_vbuttonbox_* )
         Gtk::Box m_vbox;
@@ -71,8 +85,8 @@ namespace SKELETON
         Gtk::Box m_hbox;
 
         // キーフック用
-        typedef sigc::signal< bool, GdkEventKey* > SIG_KEY_PRESS;
-        typedef sigc::signal< bool, GdkEventKey* > SIG_KEY_RELEASE;
+        typedef JDLIB::compat::signal< bool(GdkEventKey*) > SIG_KEY_PRESS;
+        typedef JDLIB::compat::signal< bool(GdkEventKey*) > SIG_KEY_RELEASE;
         SIG_KEY_PRESS m_sig_key_press;
         SIG_KEY_RELEASE m_sig_key_release;
 

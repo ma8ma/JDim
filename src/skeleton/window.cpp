@@ -59,23 +59,18 @@ JDWindow::JDWindow( const bool fold_when_focusout, const bool need_mginfo )
     , m_boot( true )
     , m_enable_fold( m_fold_when_focusout )
     , m_mode( JDWIN_INIT )
-    , m_statbar{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_statbar{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
 {
     // ステータスバー
     m_label_stat.set_size_request( 0, -1 );
     m_label_stat.set_xalign( 0 );
     m_label_stat.set_selectable( true );
     m_label_stat.set_single_line_mode( true );
-    m_label_stat.set_ellipsize( Pango::ELLIPSIZE_END );
+    m_label_stat.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
 
-    m_label_stat_ebox.add( m_label_stat );
-    m_label_stat_ebox.set_visible_window( false );
-
-    JDLIB::compat::box_append_expand( m_statbar, m_label_stat_ebox );
+    JDLIB::compat::box_append_expand( m_statbar, m_label_stat );
     if( need_mginfo ){
-        m_mginfo_ebox.add( m_mginfo );
-        m_mginfo_ebox.set_visible_window( false );
-        JDLIB::compat::box_append_shrink( m_statbar, m_mginfo_ebox );
+        JDLIB::compat::box_append_shrink( m_statbar, m_mginfo );
     }
 
     m_mginfo.set_width_chars( MGINFO_CHARS );
@@ -124,7 +119,7 @@ void JDWindow::init_win()
         m_vbox_view = std::make_unique<SKELETON::JDVBox>();
 
         m_scrwin->set_size_request( 0, 0 );
-        m_scrwin->set_policy( Gtk::POLICY_EXTERNAL, Gtk::POLICY_EXTERNAL );
+        m_scrwin->set_policy( JDLIB::compat::PolicyType::EXTERNAL, JDLIB::compat::PolicyType::EXTERNAL );
         m_scrwin->add( *m_vbox_view );
         m_vbox.pack_remove_start( false, *m_scrwin, true, true );
 
@@ -377,7 +372,7 @@ void JDWindow::set_status( const std::string& stat )
     m_status = stat;
 
     m_label_stat.set_text( stat );
-    m_label_stat_ebox.set_tooltip_text( stat );
+    m_label_stat.set_tooltip_text( stat );
 }
 
 

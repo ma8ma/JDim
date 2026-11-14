@@ -6,6 +6,8 @@
 
 #include "sharedbuffer.h"
 
+#include "jdlib/sigc_compat.h"
+
 #include <gtkmm.h>
 
 namespace SKELETON
@@ -39,9 +41,9 @@ namespace SKELETON
 
     typedef std::vector< UNDO_ITEM > UNDO_DATA;
 
-    typedef sigc::signal< void > SIG_UNDO;
-    typedef sigc::signal< void > SIG_REDO;
-    typedef sigc::signal< void > SIG_COMMIT;
+    typedef JDLIB::compat::signal< void() > SIG_UNDO;
+    typedef JDLIB::compat::signal< void() > SIG_REDO;
+    typedef JDLIB::compat::signal< void() > SIG_COMMIT;
 
     class UNDO_BUFFER
     {

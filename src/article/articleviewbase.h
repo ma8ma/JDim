@@ -91,6 +91,20 @@ namespace ARTICLE
         // メニューのユーザコマンド、 create_usrcmd_menu() で作成
         std::string m_usrcmd;
 
+#ifdef USE_GTKMM4
+        Glib::RefPtr<Gio::SimpleActionGroup> m_action_group;
+
+        Gtk::Menu m_popup_menu_delete;
+        Gtk::Menu m_popup_menu_broken;
+        Gtk::Menu m_popup_menu_res;
+        Gtk::Menu m_popup_menu_anc;
+        Gtk::Menu m_popup_menu_id;
+        Gtk::Menu m_popup_menu_name;
+        Gtk::Menu m_popup_menu_abone;
+        Gtk::Menu m_popup_menu_img;
+        Gtk::Menu m_popup_menu;
+#endif
+
     public:
 
         ArticleViewBase( const std::string& url, const std::string& url_article );
@@ -252,8 +266,13 @@ namespace ARTICLE
         void setup_action();
 
         // 通常の右クリックメニューの作成
+#ifdef USE_GTKMM4
+        Glib::RefPtr<Gio::Menu> create_context_menu() const;
+        bool add_menu_item( const int item, const Glib::RefPtr<Gio::Menu>& section ) const;
+#else
         std::string create_context_menu() const;
         const char* get_menu_item( const int item ) const;
+#endif
 
         virtual void exec_reload();
         void reload_article();

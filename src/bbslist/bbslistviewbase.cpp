@@ -80,7 +80,7 @@ BBSListViewBase::BBSListViewBase( const std::string& url, const std::string& arg
     , m_jump_y{ -1 }
 {
     m_scrwin.add( m_treeview );
-    m_scrwin.set_policy( Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC );
+    m_scrwin.set_policy( JDLIB::compat::PolicyType::AUTOMATIC, JDLIB::compat::PolicyType::AUTOMATIC );
 
     JDLIB::compat::box_append_expand( *this, m_scrwin );
     show_all_children();
@@ -92,7 +92,7 @@ BBSListViewBase::BBSListViewBase( const std::string& url, const std::string& arg
 /*
 #if GTK_CHECK_VERSION(2,6,0)
     // セルを固定の高さにする
-    // append_column する前に columnに対して set_sizing( Gtk::TREE_VIEW_COLUMN_FIXED ) すること
+    // append_column する前に columnに対して set_sizing( JDLIB::compat::TreeViewColumn::Sizing::FIXED ) すること
     m_treeview.set_fixed_height_mode( true );
 
 #ifdef _DEBUG
@@ -381,8 +381,8 @@ void BBSListViewBase::close_view()
 //
 void BBSListViewBase::delete_view()
 {
-    SKELETON::MsgDiag mdiag( get_parent_win(), "削除しますか？", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
-    if( mdiag.run() != Gtk::RESPONSE_YES ) return;
+    SKELETON::MsgDiag mdiag( get_parent_win(), "削除しますか？", false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
+    if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
     delete_view_impl();
 }
@@ -588,14 +588,13 @@ bool BBSListViewBase::operate_view( const int control )
 //
 void BBSListViewBase::activate_act_before_popupmenu( const std::string& url )
 {
-    using P = Glib::RefPtr<Gio::SimpleAction>;
-    auto act_search = P::cast_dynamic( m_action_group->lookup_action( "SearchCacheBoard" ) );
-    auto act_import = P::cast_dynamic( m_action_group->lookup_action( "ImportDat" ) );
-    auto act_board = P::cast_dynamic( m_action_group->lookup_action( "PreferenceBoard" ) );
-    auto act_article = P::cast_dynamic( m_action_group->lookup_action( "PreferenceArticle" ) );
-    auto act_image = P::cast_dynamic( m_action_group->lookup_action( "PreferenceImage" ) );
-    auto act_opencache = P::cast_dynamic( m_action_group->lookup_action( "OpenCacheBrowser" ) );
-    auto act_opentab = P::cast_dynamic( m_action_group->lookup_action( "OpenTab" ) );
+    auto act_search = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "SearchCacheBoard" ) );
+    auto act_import = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "ImportDat" ) );
+    auto act_board = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "PreferenceBoard" ) );
+    auto act_article = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "PreferenceArticle" ) );
+    auto act_image = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "PreferenceImage" ) );
+    auto act_opencache = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "OpenCacheBrowser" ) );
+    auto act_opentab = JDLIB::compat::dynamic_pointer_cast<Gio::SimpleAction>( m_action_group->lookup_action( "OpenTab" ) );
 
     if( act_search ) act_search->set_enabled( false );
     if( act_import ) act_import->set_enabled( false );
@@ -643,7 +642,7 @@ Gtk::Menu* BBSListViewBase::id2popupmenu( const std::string& id )
     if( it == m_map_popupmenu.end() ) {
         // アクセラレーターキーやマウスジェスチャーの追加は行わない
         // CONTROL::set_menu_motion() はGTK4で廃止されるGtk::MenuのAPIを使っている
-        auto menumodel = Glib::RefPtr<Gio::MenuModel>::cast_dynamic( m_builder->get_object( id ) );
+        auto menumodel = JDLIB::compat::dynamic_pointer_cast<Gio::MenuModel>( m_builder->get_object( id ) );
         assert( menumodel );
         auto pair = m_map_popupmenu.emplace( id, menumodel );
         pair.first->second.attach_to_widget( *this );
@@ -1130,7 +1129,7 @@ void BBSListViewBase::add_newbbsmenu( const bool move, const std::string& _url, 
     }
 
     BBSLIST::AddEtcBBSMenuDialog diag{ get_parent_win(), move, url, name };
-    if( diag.run() != Gtk::RESPONSE_OK ) return;
+    if( diag.run() != JDLIB::compat::ResponseType::OK ) return;
 
     diag.hide();
 
@@ -1140,7 +1139,7 @@ void BBSListViewBase::add_newbbsmenu( const bool move, const std::string& _url, 
 
     if( name.empty() || url.empty() ) {
         SKELETON::MsgDiag mdiag( get_parent_win(), "BBSMENU名またはアドレスが空白です",
-                                 false, Gtk::MESSAGE_ERROR );
+                                 false, JDLIB::compat::MessageType::ERROR );
         mdiag.run();
         mdiag.hide();
         add_newbbsmenu( move, url_org, name );
@@ -1160,7 +1159,7 @@ void BBSListViewBase::add_newbbsmenu( const bool move, const std::string& _url, 
     // 既に登録されているか確認
     if( ! move && ! DBTREE::bbsmenu_name( url ).empty() ) {
         SKELETON::MsgDiag mdiag( get_parent_win(), name + "\n" + url + "\n\nは既に登録されています",
-                                 false, Gtk::MESSAGE_ERROR );
+                                 false, JDLIB::compat::MessageType::ERROR );
         mdiag.run();
         mdiag.hide();
         add_newbbsmenu( move, url_org, name );
@@ -1206,7 +1205,7 @@ void BBSListViewBase::add_newbbsmenu( const bool move, const std::string& _url, 
     else {
 
         SKELETON::MsgDiag mdiag( get_parent_win(), "外部BBSMENUの登録に失敗しました。アドレスを確認してください",
-                                 false, Gtk::MESSAGE_ERROR );
+                                 false, JDLIB::compat::MessageType::ERROR );
         mdiag.run();
         mdiag.hide();
         add_newbbsmenu( move, url_org, name );
@@ -1266,7 +1265,7 @@ void BBSListViewBase::add_newetcboard( const bool move, // true なら編集モ�
     }
 
     BBSLIST::AddEtcDialog diag( move, url, name, id, passwd );
-    if( diag.run() == Gtk::RESPONSE_OK ){
+    if( diag.run() == JDLIB::compat::ResponseType::OK ){
 
         diag.hide();
 
@@ -1278,7 +1277,7 @@ void BBSListViewBase::add_newetcboard( const bool move, // true なら編集モ�
         if( ! id.empty() && ! passwd.empty() ) basicauth = id + ":" + passwd;
 
         if( name.empty() || url.empty() ){
-            SKELETON::MsgDiag mdiag( get_parent_win(), "板名またはアドレスが空白です", false, Gtk::MESSAGE_ERROR );
+            SKELETON::MsgDiag mdiag( get_parent_win(), "板名またはアドレスが空白です", false, JDLIB::compat::MessageType::ERROR );
             mdiag.run();
             mdiag.hide();
             add_newetcboard( move, url_org, name, id, passwd );
@@ -1306,7 +1305,7 @@ void BBSListViewBase::add_newetcboard( const bool move, // true なら編集モ�
 
         // boardid 取得
         if( ! regex.exec( "(https?://.*)/([^/]*)/$" , url, offset, icase, newline, usemigemo, wchar ) ){
-            SKELETON::MsgDiag mdiag( get_parent_win(), "アドレスが不正な形式になっています", false, Gtk::MESSAGE_ERROR );
+            SKELETON::MsgDiag mdiag( get_parent_win(), "アドレスが不正な形式になっています", false, JDLIB::compat::MessageType::ERROR );
             mdiag.run();
             mdiag.hide();
             add_newetcboard( move, url_org, name, id, passwd );
@@ -1324,7 +1323,7 @@ void BBSListViewBase::add_newetcboard( const bool move, // true なら編集モ�
         std::string boardid = regex.str( 2 );
 
         if( boardid.empty() ){
-            SKELETON::MsgDiag mdiag( get_parent_win(), "板IDを取得出来ません", false, Gtk::MESSAGE_ERROR );
+            SKELETON::MsgDiag mdiag( get_parent_win(), "板IDを取得出来ません", false, JDLIB::compat::MessageType::ERROR );
             mdiag.run();
             mdiag.hide();
             add_newetcboard( move, url_org, name, id, passwd );
@@ -1337,7 +1336,7 @@ void BBSListViewBase::add_newetcboard( const bool move, // true なら編集モ�
 
         // 既に登録されているか確認
         if( ! move && ! DBTREE::board_name( url ).empty() ){
-            SKELETON::MsgDiag mdiag( get_parent_win(), name + "\n" + url + "\n\nは既に登録されています", false, Gtk::MESSAGE_ERROR );
+            SKELETON::MsgDiag mdiag( get_parent_win(), name + "\n" + url + "\n\nは既に登録されています", false, JDLIB::compat::MessageType::ERROR );
             mdiag.run();
             mdiag.hide();
             add_newetcboard( move, url_org, name,  id, passwd );
@@ -1380,7 +1379,7 @@ void BBSListViewBase::add_newetcboard( const bool move, // true なら編集モ�
 
         else{
 
-            SKELETON::MsgDiag mdiag( get_parent_win(), "外部板の登録に失敗しました。アドレスを確認してください", false, Gtk::MESSAGE_ERROR );
+            SKELETON::MsgDiag mdiag( get_parent_win(), "外部板の登録に失敗しました。アドレスを確認してください", false, JDLIB::compat::MessageType::ERROR );
             mdiag.run();
             mdiag.hide();
             add_newetcboard( move, url_org, name, id, passwd );
@@ -1483,9 +1482,9 @@ void BBSListViewBase::slot_select_all_dir()
 //
 void BBSListViewBase::slot_select_all()
 {
-    SKELETON::MsgDiag mdiag( get_parent_win(), "全ての行を選択しますか？\n\n(注意) ディレクトリは全て展開されます。", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
-    mdiag.set_default_response( Gtk::RESPONSE_NO );
-    if( mdiag.run() != Gtk::RESPONSE_YES ) return;
+    SKELETON::MsgDiag mdiag( get_parent_win(), "全ての行を選択しますか？\n\n(注意) ディレクトリは全て展開されます。", false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
+    mdiag.set_default_response( JDLIB::compat::ResponseType::NO );
+    if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
     Gtk::TreeModel::Children child = m_treestore->children();
     for( const Gtk::TreeIter& iter : child ) expand_all_dir( m_treestore->get_path( iter ) );
@@ -1769,7 +1768,7 @@ bool BBSListViewBase::open_row( Gtk::TreePath& path, const bool tab )
 
             if( DBIMG::get_abone( url ) ) {
                 SKELETON::MsgDiag mdiag( get_parent_win(), "あぼ〜んされています", false,
-                                         Gtk::MESSAGE_INFO, Gtk::BUTTONS_YES_NO );
+                                         JDLIB::compat::MessageType::INFO, JDLIB::compat::ButtonsType::YES_NO );
                 std::string abone_reason = DBIMG::get_img_abone_reason( url );
                 if( ! abone_reason.empty() ) {
                     abone_reason = MISC::replace_str( abone_reason, "<br>", "\n" );
@@ -1778,7 +1777,7 @@ bool BBSListViewBase::open_row( Gtk::TreePath& path, const bool tab )
                 abone_reason.append( DBIMG::kTemporaryMosaicQuestion );
                 mdiag.set_secondary_text( abone_reason );
                 const int response = mdiag.run();
-                if( response == Gtk::RESPONSE_YES ) {
+                if( response == JDLIB::compat::ResponseType::YES ) {
                     open_image = true;
                     open_mode = "force_mosaic";
                 }
@@ -2505,21 +2504,21 @@ void BBSListViewBase::replace_thread( const std::string& url, const std::string&
                         SKELETON::MsgCheckDiag mdiag( get_parent_win(),
                                                       "お気に入りに前スレが登録されています。\n\n名前とアドレスを新スレの物に置き換えますか？"
                                                       , "今後表示しない(_D)",
-                                                      Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_NONE
+                                                      JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::NONE
                             );
 
-                        mdiag.add_default_button( g_dgettext( GTK_DOMAIN, "_No" ), Gtk::RESPONSE_NO );
-                        mdiag.add_button( g_dgettext( GTK_DOMAIN, "_Yes" ), Gtk::RESPONSE_YES );
-                        mdiag.add_button( "新スレをお気に入りに追加(_F)", Gtk::RESPONSE_CANCEL );
+                        mdiag.add_default_button( g_dgettext( GTK_DOMAIN, "_No" ), JDLIB::compat::ResponseType::NO );
+                        mdiag.add_button( g_dgettext( GTK_DOMAIN, "_Yes" ), JDLIB::compat::ResponseType::YES );
+                        mdiag.add_button( "新スレをお気に入りに追加(_F)", JDLIB::compat::ResponseType::CANCEL );
 
                         mdiag.set_title( "お気に入り更新" );
                         const int ret = mdiag.run();
 
                         switch( ret ){
 
-                            case Gtk::RESPONSE_YES: mode = REPLACE_NEXT_YES; break;
-                            case Gtk::RESPONSE_NO: mode = REPLACE_NEXT_NO; break;
-                            case Gtk::RESPONSE_CANCEL: mode = REPLACE_NEXT_ADD; break;
+                            case JDLIB::compat::ResponseType::YES: mode = REPLACE_NEXT_YES; break;
+                            case JDLIB::compat::ResponseType::NO: mode = REPLACE_NEXT_NO; break;
+                            case JDLIB::compat::ResponseType::CANCEL: mode = REPLACE_NEXT_ADD; break;
                         }
 
                         if( mdiag.get_chkbutton().get_active() ){
@@ -2738,7 +2737,7 @@ void BBSListViewBase::append_item()
         // 挿入先ダイアログ表示
         Gtk::Window* parent = ( *list_info_bkup.begin() ).parent;
         SelectListDialog diag( parent, get_url(), get_treestore() );
-        if( diag.run() != Gtk::RESPONSE_OK ) return;
+        if( diag.run() != JDLIB::compat::ResponseType::OK ) return;
 
         path_str = diag.get_path();
         if( list_info_bkup.size() == 1 && ! diag.get_name().empty() ) ( *list_info_bkup.begin() ).name = diag.get_name();

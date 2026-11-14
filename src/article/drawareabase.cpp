@@ -119,7 +119,7 @@ struct LAYOUT_TABLE
 
 
 DrawAreaBase::DrawAreaBase( const std::string& url )
-    : Gtk::Box{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    : Gtk::Box{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_url( url )
     , m_backscreen( nullptr, cairo_surface_destroy )
     , m_enable_draw{ true }
@@ -284,17 +284,12 @@ void DrawAreaBase::create_scrbar()
     std::cout << "DrawAreaBase::create_scrbar\n";
 #endif
 
-    // そのままHBoxにスクロールバーをパックすると、スクロールしたときに何故かHBox全体が
-    // 再描画されて負荷が高くなるのでEventBoxを間に挟む
-    m_vscrbar = Gtk::manage( new Gtk::Scrollbar( Glib::RefPtr<Gtk::Adjustment>{}, Gtk::ORIENTATION_VERTICAL ) );
-    m_event = Gtk::manage( new Gtk::EventBox() );
+    m_vscrbar = Gtk::manage( new Gtk::Scrollbar( Glib::RefPtr<Gtk::Adjustment>{}, JDLIB::compat::Orientation::VERTICAL ) );
     assert( m_vscrbar );
-    assert( m_event );
 
     if( CONFIG::get_left_scrbar() ) remove( m_view );
 
-    m_event->add( *m_vscrbar );
-    JDLIB::compat::box_append_shrink( *this, *m_event );
+    JDLIB::compat::box_append_shrink( *this, *m_vscrbar );
 
     if( CONFIG::get_left_scrbar() ) JDLIB::compat::box_append_expand( *this, m_view );
 
@@ -398,7 +393,7 @@ void DrawAreaBase::init_fontinfo( FONTINFO& fi, std::string& fontname )
     
     // layoutにフォントをセット
     fi.pfd = Pango::FontDescription( fontname );
-    fi.pfd.set_weight( Pango::WEIGHT_NORMAL );
+    fi.pfd.set_weight( JDLIB::compat::Weight::NORMAL );
     m_pango_layout->set_font_description( fi.pfd );
 
     // フォント情報取得
@@ -2714,9 +2709,9 @@ bool DrawAreaBase::draw_one_img_node( LAYOUT* layout, const CLIPINFO& ci )
                         }
 
                         Glib::RefPtr< Gdk::Pixbuf > pixbuf2;
-                        pixbuf2 = pixbuf->scale_simple( moswidth, mosheight, Gdk::INTERP_NEAREST );
+                        pixbuf2 = pixbuf->scale_simple( moswidth, mosheight, JDLIB::compat::InterpType::NEAREST );
                         paint_backscreen( pixbuf2->scale_simple( pixbuf->get_width(), pixbuf->get_height(),
-                                                                 Gdk::INTERP_NEAREST ),
+                                                                 JDLIB::compat::InterpType::NEAREST ),
                                           0, s_top, rect->x + 1, ( rect->y + 1 ) - ci.pos_y + s_top,
                                           pixbuf->get_width(), height );
                     }
@@ -5420,7 +5415,7 @@ void DrawAreaBase::setup_event_controller()
     m_gesture_multipress->signal_pressed().connect( sigc::mem_fun( *this, &DrawAreaBase::slot_multipress_pressed ) );
     m_gesture_multipress->signal_released().connect( sigc::mem_fun( *this, &DrawAreaBase::slot_multipress_released ) );
 
-    m_gesture_pan = Gtk::GesturePan::create( m_view, Gtk::ORIENTATION_VERTICAL );
+    m_gesture_pan = Gtk::GesturePan::create( m_view, JDLIB::compat::Orientation::VERTICAL );
     m_gesture_pan->set_touch_only( true );
     m_gesture_pan->signal_drag_begin().connect( sigc::mem_fun( *this, &DrawAreaBase::slot_pan_begin ) );
     m_gesture_pan->signal_drag_update().connect( sigc::mem_fun( *this, &DrawAreaBase::slot_pan_update ) );
@@ -5455,7 +5450,7 @@ void DrawAreaBase::slot_multipress_pressed( int n_press, double, double )
     if( n_press == 2 ) {
         button_event.type = GDK_DOUBLE_BUTTON_PRESS;
     }
-    else if( n_press == 3 && ( device && device->get_source() != Gdk::SOURCE_TOUCHSCREEN ) ) {
+    else if( n_press == 3 && ( device && device->get_source() != JDLIB::compat::InputSource::TOUCHSCREEN ) ) {
         button_event.type = GDK_TRIPLE_BUTTON_PRESS;
     }
     if( n_points == 2 ) {
@@ -5470,7 +5465,7 @@ void DrawAreaBase::slot_multipress_pressed( int n_press, double, double )
         // そのためpressedから直接releasedの処理を実行することによって問題を回避する。
         button_event.type = GDK_BUTTON_RELEASE;
         slot_button_release_event( &button_event );
-        m_gesture_multipress->set_sequence_state( sequence, Gtk::EVENT_SEQUENCE_DENIED );
+        m_gesture_multipress->set_sequence_state( sequence, JDLIB::compat::EventSequenceState::DENIED );
     }
 }
 
@@ -5505,13 +5500,13 @@ void DrawAreaBase::slot_pan_begin( double start_x, double start_y )
 
     Gtk::EventSequenceState state;
     if ( !m_vscrbar ) {
-        state = Gtk::EVENT_SEQUENCE_DENIED;
+        state = JDLIB::compat::EventSequenceState::DENIED;
     }
     else { // capture_button_press == true
         const auto adjust = m_vscrbar->get_adjustment();
         m_drag_start_y = adjust->get_value();
 
-        state = Gtk::EVENT_SEQUENCE_CLAIMED;
+        state = JDLIB::compat::EventSequenceState::CLAIMED;
     }
 
 #ifdef _DEBUG
@@ -5528,7 +5523,7 @@ void DrawAreaBase::slot_pan_update( double offset_x, double offset_y )
     static_cast< void >( offset_x );
 
     GdkEventSequence* const sequence = m_gesture_pan->get_last_updated_sequence();
-    if( m_gesture_pan->get_sequence_state( sequence ) != Gtk::EVENT_SEQUENCE_CLAIMED ) return;
+    if( m_gesture_pan->get_sequence_state( sequence ) != JDLIB::compat::EventSequenceState::CLAIMED ) return;
 
     const double y = m_drag_start_y - offset_y;
     const auto adjust = m_vscrbar->get_adjustment();
@@ -5553,7 +5548,7 @@ void DrawAreaBase::slot_pan_update( double offset_x, double offset_y )
 void DrawAreaBase::slot_gesture_end( GdkEventSequence* sequence )
 {
     if( !m_gesture_pan->handles_sequence( sequence ) ) {
-        m_gesture_pan->set_state( Gtk::EVENT_SEQUENCE_DENIED );
+        m_gesture_pan->set_state( JDLIB::compat::EventSequenceState::DENIED );
     }
 }
 
@@ -5576,7 +5571,7 @@ void DrawAreaBase::slot_swipe( double velocity_x, double velocity_y )
     static_cast< void >( velocity_x );
 
     GdkEventSequence* const sequence = m_gesture_swipe->get_last_updated_sequence();
-    if( m_gesture_swipe->get_sequence_state( sequence ) != Gtk::EVENT_SEQUENCE_CLAIMED ) return;
+    if( m_gesture_swipe->get_sequence_state( sequence ) != JDLIB::compat::EventSequenceState::CLAIMED ) return;
 
 #ifdef _DEBUG
     std::cout << "DrawAreaBase::slot_swipe vx = " << velocity_x << ", vy = " << velocity_y << std::endl;

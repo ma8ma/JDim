@@ -6,6 +6,8 @@
 #ifndef _TABNOTE_H
 #define _TABNOTE_H
 
+#include "jdlib/sigc_compat.h"
+
 #include <gtkmm.h>
 
 
@@ -17,18 +19,18 @@ namespace SKELETON
     struct Alloc_NoteBook;
 
     // タブのクリック
-    typedef sigc::signal< bool, GdkEventButton* > SIG_BUTTON_PRESS;
-    typedef sigc::signal< bool, GdkEventButton* > SIG_BUTTON_RELEASE;
+    typedef JDLIB::compat::signal< bool(GdkEventButton*) > SIG_BUTTON_PRESS;
+    typedef JDLIB::compat::signal< bool(GdkEventButton*) > SIG_BUTTON_RELEASE;
 
     // マウス移動
-    typedef sigc::signal< void > SIG_TAB_MOTION_EVENT;
-    typedef sigc::signal< void > SIG_TAB_LEAVE_EVENT;
+    typedef JDLIB::compat::signal< void() > SIG_TAB_MOTION_EVENT;
+    typedef JDLIB::compat::signal< void() > SIG_TAB_LEAVE_EVENT;
 
     // ホイール回転
-    typedef sigc::signal< bool, GdkEventScroll* > SIG_SCROLL_EVENT;
+    typedef JDLIB::compat::signal< bool(GdkEventScroll*) > SIG_SCROLL_EVENT;
 
     // D&D
-    typedef sigc::signal< void, const int, const int, const int, const int > SIG_TAB_DRAG_MOTION;
+    typedef JDLIB::compat::signal< void(const int, const int, const int, const int) > SIG_TAB_DRAG_MOTION;
 
     // タブ用の Notebook
     class TabNotebook : public Gtk::Notebook

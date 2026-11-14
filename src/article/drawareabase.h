@@ -9,6 +9,7 @@
 #include "scrollinfo.h"
 
 #include "jdlib/refptr_lock.h"
+#include "jdlib/sigc_compat.h"
 
 #include "control/control.h"
 
@@ -28,17 +29,17 @@ namespace ARTICLE
     class EmbeddedImage;
 
     // マウスボタンプレスとリリースのシグナル。リリース時にマウスがリンクの上にある時そのURLを渡す
-    typedef sigc::signal< bool, std::string, int, GdkEventButton* > SIG_BUTTON_PRESS;
-    typedef sigc::signal< bool, std::string, int, GdkEventButton* > SIG_BUTTON_RELEASE;
+    typedef JDLIB::compat::signal< bool(std::string, int, GdkEventButton*) > SIG_BUTTON_PRESS;
+    typedef JDLIB::compat::signal< bool(std::string, int, GdkEventButton*) > SIG_BUTTON_RELEASE;
 
-    typedef sigc::signal< bool, GdkEventCrossing* > SIG_LEAVE_NOTIFY;
-    typedef sigc::signal< bool, GdkEventMotion* > SIG_MOTION_NOTIFY;
-    typedef sigc::signal< bool, GdkEventKey* > SIG_KEY_PRESS;
-    typedef sigc::signal< bool, GdkEventKey* > SIG_KEY_RELEASE;
-    typedef sigc::signal< bool, GdkEventScroll* > SIG_SCROLL_EVENT;
+    typedef JDLIB::compat::signal< bool(GdkEventCrossing*) > SIG_LEAVE_NOTIFY;
+    typedef JDLIB::compat::signal< bool(GdkEventMotion*) > SIG_MOTION_NOTIFY;
+    typedef JDLIB::compat::signal< bool(GdkEventKey*) > SIG_KEY_PRESS;
+    typedef JDLIB::compat::signal< bool(GdkEventKey*) > SIG_KEY_RELEASE;
+    typedef JDLIB::compat::signal< bool(GdkEventScroll*) > SIG_SCROLL_EVENT;
 
-    typedef sigc::signal< void, std::string, std::string, int > SIG_ON_URL;
-    typedef sigc::signal< void > SIG_LEAVE_URL;
+    typedef JDLIB::compat::signal< void(std::string, std::string, int) > SIG_ON_URL;
+    typedef JDLIB::compat::signal< void() > SIG_LEAVE_URL;
 
     struct URLINFO
     {
@@ -135,7 +136,6 @@ namespace ARTICLE
 
         // HBoxに張り付けるウイジット
         Gtk::DrawingArea m_view;
-        Gtk::EventBox* m_event{};
         Gtk::Scrollbar* m_vscrbar{};
 
         // レイアウトツリー

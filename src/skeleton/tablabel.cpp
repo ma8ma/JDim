@@ -23,13 +23,20 @@ enum
 
 TabLabel::TabLabel( const std::string& url )
     : m_url( url )
-    , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_hbox{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_id_icon( ICON::NUM_ICONS )
 {
 #ifdef _DEBUG
     std::cout << "TabLabel::TabLabel " << m_url << std::endl;
 #endif
 
+#ifdef USE_GTKMM4
+    m_hbox.set_hexpand( true );
+    m_hbox.set_vexpand( true );
+    append( m_hbox );
+
+    JDLIB::compat::box_append_shrink( m_hbox, m_label );
+#else
     // 背景透過
     set_visible_window( false );
 
@@ -41,6 +48,7 @@ TabLabel::TabLabel( const std::string& url )
     JDLIB::compat::box_append_shrink( m_hbox, m_label );
 
     show_all_children();
+#endif
 }
 
 
@@ -86,6 +94,8 @@ void TabLabel::resize_tab( const unsigned int lng )
 //
 void TabLabel::set_dragable( bool dragable, int button )
 {
+    // TODO: GTK4 [DnD] set_dragable() は未実装。タブの並べ替えは動かない。Gtk::DragSource と Gtk::DropTarget に移す。
+#ifndef USE_GTKMM4
     if( dragable ){
 
         std::vector< Gtk::TargetEntry > targets;
@@ -106,6 +116,7 @@ void TabLabel::set_dragable( bool dragable, int button )
         drag_source_unset();
         drag_dest_unset();
     }
+#endif
 }
 
 
@@ -116,9 +127,13 @@ int TabLabel::get_label_margin() const
 {
     int label_margin;
 
+#ifdef USE_GTKMM4
+    label_margin = m_label.get_margin_start() + m_label.get_margin_end()
+#else
     int x_pad, y_pad;
     m_label.get_padding( x_pad, y_pad );
     label_margin = x_pad*2
+#endif
         + m_hbox.get_spacing() + m_hbox.get_border_width()*2
         + get_border_width()*2;
 
@@ -139,6 +154,8 @@ int TabLabel::get_label_margin() const
 //
 // マウスが動いた
 //
+// TODO: GTK4 [Mouse] Gtk::EventControllerMotion::signal_motion に移行する。接続したハンドラは呼ばれない。
+#ifndef USE_GTKMM4
 bool TabLabel::on_motion_notify_event( GdkEventMotion* event )
 {
     const bool ret = Gtk::EventBox::on_motion_notify_event( event );
@@ -147,11 +164,14 @@ bool TabLabel::on_motion_notify_event( GdkEventMotion* event )
 
     return ret;
 }
+#endif
 
 
 //
 // マウスが出た
 //
+// TODO: GTK4 [Mouse] Gtk::EventControllerMotion::signal_leave に移行する。接続したハンドラは呼ばれない。
+#ifndef USE_GTKMM4
 bool TabLabel::on_leave_notify_event( GdkEventCrossing* event )
 {
 #ifdef _DEBUG
@@ -164,11 +184,14 @@ bool TabLabel::on_leave_notify_event( GdkEventCrossing* event )
 
     return ret;
 }
+#endif
 
 
 //
 // ドラッグ開始
 //
+// TODO: GTK4 [DnD] Gtk::DragSource::signal_drag_begin に移行する。接続したハンドラは呼ばれない。
+#ifndef USE_GTKMM4
 void TabLabel::on_drag_begin( const Glib::RefPtr< Gdk::DragContext >& context )
 {
 #ifdef _DEBUG
@@ -179,11 +202,14 @@ void TabLabel::on_drag_begin( const Glib::RefPtr< Gdk::DragContext >& context )
 
     Gtk::EventBox::on_drag_begin( context );
 }
+#endif
 
 
 //
 // D&Dで受信側がデータ送信を要求してきた
 //
+// TODO: GTK4 [DnD] Gtk::DragSource::signal_prepare に移行する。接続したハンドラは呼ばれない。
+#ifndef USE_GTKMM4
 void TabLabel::on_drag_data_get( const Glib::RefPtr<Gdk::DragContext>& context,
                                  Gtk::SelectionData& selection_data, guint info, guint time )
 {
@@ -196,11 +222,14 @@ void TabLabel::on_drag_data_get( const Glib::RefPtr<Gdk::DragContext>& context,
 
     m_sig_tab_drag_data_get( selection_data );
 }
+#endif
 
 
 //
 // ドラッグ終了
 //
+// TODO: GTK4 [DnD] Gtk::DragSource::signal_drag_end に移行する。接続したハンドラは呼ばれない。
+#ifndef USE_GTKMM4
 void TabLabel::on_drag_end( const Glib::RefPtr< Gdk::DragContext >& context )
 {
 #ifdef _DEBUG
@@ -211,3 +240,4 @@ void TabLabel::on_drag_end( const Glib::RefPtr< Gdk::DragContext >& context )
 
     m_sig_tab_drag_end.emit();
 }
+#endif

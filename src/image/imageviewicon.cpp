@@ -41,7 +41,11 @@ ImageViewIcon::ImageViewIcon( const std::string& url )
 
     // 選択されてる画像アイコンの背景色を赤にするための設定
     JDLIB::compat::box_append_expand( *this, get_event() );
+#ifdef USE_GTKMM4
+    get_event().set_margin( 1 );
+#else
     get_event().set_border_width( 1 );
+#endif
     try {
         m_provider->load_from_data( ".selected { background-color: red; }" );
     }
@@ -52,6 +56,9 @@ ImageViewIcon::ImageViewIcon( const std::string& url )
 
     setup_common();
 
+    // TODO: GTK4 ではドラッグ＆ドロップを未接続にする。 DragSource / DropTarget へ移行する。
+    //       画像タブの並べ替えと、お気に入りへのドロップは動かない。
+#ifndef USE_GTKMM4
     // D&D可能にする
     std::vector< Gtk::TargetEntry > targets;
     targets.push_back( Gtk::TargetEntry( DNDTARGET_IMAGETAB, Gtk::TARGET_SAME_APP, 0 ) );
@@ -64,6 +71,7 @@ ImageViewIcon::ImageViewIcon( const std::string& url )
     get_event().signal_drag_data_get().connect( sigc::mem_fun( *this, &ImageViewIcon::slot_drag_data_get ) );
     get_event().signal_drag_data_received().connect( sigc::mem_fun( *this, &ImageViewIcon::slot_drag_data_received ) );
     get_event().signal_drag_end().connect( sigc::mem_fun( *this, &ImageViewIcon::slot_drag_end ) );
+#endif
 }
 
 
@@ -176,7 +184,7 @@ void ImageViewIcon::switch_icon()
 //
 Gtk::Menu* ImageViewIcon::get_popupmenu( const std::string& url )
 {
-    Gtk::Menu* menu = dynamic_cast< Gtk::Menu* >( ui_manager()->get_widget( "/popup_menu_icon" ) );
+    Gtk::Menu* menu = get_popupmenu_impl( "/popup_menu_icon" );
 
     // タブ情報セット
     if( menu ){

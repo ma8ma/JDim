@@ -5,11 +5,13 @@
 
 #include "vpaned.h"
 
+#include "jdlib/gtk_compat.h"
+
 using namespace SKELETON;
 
 
 JDVPaned::JDVPaned( const int fixmode )
-    : Gtk::Paned( Gtk::ORIENTATION_VERTICAL )
+    : Gtk::Paned( JDLIB::compat::Orientation::VERTICAL )
     , m_pctrl( *this, fixmode )
 {}
 

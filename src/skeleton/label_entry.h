@@ -9,13 +9,15 @@
 #ifndef _LABEL_ENTRY_H
 #define _LABEL_ENTRY_H
 
+#include "jdlib/sigc_compat.h"
+
 #include <gtkmm.h>
 
 namespace SKELETON
 {
     class LabelEntry : public Gtk::Box
     {
-        typedef sigc::signal< void > SIG_ACTIVATE;
+        typedef JDLIB::compat::signal< void() > SIG_ACTIVATE;
 
         SIG_ACTIVATE m_sig_activate;
 

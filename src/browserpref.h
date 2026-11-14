@@ -40,9 +40,9 @@ namespace CORE
 
         BrowserPref( Gtk::Window* parent, const std::string& url )
             : SKELETON::PrefDiag( parent, url )
-            , m_vbox{ Gtk::ORIENTATION_VERTICAL, 0 }
+            , m_vbox{ JDLIB::compat::Orientation::VERTICAL, 0 }
             , m_label_notice( "使用するWebブラウザを選択して下さい\nリンククリック時に %LINK をURLに置換します" )
-            , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+            , m_hbox{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
         {
             const int mrg = 8;
 

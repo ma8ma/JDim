@@ -51,14 +51,14 @@ using namespace IMAGE;
 
 ImageAdmin::ImageAdmin( const std::string& url )
     : SKELETON::Admin( url )
-    , m_tab{ Gtk::ORIENTATION_HORIZONTAL, 0 }
-    , m_iconbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_tab{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
+    , m_iconbox{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_scroll( SCROLL_NO )
 {
     m_scrwin.add( m_iconbox );
-    // Gtk::POLICY_NEVERだとスクロール機能自体がなくなり
+    // JDLIB::compat::PolicyType::NEVERだとスクロール機能自体がなくなり
     // コンテンツに合わせてGtk::ScrolledWindowのサイズが拡大してしまう
-    m_scrwin.set_policy( Gtk::POLICY_EXTERNAL, Gtk::POLICY_NEVER );
+    m_scrwin.set_policy( JDLIB::compat::PolicyType::EXTERNAL, JDLIB::compat::PolicyType::NEVER );
     m_scrwin.set_size_request( ICON_SIZE ,  ICON_SIZE + 4);
 
     m_left.set_label( "<" );
@@ -573,7 +573,11 @@ void ImageAdmin::close_view( const std::string& url )
     // 現在表示中のviewを閉じた場合は次か前の画像に切り替える
     if( view && view == get_current_view() ){
 
+#ifdef USE_GTKMM4
+        m_view.remove( *m_view.get_first_child() );
+#else
         m_view.remove();
+#endif
 
         SKELETON::View* view_prev = nullptr;
         SKELETON::View* view_next = nullptr;
@@ -880,9 +884,19 @@ void ImageAdmin::switch_img( const std::string& url )
 #ifdef _DEBUG
                 std::cout << "view was toggled.\n";
 #endif
+#ifdef USE_GTKMM4
+                if( auto* child = m_view.get_first_child() ) {
+                    m_view.remove( *child );
+                }
+                view->set_hexpand( true );
+                view->set_vexpand( true );
+                m_view.append( *view );
+                view->show();
+#else
                 m_view.remove();
                 m_view.add( *view );
                 m_view.show_all_children();
+#endif
             }
             break;
         }
@@ -997,7 +1011,11 @@ SKELETON::View* ImageAdmin::get_view( const std::string& url )
 //
 SKELETON::View* ImageAdmin::get_current_view()
 {
+#ifdef USE_GTKMM4
+    return dynamic_cast< SKELETON::View* >( m_view.get_first_child() );
+#else
     return dynamic_cast< SKELETON::View* >( m_view.get_child() );
+#endif
 }
 
 
@@ -1141,11 +1159,11 @@ void ImageAdmin::save_all()
 #endif
 
     // ディレクトリ選択
-    SKELETON::FileDiag diag( get_win(), "保存先選択", Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER );
+    SKELETON::FileDiag diag( get_win(), "保存先選択", JDLIB::compat::FileChooser::Action::SELECT_FOLDER );
 
     diag.set_current_folder( SESSION::dir_img_save() );
     
-    if( diag.run() == Gtk::RESPONSE_ACCEPT ){
+    if( diag.run() == JDLIB::compat::ResponseType::ACCEPT ){
 
         diag.hide();
 
@@ -1161,7 +1179,7 @@ void ImageAdmin::save_all()
 
             SESSION::set_dir_img_save( path_dir );
 
-            int overwrite = Gtk::RESPONSE_NO;
+            int overwrite = JDLIB::compat::ResponseType::NO;
             bool use_name_in_cache = false;
 
             const std::vector<std::string> list_urls = get_URLs();
@@ -1219,17 +1237,17 @@ void ImageAdmin::save_all()
                                     break;
 
                                     // 名前変更
-                                case Gtk::RESPONSE_YES:
+                                case JDLIB::compat::ResponseType::YES:
                                 {
                                     SKELETON::MsgDiag mdiag_name( get_win(),
                                                                   "ファイル名として画像キャッシュでのファイル名を使用しますか？\n\nいいえを選ぶとファイル選択ダイアログを開きます。",
-                                                                  false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
+                                                                  false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
 
                                     mdiag_name.add_button( "すべてはい", SKELETON::OVERWRITE_YES_ALL );
-                                    mdiag_name.set_default_response( Gtk::RESPONSE_YES );
+                                    mdiag_name.set_default_response( JDLIB::compat::ResponseType::YES );
                                     const int ret = mdiag_name.run();
 
-                                    if( ret == Gtk::RESPONSE_YES || ret == SKELETON::OVERWRITE_YES_ALL ){
+                                    if( ret == JDLIB::compat::ResponseType::YES || ret == SKELETON::OVERWRITE_YES_ALL ){
 
                                         if( ret == SKELETON::OVERWRITE_YES_ALL ) use_name_in_cache = true;
                                         if( ! copy_file( url, path_from, path_dir + CACHE::filename_img( url ) ) ) return;

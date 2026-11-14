@@ -11,6 +11,7 @@
 
 #include "config/globalconf.h"
 #include "dbtree/interface.h"
+#include "jdlib/gtk_compat.h"
 #include "jdlib/miscgtk.h"
 #include "xml/document.h"
 
@@ -346,7 +347,7 @@ void EditTreeView::xml2tree( const XML::Document& document, Glib::RefPtr< Gtk::T
 //
 void EditTreeView::tree2xml( XML::Document& document, const std::string& root_name )
 {
-    Glib::RefPtr< Gtk::TreeStore > treestore = Glib::RefPtr< Gtk::TreeStore >::cast_dynamic( get_model() );
+    Glib::RefPtr< Gtk::TreeStore > treestore = JDLIB::compat::dynamic_pointer_cast< Gtk::TreeStore >( get_model() );
     if( ! treestore || treestore->children().empty() ){
         document.clear();
         return;
@@ -457,7 +458,7 @@ Gtk::TreeViewColumn* EditTreeView::create_column( const int ypad )
     m_ren_text = Gtk::manage( new Gtk::CellRendererText() );
     m_ren_text->signal_edited().connect( sigc::mem_fun( *this, &EditTreeView::slot_ren_text_on_edited ) );
     m_ren_text->signal_editing_canceled().connect( sigc::mem_fun( *this, &EditTreeView::slot_ren_text_on_canceled ) );
-    m_ren_text->property_underline() = Pango::UNDERLINE_SINGLE;
+    m_ren_text->property_underline() = JDLIB::compat::Underline::SINGLE;
 
     // 行間スペース
     if( ypad >= 0 ) m_ren_text->property_ypad() = ypad;
@@ -466,7 +467,7 @@ Gtk::TreeViewColumn* EditTreeView::create_column( const int ypad )
     col->add_attribute( *m_ren_text, "text", EDITCOL_NAME );
     col->add_attribute( *m_ren_text, "underline", EDITCOL_UNDERLINE );
     col->add_attribute( *m_ren_text, "foreground_rgba", EDITCOL_FGCOLOR );
-    col->set_sizing( Gtk::TREE_VIEW_COLUMN_FIXED );
+    col->set_sizing( JDLIB::compat::TreeViewColumn::Sizing::FIXED );
 
     // 実際の描画時に偶数行に色を塗る
     col->set_cell_data_func( *col->get_first_cell(), sigc::mem_fun( *this, &DragTreeView::slot_cell_data ) );
@@ -759,7 +760,7 @@ void EditTreeView::on_drag_data_received( const Glib::RefPtr<Gdk::DragContext>& 
                 // 移動先がサブディレクトリに含まれないかチェック
                 if( Gtk::TreePath( data.path ).is_ancestor( path_dest ) ){
 
-                    SKELETON::MsgDiag mdiag( get_parent_win(), "移動先は送り側のディレクトリのサブディレクトリです", false, Gtk::MESSAGE_ERROR );
+                    SKELETON::MsgDiag mdiag( get_parent_win(), "移動先は送り側のディレクトリのサブディレクトリです", false, JDLIB::compat::MessageType::ERROR );
                     mdiag.run();
                     return;
                 }
@@ -1059,7 +1060,7 @@ CORE::DATA_INFO_LIST EditTreeView::append_info( const CORE::DATA_INFO_LIST& list
                 SKELETON::MsgCheckDiag mdiag( get_parent_win(),
                                               info.name + "\n\nは既に含まれています。追加しますか？",
                                               "今後表示しない(常に追加しない) (_D)",
-                                              Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO, Gtk::RESPONSE_NO );
+                                              JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO, JDLIB::compat::ResponseType::NO );
                 mdiag.set_title( "お気に入り追加確認" );
 
                 const int ret = mdiag.run();
@@ -1067,7 +1068,7 @@ CORE::DATA_INFO_LIST EditTreeView::append_info( const CORE::DATA_INFO_LIST& list
                     CONFIG::set_check_favorite_dup( 2 );
                     check_dup = 2;
                 }
-                if( ret != Gtk::RESPONSE_YES ) continue;
+                if( ret != JDLIB::compat::ResponseType::YES ) continue;
             }
 
             list_info_src.push_back( info );
@@ -1173,8 +1174,8 @@ void EditTreeView::delete_selected_rows( const bool force )
 
         if( is_dir( iter ) ){
             SKELETON::MsgDiag mdiag( get_parent_win(), "ディレクトリを削除するとディレクトリ内の行も全て削除されます。削除しますか？",
-                                      false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
-            if( mdiag.run() != Gtk::RESPONSE_YES ) return;
+                                      false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
+            if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
             break;
         }
     }
@@ -1527,7 +1528,7 @@ Gtk::TreePath EditTreeView::append_one_row( const std::string& url, const std::s
                                             const size_t dirid, const std::string& data,
                                             const Gtk::TreePath& path_dest, const bool before, const bool subdir )
 {
-    Glib::RefPtr< Gtk::TreeStore > treestore = Glib::RefPtr< Gtk::TreeStore >::cast_dynamic( get_model() );
+    Glib::RefPtr< Gtk::TreeStore > treestore = JDLIB::compat::dynamic_pointer_cast< Gtk::TreeStore >( get_model() );
     if( ! treestore ) return Gtk::TreePath();
 
 #ifdef _DEBUG
@@ -1676,7 +1677,7 @@ void EditTreeView::delete_rows( const CORE::DATA_INFO_LIST& list_info, const Gtk
 
     if( ! list_info.size() ) return;
 
-    Glib::RefPtr< Gtk::TreeStore > treestore = Glib::RefPtr< Gtk::TreeStore >::cast_dynamic( get_model() );
+    Glib::RefPtr< Gtk::TreeStore > treestore = JDLIB::compat::dynamic_pointer_cast< Gtk::TreeStore >( get_model() );
     if( ! treestore ) return;
 
     // あらかじめ path_select にカーソルを移動しておく

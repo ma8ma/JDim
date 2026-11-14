@@ -45,8 +45,6 @@ namespace SKELETON
 
         Gtk::Box m_statbar;
         Gtk::Label m_label_stat;
-        Gtk::EventBox m_label_stat_ebox;
-        Gtk::EventBox m_mginfo_ebox;
         Gtk::Label m_mginfo;
 
         static constexpr const char* s_css_stat_label = "jd-stat-label";

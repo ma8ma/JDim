@@ -9,6 +9,8 @@
 
 #include "skeleton/loadable.h"
 
+#include "jdlib/sigc_compat.h"
+
 #include <gtkmm.h>
 
 #include <memory>
@@ -37,7 +39,7 @@ namespace MESSAGE
     class Post : public SKELETON::Loadable
     {
         // ポスト終了シグナル
-        typedef sigc::signal< void > SIG_FIN;
+        typedef JDLIB::compat::signal< void() > SIG_FIN;
         SIG_FIN m_sig_fin;
 
         // 親widget

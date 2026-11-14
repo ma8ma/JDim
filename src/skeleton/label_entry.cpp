@@ -12,7 +12,7 @@ using namespace SKELETON;
 
 
 LabelEntry::LabelEntry( const bool editable, const std::string& label, const std::string& text )
-    : Gtk::Box{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    : Gtk::Box{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_editable( editable )
 {
     set_label( label );
@@ -23,7 +23,7 @@ LabelEntry::LabelEntry( const bool editable, const std::string& label, const std
     m_info.set_size_request( 0, 0 );
     m_info.set_xalign( 0 );
     m_info.set_selectable( true );
-    m_info.set_ellipsize( Pango::ELLIPSIZE_END );
+    m_info.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
 
     setup();
     set_text( text );

@@ -14,6 +14,7 @@
 
 #include "jdlib/heap.h"
 #include "jdlib/jdregex.h"
+#include "jdlib/sigc_compat.h"
 
 #include <map>
 #include <set>
@@ -41,8 +42,8 @@ namespace DBTREE
     //ノードツリーのベースクラス
     class NodeTreeBase : public SKELETON::Loadable
     {
-        typedef sigc::signal< void > SIG_UPDATED;
-        typedef sigc::signal< void > SIG_FINISHED;
+        typedef JDLIB::compat::signal< void() > SIG_UPDATED;
+        typedef JDLIB::compat::signal< void() > SIG_FINISHED;
         SIG_UPDATED m_sig_updated;
         SIG_UPDATED m_sig_finished;
 

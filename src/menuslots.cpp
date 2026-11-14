@@ -34,6 +34,7 @@
 
 #include "dbimg/imginterface.h"
 
+#include "jdlib/gtk_compat.h"
 #include "jdlib/miscutil.h"
 
 #include "message/logmanager.h"
@@ -767,7 +768,7 @@ void Core::slot_changefont_main()
     diag.set_font( CONFIG::get_fontname( FONT_MAIN ) );
     diag.set_title( "スレビューフォント" );
     diag.set_transient_for( *CORE::get_mainwindow() );
-    if( diag.run() == Gtk::RESPONSE_OK ){
+    if( diag.run() == JDLIB::compat::ResponseType::OK ){
 
         CONFIG::set_fontname( FONT_MAIN, diag.get_font() );
         ARTICLE::get_admin()->set_command( "init_font" );
@@ -787,7 +788,7 @@ void Core::slot_changefont_mail()
     diag.set_font( CONFIG::get_fontname( FONT_MAIL ) );
     diag.set_title( "メール欄のフォント" );
     diag.set_transient_for( *CORE::get_mainwindow() );
-    if( diag.run() == Gtk::RESPONSE_OK ){
+    if( diag.run() == JDLIB::compat::ResponseType::OK ){
 
         CONFIG::set_fontname( FONT_MAIL, diag.get_font() );
         ARTICLE::get_admin()->set_command( "init_font" );
@@ -807,7 +808,7 @@ void Core::slot_changefont_popup()
     diag.set_font( CONFIG::get_fontname( FONT_POPUP ) );
     diag.set_title( "ポップアップフォント" );
     diag.set_transient_for( *CORE::get_mainwindow() );
-    if( diag.run() == Gtk::RESPONSE_OK ){
+    if( diag.run() == JDLIB::compat::ResponseType::OK ){
 
         CONFIG::set_fontname( FONT_POPUP, diag.get_font() );
         ARTICLE::get_admin()->set_command( "init_font" );
@@ -824,7 +825,7 @@ void Core::slot_changefont_tree()
     diag.set_font( CONFIG::get_fontname( FONT_BBS ) );
     diag.set_title( "板／スレ一覧フォント" );
     diag.set_transient_for( *CORE::get_mainwindow() );
-    if( diag.run() == Gtk::RESPONSE_OK ){
+    if( diag.run() == JDLIB::compat::ResponseType::OK ){
 
         CONFIG::set_fontname( FONT_BBS, diag.get_font() );
         BBSLIST::get_admin()->set_command( "relayout_all" );
@@ -1079,8 +1080,8 @@ void Core::slot_clear_privacy()
 void Core::slot_clear_post_log()
 {
     SKELETON::MsgDiag mdiag( nullptr, "書き込みログを削除しますか？",
-                             false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
-    if( mdiag.run() != Gtk::RESPONSE_YES ) return;
+                             false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
+    if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
     MESSAGE::get_log_manager()->clear_post_log();
 
@@ -1095,8 +1096,8 @@ void Core::slot_clear_post_log()
 void Core::slot_clear_post_history()
 {
     SKELETON::MsgDiag mdiag( nullptr, "全スレの書き込み履歴を削除します。\n\nある板、または特定のスレの履歴を削除するには板またはスレのプロパティから行って下さい。\n\nまた全スレの書き込み履歴の削除には時間がかかります。\n\n全スレの書き込み履歴の削除を実行しますか？",
-                             false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
-    if( mdiag.run() != Gtk::RESPONSE_YES ) return;
+                             false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
+    if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
     DBTREE::clear_all_post_history();
 

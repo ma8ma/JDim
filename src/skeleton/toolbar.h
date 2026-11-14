@@ -6,8 +6,6 @@
 #ifndef _TOOLBAR_H
 #define _TOOLBAR_H
 
-#include "jdtoolbar.h"
-
 #include <gtkmm.h>
 
 
@@ -15,8 +13,7 @@ namespace SKELETON
 {
     class Admin;
     class View;
-    class ToolMenuButton;
-    class ToolBackForwardButton;
+    class MenuButton;
     class BackForwardButton;
     class CompletionEntry;
 
@@ -28,46 +25,43 @@ namespace SKELETON
         bool m_enable_slot;
 
         // ボタンバー
-        SKELETON::JDToolbar m_buttonbar;
+        Gtk::Box m_buttonbar;
         bool m_buttonbar_shown{};
         bool m_buttonbar_packed{};
 
         // ラベル
-        Gtk::ToolItem* m_tool_label{};
-        Gtk::EventBox* m_ebox_label{};
         Gtk::Label* m_label{};
 
         // 検索関係
-        Gtk::Toolbar* m_searchbar{}; // 検索バー
+        Gtk::Box* m_searchbar{}; // 検索バー
         bool m_searchbar_shown{};
         bool m_searchbar_packed{};
-        Gtk::ToolButton* m_button_open_searchbar{};
-        Gtk::ToolButton* m_button_close_searchbar{};
-        Gtk::ToolButton* m_button_up_search{};
-        Gtk::ToolButton* m_button_down_search{};
-        Gtk::ToolButton* m_button_clear_highlight{};
+        Gtk::Button* m_button_open_searchbar{};
+        Gtk::Button* m_button_close_searchbar{};
+        Gtk::Button* m_button_up_search{};
+        Gtk::Button* m_button_down_search{};
+        Gtk::Button* m_button_clear_highlight{};
 
-        Gtk::ToolItem* m_tool_search{};
         SKELETON::CompletionEntry* m_entry_search{};
 
         // 板を開く
         Gtk::Label* m_label_board{};
-        SKELETON::ToolMenuButton* m_button_board{};
+        SKELETON::MenuButton* m_button_board{};
 
         // その他ボタン
-        Gtk::ToolButton* m_button_write{};
-        Gtk::ToolButton* m_button_reload{};
-        Gtk::ToolButton* m_button_stop{};
-        Gtk::ToolButton* m_button_close{};
-        Gtk::ToolButton* m_button_delete{};
-        Gtk::ToolButton* m_button_favorite{};
-        Gtk::ToolButton* m_button_undo{};
-        Gtk::ToolButton* m_button_redo{};
-        Gtk::ToggleToolButton* m_button_lock{};
+        Gtk::Button* m_button_write{};
+        Gtk::Button* m_button_reload{};
+        Gtk::Button* m_button_stop{};
+        Gtk::Button* m_button_close{};
+        Gtk::Button* m_button_delete{};
+        Gtk::Button* m_button_favorite{};
+        Gtk::Button* m_button_undo{};
+        Gtk::Button* m_button_redo{};
+        Gtk::ToggleButton* m_button_lock{};
 
         // 進む、戻るボタン
-        SKELETON::ToolBackForwardButton* m_button_back{};
-        SKELETON::ToolBackForwardButton* m_button_forward{};
+        SKELETON::BackForwardButton* m_button_back{};
+        SKELETON::BackForwardButton* m_button_forward{};
 
         static constexpr const char* s_css_label = "jd-toolbar-label";
         Glib::RefPtr< Gtk::CssProvider > m_label_provider = Gtk::CssProvider::create();
@@ -120,18 +114,18 @@ namespace SKELETON
         void set_relief();
 
 
-        Gtk::Toolbar& get_buttonbar(){ return m_buttonbar; }
+        Gtk::Box& get_buttonbar(){ return m_buttonbar; }
 
         // ラベル
-        Gtk::ToolItem* get_label();
+        Gtk::Label* get_label();
 
         // 検索関係
-        Gtk::Toolbar* get_searchbar();
-        Gtk::ToolItem* get_button_open_searchbar();
-        Gtk::ToolItem* get_button_close_searchbar();
+        Gtk::Box* get_searchbar();
+        Gtk::Button* get_button_open_searchbar();
+        Gtk::Button* get_button_close_searchbar();
 
         // mode は補完モード ( compmanager.h 参照 )
-        Gtk::ToolItem* get_tool_search( const int mode );
+        Gtk::Box* get_tool_search( const int mode );
         SKELETON::CompletionEntry* get_entry_search();
 
         // CompletionEntry の入力コントローラのモード設定
@@ -140,36 +134,35 @@ namespace SKELETON
         std::string get_search_text() const;
 
         // 上検索
-        Gtk::ToolButton* get_button_up_search();
+        Gtk::Button* get_button_up_search();
 
         // 下検索
-        Gtk::ToolButton* get_button_down_search();
+        Gtk::Button* get_button_down_search();
 
         // ハイライト解除
-        Gtk::ToolButton* get_button_clear_highlight();
+        Gtk::Button* get_button_clear_highlight();
 
         // 板を開く
-        Gtk::ToolItem* get_button_board();
+        Gtk::Button* get_button_board();
 
         // その他ボタン
-        Gtk::ToolButton* get_button_write();
-        Gtk::ToolButton* get_button_reload();
-        Gtk::ToolButton* get_button_stop();
-        Gtk::ToolButton* get_button_close();
-        Gtk::ToolItem* get_button_delete();
-        Gtk::ToolItem* get_button_favorite();
-        Gtk::ToolButton* get_button_undo();
-        Gtk::ToolButton* get_button_redo();
-        Gtk::ToolButton* get_button_lock();
+        Gtk::Button* get_button_write();
+        Gtk::Button* get_button_reload();
+        Gtk::Button* get_button_stop();
+        Gtk::Button* get_button_close();
+        Gtk::Button* get_button_delete();
+        Gtk::Button* get_button_favorite();
+        Gtk::Button* get_button_undo();
+        Gtk::Button* get_button_redo();
+        Gtk::Button* get_button_lock();
 
-        Gtk::ToolItem* get_button_back();
-        Gtk::ToolItem* get_button_forward();
+        Gtk::Button* get_button_back();
+        Gtk::Button* get_button_forward();
 
         void pack_separator();
-        void pack_transparent_separator();
-        void set_tooltip( Gtk::ToolItem& toolitem, const std::string& tip, const bool use_markup = false );
+        void set_tooltip( Gtk::Widget& toolitem, const std::string& tip, const bool use_markup = false );
 
-        static void set_button_icon( Gtk::ToolButton* button, const int iconid );
+        static void set_button_icon( Gtk::Button* button, const int iconid );
 
       private:
 

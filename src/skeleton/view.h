@@ -8,6 +8,7 @@
 #include <set>
 
 #include "control/control.h"
+#include "jdlib/sigc_compat.h"
 
 namespace SKELETON
 {
@@ -22,11 +23,11 @@ namespace SKELETON
 
     // 自分がポップアップviewの時に(ポップアップウィンドウ( SKELETON::PopupWin ) 経由で)
     // 親widgetにhideを依頼するシグナル。PopupWin::PopupWin()でPopupWin::slot_hide_popup()にコネクトされる。
-    typedef sigc::signal< void > SIG_HIDE_POPUP;    
+    typedef JDLIB::compat::signal< void() > SIG_HIDE_POPUP;
 
     // 自分がポップアップviewでリサイズしたときに、明示的にポップアップウィンドウ( SKELETON::PopupWin )
     // にリサイズを依頼するシグナル。PopupWin::PopupWin()でPopupWin::slot_resize_popup()にコネクトされる。
-    typedef sigc::signal< void > SIG_RESIZE_POPUP;
+    typedef JDLIB::compat::signal< void() > SIG_RESIZE_POPUP;
     
     class View : public Gtk::Box
     {
@@ -44,8 +45,10 @@ namespace SKELETON
         CONTROL::Control m_control;
 
         // ポップアップメニュー
+#ifndef USE_GTKMM4
         Glib::RefPtr< Gtk::ActionGroup > m_action_group;
         Glib::RefPtr< Gtk::UIManager > m_ui_manager;
+#endif
         std::set< std::string > m_url_popup;
 
         // ツールバーに表示する文字列
@@ -106,8 +109,11 @@ namespace SKELETON
         virtual Admin* get_admin() = 0;
 
         // UI
+#ifndef USE_GTKMM4
+        // GTK3専用 (GTK4ではPopupMenu再実装後に削除予定)
         Glib::RefPtr< Gtk::ActionGroup >& action_group(){ return m_action_group; }
         Glib::RefPtr< Gtk::UIManager >& ui_manager(){ return m_ui_manager; }
+#endif
 
         // コントローラ
         CONTROL::Control& get_control(){ return m_control; }

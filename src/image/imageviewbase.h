@@ -40,11 +40,23 @@ namespace IMAGE
 
         bool m_wait{};
         bool m_loading{};
+#ifdef USE_GTKMM4
+        Gtk::Box m_event{ Gtk::Orientation::HORIZONTAL, 0 };
+#else
         Gtk::EventBox m_event;
+#endif
         bool m_dblclick{};
         bool m_under_mouse{};
 
         bool m_enable_menuslot;
+
+#ifdef USE_GTKMM4
+        Glib::RefPtr<Gio::SimpleActionGroup> m_action_group;
+
+        Gtk::Menu m_popup_menu;
+        Gtk::Menu m_popup_menu_icon;
+        Gtk::Menu m_popup_menu_popup;
+#endif
 
       protected:
 
@@ -63,7 +75,11 @@ namespace IMAGE
         bool is_loading() const override { return m_loading; }
         void set_loading( const bool loading ){ m_loading = loading; }
 
+#ifdef USE_GTKMM4
+        Gtk::Box& get_event(){ return m_event; }
+#else
         Gtk::EventBox& get_event(){ return  m_event; }
+#endif
 
       public:
 
@@ -100,9 +116,11 @@ namespace IMAGE
       protected:
 
         void setup_common();
+        void setup_popupmenu();
         void set_image_to_buffer();
 
         void activate_act_before_popupmenu( const std::string& url ) override;
+        Gtk::Menu* get_popupmenu_impl( const Glib::ustring& menu_name );
 
         void delete_view_impl( const bool show_diag );
         void slot_cancel_mosaic();
@@ -135,6 +153,9 @@ namespace IMAGE
         void slot_zoom_in();
         void slot_zoom_out();
         void slot_resize_image( int size );
+#ifdef USE_GTKMM4
+        void slot_resize_image_action( const Glib::VariantBase& parameter );
+#endif
         void slot_lock();
         void slot_open_browser();
         void slot_open_cache_browser();
