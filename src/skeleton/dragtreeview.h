@@ -102,6 +102,7 @@ namespace SKELETON
 
       protected:
 
+#ifndef USE_GTKMM4
         // drag_source_set() でセットしたボタンでドラッグした時に呼び出される順番は
         //
         // (1) on_button_press_event
@@ -127,6 +128,7 @@ namespace SKELETON
         bool on_motion_notify_event( GdkEventMotion* event ) override;
         bool on_scroll_event( GdkEventScroll* event ) override;
         bool on_leave_notify_event( GdkEventCrossing* event ) override;
+#endif
 
       private:
 
@@ -139,7 +141,9 @@ namespace SKELETON
         // ポップアップが表示されていてかつマウスがその上にあるか
         bool is_mouse_on_popup();
 
+#ifndef USE_GTKMM4
         bool slot_popup_leave_notify_event( GdkEventCrossing* event );
+#endif
         void slot_selection_changed();
    };
 }
