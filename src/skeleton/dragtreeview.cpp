@@ -58,6 +58,8 @@ DragTreeView::DragTreeView( const std::string& url, const std::string& dndtarget
     get_selection()->set_mode( JDLIB::compat::SelectionMode::MULTIPLE );
     get_selection()->signal_changed().connect( sigc::mem_fun( *this, &DragTreeView::slot_selection_changed ) );
 
+    // TODO: GTK4 [DnD] Gtk::DragSource のドラッグ開始ボタンを設定する。
+#ifndef USE_GTKMM4
     // D&D 設定
     std::vector< Gtk::TargetEntry > targets;
     targets.push_back( Gtk::TargetEntry( get_dndtarget(), Gtk::TARGET_SAME_APP, 0 ) );
@@ -75,6 +77,7 @@ DragTreeView::DragTreeView( const std::string& url, const std::string& dndtarget
     }
 
     drag_source_set( targets, type );
+#endif
 }
 
 
@@ -88,11 +91,14 @@ DragTreeView::~DragTreeView() noexcept = default;
 //
 void DragTreeView::set_enable_drop_uri_list()
 {
+    // TODO: GTK4 [DnD] Gtk::DropTarget の text/url-list のドロップを設定する。
+#ifndef USE_GTKMM4
     std::vector< Gtk::TargetEntry > targets_drop;
     targets_drop.push_back( Gtk::TargetEntry( "text/uri-list" ) );
 
     // ドロップされると on_drag_data_received() が呼び出される
     drag_dest_set( targets_drop, Gtk::DEST_DEFAULT_ALL, JDLIB::compat::DragAction::COPY );
+#endif
 }
 
 
@@ -197,7 +203,10 @@ void DragTreeView::show_popup( const std::string& url, View* view )
     delete_popup();
 
     m_popup_win = std::make_unique<PopupWin>( this, view, mrg_x, mrg_y );
+    // TODO: GTK4 [Mouse] Gtk::EventControllerMotion::signal_leave に移行する。
+#ifndef USE_GTKMM4
     m_popup_win->signal_leave_notify_event().connect( sigc::mem_fun( *this, &DragTreeView::slot_popup_leave_notify_event ) );
+#endif
     m_popup_win->sig_hide_popup().connect( sigc::mem_fun( *this, &DragTreeView::hide_popup ) );
 
     m_pre_popup_url = url;
@@ -209,6 +218,7 @@ void DragTreeView::show_popup( const std::string& url, View* view )
 //
 // popup windowの外にポインタが出た
 //
+#ifndef USE_GTKMM4
 bool DragTreeView::slot_popup_leave_notify_event( GdkEventCrossing* event )
 {
 #ifdef _DEBUG
@@ -228,6 +238,7 @@ bool DragTreeView::slot_popup_leave_notify_event( GdkEventCrossing* event )
 
     return true;
 }
+#endif
 
 
 //
@@ -273,6 +284,8 @@ void DragTreeView::delete_popup()
 //
 // マウスボタンを押した
 //
+// TODO: GTK4 [Mouse] Gtk::GestureClick::signal_pressed に移行する。
+#ifndef USE_GTKMM4
 bool DragTreeView::on_button_press_event( GdkEventButton* event )
 {
     Gtk::TreeModel::Path path = get_path_under_xy( static_cast<int>(event->x), static_cast<int>(event->y) );
@@ -308,12 +321,15 @@ bool DragTreeView::on_button_press_event( GdkEventButton* event )
 
     return Gtk::TreeView::on_button_press_event( event );
 }
+#endif
 
 
 
 //
 // マウスボタンを離した
 //
+// TODO: GTK4 [Mouse] Gtk::GestureClick::signal_released に移行する。
+#ifndef USE_GTKMM4
 bool DragTreeView::on_button_release_event( GdkEventButton* event )
 {
     bool emit_sig = false; // true なら m_sig_button_release をemitする
@@ -355,6 +371,7 @@ bool DragTreeView::on_button_release_event( GdkEventButton* event )
 
     return ret;
 }
+#endif
 
 
 
@@ -363,6 +380,8 @@ bool DragTreeView::on_button_release_event( GdkEventButton* event )
 //
 // このtreeがソースで無い時は呼ばれないのに注意
 //
+// TODO: GTK4 [DnD] Gtk::DragSource::signal_drag_begin に移行する。
+#ifndef USE_GTKMM4
 void DragTreeView::on_drag_begin( const Glib::RefPtr< Gdk::DragContext >& context )
 {
 #ifdef _DEBUG
@@ -375,6 +394,7 @@ void DragTreeView::on_drag_begin( const Glib::RefPtr< Gdk::DragContext >& contex
 
     Gtk::TreeView::on_drag_begin( context );
 }
+#endif
 
 
 //
@@ -382,6 +402,8 @@ void DragTreeView::on_drag_begin( const Glib::RefPtr< Gdk::DragContext >& contex
 //
 // このtreeがソースでない時は呼び出されない
 //
+// TODO: GTK4 [DnD] Gtk::DragSource::signal_drag_end に移行する。
+#ifndef USE_GTKMM4
 void DragTreeView::on_drag_end( const Glib::RefPtr< Gdk::DragContext >& context )
 {
 #ifdef _DEBUG
@@ -393,10 +415,13 @@ void DragTreeView::on_drag_end( const Glib::RefPtr< Gdk::DragContext >& context 
 
     Gtk::TreeView::on_drag_end( context );
 }
+#endif
 
 
 //
 // ドロップされた
+// TODO: GTK4 [DnD] Gtk::DropTarget::signal_drop に移行する。
+#ifndef USE_GTKMM4
 void DragTreeView::on_drag_data_received( const Glib::RefPtr< Gdk::DragContext >& context, int x, int y, 
                                           const Gtk::SelectionData& selection, guint info, guint time )
 {
@@ -416,11 +441,14 @@ void DragTreeView::on_drag_data_received( const Glib::RefPtr< Gdk::DragContext >
 
     context->drag_finish( true, false, time );
 }
+#endif
 
 
 //
 // キーボードのキーを押した
 //
+// TODO: GTK4 [Key] Gtk::EventControllerKey::signal_key_pressed に移行する。
+#ifndef USE_GTKMM4
 bool DragTreeView::on_key_press_event( GdkEventKey* event )
 {
 #ifdef _DEBUG
@@ -432,11 +460,14 @@ bool DragTreeView::on_key_press_event( GdkEventKey* event )
 
     return JDTreeViewBase::on_key_press_event( event );
 }
+#endif
 
 
 //
 // マウスを動かした
 //
+// TODO: GTK4 [Mouse] Gtk::EventControllerMotion::signal_motion に移行する。
+#ifndef USE_GTKMM4
 bool DragTreeView::on_motion_notify_event( GdkEventMotion* event )
 {
 #ifdef _DEBUG
@@ -457,22 +488,28 @@ bool DragTreeView::on_motion_notify_event( GdkEventMotion* event )
 
     return Gtk::TreeView::on_motion_notify_event( event );
 }
+#endif
 
 
 
 // マウスのwheelを回した
+// TODO: GTK4 [Scroll] Gtk::EventControllerScroll::signal_scroll に移行する。
+#ifndef USE_GTKMM4
 bool DragTreeView::on_scroll_event( GdkEventScroll* event )
 {
     sig_scroll_event().emit( event );
 
     return true;
 }
+#endif
 
 
 
 //
 // マウスホイールの処理
 //
+// TODO: GTK4 [Scroll] Gtk::EventControllerScroll::signal_scroll に移行する。
+#ifndef USE_GTKMM4
 void DragTreeView::wheelscroll( GdkEventScroll* event )
 {
     auto adj = get_vadjustment();
@@ -509,8 +546,11 @@ void DragTreeView::wheelscroll( GdkEventScroll* event )
     std::cout << "page_size = " << adj->get_page_size() << std::endl;
 #endif
 }
+#endif
 
 
+// TODO: GTK4 [Mouse] Gtk::EventControllerMotion::signal_leave に移行する。
+#ifndef USE_GTKMM4
 bool DragTreeView::on_leave_notify_event( GdkEventCrossing* event )
 {
     if( ! is_mouse_on_popup() ){
@@ -519,6 +559,7 @@ bool DragTreeView::on_leave_notify_event( GdkEventCrossing* event )
     }
     return Gtk::TreeView::on_leave_notify_event( event );
 }
+#endif
 
 
 //
