@@ -38,7 +38,9 @@ namespace SKELETON
 
       protected:
 
+#ifndef USE_GTKMM4
         bool on_configure_event( GdkEventConfigure* event ) override;
+#endif
     };
 }
 
