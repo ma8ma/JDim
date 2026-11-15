@@ -318,18 +318,23 @@ void EditTextView::clear_undo()
 //
 // マウスボタン入力のフック
 //
+// TODO: GTK4 [Mouse] Gtk::GestureClick::signal_pressed に移行する。
+#ifndef USE_GTKMM4
 bool EditTextView::on_button_press_event( GdkEventButton* event )
 {
     m_sig_button_press.emit( event );
 
     return Gtk::TextView::on_button_press_event( event );
 }
+#endif
 
 
 
 //
 // キー入力のフック
 //
+// TODO: GTK4 [Key] Gtk::EventControllerKey::signal_key_pressed に移行する。
+#ifndef USE_GTKMM4
 bool EditTextView::on_key_press_event( GdkEventKey* event )
 {
 #ifdef _DEBUG    
@@ -415,8 +420,11 @@ bool EditTextView::on_key_press_event( GdkEventKey* event )
 
     return Gtk::TextView::on_key_press_event( event );
 }
+#endif
 
 
+// TODO: GTK4 [Key] Gtk::EventControllerKey::signal_key_released に移行する。
+#ifndef USE_GTKMM4
 bool EditTextView::on_key_release_event( GdkEventKey* event )
 {
 #ifdef _DEBUG    
@@ -459,11 +467,14 @@ bool EditTextView::on_key_release_event( GdkEventKey* event )
 
     return Gtk::TextView::on_key_release_event( event );
 }
+#endif
 
 
 //
 // コンテキストメニュー表示
 //
+// TODO: GTK4 [Menu] Gio::MenuModel を構築して Gtk::TextView::set_extra_menu に移行する。
+#ifndef USE_GTKMM4
 void EditTextView::on_populate_popup( Gtk::Menu* menu )
 {
 #ifdef _DEBUG
@@ -509,6 +520,7 @@ void EditTextView::on_populate_popup( Gtk::Menu* menu )
 
     Gtk::TextView::on_populate_popup( menu );
 }
+#endif
 
 
 //
