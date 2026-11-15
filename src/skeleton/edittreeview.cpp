@@ -200,9 +200,12 @@ void EditTreeView::set_editable_view( const bool editable )
     if( m_editable ){
 
         // D&D のドロップを可能にする
+        // TODO: GTK4 [DnD] Gtk::DropTarget の設定へ移行する。
+#ifndef USE_GTKMM4
         std::vector< Gtk::TargetEntry > targets;
         targets.push_back( Gtk::TargetEntry( get_dndtarget(), Gtk::TARGET_SAME_APP, 0 ) );
         drag_dest_set( targets );
+#endif
     }
 }
 
@@ -626,6 +629,8 @@ void EditTreeView::slot_ren_text_on_canceled()
 // 編集可能の時は下線を引く
 // 他のwidgetがソースの時も呼び出される。ドラッグ中は on_motion_notify_event() は呼び出されない
 //
+// TODO: GTK4 [DnD] Gtk::DropTarget::signal_motion に移行する。
+#ifndef USE_GTKMM4
 bool EditTreeView::on_drag_motion( const Glib::RefPtr<Gdk::DragContext>& context, int x, int y, guint time )
 {
     const Gtk::TreePath path = get_path_under_mouse();
@@ -646,11 +651,14 @@ bool EditTreeView::on_drag_motion( const Glib::RefPtr<Gdk::DragContext>& context
 
     return ret;
 }
+#endif
 
 
 //
 // D&D中に受信側からマウスが出た
 //
+// TODO: GTK4 [DnD] Gtk::DropTarget::signal_leave に移行する。
+#ifndef USE_GTKMM4
 void EditTreeView::on_drag_leave( const Glib::RefPtr<Gdk::DragContext>& context, guint time )
 {
 #ifdef _DEBUG
@@ -662,11 +670,14 @@ void EditTreeView::on_drag_leave( const Glib::RefPtr<Gdk::DragContext>& context,
     m_dragging_on_tree = false;
     draw_underline( m_drag_path_uline, false );
 }
+#endif
 
 
 //
 // D&Dで受信側がデータ送信を要求してきた
 //
+// TODO: GTK4 [DnD] Gtk::DragSource::signal_prepare に移行する。
+#ifndef USE_GTKMM4
 void EditTreeView::on_drag_data_get( const Glib::RefPtr<Gdk::DragContext>& context,
                                      Gtk::SelectionData& selection_data, guint info, guint time )
 {
@@ -692,11 +703,14 @@ void EditTreeView::on_drag_data_get( const Glib::RefPtr<Gdk::DragContext>& conte
         }
     }
 }
+#endif
 
 
 //
 // D&Dの受信側がデータを取得
 //
+// TODO: GTK4 [DnD] Gtk::DropTarget::signal_drop に移行する。
+#ifndef USE_GTKMM4
 void EditTreeView::on_drag_data_received( const Glib::RefPtr<Gdk::DragContext>& context, int x, int y,
                                           const Gtk::SelectionData& selection_data, guint info, guint time )
 {
@@ -773,11 +787,14 @@ void EditTreeView::on_drag_data_received( const Glib::RefPtr<Gdk::DragContext>& 
         context->drag_finish( true, true, time );
     }
 }
+#endif
 
 
 //
 // D&Dの送信側がデータを削除
 //
+// TODO: GTK4 [DnD] Gtk::DragSource::signal_drag_end (delete_data が true) に移行する。
+#ifndef USE_GTKMM4
 void EditTreeView::on_drag_data_delete( const Glib::RefPtr<Gdk::DragContext>& context )
 {
 #ifdef _DEBUG
@@ -798,6 +815,7 @@ void EditTreeView::on_drag_data_delete( const Glib::RefPtr<Gdk::DragContext>& co
         }
     }
 }
+#endif
 
 
 //
@@ -805,6 +823,8 @@ void EditTreeView::on_drag_data_delete( const Glib::RefPtr<Gdk::DragContext>& co
 //
 // 他のwidgetがソースの時も呼ばれるのに注意
 //
+// TODO: GTK4 [DnD] 行の上へのドロップを受け付けない。Gtk::DropTarget::signal_accept に移行する。
+#ifndef USE_GTKMM4
 bool EditTreeView::on_drag_drop( const Glib::RefPtr<Gdk::DragContext>& context, int x, int y, guint time )
 {
 #ifdef _DEBUG
@@ -842,6 +862,7 @@ bool EditTreeView::on_drag_drop( const Glib::RefPtr<Gdk::DragContext>& context, 
 
     return ret;
 }
+#endif
 
 
 //
@@ -849,6 +870,8 @@ bool EditTreeView::on_drag_drop( const Glib::RefPtr<Gdk::DragContext>& context, 
 //
 // この widget がソースでない時は呼び出されない
 //
+// TODO: GTK4 [DnD] Gtk::DragSource::signal_drag_end に移行する。
+#ifndef USE_GTKMM4
 void EditTreeView::on_drag_end( const Glib::RefPtr< Gdk::DragContext >& context )
 {
 #ifdef _DEBUG
@@ -859,6 +882,7 @@ void EditTreeView::on_drag_end( const Glib::RefPtr< Gdk::DragContext >& context 
 
     DragTreeView::on_drag_end( context );
 }
+#endif
 
 
 //
