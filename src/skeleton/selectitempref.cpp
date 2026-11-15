@@ -60,7 +60,10 @@ void SelectItemPref::pack_widgets()
 
     // 表示項目リスト
     m_tree_shown.get_selection()->set_mode( JDLIB::compat::SelectionMode::MULTIPLE );
+    // TODO: GTK4 [Focus] m_tree_shown / m_tree_hidden に Gtk::EventControllerFocus を追加して signal_enter に接続する。
+#ifndef USE_GTKMM4
     m_tree_shown.signal_focus_in_event().connect( sigc::mem_fun( *this, &SelectItemPref::slot_focus_in_shown ) );
+#endif
     m_store_shown = Gtk::ListStore::create( m_columns_shown );
     m_tree_shown.set_model( m_store_shown );
     // "表示"の列を作成
@@ -98,7 +101,9 @@ void SelectItemPref::pack_widgets()
 
     // 非表示項目リスト
     m_tree_hidden.get_selection()->set_mode( JDLIB::compat::SelectionMode::MULTIPLE );
+#ifndef USE_GTKMM4
     m_tree_hidden.signal_focus_in_event().connect( sigc::mem_fun( *this, &SelectItemPref::slot_focus_in_hidden ) );
+#endif
     m_store_hidden = Gtk::ListStore::create( m_columns_hidden );
     m_tree_hidden.set_model( m_store_hidden );
     // "非表示"の列を作成
@@ -161,6 +166,7 @@ void SelectItemPref::pack_widgets()
 }
 
 
+#ifndef USE_GTKMM4
 //
 // フォーカスが外れたTreeViewから項目の選択をなくす
 //
@@ -177,6 +183,7 @@ bool SelectItemPref::slot_focus_in_hidden( GdkEventFocus* event )
 
     return true;
 }
+#endif // USE_GTKMM4
 
 
 //
@@ -335,9 +342,11 @@ void SelectItemPref::erase_hidden( const std::string& name )
 }
 
 
+#ifndef USE_GTKMM4
 //
 // KeyPressのフック
 //
+// TODO: GTK4 [Key] Gtk::EventControllerKey::signal_key_pressed に移行し、キーフックの引数・発行処理を変更する。
 bool SelectItemPref::on_key_press_event( GdkEventKey* event )
 {
     bool hook = false;
@@ -361,6 +370,7 @@ bool SelectItemPref::on_key_press_event( GdkEventKey* event )
 //
 // KeyReleaseのフック
 //
+// TODO: GTK4 [Key] Gtk::EventControllerKey::signal_key_pressed に移行し、キーフックの引数・発行処理を変更する。
 bool SelectItemPref::on_key_release_event( GdkEventKey* event )
 {
     bool hook = false;
@@ -387,6 +397,7 @@ bool SelectItemPref::on_key_release_event( GdkEventKey* event )
 
     return Gtk::Dialog::on_key_release_event( event );
 }
+#endif // USE_GTKMM4
 
 
 //
