@@ -72,9 +72,11 @@ namespace SKELETON
 
       void slot_menu_selected( int i );
 
+#ifndef USE_GTKMM4
       bool slot_enter( GdkEventCrossing* event );
       bool slot_leave( GdkEventCrossing* event );
       bool slot_motion( GdkEventMotion* event );
+#endif
       void check_on_arrow( int ex );
     };
 }
