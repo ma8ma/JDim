@@ -26,11 +26,13 @@ namespace SKELETON
       protected:
 
         void on_realize() override;
+#ifndef USE_GTKMM4
         bool on_button_press_event( GdkEventButton* event ) override;
         bool on_button_release_event( GdkEventButton* event ) override;
         bool on_motion_notify_event( GdkEventMotion* event ) override;
         bool on_enter_notify_event( GdkEventCrossing* event ) override;
         bool on_leave_notify_event( GdkEventCrossing* event ) override;
+#endif
     };
 }
 
