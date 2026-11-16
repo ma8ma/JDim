@@ -297,7 +297,10 @@ namespace SKELETON
         std::string get_color() const;
 
         // キーを押した
+        // TODO: GTK4 [Key] GdkEventKey* を使用しないキー入力処理に置き換える。
+#ifndef USE_GTKMM4
         virtual bool slot_key_press( GdkEventKey* event ){ return false; }
+#endif
 
         // クロック入力
         // clock_in()はビューがアクティブのときに呼び出される
