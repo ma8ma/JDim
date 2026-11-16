@@ -381,9 +381,11 @@ int JDTreeViewBase::get_row_height() const
 }
 
 
+#ifndef USE_GTKMM4
 //
 // キーボードのキーを押した
 //
+// TODO: GTK4 [Key] Gtk::EventControllerKey::signal_key_pressed に移行し、独自シグナルを発行する。
 bool JDTreeViewBase::on_key_press_event( GdkEventKey* event )
 {
     return m_sig_key_press.emit( event );
@@ -393,6 +395,7 @@ bool JDTreeViewBase::on_key_press_event( GdkEventKey* event )
 //
 // キーボードのキーを離した
 //
+// TODO: GTK4 [Key] Gtk::EventControllerKey::signal_key_released に移行し、独自シグナルを発行する。
 bool JDTreeViewBase::on_key_release_event( GdkEventKey* event )
 {
     m_sig_key_release.emit( event );
@@ -401,6 +404,7 @@ bool JDTreeViewBase::on_key_release_event( GdkEventKey* event )
 
 
 // マウスのwheelを回した
+// TODO: GTK4 [Scroll] Gtk::EventControllerScroll::signal_scroll に移行し、独自シグナルを発行する。
 bool JDTreeViewBase::on_scroll_event( GdkEventScroll* event )
 {
     m_sig_scroll_event.emit( event );
@@ -412,6 +416,7 @@ bool JDTreeViewBase::on_scroll_event( GdkEventScroll* event )
 //
 // マウスボタンを押した
 //
+// TODO: GTK4 [Mouse] Gtk::GestureClick::signal_pressed に移行し、独自シグナルを発行する。
 bool JDTreeViewBase::on_button_press_event( GdkEventButton* event )
 {
     m_sig_button_press.emit( event );
@@ -422,6 +427,7 @@ bool JDTreeViewBase::on_button_press_event( GdkEventButton* event )
 //
 // マウスボタンを離した
 //
+// TODO: GTK4 [Mouse] Gtk::GestureClick::signal_released に移行し、独自シグナルを発行する。
 bool JDTreeViewBase::on_button_release_event( GdkEventButton* event )
 {
     m_sig_button_release.emit( event );
@@ -432,8 +438,10 @@ bool JDTreeViewBase::on_button_release_event( GdkEventButton* event )
 //
 // マウスを動かした
 //
+// TODO: GTK4 [Mouse] Gtk::EventControllerMotion::signal_motion に移行し、独自シグナルを発行する。
 bool JDTreeViewBase::on_motion_notify_event( GdkEventMotion* event )
 {
     m_sig_motion_notify.emit( event );
     return Gtk::TreeView::on_motion_notify_event( event );
 }
+#endif // USE_GTKMM4
