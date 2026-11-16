@@ -17,7 +17,11 @@
 
 #include <gtk/gtkwindow.h>
 #ifdef GDK_WINDOWING_WAYLAND
+#ifdef USE_GTKMM4
+#include <gdk/wayland/gdkwayland.h>
+#else
 #include <gdk/gdkwayland.h>
+#endif
 #endif // GDK_WINDOWING_WAYLAND
 
 enum
