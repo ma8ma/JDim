@@ -13,13 +13,27 @@
 #include <gtkmm.h>
 
 #ifdef GDK_WINDOWING_WAYLAND
+#ifdef USE_GTKMM4
+#include <gdk/wayland/gdkwayland.h>
+#else
 #include <gdk/gdkwayland.h>
 #endif
+#endif
+
 #ifdef GDK_WINDOWING_X11
+#ifdef USE_GTKMM4
+#include <gdk/x11/gdkx.h>
+#else
 #include <gdk/gdkx.h>
 #endif
+#endif
+
 #ifdef GDK_WINDOWING_BROADWAY
+#ifdef USE_GTKMM4
+#include <gdk/broadway/gdkbroadway.h>
+#else
 #include <gdk/gdkbroadway.h>
+#endif
 #endif
 
 #if __has_include(<sys/utsname.h>)
