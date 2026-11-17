@@ -126,12 +126,14 @@ namespace SKELETON
         virtual bool is_shown_win() const = 0;
         virtual void set_shown_win( const bool set ) = 0;
 
+#ifndef USE_GTKMM4
         bool on_focus_in_event( GdkEventFocus* event ) override;
         bool on_focus_out_event( GdkEventFocus* event ) override;
         bool on_delete_event( GdkEventAny* event ) override;
         bool on_window_state_event( GdkEventWindowState* event ) override;
         bool on_configure_event( GdkEventConfigure* event ) override;
         bool on_key_press_event( GdkEventKey* event ) override;
+#endif
 
       private:
 
