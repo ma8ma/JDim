@@ -556,7 +556,9 @@ void JDWindow::focus_out()
 }
 
 
+#ifndef USE_GTKMM4
 // フォーカスインイベント
+// TODO: GTK4 [Focus] Gtk::EventControllerFocus::signal_enter に移行し、set_focus_win(true) を呼び出す。
 bool JDWindow::on_focus_in_event( GdkEventFocus* event )
 {
     set_focus_win( true );
@@ -579,6 +581,7 @@ bool JDWindow::on_focus_in_event( GdkEventFocus* event )
 
 
 // フォーカスアウトイベント
+// TODO: GTK4 [Focus] Gtk::EventControllerFocus::signal_leave に移行し、set_focus_win(false) を呼び出す。
 bool JDWindow::on_focus_out_event( GdkEventFocus* event )
 {
     set_focus_win( false );
@@ -600,6 +603,7 @@ bool JDWindow::on_focus_out_event( GdkEventFocus* event )
 
 
 // Xボタンを押した
+// TODO: GTK4 [Window] Gtk::Window::signal_close_request() に移行し、終了処理を維持する。
 bool JDWindow::on_delete_event( GdkEventAny* event )
 {
 #ifdef _DEBUG
@@ -629,6 +633,7 @@ bool JDWindow::on_delete_event( GdkEventAny* event )
 
 
 // 最大、最小化
+// TODO: GTK4 [Window] maximized / fullscreened の状態通知を利用してウィンドウ状態の保存処理を移行する。
 bool JDWindow::on_window_state_event( GdkEventWindowState* event )
 {
     const bool maximized = event->new_window_state & GDK_WINDOW_STATE_MAXIMIZED;
@@ -701,6 +706,7 @@ bool JDWindow::on_window_state_event( GdkEventWindowState* event )
  * そのため、Wayland では代わりに`Gdk::Window::get_state()`を用いて
  * 最新の状態を取得し、保存するかどうかを判定するようにしました。
  */
+// TODO: GTK4 [Window] configure-event の直接の代替なし。ウィンドウサイズの変更を検知し、状態に応じてサイズを記憶する処理を再設計する。
 bool JDWindow::on_configure_event( GdkEventConfigure* event )
 {
     const int mrg = 16;
@@ -770,6 +776,7 @@ bool JDWindow::on_configure_event( GdkEventConfigure* event )
 // gedit-window.c の gedit_window_key_press_event を見ると
 // gtk_window_propagate_key_event() を実行した後でキーアクセレータ
 // の処理をするようにしていたのでJDもそうした。
+// TODO: GTK4 [Key] Gtk::EventControllerKey::signal_key_pressed に移行し、キーイベントの伝播とアクセラレータ処理を維持する。
 bool JDWindow::on_key_press_event( GdkEventKey* event )
 {
     if( gtk_window_propagate_key_event( m_gtkwindow, event ) ) return true;
@@ -783,3 +790,4 @@ bool JDWindow::on_key_press_event( GdkEventKey* event )
 
     return GTK_WIDGET_CLASS( m_grand_parent_class )->key_press_event( m_gtkwidget, event );
 }
+#endif // USE_GTKMM4
