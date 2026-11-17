@@ -190,6 +190,9 @@ bool AAMenu::move_up()
 
 
 // キー入力のフック
+// TODO: GTK4 [Key] キー入力処理を Gtk::EventControllerKey::signal_key_pressed に移行し、
+//       メニュー項目のフォーカス移動・ショートカットキー・イベント伝播を再設計する。
+#ifndef USE_GTKMM4
 bool AAMenu::on_key_press_event( GdkEventKey* event )
 {
 #ifdef _DEBUG
@@ -236,6 +239,7 @@ bool AAMenu::on_key_press_event( GdkEventKey* event )
 
     return Gtk::Menu::on_key_press_event( event );
 }
+#endif
 
 
 //
