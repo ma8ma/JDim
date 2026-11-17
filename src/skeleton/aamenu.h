@@ -42,7 +42,9 @@ namespace SKELETON
 
         void on_map() override;
         void on_hide() override;
+#ifndef USE_GTKMM4
         bool on_key_press_event (GdkEventKey* event) override;
+#endif
 
       private:
 
