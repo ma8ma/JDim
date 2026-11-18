@@ -98,7 +98,9 @@ namespace IMAGE
         Gtk::Window* get_parent_win() override;
 
         // キーを押した
+#ifndef USE_GTKMM4
         bool slot_key_press( GdkEventKey* event ) override;
+#endif
 
         // コマンド
         bool set_command( const std::string& command,
@@ -126,12 +128,14 @@ namespace IMAGE
         void slot_cancel_mosaic();
         void slot_save();
 
+#ifndef USE_GTKMM4
         virtual bool slot_button_press( GdkEventButton* event );
         bool slot_button_release( GdkEventButton* event );
         virtual bool slot_motion_notify( GdkEventMotion* event );
         virtual bool slot_scroll_event( GdkEventScroll* event );
         bool slot_enter_notify_event( GdkEventCrossing* event );
         bool slot_leave_notify_event( GdkEventCrossing* event );
+#endif
 
       private:
 

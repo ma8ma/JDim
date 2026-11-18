@@ -427,6 +427,7 @@ Gtk::Menu* ImageViewMain::get_popupmenu( const std::string& url )
 
 
 
+#ifndef USE_GTKMM4
 //
 // ボタンクリック
 //
@@ -497,6 +498,7 @@ bool ImageViewMain::slot_motion_notify( GdkEventMotion* event )
 
     return true;
 }
+#endif // USE_GTKMM4
 
 
 //

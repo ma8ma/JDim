@@ -29,18 +29,22 @@ namespace IMAGE
 
         Gtk::Menu* get_popupmenu( const std::string& url ) override;
         // マウスホイールのイベント(タブ切り替え)は親ウィジェットで処理する
+#ifndef USE_GTKMM4
         bool slot_scroll_event( GdkEventScroll* event ) override { return false; }
+#endif
 
       private:
 
         void switch_icon() override;
 
+#ifndef USE_GTKMM4
         void slot_drag_begin( const Glib::RefPtr<Gdk::DragContext>& context );
         void slot_drag_data_get( const Glib::RefPtr<Gdk::DragContext>& context,
                                  Gtk::SelectionData& selection_data, guint info, guint time );
         void slot_drag_data_received( const Glib::RefPtr<Gdk::DragContext>& context, int x, int y,
                                       const Gtk::SelectionData& selection_data, guint info, guint time );
         void slot_drag_end( const Glib::RefPtr< Gdk::DragContext >& context );
+#endif
     };
 }
 
