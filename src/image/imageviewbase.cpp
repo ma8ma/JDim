@@ -93,18 +93,23 @@ void ImageViewBase::setup_common()
     m_event.set_can_focus( true );
 #ifdef USE_GTKMM4
     m_event.set_focusable( true );
-    // TODO: GTK4 ではボタン、キー、スクロール、出入りを未接続にする。
-    //       クリック、ホイール、ホバーは動かない。EventController へ移す。
 #else
     m_event.add_events( Gdk::POINTER_MOTION_MASK );
     m_event.add_events( Gdk::SMOOTH_SCROLL_MASK );
 
+    // TODO: GTK4 [Mouse] Gtk::GestureClick を追加して signal_pressed に接続し、クリック位置から処理対象を取得する。
     m_event.signal_button_press_event().connect( sigc::mem_fun( *this, &ImageViewBase::slot_button_press ) );
+    // TODO: GTK4 [Mouse] 同じ Gtk::GestureClick の signal_released に接続し、クリック終了時の処理を移行する。
     m_event.signal_button_release_event().connect( sigc::mem_fun( *this, &ImageViewBase::slot_button_release ) );
+    // TODO: GTK4 [Mouse] Gtk::EventControllerMotion を追加して signal_motion に接続し、マウス移動時の処理を移行する。
     m_event.signal_motion_notify_event().connect(  sigc::mem_fun( *this, &ImageViewBase::slot_motion_notify ) );
+    // TODO: GTK4 [Key] Gtk::EventControllerKey を追加して signal_key_pressed に接続し、キー値・修飾キーの処理を変更する。
     m_event.signal_key_press_event().connect( sigc::mem_fun(*this, &ImageViewBase::slot_key_press ) );
+    // TODO: GTK4 [Scroll] Gtk::EventControllerScroll を追加して signal_scroll に接続し、スクロール処理を移行する。
     m_event.signal_scroll_event().connect( sigc::mem_fun(*this, &ImageViewBase::slot_scroll_event ) );
+    // TODO: GTK4 [Mouse] Gtk::EventControllerMotion を追加して signal_enter に接続し、マウスがビューに入ったフラグを立てる。
     m_event.signal_enter_notify_event().connect(  sigc::mem_fun( *this, &ImageViewBase::slot_enter_notify_event ) );
+    // TODO: GTK4 [Mouse] 同じ Gtk::EventControllerMotion の signal_leave に接続し、マウスがビューに入ったフラグを解除する。
     m_event.signal_leave_notify_event().connect(  sigc::mem_fun( *this, &ImageViewBase::slot_leave_notify_event ) );
 #endif
 
@@ -495,6 +500,7 @@ bool ImageViewBase::operate_view( const int control )
 
 
 
+#ifndef USE_GTKMM4
 //
 // キープレスイベント
 //
@@ -628,6 +634,7 @@ bool ImageViewBase::slot_leave_notify_event( GdkEventCrossing* event )
 
     return true;
 }
+#endif // USE_GTKMM4
 
 
 //

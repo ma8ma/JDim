@@ -48,8 +48,10 @@ namespace IMAGE
 
         Gtk::Menu* get_popupmenu( const std::string& url ) override;
 
+#ifndef USE_GTKMM4
         bool slot_button_press( GdkEventButton* event ) override;
         bool slot_motion_notify( GdkEventMotion* event ) override;
+#endif
 
       private:
 
