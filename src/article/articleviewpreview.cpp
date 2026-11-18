@@ -111,6 +111,7 @@ bool ArticleViewPreview::operate_view( const int control )
 //
 // ArticleViewBase::slot_button_press()をオーパロードしてマウスジェスチャを無効にする
 //
+#ifndef USE_GTKMM4
 bool ArticleViewPreview::slot_button_press( const std::string& url, int res_number, GdkEventButton* event )
 {
 #ifdef _DEBUG
@@ -121,3 +122,4 @@ bool ArticleViewPreview::slot_button_press( const std::string& url, int res_numb
 
     return true;
 }
+#endif
