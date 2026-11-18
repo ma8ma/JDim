@@ -142,15 +142,25 @@ void ArticleViewBase::setup_view()
     assert( m_article );
     assert( m_drawarea );
 
+#ifndef USE_GTKMM4
     m_drawarea->add_events( Gdk::SMOOTH_SCROLL_MASK );
 
+    // TODO: GTK4 [Mouse] Gtk::GestureClick::signal_pressed に移行し、クリック位置から URL・レス番号を取得する。
     m_drawarea->sig_button_press().connect(  sigc::mem_fun( *this, &ArticleViewBase::slot_button_press ));
+    // TODO: GTK4 [Mouse] Gtk::GestureClick::signal_released に移行し、クリック終了時の処理を移行する。
     m_drawarea->sig_button_release().connect(  sigc::mem_fun( *this, &ArticleViewBase::slot_button_release ));
+    // TODO: GTK4 [Mouse] Gtk::EventControllerMotion::signal_motion に移行する。
     m_drawarea->sig_motion_notify().connect(  sigc::mem_fun( *this, &ArticleViewBase::slot_motion_notify ) );
+    // TODO: GTK4 [Key] Gtk::EventControllerKey::signal_key_pressed に移行し、キー値・修飾キーの処理を変更する。
     m_drawarea->sig_key_press().connect( sigc::mem_fun(*this, &ArticleViewBase::slot_key_press ) );
+    // TODO: GTK4 [Key] Gtk::EventControllerKey::signal_key_released に移行する。
     m_drawarea->sig_key_release().connect( sigc::mem_fun(*this, &ArticleViewBase::slot_key_release ) );
+    // TODO: GTK4 [Scroll] Gtk::EventControllerScroll を追加して signal_scroll に接続し、スクロール処理を移行する。
     m_drawarea->sig_scroll_event().connect(  sigc::mem_fun( *this, &ArticleViewBase::slot_scroll_event ));
+    // TODO: GTK4 [Mouse] Gtk::EventControllerMotion::signal_leave に移行し、
+    //       GDK_CROSSING_GRAB による判定を含むポインタ離脱処理を再設計する。
     m_drawarea->sig_leave_notify().connect(  sigc::mem_fun( *this, &ArticleViewBase::slot_leave_notify ) );
+#endif
 
     m_drawarea->sig_on_url().connect( sigc::mem_fun(*this, &ArticleViewBase::slot_on_url ) );
     m_drawarea->sig_leave_url().connect( sigc::mem_fun(*this, &ArticleViewBase::slot_leave_url ) );
@@ -1511,6 +1521,7 @@ void ArticleViewBase::append_res( const std::list< int >& list_resnum, const std
 //
 // drawareaから出た
 //
+#ifndef USE_GTKMM4
 bool ArticleViewBase::slot_leave_notify( GdkEventCrossing* event )
 {
     // クリックしたときやホイールを回すと event->mode に　GDK_CROSSING_GRAB
@@ -1705,6 +1716,7 @@ bool ArticleViewBase::slot_scroll_event( GdkEventScroll* event )
     m_drawarea->wheelscroll( event );
     return true;
 }
+#endif // USE_GTKMM4
 
 
 
@@ -1987,6 +1999,7 @@ void ArticleViewBase::slot_leave_url()
 //
 // リンクをクリック
 //
+#ifndef USE_GTKMM4
 bool ArticleViewBase::click_url( std::string url, int res_number, GdkEventButton* event )
 {
     assert( m_article );
@@ -2333,6 +2346,7 @@ bool ArticleViewBase::click_url( std::string url, int res_number, GdkEventButton
 
     return true;
 }
+#endif // USE_GTKMM4
 
 
 //
@@ -2412,7 +2426,10 @@ void ArticleViewBase::show_popup( SKELETON::View* view, const int mrg_x, const i
     delete_popup();
 
     m_popup_win = std::make_unique<SKELETON::PopupWin>( this, view, mrg_x, mrg_y );
+#ifndef USE_GTKMM4
+    // TODO: GTK4 [Mouse] popup window に Gtk::EventControllerMotion を追加し、signal_leave に接続する。
     m_popup_win->signal_leave_notify_event().connect( sigc::mem_fun( *this, &ArticleViewBase::slot_popup_leave_notify_event ) );
+#endif
     m_popup_win->sig_hide_popup().connect( sigc::mem_fun( *this, &ArticleViewBase::slot_hide_popup ) );
     m_popup_win->show_all();
     m_popup_shown = true;
@@ -2423,6 +2440,7 @@ void ArticleViewBase::show_popup( SKELETON::View* view, const int mrg_x, const i
 //
 // 子 popup windowの外にポインタが出た
 //
+#ifndef USE_GTKMM4
 bool ArticleViewBase::slot_popup_leave_notify_event( GdkEventCrossing* event )
 {
 #ifdef _DEBUG
@@ -2444,6 +2462,7 @@ bool ArticleViewBase::slot_popup_leave_notify_event( GdkEventCrossing* event )
 
     return true;
 }
+#endif
 
 
 //

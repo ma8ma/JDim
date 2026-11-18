@@ -22,7 +22,9 @@ namespace ARTICLE
 
       private:
 
+#ifndef USE_GTKMM4
         bool slot_button_press( const std::string& url, int res_number, GdkEventButton* event ) override;
+#endif
 
         void goto_num( const int num_to, const int num_from ) override {}
     };

@@ -130,7 +130,9 @@ namespace ARTICLE
         void clock_in_smooth_scroll();
 
         // キーを押した
+#ifndef USE_GTKMM4
         bool slot_key_press( GdkEventKey* event ) override;
+#endif
 
         void write() override;
         void reload() override;
@@ -283,12 +285,14 @@ namespace ARTICLE
         std::string get_html_url4report( const std::list< int >& list_resnum );
         
         // drawarea の signal を受け取る slots
+#ifndef USE_GTKMM4
         virtual bool slot_button_press( const std::string& url, int res_number, GdkEventButton* event );
         bool slot_button_release( std::string url, int res_number, GdkEventButton* event );
         bool slot_motion_notify( GdkEventMotion* event );
         bool slot_key_release( GdkEventKey* event );
         bool slot_scroll_event( GdkEventScroll* event );
         bool slot_leave_notify( GdkEventCrossing* event );
+#endif
 
         // レスポップアップ関係
 
@@ -296,7 +300,9 @@ namespace ARTICLE
         bool is_mouse_on_popup();
 
         void show_popup( SKELETON::View* view, const int mrg_x, const int mrg_y );
+#ifndef USE_GTKMM4
         bool slot_popup_leave_notify_event( GdkEventCrossing* event );
+#endif
         void slot_hide_popup();
         void delete_popup(); // ポップアップ強制削除
         void warp_pointer_to_popup(); // マウスポインタをポップアップの上に移動する
@@ -357,7 +363,9 @@ namespace ARTICLE
         // リンクの処理
         virtual void slot_on_url( const std::string& url, const std::string& imgurl, int res_number );
         void slot_leave_url();
+#ifndef USE_GTKMM4
         bool click_url( std::string url, int res_number, GdkEventButton* event );
+#endif
         void open_image( const std::string& url, const int res_number,
                          const bool open_imageview, const bool open_browser,
                          const int mosaic_mode, const bool switch_image );
