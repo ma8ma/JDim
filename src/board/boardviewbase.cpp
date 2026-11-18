@@ -147,17 +147,28 @@ BoardViewBase::BoardViewBase( const std::string& url, const bool show_col_board 
     m_liststore->set_sort_func( COL_SPEED, sigc::mem_fun( *this, &BoardViewBase::slot_compare_row ) );
     m_liststore->set_sort_func( COL_DIFF, sigc::mem_fun( *this, &BoardViewBase::slot_compare_row ) );
 
+#ifndef USE_GTKMM4
     m_treeview.add_events( Gdk::SMOOTH_SCROLL_MASK );
 
+    // TODO: GTK4 [Mouse] Gtk::GestureClick を追加して signal_pressed に接続し、クリック位置から処理対象を取得する。
     m_treeview.sig_button_press().connect( sigc::mem_fun(*this, &BoardViewBase::slot_button_press ) );
+    // TODO: GTK4 [Mouse] 同じ Gtk::GestureClick の signal_released に接続し、クリック終了時の処理を移行する。
     m_treeview.sig_button_release().connect( sigc::mem_fun(*this, &BoardViewBase::slot_button_release ) );
+    // TODO: GTK4 [Mouse] Gtk::EventControllerMotion を追加して signal_motion に接続し、マウス移動時の処理を移行する。
     m_treeview.sig_motion_notify().connect( sigc::mem_fun(*this, &BoardViewBase::slot_motion_notify ) );
+    // TODO: GTK4 [Key] Gtk::EventControllerKey を追加して signal_key_pressed に接続し、キー値・修飾キーの処理を変更する。
     m_treeview.sig_key_press().connect( sigc::mem_fun(*this, &BoardViewBase::slot_key_press ) );
+    // TODO: GTK4 [Key] 同じ Gtk::EventControllerKey の signal_key_released に接続する。
     m_treeview.sig_key_release().connect( sigc::mem_fun(*this, &BoardViewBase::slot_key_release ) );
+    // TODO: GTK4 [Scroll] Gtk::EventControllerScroll を追加して signal_scroll に接続し、スクロール処理を移行する。
     m_treeview.sig_scroll_event().connect( sigc::mem_fun(*this, &BoardViewBase::slot_scroll_event ) );
+#endif
     m_treeview.set_has_tooltip( true );
     m_treeview.signal_query_tooltip().connect( sigc::mem_fun(*this, &BoardViewBase::slot_query_tooltip) );
+#ifndef USE_GTKMM4
+    // TODO: GTK4 [DnD] Gtk::DragSource を追加し、Gdk::ContentProvider で板の URL を提供する。
     m_treeview.signal_drag_data_get().connect( sigc::mem_fun(*this, &BoardViewBase::slot_drag_data_get ) );
+#endif
     m_treeview.sig_dropped_uri_list().connect( sigc::mem_fun(*this, &BoardViewBase::slot_dropped_url_list ) );
 
     // アクション初期化
@@ -2033,6 +2044,7 @@ void BoardViewBase::update_row_common( const Gtk::TreeModel::Row& row )
 }
 
 
+#ifndef USE_GTKMM4
 //
 // マウスボタン押した
 //
@@ -2222,6 +2234,7 @@ bool BoardViewBase::slot_scroll_event( GdkEventScroll* event )
     m_treeview.wheelscroll( event );
     return true;
 }
+#endif // USE_GTKMM4
 
 
 //
@@ -2275,6 +2288,7 @@ bool BoardViewBase::slot_query_tooltip( int x, int y, bool keyboard_tooltip,
 //
 // D&Dで受信側がデータ送信を要求してきた
 //
+#ifndef USE_GTKMM4
 void BoardViewBase::slot_drag_data_get( const Glib::RefPtr<Gdk::DragContext>& context,
                                         Gtk::SelectionData& selection_data, guint info, guint time )
 {
@@ -2285,6 +2299,7 @@ void BoardViewBase::slot_drag_data_get( const Glib::RefPtr<Gdk::DragContext>& co
     set_article_to_buffer();
     selection_data.set( m_treeview.get_dndtarget(), get_url_board() );
 }
+#endif
 
 
 //
