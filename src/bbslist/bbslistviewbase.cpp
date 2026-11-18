@@ -112,7 +112,9 @@ BBSListViewBase::BBSListViewBase( const std::string& url, const std::string& arg
     m_treeview.set_show_expanders( CONFIG::get_tree_show_expanders() );
     m_treeview.set_level_indentation( CONFIG::get_tree_level_indent() );
 
+#ifndef USE_GTKMM4
     m_treeview.add_events( Gdk::SMOOTH_SCROLL_MASK );
+#endif
 
     // treeviewのシグナルにコネクト
     m_treeview.signal_row_expanded().connect( sigc::mem_fun(*this, &BBSListViewBase::slot_row_exp ) );
@@ -120,12 +122,20 @@ BBSListViewBase::BBSListViewBase( const std::string& url, const std::string& arg
     m_treeview.set_has_tooltip( true );
     m_treeview.signal_query_tooltip().connect( sigc::mem_fun(*this, &BBSListViewBase::slot_query_tooltip) );
 
+#ifndef USE_GTKMM4
+    // TODO: GTK4 [Mouse] Gtk::GestureClick を追加して signal_pressed に接続し、クリック位置から処理対象を取得する。
     m_treeview.sig_button_press().connect( sigc::mem_fun(*this, &BBSListViewBase::slot_button_press ) );
+    // TODO: GTK4 [Mouse] 同じ Gtk::GestureClick の signal_released に接続し、クリック終了時の処理を移行する。
     m_treeview.sig_button_release().connect( sigc::mem_fun(*this, &BBSListViewBase::slot_button_release ) );
+    // TODO: GTK4 [Mouse] Gtk::EventControllerMotion を追加して signal_motion に接続し、ツールチップやポップアップ画像を処理する。
     m_treeview.sig_motion_notify().connect( sigc::mem_fun(*this, &BBSListViewBase::slot_motion_notify ) );
+    // TODO: GTK4 [Key] Gtk::EventControllerKey を追加して signal_key_pressed に接続し、キー値・修飾キーの処理を変更する。
     m_treeview.sig_key_press().connect( sigc::mem_fun(*this, &BBSListViewBase::slot_key_press ) );
+    // TODO: GTK4 [Key] 同じ Gtk::EventControllerKey の signal_key_released に接続する。
     m_treeview.sig_key_release().connect( sigc::mem_fun(*this, &BBSListViewBase::slot_key_release ) );
+    // TODO: GTK4 [Scroll] Gtk::EventControllerScroll を追加して signal_scroll に接続し、スクロール処理を移行する。
     m_treeview.sig_scroll_event().connect( sigc::mem_fun(*this, &BBSListViewBase::slot_scroll_event ) );
+#endif
     m_treeview.sig_dropped_from_other().connect( sigc::mem_fun(*this, &BBSListViewBase::slot_dropped_from_other ) );
 
     ///////////////////
@@ -753,6 +763,7 @@ void BBSListViewBase::copy_treestore( const Glib::RefPtr< Gtk::TreeStore >& stor
 
 
 
+#ifndef USE_GTKMM4
 //
 // マウスボタン押した
 //
@@ -939,6 +950,7 @@ bool BBSListViewBase::slot_scroll_event( GdkEventScroll* event )
     m_treeview.wheelscroll( event );
     return true;
 }
+#endif // USE_GTKMM4
 
 
 //
