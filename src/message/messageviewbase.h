@@ -102,7 +102,9 @@ namespace MESSAGE
         }
 
         // キーを押した        
+#ifndef USE_GTKMM4
         bool slot_key_press( GdkEventKey* event ) override;
+#endif
 
         void slot_new_subject_changed();
 
@@ -150,7 +152,9 @@ namespace MESSAGE
         // 下書きファイル挿入
         void insert_draft();
 
+#ifndef USE_GTKMM4
         bool slot_button_press( GdkEventButton* event );
+#endif
         void slot_switch_page( Gtk::Widget*, guint page );
         void slot_text_changed();
 

@@ -455,8 +455,12 @@ void MessageViewBase::pack_widget()
     else JDLIB::compat::box_append_expand( m_msgview, *m_text_message );
 
     m_text_message->set_accepts_tab( false );
+#ifndef USE_GTKMM4
+    // TODO: GTK4 [Key] Gtk::EventControllerKey を追加して signal_key_pressed に接続し、キー値・修飾キーの処理を変更する。
     m_text_message->sig_key_press().connect( sigc::mem_fun(*this, &MessageViewBase::slot_key_press ) );
+    // TODO: GTK4 [Mouse] m_text_message に Gtk::GestureClick を追加して signal_pressed に接続し、クリックでフォーカスを切り替える。
     m_text_message->sig_button_press().connect( sigc::mem_fun(*this, &MessageViewBase::slot_button_press ) );
+#endif
     m_text_message->get_buffer()->signal_changed().connect( sigc::mem_fun(*this, &MessageViewBase::slot_text_changed ) );
 
     // プレビュー
@@ -690,6 +694,7 @@ void MessageViewBase::toggle_preview()
 }
 
 
+#ifndef USE_GTKMM4
 //
 // テキストビューでキーを押した
 //
@@ -725,6 +730,7 @@ bool MessageViewBase::slot_button_press( GdkEventButton* event )
 
     return true;
 }
+#endif
 
 
 
