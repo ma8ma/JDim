@@ -8,22 +8,21 @@
 #include <gtkmm.h>
 
 #include "skeleton/toolbar.h"
-#include "skeleton/jdtoolbar.h"
-#include "skeleton/toolmenubutton.h"
+#include "skeleton/menubutton.h"
 
 namespace BBSLIST
 {
     class BBSListToolBar : public SKELETON::ToolBar
     {
         // ラベルバー
-        SKELETON::JDToolbar m_tool_label;
+        Gtk::Box m_tool_label;
 
         Gtk::Label m_label;
-        SKELETON::ToolMenuButton m_button_toggle;
+        SKELETON::MenuButton m_button_toggle;
 
-        Gtk::ToolButton* m_button_check_update_root{};
-        Gtk::ToolButton* m_button_check_update_open_root{};
-        Gtk::ToolItem* m_button_stop_check_update{};
+        Gtk::Button* m_button_check_update_root{};
+        Gtk::Button* m_button_check_update_open_root{};
+        Gtk::Button* m_button_stop_check_update{};
 
       public:
 

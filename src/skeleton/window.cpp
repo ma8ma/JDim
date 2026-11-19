@@ -17,7 +17,11 @@
 
 #include <gtk/gtkwindow.h>
 #ifdef GDK_WINDOWING_WAYLAND
+#ifdef USE_GTKMM4
+#include <gdk/wayland/gdkwayland.h>
+#else
 #include <gdk/gdkwayland.h>
+#endif
 #endif // GDK_WINDOWING_WAYLAND
 
 enum
@@ -59,23 +63,18 @@ JDWindow::JDWindow( const bool fold_when_focusout, const bool need_mginfo )
     , m_boot( true )
     , m_enable_fold( m_fold_when_focusout )
     , m_mode( JDWIN_INIT )
-    , m_statbar{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_statbar{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
 {
     // ステータスバー
     m_label_stat.set_size_request( 0, -1 );
     m_label_stat.set_xalign( 0 );
     m_label_stat.set_selectable( true );
     m_label_stat.set_single_line_mode( true );
-    m_label_stat.set_ellipsize( Pango::ELLIPSIZE_END );
+    m_label_stat.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
 
-    m_label_stat_ebox.add( m_label_stat );
-    m_label_stat_ebox.set_visible_window( false );
-
-    JDLIB::compat::box_append_expand( m_statbar, m_label_stat_ebox );
+    JDLIB::compat::box_append_expand( m_statbar, m_label_stat );
     if( need_mginfo ){
-        m_mginfo_ebox.add( m_mginfo );
-        m_mginfo_ebox.set_visible_window( false );
-        JDLIB::compat::box_append_shrink( m_statbar, m_mginfo_ebox );
+        JDLIB::compat::box_append_shrink( m_statbar, m_mginfo );
     }
 
     m_mginfo.set_width_chars( MGINFO_CHARS );
@@ -124,7 +123,7 @@ void JDWindow::init_win()
         m_vbox_view = std::make_unique<SKELETON::JDVBox>();
 
         m_scrwin->set_size_request( 0, 0 );
-        m_scrwin->set_policy( Gtk::POLICY_EXTERNAL, Gtk::POLICY_EXTERNAL );
+        m_scrwin->set_policy( JDLIB::compat::PolicyType::EXTERNAL, JDLIB::compat::PolicyType::EXTERNAL );
         m_scrwin->add( *m_vbox_view );
         m_vbox.pack_remove_start( false, *m_scrwin, true, true );
 
@@ -377,7 +376,7 @@ void JDWindow::set_status( const std::string& stat )
     m_status = stat;
 
     m_label_stat.set_text( stat );
-    m_label_stat_ebox.set_tooltip_text( stat );
+    m_label_stat.set_tooltip_text( stat );
 }
 
 
@@ -557,7 +556,9 @@ void JDWindow::focus_out()
 }
 
 
+#ifndef USE_GTKMM4
 // フォーカスインイベント
+// TODO: GTK4 [Focus] Gtk::EventControllerFocus::signal_enter に移行し、set_focus_win(true) を呼び出す。
 bool JDWindow::on_focus_in_event( GdkEventFocus* event )
 {
     set_focus_win( true );
@@ -580,6 +581,7 @@ bool JDWindow::on_focus_in_event( GdkEventFocus* event )
 
 
 // フォーカスアウトイベント
+// TODO: GTK4 [Focus] Gtk::EventControllerFocus::signal_leave に移行し、set_focus_win(false) を呼び出す。
 bool JDWindow::on_focus_out_event( GdkEventFocus* event )
 {
     set_focus_win( false );
@@ -601,6 +603,7 @@ bool JDWindow::on_focus_out_event( GdkEventFocus* event )
 
 
 // Xボタンを押した
+// TODO: GTK4 [Window] Gtk::Window::signal_close_request() に移行し、終了処理を維持する。
 bool JDWindow::on_delete_event( GdkEventAny* event )
 {
 #ifdef _DEBUG
@@ -630,6 +633,7 @@ bool JDWindow::on_delete_event( GdkEventAny* event )
 
 
 // 最大、最小化
+// TODO: GTK4 [Window] maximized / fullscreened の状態通知を利用してウィンドウ状態の保存処理を移行する。
 bool JDWindow::on_window_state_event( GdkEventWindowState* event )
 {
     const bool maximized = event->new_window_state & GDK_WINDOW_STATE_MAXIMIZED;
@@ -702,6 +706,7 @@ bool JDWindow::on_window_state_event( GdkEventWindowState* event )
  * そのため、Wayland では代わりに`Gdk::Window::get_state()`を用いて
  * 最新の状態を取得し、保存するかどうかを判定するようにしました。
  */
+// TODO: GTK4 [Window] configure-event の直接の代替なし。ウィンドウサイズの変更を検知し、状態に応じてサイズを記憶する処理を再設計する。
 bool JDWindow::on_configure_event( GdkEventConfigure* event )
 {
     const int mrg = 16;
@@ -771,6 +776,7 @@ bool JDWindow::on_configure_event( GdkEventConfigure* event )
 // gedit-window.c の gedit_window_key_press_event を見ると
 // gtk_window_propagate_key_event() を実行した後でキーアクセレータ
 // の処理をするようにしていたのでJDもそうした。
+// TODO: GTK4 [Key] Gtk::EventControllerKey::signal_key_pressed に移行し、キーイベントの伝播とアクセラレータ処理を維持する。
 bool JDWindow::on_key_press_event( GdkEventKey* event )
 {
     if( gtk_window_propagate_key_event( m_gtkwindow, event ) ) return true;
@@ -784,3 +790,4 @@ bool JDWindow::on_key_press_event( GdkEventKey* event )
 
     return GTK_WIDGET_CLASS( m_grand_parent_class )->key_press_event( m_gtkwidget, event );
 }
+#endif // USE_GTKMM4

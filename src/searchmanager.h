@@ -7,6 +7,7 @@
 #ifndef _SEARCHMANAGER_H
 #define _SEARCHMANAGER_H
 
+#include "jdlib/sigc_compat.h"
 #include "skeleton/dispatchable.h"
 
 #include <gtkmm.h>
@@ -49,7 +50,7 @@ namespace CORE
 
     class Search_Manager : public SKELETON::Dispatchable
     {
-        typedef sigc::signal< void, const std::string& > SIG_SEARCH_FIN;
+        typedef JDLIB::compat::signal< void(const std::string&) > SIG_SEARCH_FIN;
 
         SIG_SEARCH_FIN m_sig_search_fin;
 

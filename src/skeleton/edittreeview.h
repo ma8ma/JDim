@@ -13,6 +13,8 @@
 #include "type.h"
 #include "data_info.h"
 
+#include "jdlib/sigc_compat.h"
+
 #include <gtkmm.h>
 #include <list>
 
@@ -32,7 +34,7 @@ namespace SKELETON
     };
 
     // 他のwidgetからドロップされた
-    typedef sigc::signal< void, const CORE::DATA_INFO_LIST& > SIG_DROPPED_FROM_OTHER;
+    typedef JDLIB::compat::signal< void(const CORE::DATA_INFO_LIST&) > SIG_DROPPED_FROM_OTHER;
 
     class EditColumns;
     class UNDO_BUFFER;
@@ -189,6 +191,7 @@ namespace SKELETON
 
       protected:
 
+#ifndef USE_GTKMM4
         bool on_drag_motion( const Glib::RefPtr<Gdk::DragContext>& context, int x, int y, guint time ) override;
         void on_drag_leave( const Glib::RefPtr< Gdk::DragContext >& context, guint time ) override;
         bool on_drag_drop( const Glib::RefPtr<Gdk::DragContext>& context, int x, int y, guint time ) override;
@@ -198,6 +201,7 @@ namespace SKELETON
                                     const Gtk::SelectionData& selection_data, guint info, guint time ) override;
         void on_drag_data_delete( const Glib::RefPtr<Gdk::DragContext>& context ) override;
         void on_drag_end( const Glib::RefPtr< Gdk::DragContext>& context ) override;
+#endif
 
       private:
 

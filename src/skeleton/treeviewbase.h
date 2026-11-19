@@ -6,6 +6,8 @@
 #ifndef _TREEVIEWBASE_H
 #define _TREEVIEWBASE_H
 
+#include "jdlib/sigc_compat.h"
+
 #include <gtkmm.h>
 #include <string>
 
@@ -13,13 +15,14 @@ namespace SKELETON
 {
     class JDTreeViewBase : public Gtk::TreeView
     {
-        typedef sigc::signal< bool, GdkEventKey* > SIG_KEY_PRESS;
-        typedef sigc::signal< bool, GdkEventKey* > SIG_KEY_RELEASE;
+#ifndef USE_GTKMM4
+        typedef JDLIB::compat::signal< bool(GdkEventKey*) > SIG_KEY_PRESS;
+        typedef JDLIB::compat::signal< bool(GdkEventKey*) > SIG_KEY_RELEASE;
 
-        typedef sigc::signal< bool, GdkEventScroll* > SIG_SCROLL_EVENT;
-        typedef sigc::signal< bool, GdkEventButton* > SIG_BUTTON_PRESS;
-        typedef sigc::signal< bool, GdkEventButton* > SIG_BUTTON_RELEASE;
-        typedef sigc::signal< bool, GdkEventMotion* > SIG_MOTION_NOTIFY;
+        typedef JDLIB::compat::signal< bool(GdkEventScroll*) > SIG_SCROLL_EVENT;
+        typedef JDLIB::compat::signal< bool(GdkEventButton*) > SIG_BUTTON_PRESS;
+        typedef JDLIB::compat::signal< bool(GdkEventButton*) > SIG_BUTTON_RELEASE;
+        typedef JDLIB::compat::signal< bool(GdkEventMotion*) > SIG_MOTION_NOTIFY;
 
         SIG_KEY_PRESS m_sig_key_press;
         SIG_KEY_RELEASE m_sig_key_release;
@@ -28,12 +31,14 @@ namespace SKELETON
         SIG_BUTTON_PRESS m_sig_button_press;
         SIG_BUTTON_RELEASE m_sig_button_release;
         SIG_MOTION_NOTIFY m_sig_motion_notify;
+#endif
 
         // get_row_height() で高さを取得するためのcolumn番号
         int m_column_for_height{};
 
       public:
 
+#ifndef USE_GTKMM4
         SIG_KEY_PRESS& sig_key_press() { return m_sig_key_press; }
         SIG_KEY_RELEASE& sig_key_release() { return m_sig_key_release; }
 
@@ -41,6 +46,7 @@ namespace SKELETON
         SIG_BUTTON_PRESS& sig_button_press() { return m_sig_button_press; }
         SIG_BUTTON_RELEASE& sig_button_release() { return m_sig_button_release; }
         SIG_MOTION_NOTIFY& sig_motion_notify() { return m_sig_motion_notify; }
+#endif
 
         JDTreeViewBase();
         ~JDTreeViewBase() noexcept override;
@@ -99,6 +105,7 @@ namespace SKELETON
 
       protected:
 
+#ifndef USE_GTKMM4
         bool on_key_press_event( GdkEventKey* event ) override;
         bool on_key_release_event( GdkEventKey* event ) override;
 
@@ -106,6 +113,7 @@ namespace SKELETON
         bool on_button_press_event( GdkEventButton* event ) override;
         bool on_button_release_event( GdkEventButton* event ) override;
         bool on_motion_notify_event( GdkEventMotion* event ) override;
+#endif
    };
 }
 

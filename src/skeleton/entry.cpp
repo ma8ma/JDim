@@ -15,6 +15,8 @@ JDEntry::~JDEntry() noexcept = default;
 
 
 // ボタン入力のフック
+// TODO: GTK4 [Mouse] Gtk::GestureClick::signal_pressed に移行する。
+#ifndef USE_GTKMM4
 bool JDEntry::on_button_press_event( GdkEventButton* event )
 {
 #ifdef _DEBUG    
@@ -25,9 +27,12 @@ bool JDEntry::on_button_press_event( GdkEventButton* event )
 
     return Gtk::Entry::on_button_press_event( event );
 }
+#endif
 
 
 // キー入力のフック
+// TODO: GTK4 [Key] Gtk::EventControllerKey::signal_key_pressed に移行する。
+#ifndef USE_GTKMM4
 bool JDEntry::on_key_press_event( GdkEventKey* event )
 {
 #ifdef _DEBUG    
@@ -67,8 +72,11 @@ bool JDEntry::on_key_press_event( GdkEventKey* event )
 
     return Gtk::Entry::on_key_press_event( event );
 }
+#endif
 
 
+// TODO: GTK4 [Key] Gtk::EventControllerKey::signal_key_released に移行する。
+#ifndef USE_GTKMM4
 bool JDEntry::on_key_release_event( GdkEventKey* event )
 {
     const bool ret = Gtk::Entry::on_key_release_event( event );
@@ -90,3 +98,4 @@ bool JDEntry::on_key_release_event( GdkEventKey* event )
 
     return ret;
 }
+#endif

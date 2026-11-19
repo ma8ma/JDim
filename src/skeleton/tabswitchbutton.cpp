@@ -13,7 +13,7 @@ using namespace SKELETON;
 
 TabSwitchButton::TabSwitchButton( DragableNoteBook* )
     : Gtk::Notebook()
-    , m_vbox{ Gtk::ORIENTATION_VERTICAL, 0 }
+    , m_vbox{ JDLIB::compat::Orientation::VERTICAL, 0 }
 {
     set_border_width( 0 );
 

@@ -8,6 +8,7 @@
 
 #include "control/controlutil.h"
 #include "control/controlid.h"
+#include "jdlib/gtk_compat.h"
 
 #include "session.h"
 #include "compmanager.h"
@@ -56,34 +57,33 @@ void BoardToolBar::pack_toolbar()
 
             case ITEM_NEWARTICLE:
                 if( auto button = get_button_write() ) {
-                    get_buttonbar().append( *button );
-                    button->set_label( CONTROL::get_label( CONTROL::NewArticle ) );
+                    JDLIB::compat::box_append_shrink( get_buttonbar(), *button );
                     set_tooltip( *button, CONTROL::get_label_motions( CONTROL::NewArticle ) );
                 }
                 break;
 
             case ITEM_SEARCHBOX:
-                get_buttonbar().append( *get_tool_search( CORE::COMP_SEARCH_BOARD ) );
+                JDLIB::compat::box_append_expand( get_buttonbar(), *get_tool_search( CORE::COMP_SEARCH_BOARD ) );
                 break;
 
             case ITEM_SEARCH_NEXT:
-                get_buttonbar().append( *get_button_down_search() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_down_search() );
                 break;
 
             case ITEM_SEARCH_PREV:
-                get_buttonbar().append( *get_button_up_search() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_up_search() );
                 break;
 
             case ITEM_RELOAD:
-                get_buttonbar().append( *get_button_reload() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_reload() );
                 break;
 
             case ITEM_STOPLOADING:
-                get_buttonbar().append( *get_button_stop() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_stop() );
                 break;
 
             case ITEM_APPENDFAVORITE:
-                get_buttonbar().append( *get_button_favorite() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_favorite() );
                 set_tooltip( *get_button_favorite(), CONTROL::get_label_motions( CONTROL::AppendFavorite )
                              + "\n\nスレ一覧のタブか選択したスレをお気に入りに直接Ｄ＆Ｄしても登録可能" );
                 // ポップアップメニューの配置に利用するためツールバーボタンをIDに紐づけします。
@@ -91,28 +91,28 @@ void BoardToolBar::pack_toolbar()
                 break;
 
             case ITEM_DELETE:
-                get_buttonbar().append( *get_button_delete() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_delete() );
                 get_admin()->set_anchor_widget( kToolbarWidgetDelete, get_button_delete() );
                 break;
 
             case ITEM_QUIT:
-                get_buttonbar().append( *get_button_close() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_close() );
                 break;
 
             case ITEM_BACK:
-                get_buttonbar().append( *get_button_back() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_back() );
                 break;
 
             case ITEM_FORWARD:
-                get_buttonbar().append( *get_button_forward() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_forward() );
                 break;
 
             case ITEM_LOCK:
-                get_buttonbar().append( *get_button_lock() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_lock() );
                 break;
 
             case ITEM_CLEAR_HIGHLIGHT:
-                get_buttonbar().append( *get_button_clear_highlight() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_clear_highlight() );
                 break;
 
             case ITEM_SEPARATOR:
@@ -129,10 +129,10 @@ void BoardToolBar::pack_search_toolbar()
     std::cout << "BoardToolBar::pack_search_toolbar\n";
 #endif
 
-    get_searchbar()->append( *get_tool_search( CORE::COMP_SEARCH_BOARD ) );        
-    get_searchbar()->append( *get_button_down_search() );
-    get_searchbar()->append( *get_button_up_search() );
-    get_searchbar()->append( *get_button_close_searchbar() );
+    JDLIB::compat::box_append_expand( *get_searchbar(), *get_tool_search( CORE::COMP_SEARCH_BOARD ) );
+    JDLIB::compat::box_append_shrink( *get_searchbar(), *get_button_down_search() );
+    JDLIB::compat::box_append_shrink( *get_searchbar(), *get_button_up_search() );
+    JDLIB::compat::box_append_shrink( *get_searchbar(), *get_button_close_searchbar() );
 }
 
 

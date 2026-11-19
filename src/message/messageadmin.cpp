@@ -15,6 +15,7 @@
 #include "dbtree/interface.h"
 
 #include "config/globalconf.h"
+#include "jdlib/gtk_compat.h"
 
 #include "viewfactory.h"
 #include "command.h"
@@ -366,11 +367,11 @@ bool MessageAdmin::delete_message( SKELETON::View * view )
                                   "編集中のメッセージを閉じる前に内容を保存しますか？\n\n保存ボタンを押すとメッセージを保存できます。",
 
                                   "今後表示しない(常に保存せずに閉じる) (_D)",
-                                  Gtk::MESSAGE_WARNING, Gtk::BUTTONS_NONE );
+                                  JDLIB::compat::MessageType::WARNING, JDLIB::compat::ButtonsType::NONE );
 
-    mdiag.add_button( "保存せずに閉じる(_Q)", Gtk::RESPONSE_NO );
-    mdiag.add_button( g_dgettext( GTK_DOMAIN, "_Cancel" ), Gtk::RESPONSE_CANCEL );
-    mdiag.add_default_button( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Save", 12 ), Gtk::RESPONSE_YES );
+    mdiag.add_button( "保存せずに閉じる(_Q)", JDLIB::compat::ResponseType::NO );
+    mdiag.add_button( g_dgettext( GTK_DOMAIN, "_Cancel" ), JDLIB::compat::ResponseType::CANCEL );
+    mdiag.add_default_button( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Save", 12 ), JDLIB::compat::ResponseType::YES );
 
     int ret = mdiag.run();
     mdiag.hide();
@@ -378,12 +379,12 @@ bool MessageAdmin::delete_message( SKELETON::View * view )
 
     switch( ret )
     {
-        case Gtk::RESPONSE_NO:
+        case JDLIB::compat::ResponseType::NO:
             result = true;
             if( mdiag.get_chkbutton().get_active() ) CONFIG::set_show_savemsgdiag( false );
             break;
 
-        case Gtk::RESPONSE_YES:
+        case JDLIB::compat::ResponseType::YES:
             if( ! view->set_command( "save_message" ) ) return delete_message( view );
             result = true;
             break;

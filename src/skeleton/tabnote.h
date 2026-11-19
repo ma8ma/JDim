@@ -6,6 +6,8 @@
 #ifndef _TABNOTE_H
 #define _TABNOTE_H
 
+#include "jdlib/sigc_compat.h"
+
 #include <gtkmm.h>
 
 
@@ -17,31 +19,39 @@ namespace SKELETON
     struct Alloc_NoteBook;
 
     // タブのクリック
-    typedef sigc::signal< bool, GdkEventButton* > SIG_BUTTON_PRESS;
-    typedef sigc::signal< bool, GdkEventButton* > SIG_BUTTON_RELEASE;
+#ifndef USE_GTKMM4
+    typedef JDLIB::compat::signal< bool(GdkEventButton*) > SIG_BUTTON_PRESS;
+    typedef JDLIB::compat::signal< bool(GdkEventButton*) > SIG_BUTTON_RELEASE;
+#endif
 
     // マウス移動
-    typedef sigc::signal< void > SIG_TAB_MOTION_EVENT;
-    typedef sigc::signal< void > SIG_TAB_LEAVE_EVENT;
+    typedef JDLIB::compat::signal< void() > SIG_TAB_MOTION_EVENT;
+    typedef JDLIB::compat::signal< void() > SIG_TAB_LEAVE_EVENT;
 
     // ホイール回転
-    typedef sigc::signal< bool, GdkEventScroll* > SIG_SCROLL_EVENT;
+#ifndef USE_GTKMM4
+    typedef JDLIB::compat::signal< bool(GdkEventScroll*) > SIG_SCROLL_EVENT;
+#endif
 
     // D&D
-    typedef sigc::signal< void, const int, const int, const int, const int > SIG_TAB_DRAG_MOTION;
+    typedef JDLIB::compat::signal< void(const int, const int, const int, const int) > SIG_TAB_DRAG_MOTION;
 
     // タブ用の Notebook
     class TabNotebook : public Gtk::Notebook
     {
+#ifndef USE_GTKMM4
         SIG_BUTTON_PRESS m_sig_button_press;
         SIG_BUTTON_RELEASE m_sig_button_release;
+#endif
 
         SIG_TAB_MOTION_EVENT m_sig_tab_motion_event;
         SIG_TAB_LEAVE_EVENT m_sig_tab_leave_event;
 
         SIG_TAB_DRAG_MOTION m_sig_tab_drag_motion;
 
+#ifndef USE_GTKMM4
         SIG_SCROLL_EVENT m_sig_scroll_event;
+#endif
 
         DragableNoteBook* m_parent;
 
@@ -56,15 +66,19 @@ namespace SKELETON
 
     public:
 
+#ifndef USE_GTKMM4
         SIG_BUTTON_PRESS sig_button_press(){ return m_sig_button_press; }
         SIG_BUTTON_RELEASE sig_button_release(){ return m_sig_button_release; }
+#endif
 
         SIG_TAB_MOTION_EVENT sig_tab_motion_event(){ return  m_sig_tab_motion_event; }
         SIG_TAB_LEAVE_EVENT sig_tab_leave_event(){ return m_sig_tab_leave_event; }
 
         SIG_TAB_DRAG_MOTION sig_tab_drag_motion(){ return m_sig_tab_drag_motion; }
 
+#ifndef USE_GTKMM4
         SIG_SCROLL_EVENT sig_scroll_event(){ return m_sig_scroll_event; }
+#endif
 
         explicit TabNotebook( DragableNoteBook* parent );
         ~TabNotebook() noexcept override;
@@ -101,6 +115,7 @@ namespace SKELETON
 
       protected:
 
+#ifndef USE_GTKMM4
         void on_size_allocate( Gtk::Allocation& allocation ) override;
 
         // signal_button_press_event と signal_button_release_event は emit されない
@@ -113,6 +128,7 @@ namespace SKELETON
         bool on_scroll_event( GdkEventScroll* event ) override;
 
         bool on_drag_motion( const Glib::RefPtr<Gdk::DragContext>& context, int x, int y, guint time) override;
+#endif
     };
 }
 

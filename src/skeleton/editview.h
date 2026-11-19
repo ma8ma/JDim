@@ -5,6 +5,8 @@
 
 #include "control/control.h"
 
+#include "jdlib/sigc_compat.h"
+
 #include <gtkmm.h>
 
 #include <memory>
@@ -14,9 +16,11 @@ namespace SKELETON
 {
     class AAMenu;
 
-    typedef sigc::signal< bool, GdkEventKey* > SIG_KEY_PRESS;
-    typedef sigc::signal< bool, GdkEventKey* > SIG_KEY_RELEASE;
-    typedef sigc::signal< bool, GdkEventButton* > SIG_BUTTON_PRESS;
+#ifndef USE_GTKMM4
+    typedef JDLIB::compat::signal< bool(GdkEventKey*) > SIG_KEY_PRESS;
+    typedef JDLIB::compat::signal< bool(GdkEventKey*) > SIG_KEY_RELEASE;
+    typedef JDLIB::compat::signal< bool(GdkEventButton*) > SIG_BUTTON_PRESS;
+#endif
 
     // undo 用のバッファ
     struct UndoDatum
@@ -31,9 +35,11 @@ namespace SKELETON
     // キーのプレスとリリースをフックする
     class EditTextView : public Gtk::TextView
     {
+#ifndef USE_GTKMM4
         SIG_KEY_PRESS m_sig_key_press;
         SIG_KEY_RELEASE m_sig_key_release;
         SIG_BUTTON_PRESS m_sig_button_press;
+#endif
 
         // 入力コントローラ
         CONTROL::Control m_control;
@@ -58,9 +64,11 @@ namespace SKELETON
 
       public:
 
+#ifndef USE_GTKMM4
         SIG_KEY_PRESS sig_key_press(){ return m_sig_key_press; }
         SIG_KEY_RELEASE sig_key_release(){ return m_sig_key_release; }
         SIG_BUTTON_PRESS sig_button_press() { return m_sig_button_press; }
+#endif
 
         EditTextView();
         ~EditTextView() noexcept override;
@@ -85,12 +93,14 @@ namespace SKELETON
 
       protected:
 
+#ifndef USE_GTKMM4
         bool on_button_press_event( GdkEventButton* event ) override;
 
         bool on_key_press_event( GdkEventKey* event ) override;
         bool on_key_release_event( GdkEventKey* event ) override;
 
         void on_populate_popup( Gtk::Menu* menu ) override;
+#endif
 
         void slot_buffer_changed();
 
@@ -131,9 +141,11 @@ namespace SKELETON
         EditView();
         ~EditView() noexcept override;
 
+#ifndef USE_GTKMM4
         SIG_BUTTON_PRESS sig_button_press(){ return m_textview.sig_button_press(); }
         SIG_KEY_PRESS sig_key_press(){ return m_textview.sig_key_press(); }
         SIG_KEY_RELEASE sig_key_release(){ return m_textview.sig_key_release(); }
+#endif
 
         Glib::RefPtr< Gtk::TextBuffer > get_buffer(){ return m_textview.get_buffer(); }
 
@@ -153,7 +165,9 @@ namespace SKELETON
 
         void modify_font( const Pango::FontDescription& font_desc )
         {
+#ifndef USE_GTKMM4
             m_textview.override_font( font_desc );
+#endif
         }
 
         void focus_view(){ m_textview.grab_focus(); }

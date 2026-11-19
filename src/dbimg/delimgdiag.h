@@ -32,8 +32,8 @@ namespace DBIMG
         Gtk::SpinButton& get_spin(){ return m_spin; }
 
         ImgCacheFrame()
-            : m_vbox{ Gtk::ORIENTATION_VERTICAL, 0 }
-            , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+            : m_vbox{ JDLIB::compat::Orientation::VERTICAL, 0 }
+            , m_hbox{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
         {
             std::stringstream ss;
             ss << "現在の画像キャッシュサイズ : " << ( CACHE::get_dirsize( CACHE::path_img_root() ) / 1024 / 1024 ) << "M";
@@ -75,8 +75,8 @@ namespace DBIMG
         Gtk::SpinButton& get_spin(){ return m_spin; }
 
         ImgAboneFrame()
-            : m_vbox{ Gtk::ORIENTATION_VERTICAL, 0 }
-            , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+            : m_vbox{ JDLIB::compat::Orientation::VERTICAL, 0 }
+            , m_hbox{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
         {
             m_spinlabel.set_text_with_mnemonic( "日より以前のあぼ〜ん情報を消去(_A)" );
             m_spinlabel.set_mnemonic_widget( m_spin );

@@ -10,6 +10,7 @@
 #include "cache.h"
 
 #include "config/globalconf.h"
+#include "jdlib/gtk_compat.h"
 #include "jdlib/miscmsg.h"
 
 #include <algorithm>
@@ -83,12 +84,12 @@ std::vector<std::string> ICON::get_installed_gtk_theme_names()
     std::vector<std::string> names;
 
     auto fill_gtk = [&]( const auto& themes_dir ) {
-        if( ! Glib::file_test( themes_dir, Glib::FILE_TEST_IS_DIR ) ) return;
+        if( ! Glib::file_test( themes_dir, JDLIB::compat::FileTest::IS_DIR ) ) return;
 
         for( auto dir_name : Glib::Dir( themes_dir ) ) {
             for( int i = 0; i < minor; i += 2 ) {
                 auto file_path = Glib::ustring::compose( "%1/%2/gtk-3.%3/gtk.css", themes_dir, dir_name, i );
-                if( Glib::file_test( file_path, Glib::FILE_TEST_IS_REGULAR ) ) {
+                if( Glib::file_test( file_path, JDLIB::compat::FileTest::IS_REGULAR ) ) {
                     names.push_back( std::move( dir_name ) );
                     break;
                 }
@@ -131,7 +132,7 @@ std::vector<std::string> ICON::get_installed_icon_theme_names()
     std::vector<std::string> names;
 
     auto fill_icon = [&]( const auto& themes_dir ) {
-        if( ! Glib::file_test( themes_dir, Glib::FILE_TEST_IS_DIR ) ) return;
+        if( ! Glib::file_test( themes_dir, JDLIB::compat::FileTest::IS_DIR ) ) return;
 
         for( auto dir_name : Glib::Dir( themes_dir ) ) {
 
@@ -226,7 +227,7 @@ Glib::RefPtr<Gio::Icon> ICON_Manager::get_icon( const int id )
  */
 Glib::RefPtr<Gdk::Pixbuf> ICON_Manager::get_pixbuf( const int id )
 {
-    return Glib::RefPtr<Gdk::Pixbuf>::cast_dynamic( m_list_icons[ id ] );
+    return JDLIB::compat::dynamic_pointer_cast<Gdk::Pixbuf>( m_list_icons[ id ] );
 }
 
 
@@ -281,7 +282,7 @@ void ICON_Manager::load_theme()
                 auto pixbuf = Gdk::Pixbuf::create_from_file( CACHE::path_theme_icon_root() + filename );
                 constexpr int size_menu = 24; // Gtk::ICON_SIZE_LARGE_TOOLBAR
                 if( pixbuf->get_width() > size_menu || pixbuf->get_height() > size_menu ) {
-                    m_list_icons[id] = pixbuf->scale_simple( size_menu, size_menu, Gdk::INTERP_HYPER );
+                    m_list_icons[id] = pixbuf->scale_simple( size_menu, size_menu, JDLIB::compat::InterpType::HYPER );
                 }
                 else {
                     m_list_icons[id] = pixbuf;
@@ -345,7 +346,7 @@ void ICON_Manager::load_builtin_icons( std::vector<Glib::RefPtr<Gio::Icon>>& lis
     // その他
     list_icons[ ICON::DOWN ] = list_icons[ ICON::OLD ];
 
-    auto pixbuf = Gdk::Pixbuf::create( Gdk::COLORSPACE_RGB, true, 8, 1, 1 );
+    auto pixbuf = Gdk::Pixbuf::create( JDLIB::compat::Colorspace::RGB, true, 8, 1, 1 );
     pixbuf->fill( 0 );
     list_icons[ ICON::TRANSPARENT ] = std::move( pixbuf );
 

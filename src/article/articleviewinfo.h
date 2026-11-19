@@ -27,7 +27,9 @@ namespace ARTICLE
       private:
 
         // ボタンプレスキャンセル
+#ifndef USE_GTKMM4
         bool slot_button_press( const std::string& url, int res_number, GdkEventButton* ) override { return true; }
+#endif
 
         // ポップアップ表示キャンセル
         void slot_on_url( const std::string& url, const std::string& imgurl, int res_number ) override {}

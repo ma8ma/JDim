@@ -69,10 +69,10 @@ namespace CORE
 
         GlobalAboneThreadPref( Gtk::Window* parent, const std::string& url )
             : SKELETON::PrefDiag( parent, url )
-            , m_vbox_abone_thread{ Gtk::ORIENTATION_VERTICAL, 0 }
-            , m_hbox_low_number{ Gtk::ORIENTATION_HORIZONTAL, 4 }
-            , m_hbox_high_number{ Gtk::ORIENTATION_HORIZONTAL, 4 }
-            , m_hbox_hour{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+            , m_vbox_abone_thread{ JDLIB::compat::Orientation::VERTICAL, 0 }
+            , m_hbox_low_number{ JDLIB::compat::Orientation::HORIZONTAL, 4 }
+            , m_hbox_high_number{ JDLIB::compat::Orientation::HORIZONTAL, 4 }
+            , m_hbox_hour{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
         {
             // スレ数、時間
             m_label_abone_thread.set_text( "以下の数字が0の時は未設定になります。\nまたキャッシュにログがあるスレはあぼ〜んされません。\n\n" );

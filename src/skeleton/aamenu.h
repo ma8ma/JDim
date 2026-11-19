@@ -12,9 +12,11 @@
 
 #include "popupwinbase.h"
 
+#include "jdlib/sigc_compat.h"
+
 namespace SKELETON
 {
-    typedef sigc::signal< void, const std::string& > SIG_AAMENU_SELECTED;
+    typedef JDLIB::compat::signal< void(const std::string&) > SIG_AAMENU_SELECTED;
 
     class AAMenu : public Gtk::Menu
     {
@@ -40,7 +42,9 @@ namespace SKELETON
 
         void on_map() override;
         void on_hide() override;
+#ifndef USE_GTKMM4
         bool on_key_press_event (GdkEventKey* event) override;
+#endif
 
       private:
 

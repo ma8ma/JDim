@@ -28,7 +28,11 @@ namespace IMAGE
         Gtk::Box m_iconbox;
         Gtk::ScrolledWindow m_scrwin;
         Gtk::Button m_left, m_right;
+#ifdef USE_GTKMM4
+        Gtk::Box m_view{ Gtk::Orientation::HORIZONTAL, 0 };
+#else
         Gtk::EventBox m_view;
+#endif
 
         std::list<std::unique_ptr<SKELETON::View>> m_list_view;
         /// @brief 画像を閉じるURLを入れるキュー（待ち行列）

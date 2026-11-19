@@ -13,6 +13,8 @@
 #include "control/controlutil.h"
 #include "control/controlid.h"
 
+#include "jdlib/gtk_compat.h"
+
 #include "session.h"
 #include "global.h"
 
@@ -26,7 +28,7 @@ MessageToolBarBase::MessageToolBarBase()
 {}
 
 
-Gtk::ToggleToolButton* MessageToolBarBase::get_button_preview()
+Gtk::ToggleButton* MessageToolBarBase::get_button_preview()
 {
 #ifdef _DEBUG
     std::cout << "MessageToolBarBase::get_button_preview\n";
@@ -141,8 +143,7 @@ void MessageToolBar::pack_buttons()
 
             case ITEM_PREVIEW:
                 if( auto button = get_button_preview() ) {
-                    get_buttonbar().append( *button );
-                    button->set_label( CONTROL::get_label( CONTROL::Preview ) );
+                    JDLIB::compat::box_append_shrink( get_buttonbar(), *button );
                     set_tooltip( *button, CONTROL::get_label_motions( CONTROL::Preview )
                                           + "\n\nタブ移動のショートカットでも表示の切り替えが可能\n\n"
                                           + CONTROL::get_label_motions( CONTROL::TabRight ) + "\n\n"
@@ -151,26 +152,27 @@ void MessageToolBar::pack_buttons()
                 break;
 
             case ITEM_WRITEMSG:
-                get_buttonbar().append( *get_button_write() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_write() );
                 set_tooltip( *get_button_write(), CONTROL::get_label_motions( CONTROL::ExecWrite ) + "\n\nTabキーで書き込みボタンにフォーカスを移すことも可能" );
                 break;
 
             case ITEM_OPENBOARD:
-                get_buttonbar().append( *get_button_board() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_board() );
                 break;
 
             case ITEM_NAME:
-                pack_transparent_separator();
-
                 // スレ名ラベルを表示
-                if( ! m_show_entry_new_subject ) get_buttonbar().append( *get_label() );
+                if( ! m_show_entry_new_subject ) {
+                    get_label()->set_margin_start( 8 );
+                    JDLIB::compat::box_append_expand( get_buttonbar(), *get_label() );
+                    get_label()->set_margin_end( 8 );
+                }
 
                 // 新規スレ名入力entry表示
                 else{
 
-                    if( ! m_tool_new_subject ){
+                    if( ! m_entry_new_subject ){
 
-                        m_tool_new_subject = Gtk::manage( new Gtk::ToolItem );
                         m_entry_new_subject = Gtk::manage( new Gtk::Entry );
                         // map(表示)したときと新規スレ名を入力したときに処理するシグナル
                         m_entry_new_subject->signal_map().connect(
@@ -179,24 +181,23 @@ void MessageToolBar::pack_buttons()
                             sigc::mem_fun( MESSAGE::get_admin(), &MessageAdmin::slot_new_subject_changed ) );
 
                         m_entry_new_subject->set_size_request( 0 );
-
-                        m_tool_new_subject->add( *m_entry_new_subject );
-                        m_tool_new_subject->set_expand( true );
+                        m_entry_new_subject->set_hexpand( true );
                     }
 
-                    get_buttonbar().append( *m_tool_new_subject );
+                    m_entry_new_subject->set_margin_start( 8 );
+                    JDLIB::compat::box_append_expand( get_buttonbar(), *m_entry_new_subject );
+                    m_entry_new_subject->set_margin_end( 8 );
                 }
-                pack_transparent_separator();
                 break;
 
             case ITEM_UNDO:
 
                 if( ! m_button_undo ){
-                    m_button_undo = Gtk::manage( new SKELETON::ImgToolButton( ICON::UNDO, CONTROL::UndoEdit ) );
+                    m_button_undo = Gtk::manage( new SKELETON::ImgToolButton( ICON::UNDO ) );
                     m_button_undo->signal_clicked().connect( sigc::mem_fun( *this, &MessageToolBar::slot_undo_clicked ) );
                 }
 
-                get_buttonbar().append( *m_button_undo );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *m_button_undo );
                 set_tooltip( *m_button_undo, CONTROL::get_label_motions( CONTROL::UndoEdit ) );
 
                 break;
@@ -204,26 +205,24 @@ void MessageToolBar::pack_buttons()
             case ITEM_INSERTTEXT:
 
                 if( ! m_button_insert_draft ){
-                    m_button_insert_draft = Gtk::manage( new SKELETON::ImgToolButton( ICON::INSERTTEXT,
-                                                                                      CONTROL::InsertText ) );
+                    m_button_insert_draft = Gtk::manage( new SKELETON::ImgToolButton( ICON::INSERTTEXT ) );
                     m_button_insert_draft->signal_clicked().connect( sigc::mem_fun( *this, &MessageToolBar::slot_insert_draft_clicked ) );
                 }
 
-                get_buttonbar().append( *m_button_insert_draft );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *m_button_insert_draft );
                 set_tooltip( *m_button_insert_draft, CONTROL::get_label_motions( CONTROL::InsertText ) );
 
                 break;
 
             case ITEM_LOCK_MESSAGE:
                 if( auto button = get_button_lock() ) {
-                    get_buttonbar().append( *button );
-                    button->set_label( CONTROL::get_label( CONTROL::LockMessage ) );
+                    JDLIB::compat::box_append_shrink( get_buttonbar(), *button );
                     set_tooltip( *button, CONTROL::get_label_motions( CONTROL::LockMessage ) );
                 }
                 break;
 
             case ITEM_QUIT:
-                get_buttonbar().append( *get_button_close() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_close() );
                 set_tooltip( *get_button_close(), CONTROL::get_label_motions( CONTROL::CancelWrite ) );
                 break;
 
@@ -284,29 +283,28 @@ void MessageToolBarPreview::pack_buttons()
 
             case ITEM_PREVIEW:
                 if( auto button = get_button_preview() ) {
-                    get_buttonbar().append( *button );
-                    button->set_label( "プレビューを閉じる" );
+                    JDLIB::compat::box_append_shrink( get_buttonbar(), *button );
                     set_tooltip( *button, "プレビューを閉じる" );
                 }
                 break;
 
             case ITEM_OPENBOARD:
-                get_buttonbar().append( *get_button_board() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_board() );
                 break;
 
             case ITEM_NAME:
-                pack_transparent_separator();
-                get_buttonbar().append( *get_label() );
-                pack_transparent_separator();
+                get_label()->set_margin_start( 8 );
+                JDLIB::compat::box_append_expand( get_buttonbar(), *get_label() );
+                get_label()->set_margin_end( 8 );
                 break;
 
             case ITEM_WRITEMSG:
-                get_buttonbar().append( *get_button_write() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_write() );
                 set_tooltip( *get_button_write(), CONTROL::get_label_motions( CONTROL::ExecWrite ) + "\n\nTabキーで書き込みボタンにフォーカスを移すことも可能" );
                 break;
 
             case ITEM_QUIT:
-                get_buttonbar().append( *get_button_close() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_close() );
                 set_tooltip( *get_button_close(), CONTROL::get_label_motions( CONTROL::CancelWrite ) );
                 break;
         }

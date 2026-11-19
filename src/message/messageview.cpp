@@ -12,6 +12,7 @@
 #include "skeleton/editview.h"
 
 #include "jdlib/miscutil.h"
+#include "jdlib/gtk_compat.h"
 
 #include "dbtree/interface.h"
 
@@ -64,7 +65,7 @@ std::string MessageViewMain::create_message( const bool utf8_post )
 
     if( msg.empty() ){
         SKELETON::MsgDiag mdiag( get_parent_win(), "書き込みがキャンセルされました。" );
-        mdiag.property_message_type() = Gtk::MESSAGE_WARNING;
+        mdiag.property_message_type() = JDLIB::compat::MessageType::WARNING;
         mdiag.set_secondary_text( "本文が空欄です。" );
         mdiag.run();
         return std::string();
@@ -81,23 +82,23 @@ std::string MessageViewMain::create_message( const bool utf8_post )
             SKELETON::MsgDiag mdiag( get_parent_win(),
                                      "メッセージがスペースまたは改行で終わっています。\n\n"
                                      "このまま書き込みますか？ (または、改行等を削除)",
-                                     false, Gtk::MESSAGE_WARNING, Gtk::BUTTONS_NONE );
+                                     false, JDLIB::compat::MessageType::WARNING, JDLIB::compat::ButtonsType::NONE );
 
             mdiag.set_title( "確認" );
-            mdiag.add_button( g_dgettext( GTK_DOMAIN, "_Cancel" ), Gtk::RESPONSE_CANCEL );
-            mdiag.add_button( g_dgettext( GTK_DOMAIN, "_Remove" ), Gtk::RESPONSE_DELETE_EVENT );
-            mdiag.add_button( g_dgettext( GTK_DOMAIN, "_Yes" ), Gtk::RESPONSE_YES );
+            mdiag.add_button( g_dgettext( GTK_DOMAIN, "_Cancel" ), JDLIB::compat::ResponseType::CANCEL );
+            mdiag.add_button( g_dgettext( GTK_DOMAIN, "_Remove" ), JDLIB::compat::ResponseType::DELETE_EVENT );
+            mdiag.add_button( g_dgettext( GTK_DOMAIN, "_Yes" ), JDLIB::compat::ResponseType::YES );
 
             switch( mdiag.run() )
             {
                 // スペース/改行を取り除いた物に置き換える(書き込まない)
-                case Gtk::RESPONSE_DELETE_EVENT:
+                case JDLIB::compat::ResponseType::DELETE_EVENT:
 
                     get_text_message().set_text( msg.substr( 0, end_pos + 1 ) );
                     return std::string();
 
                 // キャンセル
-                case Gtk::RESPONSE_CANCEL:
+                case JDLIB::compat::ResponseType::CANCEL:
 
                     return std::string();
             }
@@ -109,17 +110,17 @@ std::string MessageViewMain::create_message( const bool utf8_post )
 
         SKELETON::MsgDiag mdiag( get_parent_win(),
                                  "スレビューで開いているスレと異なるスレに書き込もうとしています\n\n誤爆する可能性がありますが書き込みますか？",
-                                 false, Gtk::MESSAGE_WARNING, Gtk::BUTTONS_NONE );
+                                 false, JDLIB::compat::MessageType::WARNING, JDLIB::compat::ButtonsType::NONE );
 
         mdiag.set_title( "！！！誤爆注意！！！" );
-        mdiag.add_button( g_dgettext( GTK_DOMAIN, "_No" ), Gtk::RESPONSE_NO );
-        mdiag.add_button( g_dgettext( GTK_DOMAIN, "_Yes" ), Gtk::RESPONSE_YES );
-        mdiag.add_button( "スレを開く", Gtk::RESPONSE_YES + 100 );
+        mdiag.add_button( g_dgettext( GTK_DOMAIN, "_No" ), JDLIB::compat::ResponseType::NO );
+        mdiag.add_button( g_dgettext( GTK_DOMAIN, "_Yes" ), JDLIB::compat::ResponseType::YES );
+        mdiag.add_button( "スレを開く", JDLIB::compat::ResponseType::YES + 100 );
 
         int ret = mdiag.run();
-        if( ret != Gtk::RESPONSE_YES ){
+        if( ret != JDLIB::compat::ResponseType::YES ){
 
-            if( ret == Gtk::RESPONSE_YES + 100 ) CORE::core_set_command( "open_article", get_url(), "true", "" );
+            if( ret == JDLIB::compat::ResponseType::YES + 100 ) CORE::core_set_command( "open_article", get_url(), "true", "" );
             return std::string();
         }
     }
@@ -194,15 +195,15 @@ std::string MessageViewNew::create_message( const bool utf8_post )
 
     if( reason ) {
         SKELETON::MsgDiag mdiag( get_parent_win(), "スレ立てがキャンセルされました。" );
-        mdiag.property_message_type() = Gtk::MESSAGE_WARNING;
+        mdiag.property_message_type() = JDLIB::compat::MessageType::WARNING;
         mdiag.set_secondary_text( reason );
         mdiag.run();
         return std::string{};
     }
 
     SKELETON::MsgDiag mdiag( get_parent_win(),
-                             "新スレを作成しますか？", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
-    if( mdiag.run() == Gtk::RESPONSE_YES ) {
+                             "新スレを作成しますか？", false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
+    if( mdiag.run() == JDLIB::compat::ResponseType::YES ) {
         return DBTREE::create_newarticle_message( get_url(), subject, name, mail, msg, utf8_post );
     }
 

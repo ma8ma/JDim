@@ -24,7 +24,7 @@ MenuButton::MenuButton( const bool show_arrow, Gtk::Widget* label, bool expand, 
     : m_label{ label }
     , m_enable_sig_clicked{ true }
 {
-    Gtk::Box* hbox = Gtk::manage( new Gtk::Box( Gtk::ORIENTATION_HORIZONTAL ) );
+    Gtk::Box* hbox = Gtk::manage( new Gtk::Box( JDLIB::compat::Orientation::HORIZONTAL ) );
 
     hbox->set_spacing( 4 );
     if( m_label ) {
@@ -47,6 +47,8 @@ MenuButton::MenuButton( const bool show_arrow, Gtk::Widget* label, bool expand, 
     }
     else m_enable_sig_clicked = false;
 
+    // TODO: GTK4 [Mouse] Gtk::EventControllerMotion を追加して各シグナルを接続する。
+#ifndef USE_GTKMM4
     add_events( Gdk::ENTER_NOTIFY_MASK );
     add_events( Gdk::POINTER_MOTION_MASK );
     add_events( Gdk::LEAVE_NOTIFY_MASK );
@@ -54,6 +56,7 @@ MenuButton::MenuButton( const bool show_arrow, Gtk::Widget* label, bool expand, 
     signal_enter_notify_event().connect( sigc::mem_fun( *this, &MenuButton::slot_enter ) );
     signal_leave_notify_event().connect( sigc::mem_fun( *this, &MenuButton::slot_leave ) );
     signal_motion_notify_event().connect(  sigc::mem_fun( *this, &MenuButton::slot_motion ) );
+#endif
 
     add( *hbox );
     show_all_children();
@@ -138,7 +141,7 @@ void MenuButton::show_popupmenu()
     if( ! m_popupmenu ) return;
 
     // Specify the current event by nullptr.
-    m_popupmenu->popup_at_widget( this, Gdk::GRAVITY_SOUTH_WEST, Gdk::GRAVITY_NORTH_WEST, nullptr );
+    m_popupmenu->popup_at_widget( this, JDLIB::compat::Gravity::SOUTH_WEST, JDLIB::compat::Gravity::NORTH_WEST, nullptr );
 }
 
 
@@ -169,6 +172,8 @@ void MenuButton::on_clicked()
 }
 
 
+#ifndef USE_GTKMM4
+// TODO: GTK4 [Mouse] Gtk::EventControllerMotion::signal_enter に移行する。
 bool MenuButton::slot_enter( GdkEventCrossing* event )
 {
 #ifdef _DEBUG
@@ -181,6 +186,7 @@ bool MenuButton::slot_enter( GdkEventCrossing* event )
 }
 
 
+// TODO: GTK4 [Mouse] Gtk::EventControllerMotion::signal_leave に移行する。
 bool MenuButton::slot_leave( GdkEventCrossing* event )
 {
 #ifdef _DEBUG
@@ -193,12 +199,14 @@ bool MenuButton::slot_leave( GdkEventCrossing* event )
 }
 
 
+// TODO: GTK4 [Mouse] Gtk::EventControllerMotion::signal_motion に移行する。
 bool MenuButton::slot_motion( GdkEventMotion* event )
 {
     check_on_arrow( static_cast<int>(event->x) );
 
     return true;
 }
+#endif // USE_GTKMM4
 
 
 //
