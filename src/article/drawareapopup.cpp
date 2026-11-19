@@ -60,6 +60,7 @@ bool DrawAreaPopup::exec_layout()
 //
 // ポップアップの場合は先頭に戻る
 //
+#ifndef USE_GTKMM4
 bool DrawAreaPopup::slot_configure_event( GdkEventConfigure* event )
 {
     if( ! is_drawarea_realized() ) return true;
@@ -73,3 +74,4 @@ bool DrawAreaPopup::slot_configure_event( GdkEventConfigure* event )
 
     return true;
 }
+#endif

@@ -29,6 +29,7 @@ namespace ARTICLE
     class EmbeddedImage;
 
     // マウスボタンプレスとリリースのシグナル。リリース時にマウスがリンクの上にある時そのURLを渡す
+#ifndef USE_GTKMM4
     typedef JDLIB::compat::signal< bool(std::string, int, GdkEventButton*) > SIG_BUTTON_PRESS;
     typedef JDLIB::compat::signal< bool(std::string, int, GdkEventButton*) > SIG_BUTTON_RELEASE;
 
@@ -37,6 +38,7 @@ namespace ARTICLE
     typedef JDLIB::compat::signal< bool(GdkEventKey*) > SIG_KEY_PRESS;
     typedef JDLIB::compat::signal< bool(GdkEventKey*) > SIG_KEY_RELEASE;
     typedef JDLIB::compat::signal< bool(GdkEventScroll*) > SIG_SCROLL_EVENT;
+#endif
 
     typedef JDLIB::compat::signal< void(std::string, std::string, int) > SIG_ON_URL;
     typedef JDLIB::compat::signal< void() > SIG_LEAVE_URL;
@@ -119,6 +121,7 @@ namespace ARTICLE
 
     class DrawAreaBase : public Gtk::Box
     {
+#ifndef USE_GTKMM4
         SIG_BUTTON_PRESS m_sig_button_press;
         SIG_BUTTON_RELEASE m_sig_button_release;
         SIG_SCROLL_EVENT m_sig_scroll_event;
@@ -126,6 +129,7 @@ namespace ARTICLE
         SIG_MOTION_NOTIFY m_sig_motion_notify;
         SIG_KEY_PRESS m_sig_key_press;
         SIG_KEY_RELEASE m_sig_key_release;
+#endif
         SIG_ON_URL m_sig_on_url;
         SIG_LEAVE_URL m_sig_leave_url;
 
@@ -252,11 +256,13 @@ namespace ARTICLE
         Glib::RefPtr< Gdk::Pixbuf > m_pixbuf_refer_post;
 
         // マウスのクリックとタッチスクリーンのタップ
+#ifndef USE_GTKMM4
         Glib::RefPtr< Gtk::GestureMultiPress > m_gesture_multipress;
 
         // タッチスクリーンのスクロール
         Glib::RefPtr< Gtk::GesturePan > m_gesture_pan;
         Glib::RefPtr< Gtk::GestureSwipe > m_gesture_swipe;
+#endif
         double m_drag_start_y{};
 
         // 慣性スクロール
@@ -273,6 +279,7 @@ namespace ARTICLE
 
       public:
 
+#ifndef USE_GTKMM4
         SIG_BUTTON_PRESS sig_button_press(){ return m_sig_button_press; }
         SIG_BUTTON_RELEASE sig_button_release(){ return m_sig_button_release; }
         SIG_SCROLL_EVENT sig_scroll_event(){ return m_sig_scroll_event; }
@@ -280,6 +287,7 @@ namespace ARTICLE
         SIG_MOTION_NOTIFY sig_motion_notify(){ return m_sig_motion_notify; }
         SIG_KEY_PRESS sig_key_press(){ return m_sig_key_press; }
         SIG_KEY_RELEASE sig_key_release(){ return m_sig_key_release; }
+#endif
         SIG_ON_URL sig_on_url(){ return m_sig_on_url; }
         SIG_LEAVE_URL sig_leave_url(){ return m_sig_leave_url; }
         auto sig_view_map() { return m_view.signal_map(); }
@@ -361,7 +369,9 @@ namespace ARTICLE
         bool set_scroll( const int control );
 
         // マウスホイールの処理
+#ifndef USE_GTKMM4
         void wheelscroll( GdkEventScroll* event );
+#endif
 
         // ジャンプ
         void set_jump_history( const int num ); // ジャンプ履歴にスレ番号を登録
@@ -412,7 +422,9 @@ namespace ARTICLE
         void set_draw_frame( bool draw_frame ){ m_draw_frame = draw_frame; }
 
         // リサイズした
+#ifndef USE_GTKMM4
         virtual bool slot_configure_event( GdkEventConfigure* event );
+#endif
 
         Gtk::DrawingArea* get_view(){ return &m_view; }
         Gtk::Scrollbar* get_vscrbar(){ return m_vscrbar; }
@@ -511,11 +523,14 @@ namespace ARTICLE
 
         // スロット
         void slot_change_adjust();
+#ifndef USE_GTKMM4
         bool slot_draw( const Cairo::RefPtr< Cairo::Context >& cr );
         bool slot_scroll_event( GdkEventScroll* event );
         bool slot_leave_notify_event( GdkEventCrossing* event );
+#endif
         void slot_realize();
 
+#ifndef USE_GTKMM4
         bool slot_button_press_event( GdkEventButton* event );
         bool slot_button_release_event( GdkEventButton* event );
         bool slot_motion_notify_event( GdkEventMotion* event );
@@ -524,6 +539,7 @@ namespace ARTICLE
         bool slot_key_release_event( GdkEventKey* event );
 
         void setup_event_controller();
+#endif
 
         void slot_multipress_pressed( int n_press, double x, double y );
         void slot_multipress_released( int n_press, double x, double y );
