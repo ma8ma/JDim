@@ -45,7 +45,9 @@ namespace MESSAGE
         bool is_shown_win() const override;
         void set_shown_win( const bool set ) override;
 
+#ifndef USE_GTKMM4
         bool on_delete_event( GdkEventAny* event ) override;
+#endif
     };
 }
 

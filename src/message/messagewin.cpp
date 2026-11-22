@@ -53,6 +53,8 @@ MessageWin::~MessageWin()
 }
 
 
+#ifndef USE_GTKMM4
+// TODO: GTK4 [Window] Gtk::Window::signal_close_request() に移行し、メッセージウインドウを閉じる際の処理を移行する。
 bool MessageWin::on_delete_event( GdkEventAny* event )
 {
 #ifdef _DEBUG
@@ -63,6 +65,7 @@ bool MessageWin::on_delete_event( GdkEventAny* event )
 
     return true;
 }
+#endif
 
 
 int MessageWin::get_x_win() const
