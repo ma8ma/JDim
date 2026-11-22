@@ -67,17 +67,22 @@ ImageAdmin::ImageAdmin( const std::string& url )
     m_left.set_focus_on_click( false );
     m_right.set_focus_on_click( false );
 
+#ifndef USE_GTKMM4
     m_gesture_press_left = Gtk::GestureMultiPress::create( m_left );
     m_gesture_press_right = Gtk::GestureMultiPress::create( m_right );
+    // TODO: GTK4 [Mouse] Gtk::GestureClick::signal_pressed に移行し、タブバーのスクロール処理を開始する。
     m_gesture_press_left->signal_pressed().connect( sigc::mem_fun( *this, &ImageAdmin::slot_press_left ) );
     m_gesture_press_right->signal_pressed().connect( sigc::mem_fun( *this, &ImageAdmin::slot_press_right ) );
+    // TODO: GTK4 [Mouse] 同じ Gtk::GestureClick の signal_released に移行し、タブバーのスクロール処理を停止する。
     m_gesture_press_left->signal_released().connect( sigc::mem_fun( *this, &ImageAdmin::slot_release_left ) );
     m_gesture_press_right->signal_released().connect( sigc::mem_fun( *this, &ImageAdmin::slot_release_right ) );
 
     // マウスホイールによる画像ビューのタブ切り替えを設定する
     m_tab.add_events( Gdk::SCROLL_MASK );
     m_tab.add_events( Gdk::SMOOTH_SCROLL_MASK );
+    // TODO: GTK4 [Scroll] Gtk::EventControllerScroll を追加して signal_scroll に接続し、スクロール処理を移行する。
     m_tab.signal_scroll_event().connect( sigc::mem_fun( *this, &ImageAdmin::slot_scroll_event ) );
+#endif
 
     JDLIB::compat::box_append_expand( m_tab, m_scrwin );
     JDLIB::compat::box_append_shrink( m_tab, m_left );
@@ -368,7 +373,10 @@ void ImageAdmin::open_view( const COMMAND_ARGS& command )
             // そのため、 view に対してメニューキーを押してコンテキストメニューを表示する処理を追加しても
             // キー入力を受け取れず動作しません。 (`ImageAdmin::focus_view()`を参照)
             // そこで、 icon に view のシグナルハンドラを接続して、 icon のキー入力イベントを view に伝達します。
+#ifndef USE_GTKMM4
+            // TODO: GTK4 [Key] Gtk::EventControllerKey::signal_key_pressed に移行し、icon のキー入力を view に伝達する。
             icon->signal_key_press_event().connect( sigc::mem_fun( *view, &SKELETON::View::slot_key_press ) );
+#endif
             view->show_view();
             m_list_view.push_back( std::move( view ) );
         }
@@ -1094,6 +1102,7 @@ void ImageAdmin::slot_release_right( int, double, double )
 //
 // タブのマウスホイールイベント
 //
+#ifndef USE_GTKMM4
 bool ImageAdmin::slot_scroll_event( GdkEventScroll* event )
 {
     // 回転したらタブ切り替え
@@ -1118,6 +1127,7 @@ bool ImageAdmin::slot_scroll_event( GdkEventScroll* event )
 
     return true;
 }
+#endif
 
 
 

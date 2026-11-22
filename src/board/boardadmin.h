@@ -60,7 +60,9 @@ namespace BOARD
       private:
 
         // タブをお気に入りにドロップした時にお気に入りがデータ送信を要求してきた
+#ifndef USE_GTKMM4
         void slot_drag_data_get( Gtk::SelectionData& selection_data, const int page ) override;
+#endif
         void append_favorite_impl( const std::string& url ) override;
     };
     

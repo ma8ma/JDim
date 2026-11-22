@@ -91,7 +91,9 @@ namespace MESSAGE
         void close_window() override;
 
         // タブの D&D 処理をしない
+#ifndef USE_GTKMM4
         void slot_drag_data_get( Gtk::SelectionData& selection_data, const int page ) override {}
+#endif
     };
     
     MESSAGE::MessageAdmin* get_admin();
