@@ -34,7 +34,9 @@ InputDiag::InputDiag( Gtk::Window* parent, const std::string& url,
     , m_label( target + "を入力して下さい。" )
     , m_hbox{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
 {
+#ifndef USE_GTKMM4
     add_events( Gdk::BUTTON_PRESS_MASK | Gdk::BUTTON_RELEASE_MASK | Gdk::POINTER_MOTION_MASK );
+#endif
 
     m_control.add_mode( m_controlmode );
     m_control.set_send_mg_info( false );
@@ -48,6 +50,8 @@ InputDiag::InputDiag( Gtk::Window* parent, const std::string& url,
 }
 
 
+#ifndef USE_GTKMM4
+// TODO: GTK4 [Key] Gtk::EventControllerKey を追加して signal_key_pressed に接続し、キー入力情報を設定用の形式に変換する。
 bool InputDiag::on_key_press_event( GdkEventKey* event )
 {
     guint key = event->keyval;
@@ -104,6 +108,7 @@ bool InputDiag::on_key_press_event( GdkEventKey* event )
 }
 
 
+// TODO: GTK4 [Mouse] Gtk::GestureClick::signal_pressed に移行し、マウスクリック情報を設定用の形式に変換する。
 bool InputDiag::on_button_press_event( GdkEventButton* event )
 {
 #ifdef _DEBUG
@@ -171,6 +176,7 @@ bool InputDiag::on_button_press_event( GdkEventButton* event )
 }
 
 
+// TODO: GTK4 [Mouse] 同じ Gtk::GestureClick の signal_released に移行し、クリック終了時の処理を行う。
 bool InputDiag::on_button_release_event( GdkEventButton* event )
 {
 #ifdef _DEBUG
@@ -187,6 +193,7 @@ bool InputDiag::on_button_release_event( GdkEventButton* event )
 }
 
 
+// TODO: GTK4 [Mouse] Gtk::EventControllerMotion::signal_motion に移行し、必要なボタン状態を確認してマウス移動情報を設定用の形式に変換する。
 bool InputDiag::on_motion_notify_event( GdkEventMotion* event )
 {
 #ifdef _DEBUG
@@ -207,6 +214,7 @@ bool InputDiag::on_motion_notify_event( GdkEventMotion* event )
 
     return ret;
 }
+#endif
 
 
 std::string InputDiag::get_key_label() const
@@ -515,7 +523,10 @@ MouseKeyPref::MouseKeyPref( Gtk::Window* parent, const std::string& url, const s
     , m_button_reset{ "全てデフォルト設定に戻す" }
     , m_label{ "編集したい" + target + "設定をダブルクリックして下さい。" }
 {
+    // TODO: GTK4 [Key] Gtk::EventControllerKey::signal_key_pressed に移行し、検索ボックスの表示処理とキーイベントの伝播を見直す。
+#ifndef USE_GTKMM4
     signal_key_press_event().connect( sigc::mem_fun( *this, &MouseKeyPref::slot_key_press_event ) );
+#endif
 
     JDLIB::compat::box_append_shrink( m_hbox_search, m_label );
     JDLIB::compat::box_append_shrink( m_hbox_search, m_toggle_search );
@@ -696,6 +707,7 @@ void MouseKeyPref::slot_cell_data( Gtk::CellRenderer* cell, const Gtk::TreeModel
  * @param[in] event キーイベントの状態
  * @return 検索ボックスが非表示のときは m_search_bar の処理から返す、それ以外は false (GDK_EVENT_PROPAGATE)
  */
+#ifndef USE_GTKMM4
 bool MouseKeyPref::slot_key_press_event( GdkEventKey* event )
 {
     if( ( event->state & GDK_CONTROL_MASK ) && event->keyval == 'f' ) {
@@ -709,6 +721,7 @@ bool MouseKeyPref::slot_key_press_event( GdkEventKey* event )
     }
     return false;
 }
+#endif
 
 
 /**
