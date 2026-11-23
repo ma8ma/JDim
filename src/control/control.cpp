@@ -59,7 +59,9 @@ void Control::clear_mode()
 // キー操作
 
 
+#ifndef USE_GTKMM4
 // 戻り値はコントロールID
+// TODO: GTK4 [Key] Gtk::EventControllerKey::signal_key_pressed に移行し、キー値と修飾キーを受け取ってキー設定を判定する。
 int Control::key_press( const GdkEventKey* event )
 {
     guint key = event->keyval;
@@ -110,6 +112,7 @@ int Control::key_press( const GdkEventKey* event )
 
 
 // 戻り値はコントロールID
+// TODO: GTK4 [Mouse] Gtk::GestureClick::signal_pressed からクリック情報を受け取り、ボタン設定を判定する。
 int Control::button_press( const GdkEventButton* event )
 {
     const guint button = event->button;
@@ -130,6 +133,7 @@ int Control::button_press( const GdkEventButton* event )
 
 
 // eventがidに割り当てられていたらtrue
+// TODO: GTK4 [Mouse] Gtk::GestureClick から取得したクリック情報を利用して、ボタン設定とコントロール ID の対応を判定する。
 bool Control::button_alloted( const GdkEventButton* event, const int id )
 {
     const guint button = event->button;
@@ -144,6 +148,7 @@ bool Control::button_alloted( const GdkEventButton* event, const int id )
 
 
 // ID からevent取得
+// TODO: GTK4 [Mouse] Gtk::GestureClick から取得したクリック情報を利用して、指定されたコントロール ID のボタン設定を取得する。
 bool Control::get_eventbutton( const int id, GdkEventButton& event )
 {
     guint button;
@@ -165,6 +170,7 @@ bool Control::get_eventbutton( const int id, GdkEventButton& event )
 
     return false;
 }
+#endif // USE_GTKMM4
 
 
 
@@ -185,6 +191,8 @@ void Control::MG_reset()
 }
 
 
+#ifndef USE_GTKMM4
+// TODO: GTK4 [Mouse] Gtk::GestureClick::signal_pressed に移行し、クリック位置とボタン情報を利用してマウスジェスチャを開始する。
 bool Control::MG_start( const GdkEventButton* event )
 {
     if( ! CONFIG::get_enable_mg() ) return false;
@@ -206,6 +214,7 @@ bool Control::MG_start( const GdkEventButton* event )
 
 
 
+// TODO: GTK4 [Mouse] Gtk::EventControllerMotion::signal_motion に移行し、ジェスチャ中のマウス移動量を利用して処理する。
 bool Control::MG_motion( const GdkEventMotion* event )
 {
     if( ! m_mg ) return false;
@@ -286,6 +295,7 @@ bool Control::MG_motion( const GdkEventMotion* event )
 
 
 // 戻り値はコントロールID
+// TODO: GTK4 [Mouse] Gtk::GestureClick::signal_released に移行し、ジェスチャ終了時の処理を行う。
 int Control::MG_end( const GdkEventButton* event )
 {
     if( ! m_mg ) return CONTROL::NoOperation;
@@ -323,6 +333,7 @@ int Control::MG_end( const GdkEventButton* event )
 
     return control;
 }
+#endif // USE_GTKMM4
 
 
 ///////////////////////////////////////
@@ -337,7 +348,9 @@ void Control::MG_wheel_reset()
 }
 
 
+#ifndef USE_GTKMM4
 // ホイールマウスジェスチャ開始
+// TODO: GTK4 [Mouse] Gtk::GestureClick::signal_pressed に移行し、ホイールマウスジェスチャの開始処理を行う。
 bool Control::MG_wheel_start( const GdkEventButton* event )
 {
     MG_wheel_reset();
@@ -353,6 +366,7 @@ bool Control::MG_wheel_start( const GdkEventButton* event )
 
 
 // ホイールマウスジェスチャ。 戻り値はコントロールID
+// TODO: GTK4 [Scroll] Gtk::EventControllerScroll::signal_scroll に移行し、スクロール方向と移動量を利用してホイールマウスジェスチャを処理する。
 int Control::MG_wheel_scroll( const GdkEventScroll* event )
 {
     int control = CONTROL::NoOperation;
@@ -428,6 +442,7 @@ int Control::MG_wheel_scroll( const GdkEventScroll* event )
 
 // ホイールマウスジェスチャ終了
 // もしジェスチャが実行されたら true が戻る
+// TODO: GTK4 [Mouse] Gtk::GestureClick::signal_released に移行し、ホイールマウスジェスチャの終了処理を行う。
 bool Control::MG_wheel_end( const GdkEventButton* event )
 {
 #ifdef _DEBUG
@@ -439,3 +454,4 @@ bool Control::MG_wheel_end( const GdkEventButton* event )
 
     return ret;
 }
+#endif // USE_GTKMM4
