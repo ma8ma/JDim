@@ -82,10 +82,16 @@ UsrCmdPref::UsrCmdPref( Gtk::Window* parent, const std::string& url )
     m_treeview.set_size_request( 640, 400 );
     m_treeview.signal_row_activated().connect( sigc::mem_fun( *this, &UsrCmdPref::slot_row_activated ) );
 
+#ifndef USE_GTKMM4
+    // TODO: GTK4 [Mouse] Gtk::GestureClick を追加して signal_pressed に接続し、必要に応じてジェスチャーを CLAIMED にしてイベント伝播を制御する。
     m_treeview.sig_button_press().connect( sigc::mem_fun(*this, &UsrCmdPref::slot_button_press ) );
+    // TODO: GTK4 [Mouse] 同じ Gtk::GestureClick の signal_released に接続し、クリック終了時の処理を移行する。
     m_treeview.sig_button_release().connect( sigc::mem_fun(*this, &UsrCmdPref::slot_button_release ) );
+    // TODO: GTK4 [Key] Gtk::EventControllerKey を追加して signal_key_pressed に接続し、キー値・修飾キーの処理を変更する。
     m_treeview.sig_key_press().connect( sigc::mem_fun(*this, &UsrCmdPref::slot_key_press ) );
+    // TODO: GTK4 [Key] 同じ Gtk::EventControllerKey の signal_key_released に接続する。
     m_treeview.sig_key_release().connect( sigc::mem_fun(*this, &UsrCmdPref::slot_key_release ) );
+#endif
 
     m_scrollwin.add( m_treeview );
     m_scrollwin.set_policy( JDLIB::compat::PolicyType::AUTOMATIC, JDLIB::compat::PolicyType::ALWAYS );
@@ -143,6 +149,7 @@ void UsrCmdPref::slot_ok_clicked()
 }
 
 
+#ifndef USE_GTKMM4
 //
 // マウスボタン押した
 //
@@ -217,6 +224,7 @@ bool UsrCmdPref::slot_key_release( GdkEventKey* event )
 
     return true;
 }
+#endif // USE_GTKMM4
 
 
 // ポップアップメニュー表示

@@ -92,7 +92,9 @@ namespace CORE
         void slot_ok_clicked() override;
 
         void slot_row_activated( const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column );
+#ifndef USE_GTKMM4
         bool slot_key_release( GdkEventKey* event );
+#endif
 
         void slot_top();
         void slot_up();

@@ -99,7 +99,10 @@ LinkFilterPref::LinkFilterPref( Gtk::Window* parent, const std::string& url )
     m_treeview.set_model( m_liststore );
     m_treeview.set_size_request( 640, 400 );
     m_treeview.signal_row_activated().connect( sigc::mem_fun( *this, &LinkFilterPref::slot_row_activated ) );
+#ifndef USE_GTKMM4
+    // TODO: GTK4 [Key] Gtk::EventControllerKey を追加して signal_key_released に接続し、キー値・修飾キーの処理を変更する。
     m_treeview.sig_key_release().connect( sigc::mem_fun(*this, &LinkFilterPref::slot_key_release ) );
+#endif
 
     Gtk::TreeViewColumn* column = Gtk::manage( new Gtk::TreeViewColumn( "アドレス", m_columns.m_col_url ) );
     column->set_fixed_width( 240 );
@@ -256,6 +259,7 @@ void LinkFilterPref::slot_row_activated( const Gtk::TreeModel::Path& path, Gtk::
 }
 
 
+#ifndef USE_GTKMM4
 bool LinkFilterPref::slot_key_release( GdkEventKey* event )
 {
     const int id = m_control.key_press( event );
@@ -268,6 +272,7 @@ bool LinkFilterPref::slot_key_release( GdkEventKey* event )
 
     return true;
 }
+#endif
 
 
 //
