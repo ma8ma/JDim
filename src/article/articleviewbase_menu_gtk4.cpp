@@ -77,8 +77,8 @@ void ARTICLE::ArticleViewBase::setup_action()
     m_action_group->add_action( "WriteRes",sigc::mem_fun( *this, &ArticleViewBase::slot_write_res ) );
     m_action_group->add_action( "QuoteRes",sigc::mem_fun( *this, &ArticleViewBase::slot_quote_res ) );
     m_action_group->add_action( "QuoteSelectionRes", sigc::mem_fun( *this, &ArticleViewBase::slot_quote_selection_res ) );
-    m_action_group->add_action( "CopyRes", sigc::bind<bool>( sigc::mem_fun( *this, &ArticleViewBase::slot_copy_res ), false ) );
-    m_action_group->add_action( "CopyResRef", sigc::bind<bool>( sigc::mem_fun( *this, &ArticleViewBase::slot_copy_res ), true ) );
+    m_action_group->add_action( "CopyRes", sigc::bind( sigc::mem_fun( *this, &ArticleViewBase::slot_copy_res ), false ) );
+    m_action_group->add_action( "CopyResRef", sigc::bind( sigc::mem_fun( *this, &ArticleViewBase::slot_copy_res ), true ) );
     m_action_group->add_action( "Delete_Menu" );
     m_action_group->add_action( "Delete", sigc::mem_fun( *this, &ArticleViewBase::exec_delete ) );
     m_action_group->add_action( "DeleteOpen", sigc::mem_fun( *this, &ArticleViewBase::delete_open_view ) );
@@ -145,8 +145,8 @@ void ARTICLE::ArticleViewBase::setup_action()
     m_action_group->add_action( "PrePost", sigc::mem_fun( *this, &ArticleViewBase::slot_pre_post ) );
     m_action_group->add_action( "NextPost", sigc::mem_fun( *this, &ArticleViewBase::slot_next_post ) );
     m_action_group->add_action( "Jump", sigc::mem_fun( *this, &ArticleViewBase::slot_jump ) );
-    m_action_group->add_action( "PrevView", sigc::bind<int>( sigc::mem_fun( *this, &ArticleViewBase::back_viewhistory ), 1 ) );
-    m_action_group->add_action( "NextView", sigc::bind<int>( sigc::mem_fun( *this, &ArticleViewBase::forward_viewhistory ), 1 ) );
+    m_action_group->add_action( "PrevView", sigc::bind( sigc::mem_fun( *this, &ArticleViewBase::back_viewhistory ), 1 ) );
+    m_action_group->add_action( "NextView", sigc::bind( sigc::mem_fun( *this, &ArticleViewBase::forward_viewhistory ), 1 ) );
 
     // 画像系
     m_action_group->add_action( "Cancel_Mosaic", sigc::mem_fun( *this, &ArticleViewBase::slot_cancel_mosaic ) );

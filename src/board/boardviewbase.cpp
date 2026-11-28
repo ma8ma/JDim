@@ -627,7 +627,7 @@ void BoardViewBase::update_columns()
         column->set_clickable( true );
 
         // ヘッダをクリックしたときに呼ぶslot
-        column->signal_clicked().connect( sigc::bind< int >( sigc::mem_fun( *this, &BoardViewBase::slot_col_clicked ), id ) );
+        column->signal_clicked().connect( sigc::bind( sigc::mem_fun( *this, &BoardViewBase::slot_col_clicked ), id ) );
         // 列の幅が変わったらセッション情報に記憶する
         column->connect_property_changed( "width", sigc::mem_fun( *this, &BoardViewBase::save_column_width ) );
 

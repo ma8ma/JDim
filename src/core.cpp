@@ -537,23 +537,23 @@ void Core::create_toolbar()
     m_toolbar = std::make_unique<MainToolBar>();
 
     m_toolbar->m_button_bbslist.signal_clicked().connect(
-        sigc::bind< std::string, bool >( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_BBSLISTVIEW, false ) );
+        sigc::bind( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_BBSLISTVIEW, false ) );
     m_toolbar->m_button_favorite.signal_clicked().connect(
-        sigc::bind< std::string, bool >( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_FAVORITEVIEW, false ) );
+        sigc::bind( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_FAVORITEVIEW, false ) );
     m_toolbar->m_button_hist.signal_clicked().connect(
-        sigc::bind< std::string, bool >( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_HISTTHREADVIEW, false ) );
+        sigc::bind( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_HISTTHREADVIEW, false ) );
     m_toolbar->m_button_hist_board.signal_clicked().connect(
-        sigc::bind< std::string, bool >( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_HISTBOARDVIEW, false ) );
+        sigc::bind( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_HISTBOARDVIEW, false ) );
     m_toolbar->m_button_hist_close.signal_clicked().connect(
-        sigc::bind< std::string, bool >( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_HISTCLOSEVIEW, false ) );
+        sigc::bind( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_HISTCLOSEVIEW, false ) );
     m_toolbar->m_button_hist_closeboard.signal_clicked().connect(
-        sigc::bind< std::string, bool >( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_HISTCLOSEBOARDVIEW, false ) );
+        sigc::bind( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_HISTCLOSEBOARDVIEW, false ) );
     m_toolbar->m_button_hist_closeimg.signal_clicked().connect(
-        sigc::bind< std::string, bool >( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_HISTCLOSEIMGVIEW, false ) );
+        sigc::bind( sigc::mem_fun(*this, &Core::switch_sidebar ), URL_HISTCLOSEIMGVIEW, false ) );
 
-    m_toolbar->m_button_board.signal_clicked().connect( sigc::bind< bool >( sigc::mem_fun(*this, &Core::switch_board ), false ) );
-    m_toolbar->m_button_thread.signal_clicked().connect( sigc::bind< bool >( sigc::mem_fun(*this, &Core::switch_article ), false ) );
-    m_toolbar->m_button_image.signal_clicked().connect( sigc::bind< bool >( sigc::mem_fun(*this, &Core::switch_image ), false ) );
+    m_toolbar->m_button_board.signal_clicked().connect( sigc::bind( sigc::mem_fun(*this, &Core::switch_board ), false ) );
+    m_toolbar->m_button_thread.signal_clicked().connect( sigc::bind( sigc::mem_fun(*this, &Core::switch_article ), false ) );
+    m_toolbar->m_button_image.signal_clicked().connect( sigc::bind( sigc::mem_fun(*this, &Core::switch_image ), false ) );
     m_toolbar->m_entry_url.signal_activate().connect( sigc::mem_fun( *this, &Core::slot_active_url ) );
     m_toolbar->m_button_go.signal_clicked().connect( sigc::mem_fun( *this, &Core::slot_active_url ) );
 

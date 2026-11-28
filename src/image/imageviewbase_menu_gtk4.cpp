@@ -54,7 +54,7 @@ void IMAGE::ImageViewBase::setup_popupmenu()
     action->signal_activate().connect( sigc::mem_fun( *this, &ImageViewBase::slot_resize_image_action ) );
     m_action_group->add_action( action );
 
-    m_action_group->add_action( "OrgSizeImage", sigc::bind<int>( sigc::mem_fun( *this, &ImageViewBase::slot_resize_image ), 100 ) );
+    m_action_group->add_action( "OrgSizeImage", sigc::bind( sigc::mem_fun( *this, &ImageViewBase::slot_resize_image ), 100 ) );
     m_action_group->add_action( "ZoomFitImage", sigc::mem_fun( *this, &ImageViewBase::slot_fit_win ) );
     m_action_group->add_action( "ZoomInImage", sigc::mem_fun( *this, &ImageViewBase::slot_zoom_in ) );
     m_action_group->add_action( "ZoomOutImage", sigc::mem_fun( *this, &ImageViewBase::slot_zoom_out ) );
