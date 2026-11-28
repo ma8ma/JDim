@@ -84,7 +84,10 @@ HistorySubMenu::HistorySubMenu( const std::string& url_history )
         item = Gtk::manage( new Gtk::MenuItem( *hbox ) );
         append( *item );
         item->signal_activate().connect( sigc::bind( sigc::mem_fun( *this, &HistorySubMenu::slot_active ), i ) );
+#ifndef USE_GTKMM4
+        // TODO: GTK4 [Mouse] メニュー構造を GTK4 の API に移行し、右クリックによるポップアップ表示を実装する。
         item->signal_button_press_event().connect( sigc::bind( sigc::mem_fun( *this, &HistorySubMenu::slot_button_press ), i ) );
+#endif
     }
 
     // ポップアップメニュー作成
@@ -223,6 +226,7 @@ void HistorySubMenu::slot_active( const unsigned int i )
 
 
 // マウスボタンをクリックした
+#ifndef USE_GTKMM4
 bool HistorySubMenu::slot_button_press( GdkEventButton* event, unsigned int i )
 {
 #ifdef _DEBUG
@@ -239,6 +243,7 @@ bool HistorySubMenu::slot_button_press( GdkEventButton* event, unsigned int i )
 
     return true;
 }
+#endif
 
 
 // アクティブ時にラベルをセットする

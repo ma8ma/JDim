@@ -38,9 +38,12 @@ ReplaceStrDiag::ReplaceStrDiag( Gtk::Window* parent, ReplaceStrCondition conditi
     resize( 600, 1 );
 
     m_button_copy.signal_clicked().connect( sigc::mem_fun( *this, &ReplaceStrDiag::slot_copy ) );
+#ifndef USE_GTKMM4
+    // TODO: GTK4 [Button] Gtk::CheckButton::signal_toggled に移行し、初期化時の set_active による呼び出しも考慮する。
     m_check_regex.signal_clicked().connect( sigc::mem_fun( *this, &ReplaceStrDiag::slot_sens ) );
     m_check_wchar.signal_clicked().connect( sigc::mem_fun( *this, &ReplaceStrDiag::slot_sens ) );
     m_check_norm.signal_clicked().connect( sigc::mem_fun( *this, &ReplaceStrDiag::slot_sens ) );
+#endif
 
     m_check_active.set_active( condition.active );
     m_check_icase.set_active( condition.icase );

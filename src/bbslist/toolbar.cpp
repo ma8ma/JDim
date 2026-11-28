@@ -47,7 +47,10 @@ BBSListToolBar::BBSListToolBar()
     menu.push_back( ITEM_NAME_HIST_CLOSEIMGVIEW );
     m_button_toggle.append_menu( menu );
     m_button_toggle.signal_selected().connect( sigc::mem_fun(*this, &BBSListToolBar::slot_toggle ) );
+#ifndef USE_GTKMM4
+    // TODO: GTK4 [Scroll] Gtk::EventControllerScroll を追加して signal_scroll に接続し、dx・dy から従来のスクロール方向を判定する。
     m_button_toggle.signal_scroll_event().connect(  sigc::mem_fun( *this, &BBSListToolBar::slot_scroll_event ));
+#endif
     m_button_toggle.set_enable_sig_clicked( false );
 
     JDLIB::compat::box_append_expand( m_tool_label, m_button_toggle );
@@ -198,6 +201,7 @@ void BBSListToolBar::slot_toggle( const int i )
 }
 
 
+#ifndef USE_GTKMM4
 bool BBSListToolBar::slot_scroll_event( GdkEventScroll* event )
 {
     guint direction = event->direction;
@@ -219,6 +223,7 @@ bool BBSListToolBar::slot_scroll_event( GdkEventScroll* event )
 
     return true;
 }
+#endif
 
 
 void BBSListToolBar::slot_check_update_root()

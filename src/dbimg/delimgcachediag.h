@@ -33,7 +33,9 @@ namespace DBIMG
 
       protected:
 
+#ifndef USE_GTKMM4
         bool on_draw( const Cairo::RefPtr< Cairo::Context >& cr ) override;
+#endif
 
       private:
 

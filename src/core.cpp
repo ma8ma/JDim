@@ -359,8 +359,12 @@ void Core::run( const bool init, const bool skip_setupdiag )
     m_sigc_switch_page = m_notebook_right.signal_switch_page().connect( sigc::mem_fun( *this, &Core::slot_switch_page ) );
     m_hpaned.get_ctrl().sig_pane_modechanged().connect( sigc::mem_fun( *this, &Core::slot_show_hide_leftpane ) );
 
+#ifndef USE_GTKMM4
+    // TODO: GTK4 [Focus] Gtk::EventControllerFocus::signal_leave に移行し、メインウィンドウのフォーカス喪失時の処理を移行する。
     m_win_main.signal_focus_out_event().connect( sigc::mem_fun(*this, &Core::slot_focus_out_event ) );
+    // TODO: GTK4 [Focus] 同じ Gtk::EventControllerFocus の signal_enter に移行し、メインウィンドウのフォーカス取得時の処理を移行する。
     m_win_main.signal_focus_in_event().connect( sigc::mem_fun(*this, &Core::slot_focus_in_event ) );
+#endif
     m_win_main.show_all_children();
 
     // 各管理クラスが開いていたURLを復元
@@ -2600,6 +2604,7 @@ void Core::set_right_current_page( int page )
 
 
 
+#ifndef USE_GTKMM4
 //
 // フォーカスアウトイベント
 //
@@ -2630,6 +2635,7 @@ bool Core::slot_focus_in_event( GdkEventFocus* )
 
     return true;
 }
+#endif // USE_GTKMM4
 
 
 //

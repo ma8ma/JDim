@@ -215,8 +215,10 @@ namespace CORE
         // 右ペーンのnotebookのページをセット
         void set_right_current_page( int page );
 
+#ifndef USE_GTKMM4
         bool slot_focus_out_event( GdkEventFocus* ev );
         bool slot_focus_in_event( GdkEventFocus* ev );
+#endif
 
         // URL entryでenterを押した
         void slot_active_url();

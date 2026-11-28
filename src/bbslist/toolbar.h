@@ -41,7 +41,9 @@ namespace BBSLIST
       private:
 
         void slot_toggle( const int i );
+#ifndef USE_GTKMM4
         bool slot_scroll_event( GdkEventScroll* event );
+#endif
         void slot_check_update_root();
         void slot_check_update_open_root();
     };

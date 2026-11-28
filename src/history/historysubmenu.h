@@ -44,7 +44,9 @@ namespace HISTORY
 
         // メニューアイテムがactiveになった
         void slot_active( const unsigned int i );
+#ifndef USE_GTKMM4
         bool slot_button_press( GdkEventButton* event, unsigned int i );
+#endif
 
         // ポップアップメニューのslot
         void slot_open_history();

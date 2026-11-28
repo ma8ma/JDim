@@ -48,7 +48,10 @@ AboutConfig::AboutConfig( Gtk::Window* parent )
 //
 void AboutConfig::pack_widgets()
 {
+#ifndef USE_GTKMM4
+    // TODO: GTK4 [Key] Gtk::EventControllerKey::signal_key_pressed に移行し、Ctrl+F の判定と検索バーへのイベント伝播を見直す。
     signal_key_press_event().connect( sigc::mem_fun( *this, &AboutConfig::slot_key_press_event ) );
+#endif
 
     JDLIB::compat::box_append_expand( m_hbox_search, m_label );
     JDLIB::compat::box_append_shrink( m_hbox_search, m_toggle_search );
@@ -135,6 +138,7 @@ void AboutConfig::slot_cancel_clicked()
  * @param[in] event キーイベントの状態
  * @return 検索ボックスが非表示のときは m_search_bar の処理から返す、それ以外は false (GDK_EVENT_PROPAGATE)
  */
+#ifndef USE_GTKMM4
 bool AboutConfig::slot_key_press_event( GdkEventKey* event )
 {
     if( ( event->state & GDK_CONTROL_MASK ) && event->keyval == 'f' ) {
@@ -148,6 +152,7 @@ bool AboutConfig::slot_key_press_event( GdkEventKey* event )
     }
     return false;
 }
+#endif
 
 
 /**
