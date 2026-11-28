@@ -49,20 +49,20 @@ namespace CORE
             set_row_spacing( 16 );
             set_vexpand( true );
 
-            m_label_id.set_halign( Gtk::ALIGN_START );
+            m_label_id.set_halign( JDLIB::compat::Align::START );
             m_label_id.set_mnemonic_widget( entry_id );
             entry_id.set_hexpand( true );
 
-            m_label_passwd.set_halign( Gtk::ALIGN_START );
+            m_label_passwd.set_halign( JDLIB::compat::Align::START );
             m_label_passwd.set_mnemonic_widget( entry_passwd );
             entry_passwd.set_hexpand( true );
             entry_passwd.set_visibility( false );
 
-            m_label_sid_2ch.set_halign( Gtk::ALIGN_START );
-            m_label_sid_2ch.set_valign( Gtk::ALIGN_END );
-            m_label_sid_2ch_value.set_ellipsize( Pango::ELLIPSIZE_END );
-            m_label_sid_2ch_value.set_halign( Gtk::ALIGN_START );
-            m_label_sid_2ch_value.set_valign( Gtk::ALIGN_END );
+            m_label_sid_2ch.set_halign( JDLIB::compat::Align::START );
+            m_label_sid_2ch.set_valign( JDLIB::compat::Align::END );
+            m_label_sid_2ch_value.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
+            m_label_sid_2ch_value.set_halign( JDLIB::compat::Align::START );
+            m_label_sid_2ch_value.set_valign( JDLIB::compat::Align::END );
             m_label_sid_2ch_value.set_hexpand( true );
             m_label_sid_2ch_value.set_selectable( true );
 
@@ -73,9 +73,12 @@ namespace CORE
             attach( m_label_sid_2ch, 0, 2, 1, 1 );
             attach( m_label_sid_2ch_value, 1, 2, 1, 1 );
 
-            entry_passwd.set_icon_from_icon_name( kViewConcealSymbolic, Gtk::ENTRY_ICON_SECONDARY );
+            entry_passwd.set_icon_from_icon_name( kViewConcealSymbolic, JDLIB::compat::Entry::IconPosition::SECONDARY );
+#ifndef USE_GTKMM4
+            // TODO: GTK4 [Mouse] Gtk::Entry の signal_icon_release に接続しアイコンを切り替える。
             entry_passwd.signal_icon_release().connect(
                 sigc::bind( &PasswdFrame2ch::slot_icon_release, &entry_passwd ) );
+#endif
         }
 
         /** @brief アイコンをクリックしてマウスボタンを離したときにパスワードとアイコンの状態を切り替える
@@ -84,17 +87,19 @@ namespace CORE
          * アイコンは現在の状態を表す (非表示の状態では非表示のアイコン、表示の状態では表示のアイコン)。
          * @param[in,out] entry パスワード入力欄
          */
-        static void slot_icon_release( Gtk::EntryIconPosition, const GdkEventButton*, Gtk::Entry* entry )
+#ifndef USE_GTKMM4
+        static void slot_icon_release( JDLIB::compat::Entry::IconPosition::type, const GdkEventButton*, Gtk::Entry* entry )
         {
             if( entry->get_visibility() ) {
-                entry->set_icon_from_icon_name( kViewConcealSymbolic, Gtk::ENTRY_ICON_SECONDARY );
+                entry->set_icon_from_icon_name( kViewConcealSymbolic, JDLIB::compat::Entry::IconPosition::SECONDARY );
                 entry->set_visibility( false );
             }
             else {
-                entry->set_icon_from_icon_name( kViewRevealSymbolic, Gtk::ENTRY_ICON_SECONDARY );
+                entry->set_icon_from_icon_name( kViewRevealSymbolic, JDLIB::compat::Entry::IconPosition::SECONDARY );
                 entry->set_visibility( true );
             }
         }
+#endif
     };
 
     // BEログイン用
@@ -132,15 +137,15 @@ namespace CORE
             entry_passwd.set_visibility( false );
             m_label_passwd.set_mnemonic_widget( entry_passwd );
 
-            m_label_id.set_halign( Gtk::ALIGN_START );
-            m_label_passwd.set_halign( Gtk::ALIGN_START );
-            m_label_dmdm.set_halign( Gtk::ALIGN_START );
-            m_label_dmdm_value.set_halign( Gtk::ALIGN_START );
-            m_label_mdmd.set_halign( Gtk::ALIGN_START );
-            m_label_mdmd_value.set_halign( Gtk::ALIGN_START );
+            m_label_id.set_halign( JDLIB::compat::Align::START );
+            m_label_passwd.set_halign( JDLIB::compat::Align::START );
+            m_label_dmdm.set_halign( JDLIB::compat::Align::START );
+            m_label_dmdm_value.set_halign( JDLIB::compat::Align::START );
+            m_label_mdmd.set_halign( JDLIB::compat::Align::START );
+            m_label_mdmd_value.set_halign( JDLIB::compat::Align::START );
 
-            m_label_dmdm_value.set_ellipsize( Pango::ELLIPSIZE_END );
-            m_label_mdmd_value.set_ellipsize( Pango::ELLIPSIZE_END );
+            m_label_dmdm_value.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
+            m_label_mdmd_value.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
             m_label_dmdm_value.set_selectable( true );
             m_label_mdmd_value.set_selectable( true );
 
@@ -153,9 +158,12 @@ namespace CORE
             attach( m_label_mdmd, 0, 3, 1, 1 );
             attach( m_label_mdmd_value, 1, 3, 1, 1 );
 
-            entry_passwd.set_icon_from_icon_name( kViewConcealSymbolic, Gtk::ENTRY_ICON_SECONDARY );
+            entry_passwd.set_icon_from_icon_name( kViewConcealSymbolic, JDLIB::compat::Entry::IconPosition::SECONDARY );
+#ifndef USE_GTKMM4
+            // TODO: GTK4 [Mouse] Gtk::Entry の signal_icon_release に接続しアイコンを切り替える。
             entry_passwd.signal_icon_release().connect(
                 sigc::bind( &PasswdFrame2ch::slot_icon_release, &entry_passwd ) );
+#endif
         }
     };
 
@@ -197,16 +205,16 @@ namespace CORE
             entry_passwd.set_visibility( false );
             m_label_passwd.set_mnemonic_widget( entry_passwd );
 
-            m_label_id.set_halign( Gtk::ALIGN_START );
+            m_label_id.set_halign( JDLIB::compat::Align::START );
             m_label_id.set_tooltip_text( mail_addr_tooltip );
-            m_label_passwd.set_halign( Gtk::ALIGN_START );
-            m_label_account.set_halign( Gtk::ALIGN_START );
-            m_label_account_value.set_halign( Gtk::ALIGN_START );
-            m_label_cookie.set_halign( Gtk::ALIGN_START );
-            m_label_cookie_value.set_halign( Gtk::ALIGN_START );
+            m_label_passwd.set_halign( JDLIB::compat::Align::START );
+            m_label_account.set_halign( JDLIB::compat::Align::START );
+            m_label_account_value.set_halign( JDLIB::compat::Align::START );
+            m_label_cookie.set_halign( JDLIB::compat::Align::START );
+            m_label_cookie_value.set_halign( JDLIB::compat::Align::START );
 
-            m_label_account_value.set_ellipsize( Pango::ELLIPSIZE_END );
-            m_label_cookie_value.set_ellipsize( Pango::ELLIPSIZE_END );
+            m_label_account_value.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
+            m_label_cookie_value.set_ellipsize( JDLIB::compat::EllipsizeMode::END );
             m_label_account_value.set_selectable( true );
             m_label_cookie_value.set_selectable( true );
 
@@ -219,9 +227,12 @@ namespace CORE
             attach( m_label_cookie, 0, 3, 1, 1 );
             attach( m_label_cookie_value, 1, 3, 1, 1 );
 
-            entry_passwd.set_icon_from_icon_name( kViewConcealSymbolic, Gtk::ENTRY_ICON_SECONDARY );
+            entry_passwd.set_icon_from_icon_name( kViewConcealSymbolic, JDLIB::compat::Entry::IconPosition::SECONDARY );
+#ifndef USE_GTKMM4
+            // TODO: GTK4 [Mouse] パスワード入力欄のアイコン操作を GTK4 の API に移行し、表示・非表示を切り替える。
             entry_passwd.signal_icon_release().connect(
                 sigc::bind( &PasswdFrame2ch::slot_icon_release, &entry_passwd ) );
+#endif
         }
     };
 

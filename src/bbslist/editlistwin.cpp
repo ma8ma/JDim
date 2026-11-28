@@ -26,7 +26,7 @@ enum
 
 EditListWin::EditListWin( const std::string& url, const Glib::RefPtr< Gtk::TreeStore >& treestore )
     : Gtk::Window( Gtk::WINDOW_TOPLEVEL )
-    , m_vbox{ Gtk::ORIENTATION_VERTICAL, 0 }
+    , m_vbox{ JDLIB::compat::Orientation::VERTICAL, 0 }
     , m_label( "マウスの中ボタンドラッグで行の複数選択が可能です。" )
 {
     // ツールバー

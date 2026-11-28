@@ -8,17 +8,23 @@
 
 #include "control/control.h"
 
+#include "jdlib/sigc_compat.h"
+
 #include <gtkmm.h>
 
 namespace SKELETON
 {
     class JDEntry : public Gtk::Entry
     {
-        typedef sigc::signal< void, GdkEventButton* > SIG_BUTTON_PRESS;
-        typedef sigc::signal< void, int > SIG_KEY_PRESS;
-        typedef sigc::signal< void, int > SIG_OPERATE;
+#ifndef USE_GTKMM4
+        typedef JDLIB::compat::signal< void(GdkEventButton*) > SIG_BUTTON_PRESS;
+#endif
+        typedef JDLIB::compat::signal< void(int) > SIG_KEY_PRESS;
+        typedef JDLIB::compat::signal< void(int) > SIG_OPERATE;
 
+#ifndef USE_GTKMM4
         SIG_BUTTON_PRESS m_sig_button_press;
+#endif
         SIG_KEY_PRESS m_sig_key_press;
         SIG_OPERATE m_sig_operate;
 
@@ -28,7 +34,9 @@ namespace SKELETON
 
       public:
 
+#ifndef USE_GTKMM4
         SIG_BUTTON_PRESS signal_button_press(){ return m_sig_button_press; }
+#endif
         SIG_KEY_PRESS signal_key_press(){ return m_sig_key_press; }
         SIG_OPERATE signal_operate(){ return m_sig_operate; }
 
@@ -41,12 +49,14 @@ namespace SKELETON
 
       protected:
 
+#ifndef USE_GTKMM4
         // マウスクリックのフック
         bool on_button_press_event( GdkEventButton* event ) override;
 
         // キー入力のフック
         bool on_key_press_event( GdkEventKey* event ) override;
         bool on_key_release_event( GdkEventKey* event ) override;
+#endif
     };
 }
 

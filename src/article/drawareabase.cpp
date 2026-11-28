@@ -119,7 +119,7 @@ struct LAYOUT_TABLE
 
 
 DrawAreaBase::DrawAreaBase( const std::string& url )
-    : Gtk::Box{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    : Gtk::Box{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_url( url )
     , m_backscreen( nullptr, cairo_surface_destroy )
     , m_enable_draw{ true }
@@ -178,6 +178,7 @@ void DrawAreaBase::setup( const bool show_abone, const bool show_scrbar, const b
     m_layout_tree = std::make_unique<LayoutTree>( m_url, show_abone, show_multispace );
 
     // デフォルトではoffになってるイベントを追加
+#ifndef USE_GTKMM4
     m_view.add_events( Gdk::BUTTON_PRESS_MASK );
     m_view.add_events( Gdk::BUTTON_RELEASE_MASK );
     m_view.add_events( Gdk::SCROLL_MASK );
@@ -185,22 +186,34 @@ void DrawAreaBase::setup( const bool show_abone, const bool show_scrbar, const b
     m_view.add_events( Gdk::POINTER_MOTION_MASK );
     m_view.add_events( Gdk::LEAVE_NOTIFY_MASK );
     m_view.add_events( Gdk::VISIBILITY_NOTIFY_MASK );
+#endif
 
     // focus 可にセット
     m_view.set_can_focus( true );
+#ifndef USE_GTKMM4
     m_view.add_events( Gdk::KEY_PRESS_MASK );
     m_view.add_events( Gdk::KEY_RELEASE_MASK );
 
     // イベント接続
+    // TODO: GTK4 [Mouse] Gtk::EventControllerMotion を追加して signal_leave に接続し、独自シグナルを発行する。
     m_view.signal_leave_notify_event().connect(  sigc::mem_fun( *this, &DrawAreaBase::slot_leave_notify_event ) );
+#endif
     m_view.signal_realize().connect( sigc::mem_fun( *this, &DrawAreaBase::slot_realize ));
+#ifndef USE_GTKMM4
+    // TODO: GTK4 [Size] configure-event の直接の代替なし。Gtk::DrawingArea::signal_resize に移行し、リサイズ処理を見直す。
     m_view.signal_configure_event().connect(  sigc::mem_fun( *this, &DrawAreaBase::slot_configure_event ));
+    // TODO: GTK4 [Draw] Gtk::DrawingArea::set_draw_func に移行する。
     m_view.signal_draw().connect( sigc::mem_fun( *this, &DrawAreaBase::slot_draw ) );
+    // TODO: GTK4 [Scroll] Gtk::EventControllerScroll を追加して signal_scroll に接続し、独自シグナルを発行する。
     m_view.signal_scroll_event().connect(  sigc::mem_fun( *this, &DrawAreaBase::slot_scroll_event ));
     setup_event_controller();
+    // TODO: GTK4 [Mouse] Gtk::EventControllerMotion を追加して signal_motion に接続し、マウス移動時の処理を移行する。
     m_view.signal_motion_notify_event().connect(  sigc::mem_fun( *this, &DrawAreaBase::slot_motion_notify_event ));
+    // TODO: GTK4 [Key] Gtk::EventControllerKey を追加して signal_key_pressed に接続し、キー値・修飾キーの処理を変更する。
     m_view.signal_key_press_event().connect( sigc::mem_fun(*this, &DrawAreaBase::slot_key_press_event ));
+    // TODO: GTK4 [Key] 同じ Gtk::EventControllerKey の signal_key_released に接続する。
     m_view.signal_key_release_event().connect( sigc::mem_fun(*this, &DrawAreaBase::slot_key_release_event ));
+#endif
 
     JDLIB::compat::box_append_expand( *this, m_view );
 
@@ -284,17 +297,12 @@ void DrawAreaBase::create_scrbar()
     std::cout << "DrawAreaBase::create_scrbar\n";
 #endif
 
-    // そのままHBoxにスクロールバーをパックすると、スクロールしたときに何故かHBox全体が
-    // 再描画されて負荷が高くなるのでEventBoxを間に挟む
-    m_vscrbar = Gtk::manage( new Gtk::Scrollbar( Glib::RefPtr<Gtk::Adjustment>{}, Gtk::ORIENTATION_VERTICAL ) );
-    m_event = Gtk::manage( new Gtk::EventBox() );
+    m_vscrbar = Gtk::manage( new Gtk::Scrollbar( Glib::RefPtr<Gtk::Adjustment>{}, JDLIB::compat::Orientation::VERTICAL ) );
     assert( m_vscrbar );
-    assert( m_event );
 
     if( CONFIG::get_left_scrbar() ) remove( m_view );
 
-    m_event->add( *m_vscrbar );
-    JDLIB::compat::box_append_shrink( *this, *m_event );
+    JDLIB::compat::box_append_shrink( *this, *m_vscrbar );
 
     if( CONFIG::get_left_scrbar() ) JDLIB::compat::box_append_expand( *this, m_view );
 
@@ -398,7 +406,7 @@ void DrawAreaBase::init_fontinfo( FONTINFO& fi, std::string& fontname )
     
     // layoutにフォントをセット
     fi.pfd = Pango::FontDescription( fontname );
-    fi.pfd.set_weight( Pango::WEIGHT_NORMAL );
+    fi.pfd.set_weight( JDLIB::compat::Weight::NORMAL );
     m_pango_layout->set_font_description( fi.pfd );
 
     // フォント情報取得
@@ -2714,9 +2722,9 @@ bool DrawAreaBase::draw_one_img_node( LAYOUT* layout, const CLIPINFO& ci )
                         }
 
                         Glib::RefPtr< Gdk::Pixbuf > pixbuf2;
-                        pixbuf2 = pixbuf->scale_simple( moswidth, mosheight, Gdk::INTERP_NEAREST );
+                        pixbuf2 = pixbuf->scale_simple( moswidth, mosheight, JDLIB::compat::InterpType::NEAREST );
                         paint_backscreen( pixbuf2->scale_simple( pixbuf->get_width(), pixbuf->get_height(),
-                                                                 Gdk::INTERP_NEAREST ),
+                                                                 JDLIB::compat::InterpType::NEAREST ),
                                           0, s_top, rect->x + 1, ( rect->y + 1 ) - ci.pos_y + s_top,
                                           pixbuf->get_width(), height );
                     }
@@ -3117,6 +3125,7 @@ bool DrawAreaBase::set_scroll( const int control )
 //
 // マウスホイールの処理
 //
+#ifndef USE_GTKMM4
 void DrawAreaBase::wheelscroll( GdkEventScroll* event )
 {
     const int speed = CONFIG::get_scroll_size();
@@ -3173,6 +3182,7 @@ void DrawAreaBase::wheelscroll( GdkEventScroll* event )
         }
     }
 }
+#endif
 
 
 
@@ -4799,6 +4809,7 @@ void DrawAreaBase::slot_change_adjust()
 //
 // drawarea がリサイズした
 //
+#ifndef USE_GTKMM4
 bool DrawAreaBase::slot_configure_event( GdkEventConfigure* event )
 {
     // 表示されていないview(is_drawable() != true ) は表示された段階で
@@ -4808,6 +4819,7 @@ bool DrawAreaBase::slot_configure_event( GdkEventConfigure* event )
 
     return true;
 }
+#endif
 
 //
 // drawarea がリサイズ実行
@@ -4862,6 +4874,7 @@ void DrawAreaBase::configure_impl()
 
 
 
+#ifndef USE_GTKMM4
 //
 // drawarea の再描画イベント
 //
@@ -4964,6 +4977,7 @@ bool DrawAreaBase::slot_leave_notify_event( GdkEventCrossing* event )
 
     return false;
 }
+#endif // USE_GTKMM4
 
 
 
@@ -4994,6 +5008,7 @@ void DrawAreaBase::slot_realize()
 
 
 
+#ifndef USE_GTKMM4
 //
 // マウスボタンを押した
 //
@@ -5201,6 +5216,7 @@ bool DrawAreaBase::slot_motion_notify_event( GdkEventMotion* event )
     m_sig_motion_notify.emit( event );
     return true;
 }
+#endif // USE_GTKMM4
 
 
 
@@ -5363,6 +5379,7 @@ void DrawAreaBase::change_cursor( const Glib::ustring& cursor_type )
 
 
 
+#ifndef USE_GTKMM4
 //
 // キーを押した
 //
@@ -5417,18 +5434,24 @@ void DrawAreaBase::setup_event_controller()
     m_gesture_multipress->set_button( 0 );
     m_gesture_multipress->set_exclusive( true );
     m_gesture_multipress->set_touch_only( false );
+    // TODO: GTK4 [Mouse] Gtk::GestureClick を追加して signal_pressed に接続し、クリック開始を処理する。
     m_gesture_multipress->signal_pressed().connect( sigc::mem_fun( *this, &DrawAreaBase::slot_multipress_pressed ) );
+    // TODO: GTK4 [Mouse] 同じ Gtk::GestureClick の signal_released に接続する。
     m_gesture_multipress->signal_released().connect( sigc::mem_fun( *this, &DrawAreaBase::slot_multipress_released ) );
 
-    m_gesture_pan = Gtk::GesturePan::create( m_view, Gtk::ORIENTATION_VERTICAL );
+    m_gesture_pan = Gtk::GesturePan::create( m_view, JDLIB::compat::Orientation::VERTICAL );
     m_gesture_pan->set_touch_only( true );
+    // TODO: GTK4 [Mouse] Gtk::GesturePan を追加して signal_drag_begin に接続し、ジェスチャのスクロールを開始する。
     m_gesture_pan->signal_drag_begin().connect( sigc::mem_fun( *this, &DrawAreaBase::slot_pan_begin ) );
+    // TODO: GTK4 [Mouse] 同じ Gtk::GesturePan の signal_drag_update に接続する。
     m_gesture_pan->signal_drag_update().connect( sigc::mem_fun( *this, &DrawAreaBase::slot_pan_update ) );
+    // TODO: GTK4 [Mouse] Gtk::Gesture::signal_end に移行する。
     m_gesture_pan->signal_end().connect( sigc::mem_fun( *this, &DrawAreaBase::slot_gesture_end ) );
 
     m_gesture_swipe = Gtk::GestureSwipe::create( m_view );
     m_gesture_pan->group( m_gesture_swipe );
     m_gesture_swipe->set_touch_only( true );
+    // TODO: GTK4 [Mouse] Gtk::GestureSwipe を追加して signal_swipe に接続し、慣性スクロールを処理する。
     m_gesture_swipe->signal_swipe().connect( sigc::mem_fun( *this, &DrawAreaBase::slot_swipe ) );
 }
 
@@ -5455,7 +5478,7 @@ void DrawAreaBase::slot_multipress_pressed( int n_press, double, double )
     if( n_press == 2 ) {
         button_event.type = GDK_DOUBLE_BUTTON_PRESS;
     }
-    else if( n_press == 3 && ( device && device->get_source() != Gdk::SOURCE_TOUCHSCREEN ) ) {
+    else if( n_press == 3 && ( device && device->get_source() != JDLIB::compat::InputSource::TOUCHSCREEN ) ) {
         button_event.type = GDK_TRIPLE_BUTTON_PRESS;
     }
     if( n_points == 2 ) {
@@ -5470,7 +5493,7 @@ void DrawAreaBase::slot_multipress_pressed( int n_press, double, double )
         // そのためpressedから直接releasedの処理を実行することによって問題を回避する。
         button_event.type = GDK_BUTTON_RELEASE;
         slot_button_release_event( &button_event );
-        m_gesture_multipress->set_sequence_state( sequence, Gtk::EVENT_SEQUENCE_DENIED );
+        m_gesture_multipress->set_sequence_state( sequence, JDLIB::compat::EventSequenceState::DENIED );
     }
 }
 
@@ -5505,13 +5528,13 @@ void DrawAreaBase::slot_pan_begin( double start_x, double start_y )
 
     Gtk::EventSequenceState state;
     if ( !m_vscrbar ) {
-        state = Gtk::EVENT_SEQUENCE_DENIED;
+        state = JDLIB::compat::EventSequenceState::DENIED;
     }
     else { // capture_button_press == true
         const auto adjust = m_vscrbar->get_adjustment();
         m_drag_start_y = adjust->get_value();
 
-        state = Gtk::EVENT_SEQUENCE_CLAIMED;
+        state = JDLIB::compat::EventSequenceState::CLAIMED;
     }
 
 #ifdef _DEBUG
@@ -5528,7 +5551,7 @@ void DrawAreaBase::slot_pan_update( double offset_x, double offset_y )
     static_cast< void >( offset_x );
 
     GdkEventSequence* const sequence = m_gesture_pan->get_last_updated_sequence();
-    if( m_gesture_pan->get_sequence_state( sequence ) != Gtk::EVENT_SEQUENCE_CLAIMED ) return;
+    if( m_gesture_pan->get_sequence_state( sequence ) != JDLIB::compat::EventSequenceState::CLAIMED ) return;
 
     const double y = m_drag_start_y - offset_y;
     const auto adjust = m_vscrbar->get_adjustment();
@@ -5553,7 +5576,7 @@ void DrawAreaBase::slot_pan_update( double offset_x, double offset_y )
 void DrawAreaBase::slot_gesture_end( GdkEventSequence* sequence )
 {
     if( !m_gesture_pan->handles_sequence( sequence ) ) {
-        m_gesture_pan->set_state( Gtk::EVENT_SEQUENCE_DENIED );
+        m_gesture_pan->set_state( JDLIB::compat::EventSequenceState::DENIED );
     }
 }
 
@@ -5576,7 +5599,7 @@ void DrawAreaBase::slot_swipe( double velocity_x, double velocity_y )
     static_cast< void >( velocity_x );
 
     GdkEventSequence* const sequence = m_gesture_swipe->get_last_updated_sequence();
-    if( m_gesture_swipe->get_sequence_state( sequence ) != Gtk::EVENT_SEQUENCE_CLAIMED ) return;
+    if( m_gesture_swipe->get_sequence_state( sequence ) != JDLIB::compat::EventSequenceState::CLAIMED ) return;
 
 #ifdef _DEBUG
     std::cout << "DrawAreaBase::slot_swipe vx = " << velocity_x << ", vy = " << velocity_y << std::endl;
@@ -5588,6 +5611,7 @@ void DrawAreaBase::slot_swipe( double velocity_x, double velocity_y )
     m_deceleration.id = gtk_widget_add_tick_callback( GTK_WIDGET( this->gobj() ),
                                                       &DrawAreaBase::deceleration_tick_cb, nullptr, nullptr );
 }
+#endif // USE_GTKMM4
 
 gboolean DrawAreaBase::deceleration_tick_cb( GtkWidget* cwidget, GdkFrameClock* clock, gpointer )
 {

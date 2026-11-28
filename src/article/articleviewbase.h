@@ -91,6 +91,20 @@ namespace ARTICLE
         // メニューのユーザコマンド、 create_usrcmd_menu() で作成
         std::string m_usrcmd;
 
+#ifdef USE_GTKMM4
+        Glib::RefPtr<Gio::SimpleActionGroup> m_action_group;
+
+        Gtk::Menu m_popup_menu_delete;
+        Gtk::Menu m_popup_menu_broken;
+        Gtk::Menu m_popup_menu_res;
+        Gtk::Menu m_popup_menu_anc;
+        Gtk::Menu m_popup_menu_id;
+        Gtk::Menu m_popup_menu_name;
+        Gtk::Menu m_popup_menu_abone;
+        Gtk::Menu m_popup_menu_img;
+        Gtk::Menu m_popup_menu;
+#endif
+
     public:
 
         ArticleViewBase( const std::string& url, const std::string& url_article );
@@ -116,7 +130,9 @@ namespace ARTICLE
         void clock_in_smooth_scroll();
 
         // キーを押した
+#ifndef USE_GTKMM4
         bool slot_key_press( GdkEventKey* event ) override;
+#endif
 
         void write() override;
         void reload() override;
@@ -252,8 +268,13 @@ namespace ARTICLE
         void setup_action();
 
         // 通常の右クリックメニューの作成
+#ifdef USE_GTKMM4
+        Glib::RefPtr<Gio::Menu> create_context_menu() const;
+        bool add_menu_item( const int item, const Glib::RefPtr<Gio::Menu>& section ) const;
+#else
         std::string create_context_menu() const;
         const char* get_menu_item( const int item ) const;
+#endif
 
         virtual void exec_reload();
         void reload_article();
@@ -264,12 +285,14 @@ namespace ARTICLE
         std::string get_html_url4report( const std::list< int >& list_resnum );
         
         // drawarea の signal を受け取る slots
+#ifndef USE_GTKMM4
         virtual bool slot_button_press( const std::string& url, int res_number, GdkEventButton* event );
         bool slot_button_release( std::string url, int res_number, GdkEventButton* event );
         bool slot_motion_notify( GdkEventMotion* event );
         bool slot_key_release( GdkEventKey* event );
         bool slot_scroll_event( GdkEventScroll* event );
         bool slot_leave_notify( GdkEventCrossing* event );
+#endif
 
         // レスポップアップ関係
 
@@ -277,7 +300,9 @@ namespace ARTICLE
         bool is_mouse_on_popup();
 
         void show_popup( SKELETON::View* view, const int mrg_x, const int mrg_y );
+#ifndef USE_GTKMM4
         bool slot_popup_leave_notify_event( GdkEventCrossing* event );
+#endif
         void slot_hide_popup();
         void delete_popup(); // ポップアップ強制削除
         void warp_pointer_to_popup(); // マウスポインタをポップアップの上に移動する
@@ -338,7 +363,9 @@ namespace ARTICLE
         // リンクの処理
         virtual void slot_on_url( const std::string& url, const std::string& imgurl, int res_number );
         void slot_leave_url();
+#ifndef USE_GTKMM4
         bool click_url( std::string url, int res_number, GdkEventButton* event );
+#endif
         void open_image( const std::string& url, const int res_number,
                          const bool open_imageview, const bool open_browser,
                          const int mosaic_mode, const bool switch_image );

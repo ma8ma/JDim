@@ -78,6 +78,16 @@ core_sources = [
   'winmain.cpp',
 ]
 
+if use_gtkmm4
+  core_sources += [
+    'core_menubar_gtk4.cpp',
+  ]
+else
+  core_sources += [
+    'core_menubar_gtk3.cpp',
+  ]
+endif
+
 # テストプログラムのビルドで利用するためライブラリにまとめる
 core_lib = static_library(
   'core', core_sources,
@@ -130,6 +140,13 @@ gresource_sources = [
   jdim_ui_common_gresource_cpp, # GTKのバージョンに関係なく使用するUI
 ]
 
+if use_gtkmm4
+  # GTK3 では使用しないので隔離する
+  gresource_sources += [
+    jdim_ui_gresource_cpp,
+  ]
+endif
+
 # meson の unity build で GResource 由来の識別子が衝突するため、
 # 生成ソースを unity=off の静的ライブラリに分け、実行ファイルへ
 # link_whole します。constructor によるリソース登録は維持します。
@@ -140,11 +157,14 @@ jdim_resources_lib = static_library(
   override_options : ['unity=off'],
 )
 
+# Generated resource source must be linked into the final executable.
+# Linking it only into a static library prevents the constructor from
+# registering the resource at startup.
 jdim_exe = executable(
   'jdim', [sources, buildinfo_h],
   dependencies : [config_h_dep, jdim_deps],
   include_directories : jdim_incs,
-  link_whole: jdim_resources_lib,
+  link_whole : jdim_resources_lib,
   link_with : jdim_libs,
   install : true,
 )

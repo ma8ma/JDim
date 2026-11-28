@@ -80,9 +80,11 @@ JDWinMain::JDWinMain( const bool init, const bool skip_setupdiag,
     set_resizable( true );
     property_destroy_with_parent().set_value( false );
 
+#ifndef USE_GTKMM4
     add_events( Gdk::BUTTON_PRESS_MASK );
     add_events( Gdk::BUTTON_RELEASE_MASK );
     add_events( Gdk::POINTER_MOTION_MASK );
+#endif
 
     // migemo 初期化
 #ifdef HAVE_MIGEMO_H
@@ -240,6 +242,8 @@ void JDWinMain::set_shown_win( const bool set )
 
 
 
+#ifndef USE_GTKMM4
+// TODO: GTK4 [Window] Gtk::Window::signal_close_request() に移行し、ウインドウを閉じる際の処理を変更する。
 bool JDWinMain::on_delete_event( GdkEventAny* event )
 {
 #ifdef _DEBUG
@@ -254,6 +258,7 @@ bool JDWinMain::on_delete_event( GdkEventAny* event )
 
 
 // 最大、最小化
+// TODO: GTK4 [Window] maximized / fullscreened の状態通知を利用して、ウインドウ状態の変更処理を移行する。
 bool JDWinMain::on_window_state_event( GdkEventWindowState* event )
 {
     // キャンセル ( JDWinMain::on_delete_even() の説明を参照せよ )
@@ -268,6 +273,7 @@ bool JDWinMain::on_window_state_event( GdkEventWindowState* event )
 }
 
 
+// TODO: GTK4 [Window] configure-event の直接の代替なし。ウインドウサイズの変更を検知する方法を検討し、既存の処理を移行する。
 bool JDWinMain::on_configure_event( GdkEventConfigure* event )
 {
     // キャンセル ( JDWinMain::on_delete_event() の説明を参照せよ )
@@ -282,6 +288,7 @@ bool JDWinMain::on_configure_event( GdkEventConfigure* event )
 }
 
 
+// TODO: GTK4 [Mouse] Gtk::GestureClick を追加して signal_pressed に接続し、クリック位置の座標を利用して既存処理を移行する。
 bool JDWinMain::on_button_press_event( GdkEventButton* event )
 {
 #ifdef _DEBUG
@@ -295,6 +302,7 @@ bool JDWinMain::on_button_press_event( GdkEventButton* event )
 }
 
 
+// TODO: GTK4 [Mouse] 同じ Gtk::GestureClick の signal_released に接続し、クリック終了時の処理を移行する。
 bool JDWinMain::on_button_release_event( GdkEventButton* event )
 {
 #ifdef _DEBUG
@@ -316,6 +324,7 @@ bool JDWinMain::on_button_release_event( GdkEventButton* event )
 //
 // マウスが動いた
 //
+// TODO: GTK4 [Mouse] Gtk::EventControllerMotion を追加して signal_motion に接続し、マウス移動時の処理を移行する。
 bool JDWinMain::on_motion_notify_event( GdkEventMotion* event )
 {
 #ifdef _DEBUG
@@ -327,6 +336,7 @@ bool JDWinMain::on_motion_notify_event( GdkEventMotion* event )
 
     return SKELETON::JDWindow::on_motion_notify_event( event );
 }
+#endif // USE_GTKMM4
 
 
 bool JDWinMain::operate_win( const int control )

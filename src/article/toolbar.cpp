@@ -11,6 +11,7 @@
 #include "control/controlid.h"
 #include "control/controlutil.h"
 #include "icons/iconmanager.h"
+#include "jdlib/gtk_compat.h"
 
 #include "command.h"
 #include "session.h"
@@ -23,20 +24,20 @@ using namespace ARTICLE;
 ArticleToolBar::ArticleToolBar()
     : SKELETON::ToolBar( ARTICLE::get_admin() )
     , m_enable_slot( true )
-    , m_button_drawout_and( ICON::SEARCH_AND, CONTROL::DrawOutAnd )
-    , m_button_drawout_or( ICON::SEARCH_OR, CONTROL::DrawOutOr )
+    , m_button_drawout_and( ICON::SEARCH_AND )
+    , m_button_drawout_or( ICON::SEARCH_OR )
 {
     // 検索バー
     set_tooltip( m_button_drawout_and, CONTROL::get_label_motions( CONTROL::DrawOutAnd ) );
     set_tooltip( m_button_drawout_or, CONTROL::get_label_motions( CONTROL::DrawOutOr ) );
 
-    get_searchbar()->append( *get_tool_search( CORE::COMP_SEARCH_ARTICLE ) );
-    get_searchbar()->append( *get_button_down_search() );
-    get_searchbar()->append( *get_button_up_search() );
-    get_searchbar()->append( m_button_drawout_and );
-    get_searchbar()->append( m_button_drawout_or );
-    get_searchbar()->append( *get_button_clear_highlight() );
-    get_searchbar()->append( *get_button_close_searchbar() );
+    JDLIB::compat::box_append_expand( *get_searchbar(), *get_tool_search( CORE::COMP_SEARCH_ARTICLE ) );
+    JDLIB::compat::box_append_shrink( *get_searchbar(), *get_button_down_search() );
+    JDLIB::compat::box_append_shrink( *get_searchbar(), *get_button_up_search() );
+    JDLIB::compat::box_append_shrink( *get_searchbar(), m_button_drawout_and );
+    JDLIB::compat::box_append_shrink( *get_searchbar(), m_button_drawout_or );
+    JDLIB::compat::box_append_shrink( *get_searchbar(), *get_button_clear_highlight() );
+    JDLIB::compat::box_append_shrink( *get_searchbar(), *get_button_close_searchbar() );
 
     m_button_drawout_or.signal_clicked().connect( sigc::mem_fun(*this, &ArticleToolBar::slot_drawout_or ) );
     m_button_drawout_and.signal_clicked().connect( sigc::mem_fun(*this, &ArticleToolBar::slot_drawout_and ) );
@@ -104,70 +105,68 @@ void ArticleToolBar::pack_buttons()
         switch( item ){
 
             case ITEM_WRITEMSG:
-                get_buttonbar().append( *get_button_write() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_write() );
                 break;
 
             case ITEM_OPENBOARD:
-                get_buttonbar().append( *get_button_board() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_board() );
                 break;
 
             case ITEM_NAME:
-                pack_transparent_separator();
-                get_buttonbar().append( *get_label() );
-                pack_transparent_separator();
+                get_label()->set_margin_start( 8 );
+                JDLIB::compat::box_append_expand( get_buttonbar(), *get_label() );
+                get_label()->set_margin_end( 8 );
                 break;
 
             case ITEM_SEARCH:
-                get_buttonbar().append( *get_button_open_searchbar() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_open_searchbar() );
                 break;
 
             case ITEM_RELOAD:
-                get_buttonbar().append( *get_button_reload() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_reload() );
                 break;
 
             case ITEM_STOPLOADING:
-                get_buttonbar().append( *get_button_stop() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_stop() );
                 break;
 
             case ITEM_APPENDFAVORITE:
-                get_buttonbar().append( *get_button_favorite() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_favorite() );
                 set_tooltip( *get_button_favorite(), CONTROL::get_label_motions( CONTROL::AppendFavorite )
                              + "\n\nスレのタブをお気に入りに直接Ｄ＆Ｄしても登録可能" );
 
                 break;
 
             case ITEM_DELETE:
-                get_buttonbar().append( *get_button_delete() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_delete() );
                 // ポップアップメニューの配置に利用するためツールバーボタンをIDに紐づけします。
                 get_admin()->set_anchor_widget( kToolbarWidgetDelete, get_button_delete() );
 
                 break;
 
             case ITEM_QUIT:
-                get_buttonbar().append( *get_button_close() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_close() );
                 break;
 
             case ITEM_BACK:
-                get_buttonbar().append( *get_button_back() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_back() );
                 break;
 
             case ITEM_FORWARD:
-                get_buttonbar().append( *get_button_forward() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_forward() );
                 break;
 
             case ITEM_LOCK:
-                get_buttonbar().append( *get_button_lock() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_lock() );
                 break;
 
             case ITEM_LIVE:
                 if( ! m_button_live_play_stop ){
-                    m_button_live_play_stop = Gtk::manage( new SKELETON::ImgToggleToolButton(
-                        ICON::LIVE, CONTROL::LiveStartStop ) );
+                    m_button_live_play_stop = Gtk::manage( new SKELETON::ImgToggleToolButton( ICON::LIVE ) );
                     set_tooltip( *m_button_live_play_stop, CONTROL::get_label_motions( CONTROL::LiveStartStop ) );
-                    m_button_live_play_stop->set_label( CONTROL::get_label( CONTROL::LiveStartStop ) );
                     m_button_live_play_stop->signal_clicked().connect( sigc::mem_fun(*this, &ArticleToolBar::slot_live_play_stop ) );
                 }
-                get_buttonbar().append( *m_button_live_play_stop );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *m_button_live_play_stop );
 
                 break;
 

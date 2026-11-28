@@ -29,6 +29,9 @@ PopupWinBase::PopupWinBase( bool draw_frame )
 }
 
 
+// TODO: GTK4 [Window] configure-event の直接の代替なし。AAMenu のポップアップ表示位置調整を再設計する。
+// 現在は AAMenu のアスキーアートプレビュー用ポップアップの表示位置調整のみで使われている。
+#ifndef USE_GTKMM4
 bool PopupWinBase::on_configure_event( GdkEventConfigure* event )
 {
     const bool ret = Gtk::Window::on_configure_event( event );
@@ -36,3 +39,4 @@ bool PopupWinBase::on_configure_event( GdkEventConfigure* event )
 
     return ret;
 }
+#endif

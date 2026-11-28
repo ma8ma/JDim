@@ -23,7 +23,9 @@ namespace ARTICLE
         bool exec_layout() override;
 
         // リサイズした
+#ifndef USE_GTKMM4
         bool slot_configure_event( GdkEventConfigure* event ) override;
+#endif
     };
 }
 

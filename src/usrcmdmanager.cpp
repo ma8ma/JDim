@@ -55,7 +55,7 @@ public:
 
     ReplaceTextDiag( Gtk::Window* parent, const std::string& title )
         : SKELETON::PrefDiag( parent, "" )
-        , m_vbox{ Gtk::ORIENTATION_VERTICAL, 0 }
+        , m_vbox{ JDLIB::compat::Orientation::VERTICAL, 0 }
         , m_label( title + "を置き換えるテキストを入力してください。" )
     {
         resize( 640, 1 );
@@ -232,7 +232,7 @@ bool Usrcmd_Manager::show_replacetextdiag( std::string& texti, const std::string
     if( ! texti.empty() ) return true;
 
     ReplaceTextDiag textdiag( nullptr, title );
-    if( textdiag.run() != Gtk::RESPONSE_OK ) return false;
+    if( textdiag.run() != JDLIB::compat::ResponseType::OK ) return false;
     texti = textdiag.get_text();
     return true;
 }
@@ -436,6 +436,7 @@ bool Usrcmd_Manager::is_hide( int num, const std::string& url ) const
 }
 
 
+#ifndef USE_GTKMM4
 //
 // ユーザコマンドの登録とメニュー作成
 //
@@ -540,3 +541,4 @@ void Usrcmd_Manager::toggle_sensitive( Glib::RefPtr< Gtk::ActionGroup >& action_
         }
     }
 }
+#endif // USE_GTKMM4

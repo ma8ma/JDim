@@ -30,7 +30,7 @@ DelImgCacheDiag::DelImgCacheDiag()
     : m_label( "画像キャッシュ削除中・・・\n\nしばらくお待ち下さい" )
     , m_stop{ true }
 {
-    add_button( g_dgettext( GTK_DOMAIN, "_Cancel" ), Gtk::RESPONSE_CANCEL )
+    add_button( g_dgettext( GTK_DOMAIN, "_Cancel" ), JDLIB::compat::ResponseType::CANCEL )
     ->signal_clicked().connect( sigc::mem_fun(*this, &DelImgCacheDiag::slot_cancel_clicked ) );
 
     set_title( "JDim 画像キャッシュ削除中" );
@@ -54,6 +54,8 @@ DelImgCacheDiag::~DelImgCacheDiag()
 }
 
 
+#ifndef USE_GTKMM4
+// TODO: GTK4 [Draw] 描画処理を行わずスレッド起動のみを行っているため、描画イベントに依存しないダイアログ表示時の処理に移行する。
 bool DelImgCacheDiag::on_draw( const Cairo::RefPtr< Cairo::Context >& cr )
 {
 #ifdef _DEBUG
@@ -63,6 +65,7 @@ bool DelImgCacheDiag::on_draw( const Cairo::RefPtr< Cairo::Context >& cr )
     launch_thread();
     return Gtk::Dialog::on_draw( cr );
 }
+#endif
 
 
 void DelImgCacheDiag::launch_thread()

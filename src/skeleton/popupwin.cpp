@@ -8,7 +8,11 @@
 #include "jdlib/miscgtk.h"
 
 #ifdef GDK_WINDOWING_WAYLAND
+#ifdef USE_GTKMM4
+#include <gdk/wayland/gdkwayland.h>
+#else
 #include <gdk/gdkwayland.h>
+#endif
 #endif
 
 #include <algorithm>

@@ -66,7 +66,9 @@ namespace BBSLIST
         void close_all_view( const std::string& url ) override {}
 
         // タブの D&D 処理をしない
+#ifndef USE_GTKMM4
         void slot_drag_data_get( Gtk::SelectionData& selection_data, const int page ) override {}
+#endif
 
         // タブメニュー表示キャンセル
         void slot_tab_menu( int page, int x, int y ) override {}

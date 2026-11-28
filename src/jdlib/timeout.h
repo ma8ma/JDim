@@ -7,21 +7,22 @@
 
 #include <memory>
 
+#include "jdlib/sigc_compat.h"
 
 namespace JDLIB
 {
     class Timeout
     {
-        sigc::slot< bool > m_slot_timeout;
+        JDLIB::compat::slot< bool() > m_slot_timeout;
         sigc::connection m_connection;
 
     public:
         ~Timeout();
         
-        static std::unique_ptr<Timeout> connect( const sigc::slot< bool > slot_timeout, unsigned int interval );
+        static std::unique_ptr<Timeout> connect( const JDLIB::compat::slot< bool() > slot_timeout, unsigned int interval );
 
     private:
-        explicit Timeout( const sigc::slot< bool > slot_timeout );
+        explicit Timeout( JDLIB::compat::slot< bool() > slot_timeout );
     };
 }
 

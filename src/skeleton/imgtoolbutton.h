@@ -15,28 +15,21 @@
 namespace SKELETON
 {
     template<typename Base>
+        requires std::is_base_of_v<Gtk::Button, Base>
     class ToolButtonExtension : public Base
     {
-        static_assert( std::is_base_of<Gtk::ToolButton, Base>::value, "Base must inherit Gtk::ToolButton" );
-
     public:
         explicit ToolButtonExtension( const int iconid )
-            : Base( *Gtk::manage( new Gtk::Image( ICON::get_icon( iconid ), Gtk::ICON_SIZE_SMALL_TOOLBAR ) ) )
-        {}
-
-        explicit ToolButtonExtension( const int iconid, const int controlid )
-            : Base( *Gtk::manage( new Gtk::Image( ICON::get_icon( iconid ), Gtk::ICON_SIZE_SMALL_TOOLBAR ) ), CONTROL::get_label( controlid ) )
-        {}
-
-        explicit ToolButtonExtension( const int iconid, const Glib::ustring& label )
-            : Base( *Gtk::manage( new Gtk::Image( ICON::get_icon( iconid ), Gtk::ICON_SIZE_SMALL_TOOLBAR ) ), label )
-        {}
+            : Base()
+        {
+            Base::set_image( *Gtk::make_managed<Gtk::Image>( ICON::get_icon( iconid ), Gtk::ICON_SIZE_SMALL_TOOLBAR ) );
+        }
 
         ~ToolButtonExtension() noexcept override = default;
     };
 
-    using ImgToolButton = ToolButtonExtension<Gtk::ToolButton>;
-    using ImgToggleToolButton = ToolButtonExtension<Gtk::ToggleToolButton>;
+    using ImgToolButton = ToolButtonExtension<Gtk::Button>;
+    using ImgToggleToolButton = ToolButtonExtension<Gtk::ToggleButton>;
 }
 
 #endif

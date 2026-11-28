@@ -159,6 +159,8 @@ void PaneControl::add_remove2( bool unpack, Gtk::Widget& child )
 }
 
 
+#ifndef USE_GTKMM4
+// TODO: GTK4 [Mouse] Gtk::GestureClick::signal_pressed に移行する。
 void PaneControl::button_press_event( GdkEventButton* event )
 {
     m_clicked = is_separater_clicked( event ); // 仕切りをクリックしたかチェック
@@ -172,6 +174,7 @@ void PaneControl::button_press_event( GdkEventButton* event )
 }
 
 
+// TODO: GTK4 [Mouse] Gtk::GestureClick::signal_released に移行する。
 void PaneControl::button_release_event( GdkEventButton* )
 {
 #ifdef _DEBUG
@@ -217,6 +220,7 @@ void PaneControl::button_release_event( GdkEventButton* )
 
 
 
+// TODO: GTK4 [Mouse] Gtk::EventControllerMotion::signal_motion に移行する。
 void PaneControl::motion_notify_event( GdkEventMotion* )
 {
 #ifdef _DEBUG
@@ -227,6 +231,7 @@ void PaneControl::motion_notify_event( GdkEventMotion* )
 }
 
 
+// TODO: GTK4 [Mouse] Gtk::EventControllerMotion::signal_enter に移行する。
 void PaneControl::enter_notify_event( GdkEventCrossing* )
 {
 #ifdef _DEBUG
@@ -237,6 +242,7 @@ void PaneControl::enter_notify_event( GdkEventCrossing* )
 }
 
 
+// TODO: GTK4 [Mouse] Gtk::EventControllerMotion::signal_leave に移行する。
 void PaneControl::leave_notify_event( GdkEventCrossing* )
 {
 #ifdef _DEBUG
@@ -245,3 +251,4 @@ void PaneControl::leave_notify_event( GdkEventCrossing* )
 
     m_on_paned = false;
 }
+#endif // USE_GTKMM4

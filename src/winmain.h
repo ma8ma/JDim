@@ -63,12 +63,14 @@ class JDWinMain : public SKELETON::JDWindow
     bool is_shown_win() const override;
     void set_shown_win( const bool set ) override;
 
+#ifndef USE_GTKMM4
     bool on_delete_event( GdkEventAny* event ) override;
     bool on_window_state_event( GdkEventWindowState* event ) override;
     bool on_configure_event( GdkEventConfigure* event ) override;
     bool on_button_press_event( GdkEventButton* event ) override;
     bool on_button_release_event( GdkEventButton* event ) override;
     bool on_motion_notify_event( GdkEventMotion* event ) override;
+#endif
 
   private:
     bool operate_win( const int control );

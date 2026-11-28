@@ -13,6 +13,7 @@
 
 #include "config/globalconf.h"
 
+#include "jdlib/gtk_compat.h"
 #include "jdlib/miscutil.h"
 #include "jdlib/miscmsg.h"
 #include "jdlib/misctime.h"
@@ -995,13 +996,13 @@ std::vector< std::string > CACHE::open_load_diag( Gtk::Window* parent, const std
     std::string dir = MISC::get_dir( open_path );
     if( dir.empty() ) dir = MISC::getenv_limited( ENV_HOME, MAX_SAFE_PATH );
 
-    SKELETON::FileDiag diag( parent, "ファイルを開く", Gtk::FILE_CHOOSER_ACTION_OPEN );
+    SKELETON::FileDiag diag( parent, "ファイルを開く", JDLIB::compat::FileChooser::Action::OPEN );
 
     diag.set_select_multiple( multi );
     diag.set_current_folder( dir );
     add_filter_to_diag( diag, type );
 
-    if( diag.run() == Gtk::RESPONSE_ACCEPT )
+    if( diag.run() == JDLIB::compat::ResponseType::ACCEPT )
     {
         diag.hide();
 
@@ -1027,7 +1028,7 @@ std::string CACHE::open_save_diag( Gtk::Window* parent, const std::string& dir, 
     std::cout << "name = " << name << std::endl;
 #endif
 
-    SKELETON::FileDiag diag( parent, "保存先選択", Gtk::FILE_CHOOSER_ACTION_SAVE );
+    SKELETON::FileDiag diag( parent, "保存先選択", JDLIB::compat::FileChooser::Action::SAVE );
     if( dir.empty() )
     {
         const std::string home = MISC::getenv_limited( ENV_HOME, MAX_SAFE_PATH );
@@ -1040,7 +1041,7 @@ std::string CACHE::open_save_diag( Gtk::Window* parent, const std::string& dir, 
     diag.set_current_name( name );
     add_filter_to_diag( diag, type );
 
-    if( diag.run() != Gtk::RESPONSE_ACCEPT ) return std::string();
+    if( diag.run() != JDLIB::compat::ResponseType::ACCEPT ) return std::string();
     diag.hide();
 
     std::string path_to = MISC::recover_path( diag.get_filename() );
@@ -1053,18 +1054,18 @@ std::string CACHE::open_save_diag( Gtk::Window* parent, const std::string& dir, 
     if( CACHE::file_exists( path_to ) == CACHE::EXIST_FILE ){
 
         SKELETON::MsgDiag mdiag( parent, "ファイルが存在します。ファイル名を変更して保存しますか？", 
-                                 false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_NONE );
-        mdiag.add_button( g_dgettext( GTK_DOMAIN, "_No" ), Gtk::RESPONSE_NO );
-        mdiag.add_button( g_dgettext( GTK_DOMAIN, "_Yes" ), Gtk::RESPONSE_YES );
-        mdiag.add_button( "上書き", Gtk::RESPONSE_YES + 100 );
+                                 false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::NONE );
+        mdiag.add_button( g_dgettext( GTK_DOMAIN, "_No" ), JDLIB::compat::ResponseType::NO );
+        mdiag.add_button( g_dgettext( GTK_DOMAIN, "_Yes" ), JDLIB::compat::ResponseType::YES );
+        mdiag.add_button( "上書き", JDLIB::compat::ResponseType::YES + 100 );
 
         int ret = mdiag.run();
         mdiag.hide();
 
-        if( ret ==  Gtk::RESPONSE_YES ){
+        if( ret ==  JDLIB::compat::ResponseType::YES ){
             return CACHE::open_save_diag( parent, MISC::get_dir( path_to ), MISC::get_filename( path_to ), type );
         }
-        else if( ret == Gtk::RESPONSE_NO ) return std::string();
+        else if( ret == JDLIB::compat::ResponseType::NO ) return std::string();
     }
 
     return path_to;

@@ -132,7 +132,9 @@ namespace BOARD
         void clock_in() override;
 
         // キーを押した        
+#ifndef USE_GTKMM4
         bool slot_key_press( GdkEventKey* event ) override;
+#endif
 
         void write() override;
         void stop() override;
@@ -260,11 +262,13 @@ namespace BOARD
         int slot_compare_row( const Gtk::TreeModel::iterator& a, const Gtk::TreeModel::iterator& b );
 
         // UI
+#ifndef USE_GTKMM4
         bool slot_button_press( GdkEventButton* event );
         bool slot_button_release( GdkEventButton* event );
         bool slot_motion_notify( GdkEventMotion* event );
         bool slot_key_release( GdkEventKey* event );
         bool slot_scroll_event( GdkEventScroll* event );
+#endif
         bool slot_query_tooltip( int x, int y, bool keyboard_tooltip, const Glib::RefPtr<Gtk::Tooltip>& tooltip );
 
         void slot_bookmark( int bookmark );
@@ -283,8 +287,10 @@ namespace BOARD
         void slot_delete_logs();
 
         // ドラッグアンドドロップ
+#ifndef USE_GTKMM4
         void slot_drag_data_get( const Glib::RefPtr<Gdk::DragContext>& context,
                                  Gtk::SelectionData& selection_data, guint info, guint time );
+#endif
         void slot_dropped_url_list( const std::list< std::string >& );
 
         bool open_row( const Gtk::TreePath& path, const bool tab, const bool reget );

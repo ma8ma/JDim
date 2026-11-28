@@ -43,17 +43,22 @@ TabNotebook::TabNotebook( DragableNoteBook* parent )
     set_border_width( 0 );
     set_size_request( 1, -1 ); // これが無いと最大化を解除したときにウィンドウが勝手にリサイズする
 
+#ifndef USE_GTKMM4
+    // TODO: GTK4 [Mouse] Gtk::EventControllerMotion を追加して各シグナルを接続し、独自シグナルを発行する。
+    // TODO: GTK4 [Scroll] Gtk::EventControllerScroll を追加して signal_scroll に接続する。
     add_events( Gdk::POINTER_MOTION_MASK );
     add_events( Gdk::LEAVE_NOTIFY_MASK );
     add_events( Gdk::SCROLL_MASK );
 
     // DnD設定
     // ドロップ側に設定する
+    // TODO: GTK4 [DnD] Gtk::DropTarget を追加してドロップ先を設定する。
     drag_source_unset();
     drag_dest_unset();
     std::vector< Gtk::TargetEntry > targets;
     targets.push_back( Gtk::TargetEntry( DNDTARGET_TAB, Gtk::TARGET_SAME_APP, 0 ) );
     drag_dest_set( targets, Gtk::DEST_DEFAULT_MOTION | Gtk::DEST_DEFAULT_DROP );
+#endif
 
     m_tab_mrg = get_margin_start();
     if( m_tab_mrg <= 0 ) {
@@ -91,11 +96,15 @@ void TabNotebook::clock_in()
 //
 // サイズ変更
 //
+// TODO: GTK4 [Size] Gtk::Widget::size_allocate_vfunc(int width, int height, int baseline) に移行する。
+// allocation.get_width() じゃなく引数の width / height を使う。
+#ifndef USE_GTKMM4
 void TabNotebook::on_size_allocate( Gtk::Allocation& allocation )
 {
     clock_in(); // タブ再描画の反応を良くする
     Gtk::Notebook::on_size_allocate( allocation );
 }
+#endif
 
 
 int TabNotebook::append_tab( Widget& tab )
@@ -442,8 +451,10 @@ bool TabNotebook::adjust_tabwidth()
 }
 
 
+#ifndef USE_GTKMM4
 // signal_button_press_event と signal_button_release_event は emit されない
 // ときがあるので自前でemitする
+// TODO: GTK4 [Mouse] Gtk::GestureClick::signal_pressed に移行し、独自シグナルを発行する。
 bool TabNotebook::on_button_press_event( GdkEventButton* event )
 {
 #ifdef _DEBUG
@@ -460,6 +471,7 @@ bool TabNotebook::on_button_press_event( GdkEventButton* event )
 }
 
 
+// TODO: GTK4 [Mouse] Gtk::GestureClick::signal_released に移行し、独自シグナルを発行する。
 bool TabNotebook::on_button_release_event( GdkEventButton* event )
 {
 #ifdef _DEBUG
@@ -479,6 +491,7 @@ bool TabNotebook::on_button_release_event( GdkEventButton* event )
 //
 // マウスが動いた
 //
+// TODO: GTK4 [Mouse] Gtk::EventControllerMotion::signal_motion に移行し、独自シグナルを発行する。
 bool TabNotebook::on_motion_notify_event( GdkEventMotion* event )
 {
 #ifdef _DEBUG
@@ -494,6 +507,7 @@ bool TabNotebook::on_motion_notify_event( GdkEventMotion* event )
 //
 // マウスが出た
 //
+// TODO: GTK4 [Mouse] Gtk::EventControllerMotion::signal_leave に移行し、独自シグナルを発行する。
 bool TabNotebook::on_leave_notify_event( GdkEventCrossing* event )
 {
 #ifdef _DEBUG
@@ -509,6 +523,7 @@ bool TabNotebook::on_leave_notify_event( GdkEventCrossing* event )
 //
 // マウスホイールを回した
 //
+// TODO: GTK4 [Scroll] Gtk::EventControllerScroll::signal_scroll に移行する。
 bool TabNotebook::on_scroll_event( GdkEventScroll* event )
 {
     if( ! CONFIG::get_switchtab_wheel() ) return true;
@@ -526,6 +541,7 @@ bool TabNotebook::on_scroll_event( GdkEventScroll* event )
 //
 // ドラッグ中にマウスを動かした
 //
+// TODO: GTK4 [DnD] Gtk::DropTarget::signal_motion に移行し、DnD中のタブ切り替え制御を維持する。
 bool TabNotebook::on_drag_motion( const Glib::RefPtr<Gdk::DragContext>& context, int x, int y, guint time)
 {
 #ifdef _DEBUG
@@ -560,3 +576,4 @@ bool TabNotebook::on_drag_motion( const Glib::RefPtr<Gdk::DragContext>& context,
     // on_drag_motion をキャンセルしないとDnD中にタブが勝手に切り替わる( gtknotebook.c をハック )
     return true;
 }
+#endif // USE_GTKMM4

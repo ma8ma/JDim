@@ -41,7 +41,6 @@ namespace CORE
 
         Gtk::Grid m_grid_font;
         Gtk::Box m_hbox_font;
-        Gtk::EventBox m_event_font;
         Gtk::ComboBoxText m_combo_font;
         Gtk::FontButton m_fontbutton;
 

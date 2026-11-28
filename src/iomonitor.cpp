@@ -9,6 +9,7 @@
 #include "iomonitor.h"
 #include "command.h"
 #include "cache.h"
+#include "jdlib/gtk_compat.h"
 #include "jdlib/miscmsg.h"
 
 #include <cstring>
@@ -120,7 +121,7 @@ void IOMonitor::init_connection()
         m_main_process = true;
 
         // Glib::IOChannel
-        Glib::signal_io().connect( sigc::mem_fun( *this, &IOMonitor::slot_ioin ), m_fifo_fd, Glib::IO_IN );
+        Glib::signal_io().connect( sigc::mem_fun( *this, &IOMonitor::slot_ioin ), m_fifo_fd, JDLIB::compat::IOCondition::IO_IN );
         m_iochannel = Glib::IOChannel::create_from_fd( m_fifo_fd );
     }
 }
@@ -170,7 +171,7 @@ bool IOMonitor::send_command( const std::string& command )
 /*-------------------------------------------------------------------*/
 bool IOMonitor::slot_ioin( Glib::IOCondition io_condition )
 {
-    if( ( io_condition & ( Glib::IO_IN | Glib::IO_PRI ) ) == 0 )
+    if( static_cast<int>( io_condition & ( JDLIB::compat::IOCondition::IO_IN | JDLIB::compat::IOCondition::IO_PRI ) ) == 0 )
     {
         MISC::ERRMSG( "IOMonitor::slot_ioin(): Invalid fifo response." );
         return false;
@@ -179,7 +180,7 @@ bool IOMonitor::slot_ioin( Glib::IOCondition io_condition )
     Glib::ustring buffer;
     // 最大で COMMAND_MAX_LENGTH まで読み出す
     Glib::IOStatus io_status = m_iochannel->read( buffer, COMMAND_MAX_LENGTH );
-    if( io_status == Glib::IO_STATUS_ERROR )
+    if( io_status == JDLIB::compat::IOStatus::ERROR )
     {
         MISC::ERRMSG( "IOMonitor::slot_ioin(): read error." );
     }

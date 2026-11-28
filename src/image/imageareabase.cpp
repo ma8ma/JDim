@@ -5,6 +5,7 @@
 
 #include "imageareabase.h"
 
+#include "jdlib/gtk_compat.h"
 #include "jdlib/miscgtk.h"
 #include "jdlib/miscmsg.h"
 
@@ -60,12 +61,12 @@ ImageAreaBase::ImageAreaBase( const std::string& url, const int interptype )
 
     assert( m_img );
 
-    m_interptype = Gdk::INTERP_NEAREST;
-    if( interptype == 1 ) m_interptype = Gdk::INTERP_BILINEAR;
-    else if( interptype >= 2 ) m_interptype = Gdk::INTERP_HYPER;
+    m_interptype = JDLIB::compat::InterpType::NEAREST;
+    if( interptype == 1 ) m_interptype = JDLIB::compat::InterpType::BILINEAR;
+    else if( interptype >= 2 ) m_interptype = JDLIB::compat::InterpType::HYPER;
 
-    set_halign( Gtk::ALIGN_CENTER );
-    set_valign( Gtk::ALIGN_CENTER );
+    set_halign( JDLIB::compat::Align::CENTER );
+    set_valign( JDLIB::compat::Align::CENTER );
 }
 
 
@@ -275,7 +276,7 @@ void ImageAreaBase::set_mosaic( Glib::RefPtr< Gdk::Pixbuf > pixbuf )
         }
 
         Glib::RefPtr< Gdk::Pixbuf > pixbuf2;
-        pixbuf2 = pixbuf->scale_simple( moswidth, mosheight, Gdk::INTERP_NEAREST );
-        set( pixbuf2->scale_simple( get_width(), get_height(), Gdk::INTERP_NEAREST ) );
+        pixbuf2 = pixbuf->scale_simple( moswidth, mosheight, JDLIB::compat::InterpType::NEAREST );
+        set( pixbuf2->scale_simple( get_width(), get_height(), JDLIB::compat::InterpType::NEAREST ) );
     }
 }

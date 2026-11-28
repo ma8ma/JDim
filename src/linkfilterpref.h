@@ -65,7 +65,11 @@ namespace CORE
         Gtk::Button m_button_bottom;
         Gtk::Button m_button_delete;
         Gtk::Button m_button_add;
+#ifdef USE_GTKMM4
+        Gtk::Box m_vbuttonbox;
+#else
         Gtk::VButtonBox m_vbuttonbox;
+#endif
 
         Gtk::Box m_hbox;
 
@@ -88,7 +92,9 @@ namespace CORE
         void slot_ok_clicked() override;
 
         void slot_row_activated( const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column );
+#ifndef USE_GTKMM4
         bool slot_key_release( GdkEventKey* event );
+#endif
 
         void slot_top();
         void slot_up();

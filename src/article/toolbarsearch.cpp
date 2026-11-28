@@ -12,6 +12,8 @@
 #include "control/controlutil.h"
 #include "control/controlid.h"
 
+#include "jdlib/gtk_compat.h"
+
 #include "compmanager.h"
 #include "session.h"
 #include "global.h"
@@ -22,18 +24,17 @@ SearchToolBar::SearchToolBar()
     : SKELETON::ToolBar( ARTICLE::get_admin() )
     , m_check_bm( "しおり" )
 {
-    m_tool_bm.add( m_check_bm );
-    m_tool_bm.set_expand( false );
+    m_check_bm.set_hexpand( false );
 
     m_check_bm.signal_toggled().connect( sigc::mem_fun(*this, &SearchToolBar::slot_toggle_bm ) );
 
     // 検索バー    
-    get_searchbar()->append( *get_tool_search( CORE::COMP_SEARCH_ARTICLE ) );
-    get_searchbar()->append( m_tool_bm );
+    JDLIB::compat::box_append_expand( *get_searchbar(), *get_tool_search( CORE::COMP_SEARCH_ARTICLE ) );
+    JDLIB::compat::box_append_shrink( *get_searchbar(), m_check_bm );
     // 一貫性のあるUIにするため検索のタブでは検索バーを常に開いたままにする。
     // そのため、検索バーを閉じるボタンは無効にする。
     auto button_close_searchbar = get_button_close_searchbar();
-    get_searchbar()->append( *button_close_searchbar );
+    JDLIB::compat::box_append_shrink( *get_searchbar(), *button_close_searchbar );
     button_close_searchbar->set_sensitive( false );
     button_close_searchbar->set_tooltip_text( "検索バーは常に表示されます。" );
 
@@ -56,9 +57,9 @@ void SearchToolBar::pack_buttons()
         switch( item ){
 
             case ITEM_NAME:
-                pack_transparent_separator();
-                get_buttonbar().append( *get_label() );
-                pack_transparent_separator();
+                get_label()->set_margin_start( 8 );
+                JDLIB::compat::box_append_expand( get_buttonbar(), *get_label() );
+                get_label()->set_margin_end( 8 );
                 break;
 
             case ITEM_SEARCH:
@@ -66,7 +67,7 @@ void SearchToolBar::pack_buttons()
                 // そのため、検索バーを開くボタンは無効にする。
                 {
                     auto button_open_searchbar = get_button_open_searchbar();
-                    get_buttonbar().append( *button_open_searchbar );
+                    JDLIB::compat::box_append_shrink( get_buttonbar(), *button_open_searchbar );
                     button_open_searchbar->set_sensitive( false );
                     button_open_searchbar->set_tooltip_text( "検索バーは常に表示されます。" );
                 }
@@ -74,22 +75,20 @@ void SearchToolBar::pack_buttons()
 
             case ITEM_RELOAD:
                 if( auto button = get_button_reload() ) {
-                    get_buttonbar().append( *button );
-                    button->set_label( "再検索" );
+                    JDLIB::compat::box_append_shrink( get_buttonbar(), *button );
                     set_tooltip( *button, "再検索 " + CONTROL::get_str_motions( CONTROL::Reload ) );
                 }
                 break;
 
             case ITEM_STOPLOADING:
                 if( auto button = get_button_stop() ) {
-                    get_buttonbar().append( *button );
-                    button->set_label( "検索中止" );
+                    JDLIB::compat::box_append_shrink( get_buttonbar(), *button );
                     set_tooltip( *button, "検索中止 " + CONTROL::get_str_motions( CONTROL::Reload ) );
                 }
                 break;
 
             case ITEM_QUIT:
-                get_buttonbar().append( *get_button_close() );
+                JDLIB::compat::box_append_shrink( get_buttonbar(), *get_button_close() );
                 break;
 
             case ITEM_SEPARATOR:

@@ -75,7 +75,9 @@ namespace CONFIG
         void slot_ok_clicked() override;
         void slot_cancel_clicked() override;
 
+#ifndef USE_GTKMM4
         bool slot_key_press_event( GdkEventKey* event );
+#endif
         void slot_entry_changed();
         bool slot_visible_func( const Gtk::TreeModel::const_iterator& iter );
         void slot_cell_data( Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& it );

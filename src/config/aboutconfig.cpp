@@ -34,7 +34,7 @@ using namespace CONFIG;
 
 AboutConfig::AboutConfig( Gtk::Window* parent )
     : SKELETON::PrefDiag( parent, "", true )
-    , m_hbox_search{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+    , m_hbox_search{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
     , m_label{ "動作保証外です。高度な設定を変更するとJDimが誤作動する場合があります。", false }
 {
     CONFIG::bkup_conf();
@@ -48,7 +48,10 @@ AboutConfig::AboutConfig( Gtk::Window* parent )
 //
 void AboutConfig::pack_widgets()
 {
+#ifndef USE_GTKMM4
+    // TODO: GTK4 [Key] Gtk::EventControllerKey::signal_key_pressed に移行し、Ctrl+F の判定と検索バーへのイベント伝播を見直す。
     signal_key_press_event().connect( sigc::mem_fun( *this, &AboutConfig::slot_key_press_event ) );
+#endif
 
     JDLIB::compat::box_append_expand( m_hbox_search, m_label );
     JDLIB::compat::box_append_shrink( m_hbox_search, m_toggle_search );
@@ -58,7 +61,7 @@ void AboutConfig::pack_widgets()
     // m_toggle_search 以外にも m_search_bar を閉じる操作があるため双方向にバインドする
     m_binding_search = Glib::Binding::bind_property( m_toggle_search.property_active(),
                                                      m_search_bar.property_search_mode_enabled(),
-                                                     Glib::BINDING_BIDIRECTIONAL );
+                                                     JDLIB::compat::Binding::Flags::BIDIRECTIONAL );
 
     m_search_bar.add( m_search_entry );
     m_search_bar.connect_entry( m_search_entry );
@@ -81,14 +84,14 @@ void AboutConfig::pack_widgets()
 
     Gtk::TreeViewColumn* column = Gtk::manage( new Gtk::TreeViewColumn( "設定名", m_columns.m_col_name ) );
     column->set_fixed_width( 540 );
-    column->set_sizing( Gtk::TREE_VIEW_COLUMN_FIXED );
+    column->set_sizing( JDLIB::compat::TreeViewColumn::Sizing::FIXED );
     column->set_resizable( true );
     m_treeview.append_column( *column );
     Gtk::CellRenderer *cell = column->get_first_cell();
     if( cell ) column->set_cell_data_func( *cell, sigc::mem_fun( *this, &AboutConfig::slot_cell_data ) );
 
     column = Gtk::manage( new Gtk::TreeViewColumn( "値", m_columns.m_col_value ) );
-    column->set_sizing( Gtk::TREE_VIEW_COLUMN_FIXED );
+    column->set_sizing( JDLIB::compat::TreeViewColumn::Sizing::FIXED );
     column->set_resizable( true );
     m_treeview.append_column( *column );
     cell = column->get_first_cell();
@@ -96,7 +99,7 @@ void AboutConfig::pack_widgets()
 
     m_scrollwin.add( m_treeview );
     m_scrollwin.set_margin_bottom( 8 );
-    m_scrollwin.set_policy( Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS );
+    m_scrollwin.set_policy( JDLIB::compat::PolicyType::AUTOMATIC, JDLIB::compat::PolicyType::ALWAYS );
     m_scrollwin.set_propagate_natural_height( true );
     m_scrollwin.set_propagate_natural_width( true );
 
@@ -135,6 +138,7 @@ void AboutConfig::slot_cancel_clicked()
  * @param[in] event キーイベントの状態
  * @return 検索ボックスが非表示のときは m_search_bar の処理から返す、それ以外は false (GDK_EVENT_PROPAGATE)
  */
+#ifndef USE_GTKMM4
 bool AboutConfig::slot_key_press_event( GdkEventKey* event )
 {
     if( ( event->state & GDK_CONTROL_MASK ) && event->keyval == 'f' ) {
@@ -148,6 +152,7 @@ bool AboutConfig::slot_key_press_event( GdkEventKey* event )
     }
     return false;
 }
+#endif
 
 
 /**

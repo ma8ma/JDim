@@ -28,7 +28,11 @@ namespace IMAGE
         Gtk::Box m_iconbox;
         Gtk::ScrolledWindow m_scrwin;
         Gtk::Button m_left, m_right;
+#ifdef USE_GTKMM4
+        Gtk::Box m_view{ Gtk::Orientation::HORIZONTAL, 0 };
+#else
         Gtk::EventBox m_view;
+#endif
 
         std::list<std::unique_ptr<SKELETON::View>> m_list_view;
         /// @brief 画像を閉じるURLを入れるキュー（待ち行列）
@@ -39,10 +43,12 @@ namespace IMAGE
         int m_scroll;
         int m_counter_scroll{};
 
+#ifndef USE_GTKMM4
         double m_smooth_dy{}; // GDK_SCROLL_SMOOTH のスクロール変化量
 
         Glib::RefPtr<Gtk::GestureMultiPress> m_gesture_press_left;
         Glib::RefPtr<Gtk::GestureMultiPress> m_gesture_press_right;
+#endif
 
       public:
 
@@ -102,7 +108,9 @@ namespace IMAGE
         void unlock( const int page ) override;
 
         // タブの D&D 処理は SKELETON::Admin とは違うロジックでおこなう
+#ifndef USE_GTKMM4
         void slot_drag_data_get( Gtk::SelectionData& selection_data, const int page ) override {}
+#endif
 
       private:
 
@@ -129,7 +137,9 @@ namespace IMAGE
         void slot_release_left( int, double, double );
         void slot_release_right( int, double, double );
         // マウスホイールによるタブ切り替え
+#ifndef USE_GTKMM4
         bool slot_scroll_event( GdkEventScroll* event );
+#endif
 
         bool copy_file( const std::string& url, const std::string& path_from, const std::string& path_to );
         void save_all();

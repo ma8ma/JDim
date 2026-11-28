@@ -41,7 +41,11 @@ ImageViewIcon::ImageViewIcon( const std::string& url )
 
     // 選択されてる画像アイコンの背景色を赤にするための設定
     JDLIB::compat::box_append_expand( *this, get_event() );
+#ifdef USE_GTKMM4
+    get_event().set_margin( 1 );
+#else
     get_event().set_border_width( 1 );
+#endif
     try {
         m_provider->load_from_data( ".selected { background-color: red; }" );
     }
@@ -52,6 +56,9 @@ ImageViewIcon::ImageViewIcon( const std::string& url )
 
     setup_common();
 
+    // TODO: GTK4 [DnD] Gtk::DragSource / Gtk::DropTarget へ移行する。
+    //       画像タブの並べ替えと、お気に入りへのドロップは動かない。
+#ifndef USE_GTKMM4
     // D&D可能にする
     std::vector< Gtk::TargetEntry > targets;
     targets.push_back( Gtk::TargetEntry( DNDTARGET_IMAGETAB, Gtk::TARGET_SAME_APP, 0 ) );
@@ -60,10 +67,15 @@ ImageViewIcon::ImageViewIcon( const std::string& url )
     targets.push_back( Gtk::TargetEntry( DNDTARGET_FAVORITE, Gtk::TARGET_SAME_APP, 0 ) );
     get_event().drag_source_set( targets, Gdk::BUTTON1_MASK );
 
+    // TODO: GTK4 [DnD] Gtk::DragSource::signal_drag_begin に移行する。
     get_event().signal_drag_begin().connect( sigc::mem_fun( *this, &ImageViewIcon::slot_drag_begin ) );
+    // TODO: GTK4 [DnD] Gtk::DragSource::signal_prepare に移行し、Gdk::ContentProvider でアイコンの URL を提供する。
     get_event().signal_drag_data_get().connect( sigc::mem_fun( *this, &ImageViewIcon::slot_drag_data_get ) );
+    // TODO: GTK4 [DnD] Gtk::DropTarget::signal_drop に移行する。
     get_event().signal_drag_data_received().connect( sigc::mem_fun( *this, &ImageViewIcon::slot_drag_data_received ) );
+    // TODO: GTK4 [DnD] Gtk::DragSource::signal_drag_end に移行する。
     get_event().signal_drag_end().connect( sigc::mem_fun( *this, &ImageViewIcon::slot_drag_end ) );
+#endif
 }
 
 
@@ -176,7 +188,7 @@ void ImageViewIcon::switch_icon()
 //
 Gtk::Menu* ImageViewIcon::get_popupmenu( const std::string& url )
 {
-    Gtk::Menu* menu = dynamic_cast< Gtk::Menu* >( ui_manager()->get_widget( "/popup_menu_icon" ) );
+    Gtk::Menu* menu = get_popupmenu_impl( "/popup_menu_icon" );
 
     // タブ情報セット
     if( menu ){
@@ -193,6 +205,7 @@ Gtk::Menu* ImageViewIcon::get_popupmenu( const std::string& url )
 
 
 
+#ifndef USE_GTKMM4
 //
 // D&D開始
 //
@@ -251,6 +264,4 @@ void ImageViewIcon::slot_drag_end( const Glib::RefPtr< Gdk::DragContext >& conte
 
     CORE::DND_End();
 }
-
-
-
+#endif // USE_GTKMM4

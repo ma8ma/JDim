@@ -66,10 +66,12 @@ namespace CORE
         // OK押した
         void slot_ok_clicked() override;
 
+#ifndef USE_GTKMM4
         bool slot_button_press( GdkEventButton* event );
         bool slot_button_release( GdkEventButton* event );
         bool slot_key_press( GdkEventKey* event );
         bool slot_key_release( GdkEventKey* event );
+#endif
 
         void show_popupmenu();
         void delete_row();

@@ -6,6 +6,8 @@
 #ifndef _PANECONTROL_H
 #define _PANECONTROL_H
 
+#include "jdlib/sigc_compat.h"
+
 #include <gtkmm.h>
 
 namespace SKELETON
@@ -34,7 +36,7 @@ namespace SKELETON
     };
 
     // ペーン表示が切り替えられた
-    typedef sigc::signal< void, int > SIG_PANE_MODECHANGED;
+    typedef JDLIB::compat::signal< void(int) > SIG_PANE_MODECHANGED;
 
     class PaneControl
     {
@@ -78,18 +80,23 @@ namespace SKELETON
         void add_remove1( bool unpack, Gtk::Widget& child );
         void add_remove2( bool unpack, Gtk::Widget& child );
 
+#ifndef USE_GTKMM4
         void button_press_event( GdkEventButton* event );
         void button_release_event( GdkEventButton* );
         void motion_notify_event( GdkEventMotion* );
         void enter_notify_event( GdkEventCrossing* );
         void leave_notify_event( GdkEventCrossing* );
+#endif
 
       protected:
 
         bool is_on_paned() const { return m_on_paned; }
         const Gtk::Paned& get_paned() const { return m_paned; }
         virtual int get_size() const = 0;
+        // TODO: GTK4 [Mouse] Gtk::GestureClick::signal_pressed の座標を使った判定に置き換える。
+#ifndef USE_GTKMM4
         virtual bool is_separater_clicked( GdkEventButton* event ) const = 0;
+#endif
     };
 
 
@@ -106,12 +113,14 @@ namespace SKELETON
 
         int get_size() const override { return get_paned().get_width(); }
 
+#ifndef USE_GTKMM4
         bool is_separater_clicked( GdkEventButton* event ) const override
         {
             if( is_on_paned() && event->type == GDK_BUTTON_PRESS && event->button == 1
                 && event->x >= 0 && event->x <= 8 ) return true;
             return false;
         }
+#endif
     };
 
 
@@ -128,12 +137,14 @@ namespace SKELETON
 
         int get_size() const override { return get_paned().get_height(); }
 
+#ifndef USE_GTKMM4
         bool is_separater_clicked( GdkEventButton* event ) const override
         {
             if( is_on_paned() && event->type == GDK_BUTTON_PRESS && event->button == 1
                 && event->y >= 0 && event->y <= 8 ) return true;
             return false;
         }
+#endif
     };
 }
 

@@ -7,6 +7,8 @@
 
 #include "prefdiag.h"
 
+#include "jdlib/sigc_compat.h"
+
 #include <string>
 #include <list>
 
@@ -49,14 +51,26 @@ namespace SKELETON
         Gtk::Button m_button_up;
         Gtk::Button m_button_down;
         Gtk::Button m_button_bottom;
+#ifdef USE_GTKMM4
+        Gtk::Box m_vbuttonbox_v;
+#else
         Gtk::VButtonBox m_vbuttonbox_v;
+#endif
         // ボタン(横移動)
         Gtk::Button m_button_delete;
         Gtk::Button m_button_add;
+#ifdef USE_GTKMM4
+        Gtk::Box m_vbuttonbox_h;
+#else
         Gtk::VButtonBox m_vbuttonbox_h;
+#endif
         // ボタン(アクション)
         Gtk::Button m_button_default;
+#ifdef USE_GTKMM4
+        Gtk::Box m_vbuttonbox_action;
+#else
         Gtk::VButtonBox m_vbuttonbox_action;
+#endif
 
         // まとめ( m_vbuttonbox_* )
         Gtk::Box m_vbox;
@@ -71,10 +85,12 @@ namespace SKELETON
         Gtk::Box m_hbox;
 
         // キーフック用
-        typedef sigc::signal< bool, GdkEventKey* > SIG_KEY_PRESS;
-        typedef sigc::signal< bool, GdkEventKey* > SIG_KEY_RELEASE;
+#ifndef USE_GTKMM4
+        typedef JDLIB::compat::signal< bool(GdkEventKey*) > SIG_KEY_PRESS;
+        typedef JDLIB::compat::signal< bool(GdkEventKey*) > SIG_KEY_RELEASE;
         SIG_KEY_PRESS m_sig_key_press;
         SIG_KEY_RELEASE m_sig_key_release;
+#endif
 
       public:
 
@@ -87,8 +103,10 @@ namespace SKELETON
         void pack_widgets();
 
         // フォーカスが外れたTreeViewから項目の選択をなくす
+#ifndef USE_GTKMM4
         bool slot_focus_in_shown( GdkEventFocus* event );
         bool slot_focus_in_hidden( GdkEventFocus* event );
+#endif
 
         // 項目名でデフォルトデータからアイコンを取得
         Glib::RefPtr< Gio::Icon > get_icon( const Glib::ustring& name );
@@ -117,11 +135,13 @@ namespace SKELETON
         // 非表示項目から指定した項目を削除
         void erase_hidden( const std::string& name );
 
+#ifndef USE_GTKMM4
         // KeyPressのフック
         bool on_key_press_event( GdkEventKey* event ) override;
 
         // KeyReleaseのフック
         bool on_key_release_event( GdkEventKey* event ) override;
+#endif
 
         // 最上位へ移動
         void slot_top();

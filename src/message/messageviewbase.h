@@ -7,7 +7,6 @@
 
 #include "skeleton/view.h"
 #include "skeleton/compentry.h"
-#include "skeleton/jdtoolbar.h"
 
 #include <memory>
 #include <string_view>
@@ -39,14 +38,7 @@ namespace MESSAGE
         std::unique_ptr<SKELETON::View> m_preview;
         Gtk::Box m_msgview;
 
-        SKELETON::JDToolbar m_toolbar_name_mail;
-
-        Gtk::ToolItem m_tool_name;
-        Gtk::ToolItem m_tool_mail;
-        Gtk::ToolItem m_tool_fixname;
-        Gtk::ToolItem m_tool_fixmail;
-        Gtk::ToolItem m_tool_entry_name;
-        Gtk::ToolItem m_tool_entry_mail;
+        Gtk::Box m_toolbar_name_mail;
 
         Gtk::Label m_label_name;
         Gtk::Label m_label_mail;
@@ -110,7 +102,9 @@ namespace MESSAGE
         }
 
         // キーを押した        
+#ifndef USE_GTKMM4
         bool slot_key_press( GdkEventKey* event ) override;
+#endif
 
         void slot_new_subject_changed();
 
@@ -158,7 +152,9 @@ namespace MESSAGE
         // 下書きファイル挿入
         void insert_draft();
 
+#ifndef USE_GTKMM4
         bool slot_button_press( GdkEventButton* event );
+#endif
         void slot_switch_page( Gtk::Widget*, guint page );
         void slot_text_changed();
 

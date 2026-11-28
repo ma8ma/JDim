@@ -420,6 +420,8 @@ void BoardAdmin::command_local( const COMMAND_ARGS& command )
 //
 // タブをサイドバーにドロップした時にお気に入りがデータ送信を要求してきた
 //
+#ifndef USE_GTKMM4
+// TODO: GTK4 [DnD] Gtk::DragSource::signal_prepare に移行し、Gdk::ContentProvider で Admin URL を提供する。
 void BoardAdmin::slot_drag_data_get( Gtk::SelectionData& selection_data, const int page )
 {
 #ifdef _DEBUG    
@@ -449,6 +451,7 @@ void BoardAdmin::slot_drag_data_get( Gtk::SelectionData& selection_data, const i
 
     selection_data.set( DNDTARGET_FAVORITE, get_url() );
 }
+#endif
 
 
 

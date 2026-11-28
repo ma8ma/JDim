@@ -25,10 +25,10 @@ using namespace CORE;
 
 LinkFilterDiag::LinkFilterDiag( Gtk::Window* parent, const std::string& url, const std::string& cmd )
     : SKELETON::PrefDiag( parent, "" )
-    , m_vbox{ Gtk::ORIENTATION_VERTICAL, 0 }
-    , m_label_url( "アドレス", Gtk::ALIGN_START )
-    , m_hbox_cmd{ Gtk::ORIENTATION_HORIZONTAL, 0 }
-    , m_label_cmd( "実行するコマンド", Gtk::ALIGN_START )
+    , m_vbox{ JDLIB::compat::Orientation::VERTICAL, 0 }
+    , m_label_url( "アドレス", JDLIB::compat::Align::START )
+    , m_hbox_cmd{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
+    , m_label_cmd( "実行するコマンド", JDLIB::compat::Align::START )
     , m_button_manual( "オンラインマニュアルの置換文字一覧を表示" )
 {
     resize( 640, 1 );
@@ -43,7 +43,7 @@ LinkFilterDiag::LinkFilterDiag( Gtk::Window* parent, const std::string& url, con
     JDLIB::compat::box_append_shrink( m_vbox, m_entry_url );
 
     JDLIB::compat::box_append_shrink( m_hbox_cmd, m_label_cmd );
-    auto* spacer = Gtk::make_managed<Gtk::Box>( Gtk::ORIENTATION_HORIZONTAL, 0 );
+    auto* spacer = Gtk::make_managed<Gtk::Box>( JDLIB::compat::Orientation::HORIZONTAL, 0 );
     JDLIB::compat::box_append_expand( m_hbox_cmd, *spacer );
     JDLIB::compat::box_append_shrink( m_hbox_cmd, m_button_manual );
     JDLIB::compat::box_append_shrink( m_vbox, m_hbox_cmd );
@@ -77,7 +77,10 @@ LinkFilterPref::LinkFilterPref( Gtk::Window* parent, const std::string& url )
     , m_button_bottom( g_dpgettext( GTK_DOMAIN, "Stock label, navigation\x04_Bottom", 24 ), true )
     , m_button_delete( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Delete", 12 ), true )
     , m_button_add( g_dpgettext( GTK_DOMAIN, "Stock label\x04_Add", 12 ), true )
-    , m_hbox{ Gtk::ORIENTATION_HORIZONTAL, 0 }
+#ifdef USE_GTKMM4
+    , m_vbuttonbox{ JDLIB::compat::Orientation::VERTICAL, 4 }
+#endif
+    , m_hbox{ JDLIB::compat::Orientation::HORIZONTAL, 0 }
 {
     const bool use_symbolic = CONFIG::get_use_symbolic_icon();
     m_button_top.set_image_from_icon_name( use_symbolic ? "go-top-symbolic" : "go-top" );
@@ -96,22 +99,25 @@ LinkFilterPref::LinkFilterPref( Gtk::Window* parent, const std::string& url )
     m_treeview.set_model( m_liststore );
     m_treeview.set_size_request( 640, 400 );
     m_treeview.signal_row_activated().connect( sigc::mem_fun( *this, &LinkFilterPref::slot_row_activated ) );
+#ifndef USE_GTKMM4
+    // TODO: GTK4 [Key] Gtk::EventControllerKey を追加して signal_key_released に接続し、キー値・修飾キーの処理を変更する。
     m_treeview.sig_key_release().connect( sigc::mem_fun(*this, &LinkFilterPref::slot_key_release ) );
+#endif
 
     Gtk::TreeViewColumn* column = Gtk::manage( new Gtk::TreeViewColumn( "アドレス", m_columns.m_col_url ) );
     column->set_fixed_width( 240 );
-    column->set_sizing( Gtk::TREE_VIEW_COLUMN_FIXED );
+    column->set_sizing( JDLIB::compat::TreeViewColumn::Sizing::FIXED );
     column->set_resizable( true );
     m_treeview.append_column( *column );
 
     column = Gtk::manage( new Gtk::TreeViewColumn( "コマンド", m_columns.m_col_cmd ) );
     column->set_fixed_width( 240 );
-    column->set_sizing( Gtk::TREE_VIEW_COLUMN_FIXED );
+    column->set_sizing( JDLIB::compat::TreeViewColumn::Sizing::FIXED );
     column->set_resizable( true );
     m_treeview.append_column( *column );
 
     m_scrollwin.add( m_treeview );
-    m_scrollwin.set_policy( Gtk::POLICY_AUTOMATIC, Gtk::POLICY_ALWAYS );
+    m_scrollwin.set_policy( JDLIB::compat::PolicyType::AUTOMATIC, JDLIB::compat::PolicyType::ALWAYS );
 
     JDLIB::compat::box_append_shrink( m_vbuttonbox, m_button_top );
     JDLIB::compat::box_append_shrink( m_vbuttonbox, m_button_up );
@@ -119,8 +125,12 @@ LinkFilterPref::LinkFilterPref( Gtk::Window* parent, const std::string& url )
     JDLIB::compat::box_append_shrink( m_vbuttonbox, m_button_bottom );
     JDLIB::compat::box_append_shrink( m_vbuttonbox, m_button_delete );
     JDLIB::compat::box_append_shrink( m_vbuttonbox, m_button_add );
+#ifdef USE_GTKMM4
+    m_vbuttonbox.set_valign( JDLIB::compat::Align::START );
+#else
     m_vbuttonbox.set_layout( Gtk::BUTTONBOX_START );
     m_vbuttonbox.set_spacing( 4 );
+#endif
 
     JDLIB::compat::box_append_expand( m_hbox, m_scrollwin );
     JDLIB::compat::box_append_shrink( m_hbox, m_vbuttonbox );
@@ -241,7 +251,7 @@ void LinkFilterPref::slot_row_activated( const Gtk::TreeModel::Path& path, Gtk::
     if( ! row ) return;
 
     LinkFilterDiag diag( this, row[ m_columns.m_col_url ], row[ m_columns.m_col_cmd ] );
-    if( diag.run() == Gtk::RESPONSE_OK ){
+    if( diag.run() == JDLIB::compat::ResponseType::OK ){
         row[ m_columns.m_col_url ] = diag.get_entry_url();
         row[ m_columns.m_col_cmd ] = diag.get_cmd();
         static_cast<void>( row ); // cppcheck: unreadVariable
@@ -249,6 +259,7 @@ void LinkFilterPref::slot_row_activated( const Gtk::TreeModel::Path& path, Gtk::
 }
 
 
+#ifndef USE_GTKMM4
 bool LinkFilterPref::slot_key_release( GdkEventKey* event )
 {
     const int id = m_control.key_press( event );
@@ -261,6 +272,7 @@ bool LinkFilterPref::slot_key_release( GdkEventKey* event )
 
     return true;
 }
+#endif
 
 
 //
@@ -336,8 +348,8 @@ void LinkFilterPref::slot_delete()
     Gtk::TreeModel::iterator row = get_selected_row();
     if( ! row ) return;
 
-    SKELETON::MsgDiag mdiag( nullptr, "削除しますか？", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO );
-    if( mdiag.run() != Gtk::RESPONSE_YES ) return;
+    SKELETON::MsgDiag mdiag( nullptr, "削除しますか？", false, JDLIB::compat::MessageType::QUESTION, JDLIB::compat::ButtonsType::YES_NO );
+    if( mdiag.run() != JDLIB::compat::ResponseType::YES ) return;
 
     Gtk::TreePath path_next( row );
     path_next.next();
@@ -359,5 +371,5 @@ void LinkFilterPref::slot_delete()
 void LinkFilterPref::slot_add()
 {
     LinkFilterDiag diag( this, "", "" );
-    if( diag.run() == Gtk::RESPONSE_OK ) append_row( diag.get_entry_url(), diag.get_cmd() );
+    if( diag.run() == JDLIB::compat::ResponseType::OK ) append_row( diag.get_entry_url(), diag.get_cmd() );
 }

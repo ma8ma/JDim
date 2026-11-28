@@ -56,10 +56,12 @@ namespace CONTROL
 
       private:
 
+#ifndef USE_GTKMM4
         bool on_key_press_event (GdkEventKey* event) override;
         bool on_button_press_event( GdkEventButton* event ) override;
         bool on_button_release_event( GdkEventButton* event ) override;
         bool on_motion_notify_event( GdkEventMotion* event ) override;
+#endif
     };
 
 
@@ -98,7 +100,11 @@ namespace CONTROL
         Gtk::Button m_button_delete;
         Gtk::Button m_button_add;
         Gtk::Button m_button_reset;
+#ifdef USE_GTKMM4
+        Gtk::Box m_vbuttonbox;
+#else
         Gtk::VButtonBox m_vbuttonbox;
+#endif
         Gtk::Box m_hbox;
 
       public:
@@ -208,7 +214,9 @@ namespace CONTROL
         void slot_reset();
         void slot_row_activated( const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column );
         void slot_cell_data( Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& it );
+#ifndef USE_GTKMM4
         bool slot_key_press_event( GdkEventKey* event );
+#endif
         void slot_entry_changed();
         bool slot_visible_func( const Gtk::TreeModel::const_iterator& iter );
     };

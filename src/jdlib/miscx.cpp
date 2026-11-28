@@ -9,7 +9,11 @@
 #include <gdk/gdk.h>
 
 #ifdef GDK_WINDOWING_X11
+#ifdef USE_GTKMM4
+#include <gdk/x11/gdkx.h>
+#else
 #include <gdk/gdkx.h>
+#endif
 #endif // GDK_WINDOWING_X11
 
 
